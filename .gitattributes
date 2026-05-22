@@ -1,0 +1,14 @@
+# Keep repository text stable across Windows and Unix tooling.
+* text=auto eol=lf
+
+# Binary assets should never be line-normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.ogg binary
+*.wav binary
+*.wasm binary
