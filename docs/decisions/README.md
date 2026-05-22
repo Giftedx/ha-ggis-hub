@@ -1,0 +1,45 @@
+# Architecture Decision Records
+
+Status: section index  
+Scope: catalog of all ADRs in this project, with current status  
+Related: [Documentation index](../README.md), [Style guide](../style-guide.md), [Engineering principles](../foundation/01-engineering-principles.md)
+
+## What an ADR is here
+
+An Architecture Decision Record captures a single significant decision: what was chosen, the alternatives considered, why this choice, and how hard it would be to reverse. ADRs are immutable once accepted — they record a decision at a point in time. Later decisions that change direction get a new ADR that supersedes the old one rather than rewriting history.
+
+When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md) — broadly: runtime architecture, renderer, deployment pipeline, dependency strategy, public route shape, or testing/security gates.
+
+## Index
+
+| ADR | Title | Status | Date | Summary |
+|-----|-------|--------|------|---------|
+| [0001](0001-rust-wasm-core-typescript-host.md) | Rust/WASM core, TypeScript host, replaceable renderer | accepted | 2026-05-22 | The foundation stack direction. |
+| [0002](0002-renderer-evaluation-plan.md) | Renderer evaluation plan | proposed (decision-pending) | 2026-05-22 | Lays out criteria and evidence required before choosing Canvas2D vs PixiJS for the first slice. |
+| [0003](0003-whs-integration-strategy.md) | Wild Haggis Survivors integration strategy | proposed (decision-pending) | 2026-05-22 | Documents Option A (external URL) vs Option B (`/wild-haggis-survivors/` mount); decision deferred until deployment is real. |
+| [0004](0004-language-and-craft-philosophy.md) | Language and craft philosophy | accepted | 2026-05-22 | Makes the systems-language taste and hand-roll-vs-library posture explicit policy. |
+
+## Statuses
+
+- **accepted**: the decision has been made and is in force. Future work should not contradict it without superseding it via a new ADR.
+- **proposed**: the decision has been written down but not committed to.
+- **proposed (decision-pending)**: a special case of proposed — the ADR documents the criteria and constraints for a decision that has not been made yet (used when the decision needs evidence the project cannot yet produce). See the template for this shape.
+- **superseded**: replaced by a later ADR. The superseded ADR remains in the repo; a `Superseded by:` line points forward.
+
+## How to create an ADR
+
+1. Copy [`adr-template.md`](adr-template.md).
+2. Number it as the next integer (zero-padded to four digits): `0005-...`.
+3. Pick the appropriate shape from the template (accepted vs decision-pending).
+4. File it as `docs/decisions/NNNN-short-title.md` (lowercase kebab-case after the number).
+5. Update this index in the same change.
+6. If the ADR supersedes an earlier one, edit the old ADR's status to `superseded` and add a `Superseded by:` line.
+
+## Follow-up ADRs expected
+
+Based on current planning (see [ADR-0001](0001-rust-wasm-core-typescript-host.md) follow-ups and the [implementation sequence](../plans/2026-05-22-implementation-sequence.md)):
+
+- renderer choice for the First Perfect Slice (closes ADR-0002)
+- WHS route/mount strategy (closes ADR-0003)
+- CI/deployment architecture if Cloudflare Pages build limitations force GitHub Actions + Wrangler
+- save schema and migration policy once persistence is needed

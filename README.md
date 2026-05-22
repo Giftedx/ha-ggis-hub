@@ -1,0 +1,63 @@
+# ha.ggis Hub
+
+`ha.ggis Hub` is the planned playable front door for haggis-themed games at `https://ha.ggis.xyz`.
+
+The name is the joke and the product promise:
+
+```text
+ha + ggis = haggis
+ha.ggis.xyz = say it without the dot
+```
+
+This repository is currently in its foundation phase. There is intentionally no app scaffold yet: the documentation, architecture decisions, quality gates, and agent operating rules are being established first so the implementation does not inherit weak assumptions.
+
+## Start here
+
+Begin with the [Documentation index](docs/README.md). It catalogues every doc and gives the full recommended reading order.
+
+If you only have time for the load-bearing four, read these in order:
+
+1. [Quality manifesto](docs/foundation/11-quality-manifesto.md) — why this project exists and what it refuses to be
+2. [Project charter](docs/foundation/00-project-charter.md) — identity, non-negotiables, WHS boundary
+3. [Stack decision record](docs/foundation/05-stack-decision-record.md) — Rust/WASM core + TypeScript host
+4. [First Perfect Slice](docs/foundation/10-first-perfect-slice.md) — scope of the first public release
+
+[`AGENTS.md`](AGENTS.md) is the entry point for autonomous agents. [`CONTRIBUTING.md`](CONTRIBUTING.md) is the entry point for humans contributing changes. [`SECURITY.md`](SECURITY.md) covers vulnerability reporting.
+
+## Current state
+
+- Product: planned playable haggis game hub.
+- Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
+- First linked game: Wild Haggis Survivors.
+- Implementation status: not scaffolded yet.
+- Canonical stack direction: Rust/WASM core + TypeScript/Vite host + replaceable renderer.
+- Renderer for the first slice: still open; Canvas2D or PixiJS are the current leading options.
+
+## Non-negotiable standard
+
+Small scope is allowed. Weak foundations are not.
+
+The first public release is a **First Perfect Slice**, not an MVP. It should be small enough to finish and strict enough to prove the final quality bar: deterministic core logic where useful, clear runtime boundaries, strict tests, secure deployment, documented decisions, and no dependency soup.
+
+## Repository documentation map
+
+- `docs/foundation/` — canonical project foundation and policies (numbered).
+- `docs/architecture/` — planned runtime architecture, boundaries, testing, security, observability.
+- `docs/decisions/` — architecture decision records (ADRs).
+- `docs/plans/` — implementation plans and execution sequences.
+- `docs/deployment/` — deployment and hosting documentation.
+- `docs/research/` — external research notes and uncertainty logs.
+- `docs/audit/` — documentation audits and drift reports.
+- `docs/archive/` — superseded plans kept as provenance.
+- `.hermes/` — tooling state from external planning tools, not canonical content.
+
+## Before writing implementation code
+
+Future contributors and agents must read:
+
+- [Agent operating mode](docs/foundation/08-agent-operating-mode.md)
+- [Stack decision record](docs/foundation/05-stack-decision-record.md)
+- [Quality gates](docs/foundation/07-quality-gates.md)
+- [First Perfect Slice](docs/foundation/10-first-perfect-slice.md)
+
+Do not scaffold from the archived original plan. It is preserved only as historical input.
