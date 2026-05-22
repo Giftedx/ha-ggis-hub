@@ -1,7 +1,7 @@
 # ADR-0004: Language and Craft Philosophy
 
-Status: accepted  
-Date: 2026-05-22  
+Status: accepted
+Date: 2026-05-22
 Related: [Quality manifesto](../foundation/11-quality-manifesto.md), [Stack decision record](../foundation/05-stack-decision-record.md), [Dependency policy](../foundation/06-dependency-policy.md), [Craft commitments](../foundation/12-craft-commitments.md)
 
 ## Context

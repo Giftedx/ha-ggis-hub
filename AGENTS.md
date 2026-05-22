@@ -17,7 +17,7 @@ This file is the fast path for autonomous agents entering the repository. It sum
 
 ## Current phase
 
-Foundation phase. No app scaffold exists yet. Do not pretend `package.json`, `Cargo.toml`, Vite, Rust crates, CI, or Cloudflare config exist until created in an implementation slice. The next-phase roadmap is [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md).
+Executable foundation phase. The initial Rust workspace, WASM boundary crate, and TypeScript/Vite host now exist. Gameplay, renderer selection, CI, Playwright, and Cloudflare config are still future slices. The next-phase roadmap is [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md).
 
 ## Prime rule
 

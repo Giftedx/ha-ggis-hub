@@ -1,7 +1,7 @@
 # Data and Save Boundaries
 
-Status: planned architecture  
-Scope: game registry, hub persistence, and Wild Haggis Survivors separation  
+Status: planned architecture
+Scope: game registry, hub persistence, and Wild Haggis Survivors separation
 Related: [Runtime boundaries](runtime-boundaries.md), [Product vision](../foundation/03-product-vision.md)
 
 ## Registry principle

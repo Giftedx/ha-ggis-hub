@@ -1,14 +1,15 @@
 # Security Policy
 
-Status: canonical security policy (foundation phase)  
-Scope: how to report vulnerabilities in `ha.ggis Hub`  
+Status: canonical security policy (executable foundation phase)
+Scope: how to report vulnerabilities in `ha.ggis Hub`
 Related: [Security model](docs/architecture/security-model.md), [Dependency policy](docs/foundation/06-dependency-policy.md), [Quality gates](docs/foundation/07-quality-gates.md)
 
 ## Current phase
 
-The project is documentation-first. There is no implementation, no deployed surface, and no production user data. The dominant security concerns at this stage are:
+The project has an executable foundation skeleton but no public release, no deployed production surface, and no production user data. The dominant security concerns at this stage are:
 
-- supply chain (when dependencies are eventually added)
+- supply chain for the newly introduced Rust/WASM and TypeScript build dependencies
+- unsafe browser/WASM boundary patterns as the scaffold grows
 - documentation drift that would lead future implementers into an insecure pattern
 - accidental commitment of secrets into the repository
 

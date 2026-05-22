@@ -1,7 +1,7 @@
 # Architecture Overview
 
-Status: planned architecture  
-Scope: top-level system model for the implementation phase  
+Status: planned architecture
+Scope: top-level system model for the implementation phase
 Related: [Stack decision record](../foundation/05-stack-decision-record.md), [Runtime boundaries](runtime-boundaries.md), [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md)
 
 ## System shape

@@ -1,14 +1,14 @@
 # 2026-05-22 Implementation Sequence Plan
 
-Status: planned implementation sequence  
-Scope: ordered slices after documentation foundation  
+Status: planned implementation sequence
+Scope: ordered slices after documentation foundation
 Related: [First Perfect Slice](../foundation/10-first-perfect-slice.md), [Architecture overview](../architecture/overview.md), [Quality gates](../foundation/07-quality-gates.md)
 
 ## Goal
 
 Move from documentation foundation to executable foundation without losing the quality bar.
 
-## Slice 1: repository and toolchain skeleton
+## Slice 1: repository and toolchain skeleton — complete 2026-05-23
 
 Create:
 
@@ -22,9 +22,10 @@ Create:
 
 Acceptance:
 
-- Rust workspace builds empty crates.
-- Vite app builds minimal shell.
-- docs updated from “not scaffolded” to “skeleton exists.”
+- Complete: Rust workspace builds `hub-core` and `hub-wasm`.
+- Complete: Vite app builds a minimal framework-free shell.
+- Complete: docs updated from “not scaffolded” to “skeleton exists.”
+- Verification recorded in [Slice 1 executable foundation report](../audit/2026-05-23-slice-1-executable-foundation-report.md).
 
 ## Slice 2: hub-core movement and doors
 

@@ -1,7 +1,7 @@
 # ADR-NNNN: Title
 
-Status: proposed | proposed (decision-pending) | accepted | superseded  
-Date: YYYY-MM-DD  
+Status: proposed | proposed (decision-pending) | accepted | superseded
+Date: YYYY-MM-DD
 Related: links
 
 This template supports two ADR shapes. Pick the one that matches the decision's state, delete the other, and remove this preamble before filing.

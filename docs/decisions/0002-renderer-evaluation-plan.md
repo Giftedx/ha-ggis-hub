@@ -1,7 +1,7 @@
 # ADR-0002: Renderer Evaluation Plan
 
-Status: proposed (decision-pending)  
-Date: 2026-05-22  
+Status: proposed (decision-pending)
+Date: 2026-05-22
 Related: [Architecture options](../foundation/04-architecture-options.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [ADR template](adr-template.md)
 
 This ADR uses the decision-pending shape. The renderer choice has not been made; this document commits to *how* it will be made and what evidence must exist before a follow-up ADR records the actual choice.

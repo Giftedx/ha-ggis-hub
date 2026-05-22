@@ -1,7 +1,7 @@
 # 12 Craft Commitments
 
-Status: canonical foundation policy  
-Scope: which primitives this project hand-rolls, and where C, WebAssembly Text, and Go legitimately appear  
+Status: canonical foundation policy
+Scope: which primitives this project hand-rolls, and where C, WebAssembly Text, and Go legitimately appear
 Related: [Quality manifesto](11-quality-manifesto.md), [Engineering principles](01-engineering-principles.md), [Dependency policy](06-dependency-policy.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md), [Architecture overview](../architecture/overview.md), [Implementation sequence](../plans/2026-05-22-implementation-sequence.md)
 
 ## Purpose

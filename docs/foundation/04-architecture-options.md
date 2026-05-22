@@ -1,7 +1,7 @@
 # 04 Architecture Options
 
-Status: canonical research summary  
-Scope: evaluated architecture paths before implementation  
+Status: canonical research summary
+Scope: evaluated architecture paths before implementation
 Related: [Stack decision record](05-stack-decision-record.md), [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md)
 
 ## Evaluation criteria

@@ -1,7 +1,7 @@
 # ADR-0001: Rust/WASM Core, TypeScript Host, Replaceable Renderer
 
-Status: accepted  
-Date: 2026-05-22  
+Status: accepted
+Date: 2026-05-22
 Related: [Architecture options](../foundation/04-architecture-options.md), [Stack decision record](../foundation/05-stack-decision-record.md)
 
 ## Context

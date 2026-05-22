@@ -1,7 +1,7 @@
 # Autopilot System
 
-Status: planned architecture  
-Scope: how AI agents should safely plan, implement, review, and improve the project over time  
+Status: planned architecture
+Scope: how AI agents should safely plan, implement, review, and improve the project over time
 Related: [Agent operating mode](../foundation/08-agent-operating-mode.md), [Evaluation strategy](evaluation-strategy.md), [Quality manifesto](../foundation/11-quality-manifesto.md)
 
 ## Goal

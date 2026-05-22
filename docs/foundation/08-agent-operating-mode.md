@@ -1,7 +1,7 @@
 # 08 Agent Operating Mode
 
-Status: canonical foundation policy  
-Scope: how autonomous agents plan, edit, verify, and report in this repo  
+Status: canonical foundation policy
+Scope: how autonomous agents plan, edit, verify, and report in this repo
 Related: [Quality gates](07-quality-gates.md), [Engineering principles](01-engineering-principles.md), [First Perfect Slice](10-first-perfect-slice.md)
 
 ## Prime directive

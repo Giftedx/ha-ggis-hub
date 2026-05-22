@@ -1,18 +1,33 @@
 # 07 Quality Gates
 
-Status: canonical foundation policy  
-Scope: required validation before PR, main, and release milestones  
+Status: canonical foundation policy
+Scope: required validation before PR, main, and release milestones
 Related: [Technical bar](02-technical-bar.md), [Release definition](09-release-definition.md), [Agent operating mode](08-agent-operating-mode.md)
 
 ## Current repo status
 
-The implementation has not been scaffolded yet. Commands below are planned gates. They become executable once the relevant files exist.
+The executable foundation skeleton now exists. The skeleton gate below is current and must pass before further implementation slices are considered healthy. Broader PR/release/deep gates remain planned until their tools and targets are introduced.
 
 ## Gate tiers
 
-### Foundation gate
+### Current skeleton gate
 
 Applies now:
+
+```bash
+cargo fmt --all -- --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
+pnpm install --frozen-lockfile
+pnpm exec tsc --noEmit
+pnpm exec vitest run
+pnpm run build
+```
+
+### Documentation foundation gate
+
+Also applies now:
 
 - Markdown docs exist in the documented structure.
 - Root README links resolve.
@@ -20,7 +35,7 @@ Applies now:
 - Commands in docs are labelled planned if not executable yet.
 - Docs do not claim code/config exists before it does.
 
-### PR gate, planned
+### Full PR gate, planned
 
 ```bash
 cargo fmt --all -- --check

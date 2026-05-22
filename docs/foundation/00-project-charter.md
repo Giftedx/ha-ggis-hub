@@ -1,7 +1,7 @@
 # 00 Project Charter
 
-Status: canonical foundation policy  
-Scope: identity, purpose, non-negotiables, and project boundaries  
+Status: canonical foundation policy
+Scope: identity, purpose, non-negotiables, and project boundaries
 Related: [Product vision](03-product-vision.md), [First Perfect Slice](10-first-perfect-slice.md), [Stack decision record](05-stack-decision-record.md)
 
 ## Identity

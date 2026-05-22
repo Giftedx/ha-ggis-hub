@@ -1,7 +1,7 @@
 # ha.ggis Hub Foundation Plan
 
-Status: historical plan  
-Scope: the plan that drove the foundation phase  
+Status: historical plan
+Scope: the plan that drove the foundation phase
 Related: [Implementation sequence](2026-05-22-implementation-sequence.md), [Documentation index](../README.md), [2026-05-23 docs audit](../audit/2026-05-23-docs-audit.md)
 
 > **Note (2026-05-23):** The prescriptive sections of this document (the F1–F6 doc-creation tasks, the architecture options list, the dependency policy template, the gate template) have all been executed. The canonical, currently-in-force versions live under `docs/foundation/`, `docs/decisions/`, and `docs/deployment/`. This plan is retained verbatim as provenance for *how* the foundation came together. Do not treat the imperative language ("create these as repo docs") as live work.

@@ -10,11 +10,11 @@ This is the canonical index for ha.ggis Hub documentation.
 - Superseded material lives under `docs/archive/` with an explicit supersession note.
 - Every doc should state its scope, status, and nearest related docs.
 - Examples must be marked as one of: `planned`, `candidate`, or `current`.
-- Commands that cannot run yet because the repo is not scaffolded must be labelled `planned`.
+- Commands that cannot run yet because required files/tools are not introduced must be labelled `planned`.
 
 ## Current documentation status
 
-The repository is in foundation phase. There is no code scaffold, package manifest, Rust workspace, Vite config, CI config, or Cloudflare config yet. Docs that mention those files describe target architecture unless explicitly marked current.
+The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, and deterministic lockfiles exist. Renderer/gameplay, CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
 
 ## Recommended reading order
 
@@ -102,6 +102,7 @@ Decisions and plans:
 
 - [Foundation plan](plans/2026-05-22-ha-ggis-hub-foundation.md)
 - [Implementation sequence](plans/2026-05-22-implementation-sequence.md)
+- [Slice 1 executable foundation plan](plans/2026-05-23-slice-1-executable-foundation.md)
 
 ### Deployment
 
@@ -113,7 +114,8 @@ Decisions and plans:
 
 ### Audit
 
-- [2026-05-23 documentation audit](audit/2026-05-23-docs-audit.md) — current
+- [2026-05-23 Slice 1 executable foundation report](audit/2026-05-23-slice-1-executable-foundation-report.md) — current
+- [2026-05-23 documentation audit](audit/2026-05-23-docs-audit.md) — historical
 - [2026-05-22 foundation strengthening report](audit/2026-05-22-foundation-strengthening-report.md) — historical
 - [2026-05-22 documentation audit](audit/2026-05-22-docs-audit.md) — historical
 
@@ -121,24 +123,22 @@ Decisions and plans:
 
 - [Original seed plan, superseded](archive/2026-05-22-original-ha-ggis-hub-plan.md)
 
-## Missing implementation files by design
+## Current executable skeleton files
 
-These files are expected later but do not exist yet. The list is grouped by area so a contributor scanning for a specific concern can see what to expect.
+These files exist now and form the current Slice 1 scaffold:
 
-Tooling and config:
-
+- `.gitignore`
+- `.gitattributes`
 - `package.json`
 - `pnpm-lock.yaml`
 - `tsconfig.json`
-- `eslint.config.js`
-- `prettier.config.js`
 - `vite.config.ts`
-- `playwright.config.ts`
-- `.github/workflows/ci.yml`
-- `.gitignore`
-
-Rust workspace:
-
+- `index.html`
+- `src/main.ts`
+- `src/style.css`
+- `src/app/app.ts`
+- `src/app/app.test.ts`
+- `src/vite-env.d.ts`
 - `Cargo.toml` (workspace manifest)
 - `Cargo.lock`
 - `crates/hub-core/Cargo.toml`
@@ -146,11 +146,20 @@ Rust workspace:
 - `crates/hub-wasm/Cargo.toml`
 - `crates/hub-wasm/src/lib.rs`
 
-TypeScript host (planned layout from [Architecture overview](architecture/overview.md)):
+## Missing implementation files by design
 
-- `index.html`
-- `src/style.css`
-- `src/app/`, `src/engine/`, `src/games/`, `src/navigation/`, `src/render/`, `src/ui/`, `src/wasm/`
+These files are expected later but do not exist yet. The list is grouped by area so a contributor scanning for a specific concern can see what to expect.
+
+Tooling and config:
+
+- `eslint.config.js`
+- `prettier.config.js`
+- `playwright.config.ts`
+- `.github/workflows/ci.yml`
+
+TypeScript host planned directories from [Architecture overview](architecture/overview.md):
+
+- `src/engine/`, `src/games/`, `src/navigation/`, `src/render/`, `src/ui/`, `src/wasm/`
 
 Deployment:
 

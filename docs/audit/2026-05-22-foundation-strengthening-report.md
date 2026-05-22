@@ -1,7 +1,7 @@
 # 2026-05-22 Foundation Strengthening Report
 
-Status: historical audit report  
-Scope: second documentation hardening pass after initial foundation setup  
+Status: historical audit report
+Scope: second documentation hardening pass after initial foundation setup
 Superseded by: [2026-05-23 documentation audit](2026-05-23-docs-audit.md)
 
 ## Purpose

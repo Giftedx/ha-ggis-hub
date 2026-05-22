@@ -1,7 +1,7 @@
 # 10 First Perfect Slice
 
-Status: canonical scope definition  
-Scope: first public-quality deliverable  
+Status: canonical scope definition
+Scope: first public-quality deliverable
 Related: [Product vision](03-product-vision.md), [Technical bar](02-technical-bar.md), [Release definition](09-release-definition.md)
 
 ## Definition

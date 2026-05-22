@@ -1,7 +1,7 @@
 # Security Model
 
-Status: planned architecture  
-Scope: static-app security posture, browser boundary risk, supply chain, deployment  
+Status: planned architecture
+Scope: static-app security posture, browser boundary risk, supply chain, deployment
 Related: [Dependency policy](../foundation/06-dependency-policy.md), [Cloudflare Pages](../deployment/cloudflare-pages.md)
 
 ## Threat model summary

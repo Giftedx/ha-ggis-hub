@@ -1,7 +1,7 @@
 # 02 Technical Bar
 
-Status: canonical foundation policy  
-Scope: what “good enough” means technically  
+Status: canonical foundation policy
+Scope: what “good enough” means technically
 Related: [Quality gates](07-quality-gates.md), [Release definition](09-release-definition.md), [First Perfect Slice](10-first-perfect-slice.md)
 
 ## Baseline bar

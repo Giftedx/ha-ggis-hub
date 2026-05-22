@@ -1,7 +1,7 @@
 # Testing Strategy
 
-Status: planned architecture  
-Scope: what gets tested where and why  
+Status: planned architecture
+Scope: what gets tested where and why
 Related: [Quality gates](../foundation/07-quality-gates.md), [Technical bar](../foundation/02-technical-bar.md)
 
 ## Testing pyramid for this project

@@ -1,0 +1,20 @@
+[workspace]
+members = [
+  "crates/hub-core",
+  "crates/hub-wasm",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.94"
+license = "UNLICENSED"
+repository = "https://github.com/aggis/ha-ggis-hub"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"

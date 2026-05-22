@@ -1,7 +1,7 @@
 # Cloudflare Pages Deployment Foundation
 
-Status: planned deployment foundation  
-Scope: target hosting, redirects, headers, caching, source maps  
+Status: planned deployment foundation
+Scope: target hosting, redirects, headers, caching, source maps
 Related: [Release definition](../foundation/09-release-definition.md), [Quality gates](../foundation/07-quality-gates.md)
 
 ## Current status

@@ -1,8 +1,8 @@
 # Contributing
 
-Status: canonical contributor guide (foundation phase)
+Status: canonical contributor guide (executable foundation phase)
 
-ha.ggis Hub is intentionally documentation-first while the technical foundation is established.
+ha.ggis Hub now has its first executable foundation skeleton. Contributions must keep implementation, documentation, and quality gates aligned while preserving the no-slop foundation.
 
 ## Before starting
 
@@ -22,20 +22,25 @@ If you are an autonomous agent, also read [`AGENTS.md`](AGENTS.md).
 
 ## Current contribution types
 
-Allowed now:
+Allowed now with a written plan and matching verification:
 
 - documentation corrections
 - architecture research
 - ADR drafts
 - implementation plans
 - quality-gate design
+- Rust core and WASM boundary slices
+- strict TypeScript/Vite host slices
+- dependency additions that satisfy the dependency policy and are documented
 
-Not yet allowed without a plan:
+Still not allowed without a specific plan/ADR where appropriate:
 
-- app scaffold
+- alternate app scaffold or scaffold reset
 - dependency installation
 - renderer selection
 - deployment setup
+- CI setup
+- public route changes
 
 ## Documentation standard
 
@@ -65,4 +70,4 @@ Minimum:
 - docs do not claim missing files exist
 - archived material is clearly marked superseded
 
-Implementation gates are listed in `docs/foundation/07-quality-gates.md` and become active when the scaffold exists.
+Implementation gates are listed in `docs/foundation/07-quality-gates.md`. The current skeleton gate is active; future gates become active only when their tools and targets exist.

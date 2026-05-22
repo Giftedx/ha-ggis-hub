@@ -1,7 +1,7 @@
 # Architecture Documentation
 
-Status: section index  
-Scope: planned runtime architecture, boundaries, testing, evaluation, observability, and security  
+Status: section index
+Scope: planned runtime architecture, boundaries, testing, evaluation, observability, and security
 Related: [Documentation index](../README.md), [Stack decision record](../foundation/05-stack-decision-record.md), [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md)
 
 ## What this section is for

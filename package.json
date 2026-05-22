@@ -1,0 +1,23 @@
+{
+  "name": "ha-ggis-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "description": "Playable Rust/WASM haggis game hub for ha.ggis.xyz.",
+  "engines": {
+    "node": ">=22 <26",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "8.0.14",
+    "vitest": "4.1.7"
+  }
+}

@@ -1,7 +1,7 @@
 # 11 Quality Manifesto
 
-Status: canonical foundation policy  
-Scope: uncompromising project bar, language taste, hand-rolled craft, and autopilot philosophy  
+Status: canonical foundation policy
+Scope: uncompromising project bar, language taste, hand-rolled craft, and autopilot philosophy
 Related: [Engineering principles](01-engineering-principles.md), [Technical bar](02-technical-bar.md), [Agent operating mode](08-agent-operating-mode.md), [Craft commitments](12-craft-commitments.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md)
 
 ## Manifesto

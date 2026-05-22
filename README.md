@@ -9,7 +9,7 @@ ha + ggis = haggis
 ha.ggis.xyz = say it without the dot
 ```
 
-This repository is currently in its foundation phase. There is intentionally no app scaffold yet: the documentation, architecture decisions, quality gates, and agent operating rules are being established first so the implementation does not inherit weak assumptions.
+This repository has moved from documentation-only foundation into its first executable foundation slice. The current scaffold is intentionally small: a Rust workspace with `hub-core` and `hub-wasm`, plus a strict TypeScript/Vite browser host. Gameplay, renderer choice, deployment config, and WHS mounting remain planned future slices.
 
 ## Start here
 
@@ -29,7 +29,8 @@ If you only have time for the load-bearing four, read these in order:
 - Product: planned playable haggis game hub.
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors.
-- Implementation status: not scaffolded yet.
+- Implementation status: executable foundation skeleton exists.
+- Current executable stack: Rust workspace (`hub-core`, `hub-wasm`) + TypeScript/Vite host.
 - Canonical stack direction: Rust/WASM core + TypeScript/Vite host + replaceable renderer.
 - Renderer for the first slice: still open; Canvas2D or PixiJS are the current leading options.
 
@@ -50,6 +51,21 @@ The first public release is a **First Perfect Slice**, not an MVP. It should be 
 - `docs/audit/` — documentation audits and drift reports.
 - `docs/archive/` — superseded plans kept as provenance.
 - `.hermes/` — tooling state from external planning tools, not canonical content.
+
+## Current executable gates
+
+The current skeleton supports these gates:
+
+```bash
+cargo fmt --all -- --check
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
+pnpm install --frozen-lockfile
+pnpm exec tsc --noEmit
+pnpm exec vitest run
+pnpm run build
+```
 
 ## Before writing implementation code
 

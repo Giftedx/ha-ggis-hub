@@ -1,7 +1,7 @@
 # 09 Release Definition
 
-Status: canonical foundation policy  
-Scope: what it means to release this project publicly  
+Status: canonical foundation policy
+Scope: what it means to release this project publicly
 Related: [Quality gates](07-quality-gates.md), [Deployment foundation](../deployment/cloudflare-pages.md), [First Perfect Slice](10-first-perfect-slice.md)
 
 ## Release philosophy

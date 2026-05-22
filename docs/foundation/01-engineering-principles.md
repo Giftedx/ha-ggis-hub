@@ -1,7 +1,7 @@
 # 01 Engineering Principles
 
-Status: canonical foundation policy  
-Scope: engineering values that guide every implementation decision  
+Status: canonical foundation policy
+Scope: engineering values that guide every implementation decision
 Related: [Technical bar](02-technical-bar.md), [Dependency policy](06-dependency-policy.md), [Quality gates](07-quality-gates.md)
 
 ## 1. No slop

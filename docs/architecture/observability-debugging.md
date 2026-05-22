@@ -1,7 +1,7 @@
 # Observability and Debugging
 
-Status: planned architecture  
-Scope: diagnostics needed to keep the hub debuggable without polluting production  
+Status: planned architecture
+Scope: diagnostics needed to keep the hub debuggable without polluting production
 Related: [Testing strategy](testing-strategy.md), [Runtime boundaries](runtime-boundaries.md)
 
 ## Principle

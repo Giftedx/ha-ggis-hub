@@ -1,7 +1,7 @@
 # 03 Product Vision
 
-Status: canonical foundation policy  
-Scope: product shape, tone, first experience, and user-facing boundaries  
+Status: canonical foundation policy
+Scope: product shape, tone, first experience, and user-facing boundaries
 Related: [Project charter](00-project-charter.md), [First Perfect Slice](10-first-perfect-slice.md)
 
 ## One-sentence vision

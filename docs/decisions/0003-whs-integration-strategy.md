@@ -1,7 +1,7 @@
 # ADR-0003: Wild Haggis Survivors Integration Strategy
 
-Status: proposed (decision-pending)  
-Date: 2026-05-22  
+Status: proposed (decision-pending)
+Date: 2026-05-22
 Related: [Data and save boundaries](../architecture/data-and-save-boundaries.md), [Cloudflare Pages](../deployment/cloudflare-pages.md), [ADR template](adr-template.md)
 
 This ADR uses the decision-pending shape. The launch strategy will be chosen after deployment is real and the WHS build base path can be tested under the production hub.

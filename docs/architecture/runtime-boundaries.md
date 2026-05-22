@@ -1,7 +1,7 @@
 # Runtime Boundaries
 
-Status: planned architecture  
-Scope: lifecycle and data-flow boundaries between core, host, renderer, and game modules  
+Status: planned architecture
+Scope: lifecycle and data-flow boundaries between core, host, renderer, and game modules
 Related: [Architecture overview](overview.md), [Data and save boundaries](data-and-save-boundaries.md)
 
 ## Game module contract

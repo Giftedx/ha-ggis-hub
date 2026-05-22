@@ -1,7 +1,7 @@
 # 05 Stack Decision Record
 
-Status: canonical decision  
-Scope: current foundation stack direction  
+Status: canonical decision
+Scope: current foundation stack direction
 Related: [Architecture options](04-architecture-options.md), [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md), [Quality gates](07-quality-gates.md)
 
 ## Decision

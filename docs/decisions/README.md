@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
-Status: section index  
-Scope: catalog of all ADRs in this project, with current status  
+Status: section index
+Scope: catalog of all ADRs in this project, with current status
 Related: [Documentation index](../README.md), [Style guide](../style-guide.md), [Engineering principles](../foundation/01-engineering-principles.md)
 
 ## What an ADR is here

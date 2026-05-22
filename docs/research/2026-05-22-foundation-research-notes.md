@@ -1,6 +1,6 @@
 # 2026-05-22 Foundation Research Notes
 
-Status: current research notes  
+Status: current research notes
 Scope: external references and uncertainty log for foundation docs
 
 ## External checks performed

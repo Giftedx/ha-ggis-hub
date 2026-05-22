@@ -1,7 +1,7 @@
 # 06 Dependency Policy
 
-Status: canonical foundation policy  
-Scope: how dependencies are selected, justified, audited, and removed  
+Status: canonical foundation policy
+Scope: how dependencies are selected, justified, audited, and removed
 Related: [Engineering principles](01-engineering-principles.md), [Quality gates](07-quality-gates.md)
 
 ## Principle

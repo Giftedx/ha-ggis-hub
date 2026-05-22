@@ -1,7 +1,7 @@
 # 2026-05-22 Documentation Audit
 
-Status: historical audit report  
-Scope: all Markdown files and repo/code drift at the time of foundation documentation setup  
+Status: historical audit report
+Scope: all Markdown files and repo/code drift at the time of foundation documentation setup
 Superseded by: [2026-05-23 documentation audit](2026-05-23-docs-audit.md)
 
 ## Repository state audited

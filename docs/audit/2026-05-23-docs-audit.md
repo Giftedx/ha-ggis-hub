@@ -1,7 +1,8 @@
 # 2026-05-23 Documentation Audit
 
-Status: current audit report  
-Scope: third documentation pass — full inventory, drift check, structural normalization, and gap closure  
+Status: historical audit report
+Superseded by: [Slice 1 executable foundation report](2026-05-23-slice-1-executable-foundation-report.md)
+Scope: third documentation pass — full inventory, drift check, structural normalization, and gap closure
 Related: [2026-05-22 docs audit](2026-05-22-docs-audit.md), [2026-05-22 foundation strengthening report](2026-05-22-foundation-strengthening-report.md), [Documentation index](../README.md), [Style guide](../style-guide.md)
 
 ## Purpose
@@ -196,7 +197,7 @@ No fix needed.
 
 ## Code/config drift check
 
-There is no implementation. Docs accurately label everything as planned. The set of documented planned files is now complete; the foundation phase has no documentation-side blockers to implementation start.
+Historical note: this section describes the pre-Slice-1 repository state as audited at the time. The current executable scaffold state is recorded in [Slice 1 executable foundation report](2026-05-23-slice-1-executable-foundation-report.md). At the time of this audit there was no implementation; docs accurately labelled everything as planned, and the foundation phase had no documentation-side blockers to implementation start.
 
 ## Open questions
 

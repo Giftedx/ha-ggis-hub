@@ -1,7 +1,7 @@
 # Glossary
 
-Status: canonical terminology  
-Scope: project-specific names and technical terms  
+Status: canonical terminology
+Scope: project-specific names and technical terms
 Related: [Project charter](foundation/00-project-charter.md), [Architecture overview](architecture/overview.md)
 
 ## ha.ggis
