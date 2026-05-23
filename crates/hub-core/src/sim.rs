@@ -324,14 +324,6 @@ impl Sim {
         self.render_snapshot()
     }
 
-    /// Borrow the internal RNG for tests and for future per-tick draws when
-    /// gameplay needs them. Pub-crate because RNG state should not be poked
-    /// from outside the simulation.
-    #[allow(dead_code)]
-    pub(crate) fn rng_mut(&mut self) -> &mut Rng {
-        &mut self.rng
-    }
-
     /// FNV-1a 64-bit digest over every gameplay-relevant byte. Bytes are
     /// emitted in a fixed canonical order so two `Sim`s with identical state
     /// always produce identical hashes regardless of how they were built.

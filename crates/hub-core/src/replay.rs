@@ -18,7 +18,16 @@ pub enum ReplayError {
         /// Final state hash produced by the replayed simulation.
         actual: u64,
     },
-    /// A log record points at a tick already past the declared `total_ticks`.
+    /// A log record carries a `tick_index` that has already been passed by the
+    /// replay cursor — records must appear in strictly ascending tick order.
+    RecordOutOfOrder {
+        /// Tick index carried by the offending record.
+        record_tick: u32,
+        /// Current replay cursor when the bad record was encountered.
+        current_tick: u32,
+    },
+    /// A log record points at a tick at or beyond the declared `total_ticks`
+    /// — i.e., the body extends past the end of the declared session.
     RecordPastEnd {
         /// Tick index carried by the offending record.
         record_tick: u32,
@@ -49,9 +58,13 @@ pub struct ReplayOutcome {
 ///
 /// # Errors
 ///
-/// Returns [`ReplayError::Divergence`] when the replayed final state hash
-/// does not match the log trailer, or [`ReplayError::RecordPastEnd`] when a
-/// log record references a tick at or beyond `total_ticks`.
+/// Returns:
+/// - [`ReplayError::Divergence`] when the replayed final state hash does not
+///   match the log trailer.
+/// - [`ReplayError::RecordOutOfOrder`] when a record's `tick_index` is less
+///   than the current replay cursor (records must be strictly ascending).
+/// - [`ReplayError::RecordPastEnd`] when a record references a tick at or
+///   beyond `total_ticks`.
 pub fn run(log: &Log) -> Result<ReplayOutcome, ReplayError> {
     let mut sim = Sim::new(log.seed);
     let mut held_input = InputSnapshot::idle();
@@ -63,9 +76,9 @@ pub fn run(log: &Log) -> Result<ReplayOutcome, ReplayError> {
                 held_input = record.input;
                 record_iter.next();
             } else if record.tick_index < tick_index {
-                return Err(ReplayError::RecordPastEnd {
+                return Err(ReplayError::RecordOutOfOrder {
                     record_tick: record.tick_index,
-                    total_ticks: log.total_ticks,
+                    current_tick: tick_index,
                 });
             }
         }
@@ -161,6 +174,56 @@ mod tests {
             ReplayError::Divergence {
                 expected: 0xdead_dead_dead_dead,
                 ..
+            }
+        ));
+    }
+
+    #[test]
+    fn out_of_order_record_is_reported() {
+        let seed = 0;
+        let initial_state_hash = Sim::new(seed).state_hash();
+        let mut writer = LogWriter::new(WriterConfig {
+            seed,
+            core_api_version: crate::CORE_API_VERSION,
+            started_at_utc_ms: 0,
+            initial_state_hash,
+        });
+        // Append in the wrong order — second record's tick_index sits behind
+        // the cursor that the first record will have advanced.
+        writer.append(5, InputSnapshot::from_axes(1, 0, false));
+        writer.append(3, InputSnapshot::idle());
+        let bytes = writer.finish(10, 0);
+        let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+        let err = run(&log).expect_err("must reject out-of-order record");
+        assert!(matches!(
+            err,
+            ReplayError::RecordOutOfOrder {
+                record_tick: 3,
+                current_tick: 6,
+            }
+        ));
+    }
+
+    #[test]
+    fn record_past_declared_end_is_reported() {
+        let seed = 0;
+        let initial_state_hash = Sim::new(seed).state_hash();
+        let mut writer = LogWriter::new(WriterConfig {
+            seed,
+            core_api_version: crate::CORE_API_VERSION,
+            started_at_utc_ms: 0,
+            initial_state_hash,
+        });
+        // Record sits at tick 100 but session declares only 5 ticks total.
+        writer.append(100, InputSnapshot::from_axes(1, 0, false));
+        let bytes = writer.finish(5, 0);
+        let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+        let err = run(&log).expect_err("must reject record past declared end");
+        assert!(matches!(
+            err,
+            ReplayError::RecordPastEnd {
+                record_tick: 100,
+                total_ticks: 5,
             }
         ));
     }
