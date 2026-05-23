@@ -228,12 +228,14 @@ pub struct Sim {
 
 impl Sim {
     /// Construct a new simulation seeded with `seed`. State at tick zero is
-    /// fully determined by `seed`.
+    /// fully determined by `seed`. Spawn is offset toward the front of the
+    /// room (near the hearth) so the opening composition reads as "haggis
+    /// at the fire", not "haggis adrift at the geometric center".
     #[must_use]
     pub fn new(seed: u64) -> Self {
         Self {
             player_x: 500,
-            player_y: 500,
+            player_y: 620,
             rng: Rng::seed(seed),
         }
     }
@@ -443,7 +445,7 @@ mod tests {
         assert_eq!(snapshot.world_width, 1_000);
         assert_eq!(snapshot.world_height, 1_000);
         assert_eq!(snapshot.player_x, 500);
-        assert_eq!(snapshot.player_y, 500);
+        assert_eq!(snapshot.player_y, 620);
         assert_eq!(snapshot.door_count, 2);
         assert_eq!(snapshot.doors[0].id_str(), "wild-haggis-survivors");
         assert_eq!(snapshot.doors[1].id_str(), "future-bothy");
@@ -454,7 +456,7 @@ mod tests {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, 0, false));
         assert_eq!(snapshot.player_x, 600);
-        assert_eq!(snapshot.player_y, 500);
+        assert_eq!(snapshot.player_y, 620);
     }
 
     #[test]
@@ -462,7 +464,7 @@ mod tests {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, -1, false));
         assert_eq!(snapshot.player_x, 570);
-        assert_eq!(snapshot.player_y, 430);
+        assert_eq!(snapshot.player_y, 550);
     }
 
     #[test]
