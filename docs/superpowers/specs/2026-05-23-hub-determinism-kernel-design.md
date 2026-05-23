@@ -64,8 +64,8 @@ This spec covers sub-project one. The kernel is the foundation that lets sub-pro
 
 ### 2.1 `hub-core` — deterministic kernel (Rust)
 
-- `Sim` — pure state machine. Signature: `Sim::tick(input: InputSnapshot, rng: &mut Rng) -> RenderSnapshot`. No `std::time`, no float in gameplay paths, no global state. Every RNG draw routed through the seedable `Rng`.
-- `Rng` — xoshiro128**. 16 bytes of state. Public seed API, `next_u32`, `next_bounded`. Reference vectors verified in unit tests.
+- `Sim` — pure state machine. Signature: `Sim::tick(&mut self, input: InputSnapshot) -> RenderSnapshot`. The `Rng` lives *inside* `Sim`; RNG state advances as part of tick state, not threaded externally. This keeps replay reconstruction simple — `Sim::new(seed)` + a stream of `InputSnapshot`s is the entire replay input set. No `std::time`, no float in gameplay paths, no global state. Every RNG draw is routed through `Sim`'s internal `Rng`.
+- `Rng` — xoshiro128**. 16 bytes of state, owned by `Sim`. Internal API only (`Sim` exposes deterministic gameplay results, not raw RNG draws, to the outside). Reference vectors verified in unit tests against a standalone `Rng::seed(...)` constructor.
 - `Hash` — FNV-1a 64-bit, pure Rust implementation in `hub-core`. Used as the default at runtime; the C implementation (§2.3) is the second backend for differential testing.
 - `InputSnapshot` — packed `u16` carrying movement axes, interact bit, and reserved bits. Tick-aligned. No floats. Bit layout fixed and documented as part of the public boundary.
 - `RenderSnapshot` — flat `#[repr(C)]` struct, copyable, no allocations. Lives on Rust stack, copied into a JS-side `Uint32Array` view by the boundary.
@@ -88,14 +88,23 @@ The full top-level entity model (rooms, doors, future enemies/projectiles) lives
 
 ### 2.4 `hub-wasm` — boundary
 
-The WASM boundary collapses to four functions, fixing the per-tick allocation problem identified in the prior review:
+The WASM boundary collapses to a small, frame-stable surface, fixing the per-tick allocation problem identified in the prior review. The complete public surface:
 
+**Per-frame hot path (zero allocation):**
 - `init(seed: u64) -> handle`
-- `tick(handle, input_packed: u32) -> void` — writes into a preallocated snapshot buffer
+- `tick(handle, input_packed: u32) -> u32` — writes into a preallocated snapshot buffer; returns an error tag (`0` = ok)
 - `snapshot_ptr(handle) -> u32`, `snapshot_len(handle) -> u32` — zero-copy view into linear memory
 - `state_hash(handle) -> u64`
 
-No per-tick allocations. No per-tick string returns. The TS host reads a `Uint32Array` over the snapshot buffer once per frame and decodes it into a TS render struct. Door titles and other static metadata are obtained once at init via a separate `room_definition()` call returning a JSON-encoded blob.
+**Init-only (called once at handle creation, never per frame):**
+- `room_definition(handle) -> u32` — writes a JSON-encoded room descriptor (door geometry, titles, world dimensions) into a buffer; returns length. TS reads it once and caches.
+- `error_message_ptr(handle) -> u32`, `error_message_len(handle) -> u32` — zero-copy view into the last error string when `tick` returns a non-zero tag.
+
+**Replay surface (called by `haggis-eval determinism`, not by the running host):**
+- `log_writer_*` — append-only writer over the input log format of §2.5; flushed into a buffer on demand.
+- `replay_run(seed: u64, log_ptr: u32, log_len: u32) -> u64` — runs the replay engine of §2.6 inside WASM and returns the final state hash; used by the in-browser determinism test.
+
+No per-tick allocations. No per-tick string returns. The TS host reads a `Uint32Array` over the snapshot buffer once per frame and decodes it into a TS render struct.
 
 ### 2.5 Input log format — `.haggislog`
 
@@ -115,6 +124,8 @@ Binary, append-only, versioned. Layout:
 | Trailer | log_digest | `u64` | FNV-1a of (header + body) |
 
 Reader/writer implemented in Rust, callable from both native and WASM. TS host writes the log to a `Uint8Array` in memory; Playwright extracts the buffer and hands it to `haggis-eval determinism`.
+
+**Version policy.** `replay::run` rejects any log whose `core_api_version` does not exactly match the running `hub_core::CORE_API_VERSION`. There is no automatic migration. Migration, when it becomes necessary, is its own ADR and lands behind an explicit version-bump in `CORE_API_VERSION` with golden fixtures per version.
 
 ### 2.6 Replay engine
 
@@ -206,7 +217,7 @@ The current Canvas2D first-room slice is not discarded. The kernel design lands 
 - The current `interaction_for` returning owned strings becomes a packed numeric result inside the render snapshot; door titles are resolved in TS from a static table populated once at init.
 - The current TS `DEFAULT_HUB_ROOM_DOORS` literal is deleted; doors come from `room_definition()` exposed by `hub-wasm`, single source of truth.
 - The current RAF tick-per-frame becomes a fixed-step accumulator. Replay requires it.
-- The foundation document set is pruned: the 13 numbered foundation docs collapse to four — charter, stack, gates, manifesto — with the remainder moved to `docs/archive/`. ADRs stay where they are. Per-slice audit reports stop being written; the `haggis-eval` signed JSON report replaces them as the slice-level evidence.
+- The foundation document set is pruned: the 13 numbered foundation docs collapse to five — **charter, stack, gates, manifesto, craft-commitments** — with the remainder moved to `docs/archive/` carrying explicit supersession notes. ADRs stay where they are. Per-slice audit reports stop being written; the `haggis-eval` signed JSON report replaces them as the slice-level evidence.
 
 ## 8. Out of scope for this sub-project
 
