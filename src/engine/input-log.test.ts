@@ -30,4 +30,19 @@ describe('InputLogWriter', () => {
     // Header 34 + 2 records * 8 + trailer 20 = 70 bytes.
     expect(bytes.byteLength).toBe(70);
   });
+
+  it('treats idle as the initial state and does not record idle frames before any input', () => {
+    const writer = new InputLogWriter({
+      seed: 0n,
+      coreApiVersion: 1,
+      startedAtUtcMs: 0n,
+      initialStateHash: 0n
+    });
+    writer.recordIfChanged(0, 0); // idle == initial assumption, do not append
+    writer.recordIfChanged(1, 0);
+    writer.recordIfChanged(2, 0);
+    const bytes = writer.finish(3, 0n);
+    // Header 34 + 0 records + trailer 20 = 54 bytes.
+    expect(bytes.byteLength).toBe(54);
+  });
 });

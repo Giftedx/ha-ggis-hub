@@ -12,7 +12,11 @@ export interface InputLogConfig {
  *  the kernel spec §2.5 / hub_core::log. */
 export class InputLogWriter {
   private bytes: number[] = [];
-  private lastWrittenInput: number | null = null;
+  // Replay treats omitted frames as "held input from the last record, or
+  // idle (0) before any record". Initialise to idle so the first idle frame
+  // is correctly omitted from the body — matches the native LogWriter
+  // contract where the caller decides when to append.
+  private lastWrittenInput = 0;
 
   constructor(config: InputLogConfig) {
     for (const m of MAGIC) this.bytes.push(m);

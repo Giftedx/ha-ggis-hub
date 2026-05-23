@@ -27,6 +27,10 @@ export class HubBoundaryError extends Error {
 export interface HubBoundary {
   readonly apiVersion: number;
   readonly room: RoomDefinition;
+  /** Decode the current snapshot without advancing the simulation. The
+   *  buffer is populated by `HubHandle::new` so this is safe immediately
+   *  after `initializeHubBoundaryV2` resolves. */
+  snapshot(): DecodedSnapshot;
   tick(inputPacked: number): DecodedSnapshot;
   stateHash(): bigint;
   destroy(): void;
@@ -82,6 +86,9 @@ export async function initializeHubBoundaryV2(
   return {
     apiVersion,
     room,
+    snapshot(): DecodedSnapshot {
+      return decodeSnapshot(snapshotBytes());
+    },
     tick(inputPacked: number): DecodedSnapshot {
       const tag = handle.tick(inputPacked);
       if (tag !== 0) {

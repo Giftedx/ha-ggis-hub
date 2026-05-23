@@ -22,6 +22,7 @@ function snapshotAt(x: number, y: number): DecodedSnapshot {
 
 interface StubBoundaryHandle {
   readonly boundary: HubBoundary;
+  readonly snapshot: ReturnType<typeof vi.fn>;
   readonly tick: ReturnType<typeof vi.fn>;
   readonly destroy: ReturnType<typeof vi.fn>;
   setNext(snapshot: DecodedSnapshot): void;
@@ -29,42 +30,42 @@ interface StubBoundaryHandle {
 
 function makeStubBoundary(initial: DecodedSnapshot): StubBoundaryHandle {
   let nextSnapshot = initial;
+  const snapshot = vi.fn((): DecodedSnapshot => initial);
   const tick = vi.fn((_inputPacked: number): DecodedSnapshot => nextSnapshot);
   const destroy = vi.fn();
   const boundary: HubBoundary = {
     apiVersion: 1,
     room: emptyRoom(),
+    snapshot,
     tick,
     stateHash: () => 0n,
     destroy
   };
   return {
     boundary,
+    snapshot,
     tick,
     destroy,
-    setNext(snapshot: DecodedSnapshot): void {
-      nextSnapshot = snapshot;
+    setNext(next: DecodedSnapshot): void {
+      nextSnapshot = next;
     }
   };
 }
 
 describe('createHubRoomController', () => {
-  it('draws the initial frame by ticking the boundary once on construction', () => {
+  it('seeds the initial snapshot via boundary.snapshot() without advancing the sim', () => {
     const initial = snapshotAt(500, 500);
     const stub = makeStubBoundary(initial);
     const render = vi.fn();
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render },
-      input: { packedInput: () => 0 }
+      renderer: { render }
     });
 
-    // Constructor invoked tick once with a zero input to seed the first snapshot.
-    expect(stub.tick).toHaveBeenCalledTimes(1);
-    expect(stub.tick).toHaveBeenCalledWith(0);
+    expect(stub.snapshot).toHaveBeenCalledTimes(1);
+    expect(stub.tick).not.toHaveBeenCalled();
     expect(controller.lastSnapshot()).toBe(initial);
-    // render() is not implicitly called on construction — the host pulls it.
     expect(render).not.toHaveBeenCalled();
   });
 
@@ -73,20 +74,16 @@ describe('createHubRoomController', () => {
     const moved = snapshotAt(600, 500);
     const stub = makeStubBoundary(initial);
     const render = vi.fn();
-    const packedInput = vi.fn(() => 0b0001); // x = +1
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render },
-      input: { packedInput }
+      renderer: { render }
     });
 
     stub.setNext(moved);
-    controller.tick();
+    controller.tick(0b0001); // x = +1
 
-    expect(packedInput).toHaveBeenCalledTimes(1);
-    // Tick called twice total: once by constructor, once by the controller.tick().
-    expect(stub.tick).toHaveBeenCalledTimes(2);
+    expect(stub.tick).toHaveBeenCalledTimes(1);
     expect(stub.tick).toHaveBeenLastCalledWith(0b0001);
     expect(render).toHaveBeenCalledTimes(1);
     expect(render).toHaveBeenCalledWith(moved);
@@ -100,16 +97,14 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render },
-      input: { packedInput: () => 0 }
+      renderer: { render }
     });
 
     controller.render();
 
     expect(render).toHaveBeenCalledTimes(1);
     expect(render).toHaveBeenCalledWith(initial);
-    // No new boundary ticks beyond construction.
-    expect(stub.tick).toHaveBeenCalledTimes(1);
+    expect(stub.tick).not.toHaveBeenCalled();
   });
 
   it('releases the underlying boundary on destroy()', () => {
@@ -117,8 +112,7 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render: vi.fn() },
-      input: { packedInput: () => 0 }
+      renderer: { render: vi.fn() }
     });
 
     controller.destroy();

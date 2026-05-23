@@ -34,20 +34,26 @@ async function start(root: HTMLElement): Promise<void> {
       initialStateHash: boundary.stateHash()
     });
 
-    const input = {
-      packedInput: (): number => {
-        const v = keyboard.snapshot();
-        let bits = 0;
-        if (v.x > 0) bits |= 0b01;
-        else if (v.x < 0) bits |= 0b10;
-        if (v.y > 0) bits |= 0b01 << 2;
-        else if (v.y < 0) bits |= 0b10 << 2;
-        return bits;
-      }
-    };
+    function samplePackedInput(): number {
+      const v = keyboard.snapshot();
+      let bits = 0;
+      if (v.x > 0) bits |= 0b01;
+      else if (v.x < 0) bits |= 0b10;
+      if (v.y > 0) bits |= 0b01 << 2;
+      else if (v.y < 0) bits |= 0b10 << 2;
+      return bits;
+    }
 
-    const room = createHubRoomController({ boundary, renderer, input });
+    const room = createHubRoomController({ boundary, renderer });
     room.render();
+
+    // beforeunload is registered before any early return so reduced-motion
+    // sessions still surface their (empty) log if any tooling collects it.
+    let stepState = INITIAL_FIXED_STEP_STATE;
+    window.addEventListener('beforeunload', () => {
+      const bytes = inputLog.finish(stepState.tick, boundary.stateHash());
+      (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
+    });
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       shell.status.textContent =
@@ -56,28 +62,25 @@ async function start(root: HTMLElement): Promise<void> {
     }
 
     const config = { tickMs: 1000 / 60, maxTicksPerPump: 8 };
-    let stepState = INITIAL_FIXED_STEP_STATE;
     let last = performance.now();
     const loop = (now: number): void => {
       const delta = now - last;
       last = now;
       const pumped = pumpFixedStep(config, stepState, delta);
       if (pumped.ticksToAdvance > 0) {
-        const packed = input.packedInput();
+        // Sample input once for the whole batch and feed the same packed
+        // value into every tick — keeps the log and the sim in lock-step
+        // even if the player releases a key mid-batch.
+        const packed = samplePackedInput();
         inputLog.recordIfChanged(stepState.tick, packed);
         for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
-          room.tick();
+          room.tick(packed);
         }
       }
       stepState = pumped.state;
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);
-
-    window.addEventListener('beforeunload', () => {
-      const bytes = inputLog.finish(stepState.tick, boundary.stateHash());
-      (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
-    });
   } catch (error: unknown) {
     shell.status.textContent = 'The playable room could not load. Direct play is still available below.';
     console.error(error);

@@ -5,35 +5,29 @@ export interface HubRoomRenderer {
   render(snapshot: DecodedSnapshot): void;
 }
 
-export interface HubRoomInputSource {
-  /** Returns the InputSnapshot raw u16 value packed into a number. */
-  packedInput(): number;
-}
-
 export interface HubRoomControllerOptions {
   readonly boundary: HubBoundary;
   readonly renderer: HubRoomRenderer;
-  readonly input: HubRoomInputSource;
 }
 
 export interface HubRoomController {
-  tick(): void;
+  /** Advance one fixed simulation tick with the given packed input. */
+  tick(packedInput: number): void;
+  /** Re-render the most recent snapshot without advancing. */
   render(): void;
   lastSnapshot(): DecodedSnapshot;
   destroy(): void;
 }
 
 export function createHubRoomController(options: HubRoomControllerOptions): HubRoomController {
-  // Initial draw: pull the first snapshot by ticking with no input. The Sim
-  // is constructed at the boundary's `init` and already published its
-  // initial render snapshot; ticking with zero input here keeps the
-  // accumulator-driven loop's invariants simple (every snapshot the
-  // renderer sees was produced by a tick call).
-  let last = options.boundary.tick(0);
+  // The boundary already published the seed-zero snapshot at handle
+  // construction. Decoding it here without advancing the sim avoids a
+  // hidden constructor tick that the input log would not account for.
+  let last = options.boundary.snapshot();
 
   return {
-    tick(): void {
-      last = options.boundary.tick(options.input.packedInput());
+    tick(packedInput: number): void {
+      last = options.boundary.tick(packedInput);
       options.renderer.render(last);
     },
     render(): void {
