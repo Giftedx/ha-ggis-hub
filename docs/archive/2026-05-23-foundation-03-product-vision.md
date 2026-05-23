@@ -1,5 +1,7 @@
 # 03 Product Vision
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Project charter — Product vision](../foundation/00-project-charter.md#product-vision) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: product shape, tone, first experience, and user-facing boundaries
 Related: [Project charter](00-project-charter.md), [First Perfect Slice](10-first-perfect-slice.md)

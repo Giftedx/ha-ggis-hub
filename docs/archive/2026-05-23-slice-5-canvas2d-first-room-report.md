@@ -1,5 +1,7 @@
 # 2026-05-23 Slice 5 Canvas2D First Room Report
 
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+
 Status: current
 Scope: renderer decision and first browser-visible room sub-slice
 Related: [Implementation sequence](../plans/2026-05-22-implementation-sequence.md), [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md), [Runtime boundaries](../architecture/runtime-boundaries.md)

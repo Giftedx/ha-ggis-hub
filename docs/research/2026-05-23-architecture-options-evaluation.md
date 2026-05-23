@@ -1,5 +1,7 @@
 # 04 Architecture Options
 
+> **Moved from `docs/foundation/` 2026-05-23.** This is historical evaluation, not active policy. The canonical decision lives in [Stack decision record](../foundation/05-stack-decision-record.md) and [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md).
+
 Status: canonical research summary
 Scope: evaluated architecture paths before implementation
 Related: [Stack decision record](05-stack-decision-record.md), [ADR-0001](../decisions/0001-rust-wasm-core-typescript-host.md)

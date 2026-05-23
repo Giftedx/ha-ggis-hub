@@ -1,5 +1,7 @@
 # 02 Technical Bar
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Quality gates — Technical bar](../foundation/07-quality-gates.md#technical-bar) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: what “good enough” means technically
 Related: [Quality gates](07-quality-gates.md), [Release definition](09-release-definition.md), [First Perfect Slice](10-first-perfect-slice.md)

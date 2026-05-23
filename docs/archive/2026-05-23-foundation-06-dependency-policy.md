@@ -1,5 +1,7 @@
 # 06 Dependency Policy
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Craft commitments — Dependency policy](../foundation/12-craft-commitments.md#dependency-policy) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: how dependencies are selected, justified, audited, and removed
 Related: [Engineering principles](01-engineering-principles.md), [Quality gates](07-quality-gates.md)

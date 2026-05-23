@@ -1,5 +1,7 @@
 # 10 First Perfect Slice
 
+> **Superseded and archived 2026-05-23.** The acceptance criteria for slices now live in [Quality gates](../foundation/07-quality-gates.md); the First Perfect Slice scope as a concept is preserved by the project's actual implementation and the kernel-design spec when it lands. Preserved for provenance.
+
 Status: canonical scope definition
 Scope: first public-quality deliverable
 Related: [Product vision](03-product-vision.md), [Technical bar](02-technical-bar.md), [Release definition](09-release-definition.md)

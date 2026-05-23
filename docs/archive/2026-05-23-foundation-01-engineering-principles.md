@@ -1,5 +1,7 @@
 # 01 Engineering Principles
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Quality manifesto — Engineering principles](../foundation/11-quality-manifesto.md#engineering-principles) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: engineering values that guide every implementation decision
 Related: [Technical bar](02-technical-bar.md), [Dependency policy](06-dependency-policy.md), [Quality gates](07-quality-gates.md)

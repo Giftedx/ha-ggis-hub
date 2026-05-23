@@ -1,5 +1,7 @@
 # 08 Agent Operating Mode
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Quality manifesto — Autopilot rules](../foundation/11-quality-manifesto.md#autopilot-rules) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: how autonomous agents plan, edit, verify, and report in this repo
 Related: [Quality gates](07-quality-gates.md), [Engineering principles](01-engineering-principles.md), [First Perfect Slice](10-first-perfect-slice.md)

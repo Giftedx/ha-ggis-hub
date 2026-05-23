@@ -1,5 +1,7 @@
 # 09 Release Definition
 
+> **Superseded and archived 2026-05-23.** Content distilled into [Quality gates — First public release requirements](../foundation/07-quality-gates.md#first-public-release-requirements) as part of the foundation prune. Preserved for provenance.
+
 Status: canonical foundation policy
 Scope: what it means to release this project publicly
 Related: [Quality gates](07-quality-gates.md), [Deployment foundation](../deployment/cloudflare-pages.md), [First Perfect Slice](10-first-perfect-slice.md)

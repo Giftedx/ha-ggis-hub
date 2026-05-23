@@ -1,5 +1,7 @@
 # 2026-05-23 Slice 2 hub-core movement and doors report
 
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+
 Status: current implementation report
 Scope: Slice 2 Rust core movement, bounds, door proximity, and interaction state
 Related: [Implementation sequence](../plans/2026-05-22-implementation-sequence.md), [Quality gates](../foundation/07-quality-gates.md), [Testing strategy](../architecture/testing-strategy.md)

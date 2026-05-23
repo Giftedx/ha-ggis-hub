@@ -1,5 +1,7 @@
 # 2026-05-23 Slice 1 Executable Foundation Report
 
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+
 Status: current audit report
 Scope: repository/toolchain skeleton implementation
 Related: [Slice 1 executable foundation plan](../plans/2026-05-23-slice-1-executable-foundation.md), [Implementation sequence](../plans/2026-05-22-implementation-sequence.md), [Quality gates](../foundation/07-quality-gates.md)

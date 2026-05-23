@@ -1,5 +1,7 @@
 # 2026-05-23 Slice 3 WASM boundary report
 
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+
 Status: current implementation report
 Scope: Slice 3 `hub-wasm` exports, TypeScript boundary initialization seam, invalid-input boundary tests, and documentation alignment
 Related: [Implementation sequence](../plans/2026-05-22-implementation-sequence.md), [Quality gates](../foundation/07-quality-gates.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [Craft commitments](../foundation/12-craft-commitments.md)
