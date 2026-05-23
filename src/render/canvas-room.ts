@@ -37,51 +37,65 @@ export interface CanvasRoomRenderer {
   render(snapshot: DecodedSnapshot): void;
 }
 
+// Palette — aligned to Wild Haggis Survivors `DESIGN.md` tokens so the
+// hub reads as a sibling of WHS, not a separate brand. See
+// docs/research/2026-05-23-haggis-canon-and-whs-design-language.md.
 const PX = {
-  void: '#050307',
-  stoneShadow: '#0c0805',
-  stoneDark: '#1c1410',
-  stoneMid: '#2e231a',
-  stoneLight: '#4a3a28',
-  stoneHighlight: '#6a543a',
-  mortar: '#08050',
-  floorDark: '#2a1a0e',
-  floorMid: '#3c2614',
-  floorLight: '#5c3e22',
-  floorSeam: '#150a04',
-  floorKnot: '#1f1208',
-  floorLitWash: '#5a2e10',
-  woodWarm: '#7a3f18',
-  woodWarmShade: '#5a2a10',
-  woodWarmHighlight: '#a05828',
-  woodCold: '#3a302a',
-  woodColdShade: '#2a221c',
-  iron: '#2a2520',
-  ironHighlight: '#4a4238',
-  goldHandle: '#d4a04d',
-  goldHandleDark: '#8a6628',
-  flameCore: '#fff0c0',
-  flameMid: '#ff9b3a',
-  flameOuter: '#c4441a',
-  ember: '#8a2818',
-  hagOutline: '#1a0a04',
-  hagDark: '#5a3014',
-  hagBody: '#7a4422',
-  hagLight: '#9c6432',
-  hagRim: '#c8884a',
-  hagBlush: '#a8442c',
+  // Night-moor base (the back-of-the-stage void)
+  void: '#0a0a14',                  // surface-dim
+  // Stone walls — WHS art-stone-*
+  stoneShadow: '#1a1a28',           // surface-container
+  stoneDark: '#2a2a30',             // art-stone-shadow
+  stoneMid: '#4a4a50',              // art-stone-mid
+  stoneLight: '#6a6a72',
+  stoneHighlight: '#8a8a90',        // art-stone-highlight
+  mortar: '#0a0a14',
+  // Floor — peat boards rather than warm wood
+  floorDark: '#1a1a28',             // surface-container
+  floorMid: '#2a2438',
+  floorLight: '#3a3450',
+  floorSeam: '#0a0a14',
+  floorKnot: '#1a0e1a',
+  floorLitWash: '#5a3e20',          // art-peat-mid (warm splash from fire)
+  // Wooden doors — slightly warmer than walls but in the WHS register
+  woodWarm: '#5a3e20',              // art-peat-mid
+  woodWarmShade: '#3a2818',         // art-peat-shadow
+  woodWarmHighlight: '#7a5028',
+  woodCold: '#2a2a30',              // art-stone-shadow (locked door is stone-cold)
+  woodColdShade: '#1a1a28',
+  // Iron + brass
+  iron: '#2a2a30',
+  ironHighlight: '#4a4a50',
+  goldHandle: '#d4a017',            // secondary (whisky gold)
+  goldHandleDark: '#8a6814',
+  // Fire — WHS art-red-* + warm gold
+  flameCore: '#ffe8b0',
+  flameMid: '#ffc840',              // art-gold-bright
+  flameOuter: '#c42828',            // art-red-arterial
+  ember: '#aa2020',                 // art-red-deep
+  // Wild haggis sprite — WHS art-peat-* family
+  hagOutline: '#1a1018',            // dark ink
+  hagDark: '#3a2818',               // art-peat-shadow
+  hagBody: '#5a3e20',               // art-peat-mid (canonical body)
+  hagLight: '#7a5028',
+  hagRim: '#9a6e3c',
+  hagBlush: '#c44a52',              // pink nose / cheek blush
   hagShadow: 'rgba(0, 0, 0, 0.55)',
-  eyeWhite: '#f0e6d0',
-  eyePupil: '#0a0604',
-  legDark: '#1a0a04',
-  haloWarm: '#f4c95d',
-  haloCool: '#8a6b48',
-  signWood: '#6a3614',
-  signEdge: '#1a0a04',
-  signText: '#f4e0a8',
-  signTextShadow: '#3a1a08',
-  promptShadow: 'rgba(0, 0, 0, 0.85)',
-  promptText: '#f7e8c4'
+  // Face details
+  eyeWhite: '#e4e9f0',              // text-bright
+  eyePupil: '#0a0a14',              // surface-dim
+  legDark: '#1a1018',
+  // Lantern halo — whisky gold
+  haloWarm: '#d4a017',              // secondary
+  haloCool: '#596780',              // text-dim (cool counterpoint for the locked door)
+  // Signs — peat wood + gold paint
+  signWood: '#5a3e20',
+  signEdge: '#1a1018',
+  signText: '#e8d4a0',              // warm-tan
+  signTextShadow: '#3a2818',
+  // Interaction prompt
+  promptShadow: 'rgba(10, 10, 20, 0.92)',
+  promptText: '#e4e9f0'              // text-bright
 } as const;
 
 // Wall thickness — sized for the 640×360 internal canvas. ~7% of height.
@@ -864,10 +878,10 @@ function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void
   ctx.fillStyle = '#8a4818';
   ctx.fillRect(signX + 1, signY, signW - 2, 1);
 
-  // Label — small pixel-friendly serif. textBaseline isn't on our
+  // Label — monospace per WHS typography. textBaseline isn't on our
   // interface so we offset y manually.
   ctx.fillStyle = PX.signText;
-  ctx.font = `bold 8px Georgia, "Liberation Serif", serif`;
+  ctx.font = `bold 9px ui-monospace, "JetBrains Mono", Consolas, monospace`;
   ctx.textAlign = 'center';
   ctx.fillText(label, cx, signY + signH - 2);
 }
@@ -1103,13 +1117,15 @@ function drawFirePit(
   ctx.globalAlpha = 1;
 }
 
-// Wild haggis (Haggis scoticus) — small, round, furry Scottish
-// highland creature. Key features per folklore:
-// - Oval body, low-slung, covered in shaggy heather-coloured fur
-// - FOUR LEGS with UNEVEN LENGTHS: two longer on one side, two shorter
-//   on the other (lets it run sideways around mountains)
-// - Small button nose, beady black eyes, tiny pointed ears
-// - Brown/ginger fur that blends with the highland heather
+// Wild haggis — proportions taken from the actual WHS player sprite
+// (see docs/research/refs/2026-05-23-whs-player-sprites.png):
+//   - Roundish body, slightly oval, flat bottom
+//   - LARGE expressive eyes (whites + dark pupils, high on the face)
+//   - Pink button nose between the eyes
+//   - NO visible ears at rest (some WHS variants add headgear)
+//   - NO visible legs at rest (the iconic uneven legs are a gameplay
+//     mechanic — clockwise drift — not visible sprite art)
+//   - Peat-brown fur (WHS art-peat-mid #5a3e20)
 function drawHaggis(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -1119,147 +1135,84 @@ function drawHaggis(
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
-  // r = body half-width. Body is OBLONG: wider than tall (typical haggis-
-  // creature silhouette — like a small furry haggis-shaped potato).
+  // r = body half-width. Body is round-ish, slightly wider than tall.
   const r = Math.max(
-    10,
-    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.48)
+    12,
+    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.5)
   );
-  const rh = Math.round(r * 0.7); // body height
+  const rh = Math.round(r * 0.85); // body height (almost as tall as wide)
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // Soft elliptical floor shadow
+  // Soft elliptical floor shadow tucked under the body
   ctx.fillStyle = PX.hagShadow;
-  ctx.globalAlpha = 0.45;
+  ctx.globalAlpha = 0.5;
   for (let i = 0; i < 5; i += 1) {
-    const sw = Math.round(r * (1.05 - i * 0.05));
-    const sy = cy + rh + 3 + i;
+    const sw = Math.round(r * (0.95 - i * 0.05));
+    const sy = cy + rh + 2 + i;
     ctx.fillRect(cx - sw, sy, sw * 2, 1);
   }
   ctx.globalAlpha = 1;
 
-  // ============ LEGS — the iconic uneven-length wild-haggis feature
-  // The "left-leggers" run clockwise, the "right-leggers" anti-clockwise.
-  // Ours is a clockwise-runner: LEFT legs LONGER, RIGHT legs SHORTER.
-  // Step animation alternates the leg pairs.
-  ctx.fillStyle = PX.legDark;
-  const legW = Math.max(3, Math.round(r * 0.16));
-  const longLegH = Math.max(8, Math.round(r * 0.55));
-  const shortLegH = Math.max(5, Math.round(r * 0.32));
-  const legTopY = cy + bob + Math.round(rh * 0.6);
-  const stepA = Math.sin(phase * 5.5) > 0 ? 0 : 1;
-  const stepB = 1 - stepA;
-
-  // LEFT side (long legs) — front and back
-  ctx.fillRect(cx - Math.round(r * 0.7), legTopY - stepA, legW, longLegH + stepA);
-  ctx.fillRect(cx - Math.round(r * 0.35), legTopY - stepB, legW, longLegH + stepB);
-  // RIGHT side (short legs) — front and back
-  ctx.fillRect(cx + Math.round(r * 0.35) - legW, legTopY - stepB, legW, shortLegH + stepB);
-  ctx.fillRect(cx + Math.round(r * 0.7) - legW, legTopY - stepA, legW, shortLegH + stepA);
-
-  // Tiny hoofs at the bottom of each leg
-  ctx.fillStyle = PX.hagOutline;
-  ctx.fillRect(cx - Math.round(r * 0.7), legTopY + longLegH, legW, 1);
-  ctx.fillRect(cx - Math.round(r * 0.35), legTopY + longLegH, legW, 1);
-  ctx.fillRect(cx + Math.round(r * 0.35) - legW, legTopY + shortLegH, legW, 1);
-  ctx.fillRect(cx + Math.round(r * 0.7) - legW, legTopY + shortLegH, legW, 1);
-
-  // ============ BODY — oval base with fur shading
-  // Outline + base shape
+  // ====== BODY — layered ellipses, flat-bottomed
   drawEllipse(ctx, cx, cy + bob + 1, r + 1, rh + 1, PX.hagOutline);
   drawEllipse(ctx, cx, cy + bob, r, rh, PX.hagDark);
   drawEllipse(ctx, cx, cy + bob - 1, r - 1, rh - 1, PX.hagBody);
 
-  // ============ FUR TEXTURE — shaggy tufts around the body silhouette
-  // Drawn as small dark spikes on the bottom + sides of the ellipse to
-  // suggest hanging shaggy fur. Top has lighter highlight tufts.
-  ctx.fillStyle = PX.hagOutline;
-  for (let i = -6; i <= 6; i += 1) {
-    const angle = (i / 6) * Math.PI * 0.45 + Math.PI / 2; // bottom arc
-    const fx = Math.round(cx + Math.cos(angle) * r);
-    const fy = Math.round(cy + bob + Math.sin(angle) * rh);
-    // Skip where legs poke out
-    if (Math.abs(fx - cx) < Math.round(r * 0.8) && fy > cy + bob + rh - 2) continue;
-    // Spike pixel for shaggy edge
-    ctx.fillRect(fx, fy, 1, 2);
-  }
-  // Lighter tufts on top (highlight side)
-  ctx.fillStyle = PX.hagLight;
-  for (let i = -5; i <= 5; i += 1) {
-    const angle = (i / 5) * Math.PI * 0.4 - Math.PI / 2; // top arc
-    const fx = Math.round(cx + Math.cos(angle) * (r - 1));
-    const fy = Math.round(cy + bob + Math.sin(angle) * (rh - 1));
-    ctx.fillRect(fx, fy, 1, 1);
-  }
-  // Fur shading streaks across the body — wavy lines suggesting hair
-  ctx.fillStyle = PX.hagDark;
+  // Soft upper highlight — top-left lit, like an indoor lantern wash
+  ctx.globalAlpha = 0.45;
+  drawEllipse(ctx, cx - Math.round(r * 0.2), cy + bob - Math.round(rh * 0.3), Math.round(r * 0.6), Math.round(rh * 0.4), PX.hagLight);
+  ctx.globalAlpha = 1;
+  // Tiny rim highlight (brightest patch)
   ctx.globalAlpha = 0.55;
-  for (let yy = -Math.round(rh * 0.6); yy < Math.round(rh * 0.6); yy += 3) {
-    const offset = Math.round(Math.sin(yy * 0.4) * 2);
-    ctx.fillRect(cx - Math.round(r * 0.65) + offset, cy + bob + yy, Math.round(r * 0.25), 1);
-    ctx.fillRect(cx + Math.round(r * 0.25) + offset, cy + bob + yy, Math.round(r * 0.4), 1);
+  drawEllipse(ctx, cx - Math.round(r * 0.38), cy + bob - Math.round(rh * 0.42), Math.round(r * 0.18), Math.round(rh * 0.12), PX.hagRim);
+  ctx.globalAlpha = 1;
+
+  // Subtle fur shading — short horizontal streaks across the lower body
+  // (very subtle; the WHS sprite reads as smooth-shaded, not shaggy)
+  ctx.fillStyle = PX.hagDark;
+  ctx.globalAlpha = 0.35;
+  for (let yy = Math.round(rh * 0.1); yy < Math.round(rh * 0.7); yy += 4) {
+    const width = Math.round(r * 0.5 * (1 - yy / rh));
+    ctx.fillRect(cx - width, cy + bob + yy, width * 2, 1);
   }
   ctx.globalAlpha = 1;
 
-  // Highlight (top-left brighter wash)
-  ctx.globalAlpha = 0.55;
-  drawEllipse(ctx, cx - Math.round(r * 0.25), cy + bob - Math.round(rh * 0.3), Math.round(r * 0.55), Math.round(rh * 0.35), PX.hagLight);
-  ctx.globalAlpha = 1;
-  // Rim light (brightest small patch)
-  ctx.globalAlpha = 0.6;
-  drawEllipse(ctx, cx - Math.round(r * 0.4), cy + bob - Math.round(rh * 0.45), Math.round(r * 0.22), Math.round(rh * 0.15), PX.hagRim);
-  ctx.globalAlpha = 1;
-
-  // ============ EARS — tiny pointed ears poking up from the top
-  ctx.fillStyle = PX.hagDark;
-  const earY = cy + bob - rh;
-  // Left ear
-  ctx.fillRect(cx - Math.round(r * 0.4), earY - 1, 3, 2);
-  ctx.fillRect(cx - Math.round(r * 0.4) + 1, earY - 3, 1, 2);
-  // Right ear
-  ctx.fillRect(cx + Math.round(r * 0.4) - 3, earY - 1, 3, 2);
-  ctx.fillRect(cx + Math.round(r * 0.4) - 2, earY - 3, 1, 2);
-  // Inner ear pink
-  ctx.fillStyle = PX.hagBlush;
-  ctx.fillRect(cx - Math.round(r * 0.4) + 1, earY - 1, 1, 1);
-  ctx.fillRect(cx + Math.round(r * 0.4) - 2, earY - 1, 1, 1);
-
-  // ============ FACE
-  // Eyes — small beady eyes, close together for that cute look
-  const eyeOffX = Math.round(r * 0.22);
-  const eyeY = cy + bob - Math.round(rh * 0.22);
-  const eyeR = Math.max(2, Math.round(r * 0.18));
+  // ====== FACE — drawn high on the body, big and expressive
+  // Eyes — large white sclera, big dark pupils. Spacing matches WHS
+  // sprite: roughly r*0.3 from centre on each side.
+  const eyeOffX = Math.round(r * 0.3);
+  const eyeY = cy + bob - Math.round(rh * 0.28);
+  const eyeR = Math.max(3, Math.round(r * 0.28));
+  // Dark socket
   drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
   drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
+  // White
   drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
   drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
-  const pupilR = Math.max(1, Math.round(eyeR * 0.7));
+  // Pupil — large relative to white. WHS sprite has very expressive
+  // pupils that fill most of the eye.
+  const pupilR = Math.max(2, Math.round(eyeR * 0.7));
   const glance = Math.round(Math.sin(phase * 0.7) * 1);
   drawEllipse(ctx, cx - eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
   drawEllipse(ctx, cx + eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
+  // Catchlight — top-left of each pupil
   ctx.fillStyle = PX.eyeWhite;
-  ctx.fillRect(cx - eyeOffX + glance - 1, eyeY, 1, 1);
-  ctx.fillRect(cx + eyeOffX + glance - 1, eyeY, 1, 1);
+  ctx.fillRect(cx - eyeOffX + glance - 1, eyeY - 1, 1, 1);
+  ctx.fillRect(cx + eyeOffX + glance - 1, eyeY - 1, 1, 1);
 
-  // Nose — small black button below eyes, slightly raised
-  ctx.fillStyle = PX.eyePupil;
-  const noseY = cy + bob + Math.round(rh * 0.05);
-  ctx.fillRect(cx - 1, noseY, 3, 2);
-  ctx.fillStyle = PX.hagRim;
-  ctx.fillRect(cx - 1, noseY, 1, 1); // tiny nose-highlight
-
-  // Mouth — small line under the nose
-  ctx.fillStyle = PX.eyePupil;
-  ctx.fillRect(cx, noseY + 3, 1, 2);
-  ctx.fillRect(cx - 2, noseY + 4, 2, 1);
-  ctx.fillRect(cx + 1, noseY + 4, 2, 1);
-
-  // Cheek blush
+  // Pink button nose — between the eyes, centred, slightly raised
   ctx.fillStyle = PX.hagBlush;
-  ctx.globalAlpha = 0.55;
-  ctx.fillRect(cx - Math.round(r * 0.5), cy + bob + Math.round(rh * 0.05), 3, 2);
-  ctx.fillRect(cx + Math.round(r * 0.5) - 3, cy + bob + Math.round(rh * 0.05), 3, 2);
-  ctx.globalAlpha = 1;
+  const noseY = cy + bob + Math.round(rh * 0.02);
+  const noseW = Math.max(4, Math.round(r * 0.18));
+  const noseH = Math.max(3, Math.round(r * 0.12));
+  drawEllipse(ctx, cx, noseY, noseW, noseH, PX.hagBlush);
+  // Nose highlight
+  ctx.fillStyle = '#e88090';
+  ctx.fillRect(cx - 1, noseY - 1, 2, 1);
+
+  // No ears, no legs — matches WHS sprite. The wild-haggis-iconic
+  // uneven legs are a gameplay mechanic (clockwise drift), not visible
+  // sprite art.
 }
 
 // Pixel-art filled ellipse — built from horizontal strips so the shape
@@ -1297,20 +1250,37 @@ function drawPrompt(
     return;
   }
 
-  const verb = snapshot.interactionKind === 'launchable' ? 'Enter' : 'Locked';
-  const text = `${verb} ${door.title}`;
+  // Scots-tinted prompts. Launchable doors get the warm "Awa’ in"
+  // phrasing; locked doors get the wry "Another day" line. See
+  // docs/research/2026-05-23-haggis-canon-and-whs-design-language.md
+  // — the hub voice should match the WHS Scots register.
+  const text =
+    snapshot.interactionKind === 'launchable'
+      ? `Awa’ in — ${door.title}`
+      : `Locked. Another bothy, another day.`;
   const x = Math.round(surface.width / 2);
-  const y = surface.height - 6;
+  const y = surface.height - 8;
 
-  // Background plate — keeps text legible no matter what's behind
-  ctx.font = `bold 8px Georgia, "Liberation Serif", serif`;
+  ctx.font = `bold 10px ui-monospace, "JetBrains Mono", Consolas, monospace`;
   ctx.textAlign = 'center';
-  // Faux text-width estimate (no measureText on the structural interface)
-  const approxW = text.length * 5;
+  // Faux text-width estimate (no measureText on the structural interface).
+  // 6px per char is a safe upper bound at 10px monospace.
+  const approxW = text.length * 6;
+  // Background plate keeps the text legible against the busy floor
   ctx.fillStyle = PX.promptShadow;
-  ctx.fillRect(x - Math.round(approxW / 2) - 4, y - 8, approxW + 8, 12);
-
-  // Text
+  ctx.fillRect(x - Math.round(approxW / 2) - 6, y - 11, approxW + 12, 16);
+  // Heavy ink stroke effect — draw the text in surface-dim slightly
+  // offset on every side for a chunky stroked feel, then the bright
+  // text on top
+  ctx.fillStyle = PX.signEdge;
+  for (const [dx, dy] of [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1]
+  ] as ReadonlyArray<readonly [number, number]>) {
+    ctx.fillText(text, x + dx, y + dy);
+  }
   ctx.fillStyle = PX.promptText;
   ctx.fillText(text, x, y);
 }

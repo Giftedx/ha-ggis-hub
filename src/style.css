@@ -1,8 +1,19 @@
 :root {
   color-scheme: dark;
-  color: #ede2cf;
-  background: #000;
-  font-family: Georgia, "Times New Roman", "Liberation Serif", serif;
+  /* WHS brand tokens — see docs/research/2026-05-23-haggis-canon-and-whs-design-language.md */
+  --whs-background: #1a1a2e;
+  --whs-surface: #111728;
+  --whs-surface-dim: #0a0a14;
+  --whs-outline: #2a3450;
+  --whs-secondary: #d4a017;      /* whisky gold */
+  --whs-warm-tan: #e8d4a0;
+  --whs-text-primary: #c4cdd8;
+  --whs-text-secondary: #9ea8bb;
+  --whs-text-dim: #596780;
+
+  color: var(--whs-text-primary);
+  background: var(--whs-background);
+  font-family: ui-monospace, "JetBrains Mono", "Consolas", "Liberation Mono", monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -18,7 +29,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #000;
+  background: var(--whs-surface-dim);
 }
 
 #app {
@@ -36,7 +47,7 @@ body {
   display: block;
   width: 100vw;
   height: 100vh;
-  background: #0d0907;
+  background: var(--whs-background);
   /* Light smoothing — keeps procedural shapes from looking like a 6× mosaic
      while still preserving the chunky pixel feel of the internal buffer. */
   image-rendering: auto;
@@ -44,12 +55,15 @@ body {
 
 .scene-direct {
   position: fixed;
-  right: 1.1rem;
-  bottom: 0.75rem;
-  color: rgb(237 226 207 / 35%);
+  right: 1.2rem;
+  bottom: 0.85rem;
+  color: var(--whs-text-dim);
+  font-family: inherit;
   font-size: 0.75rem;
+  font-weight: 700;
   text-decoration: none;
-  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  letter-spacing: 0.12em;
   pointer-events: auto;
   transition: color 160ms ease;
   z-index: 2;
@@ -57,7 +71,7 @@ body {
 
 .scene-direct:hover,
 .scene-direct:focus-visible {
-  color: #f4c95d;
+  color: var(--whs-secondary);
   outline: none;
 }
 
@@ -67,9 +81,11 @@ body {
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  color: rgb(237 226 207 / 70%);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  color: var(--whs-text-secondary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-style: italic;
+  letter-spacing: 0.06em;
   pointer-events: none;
   z-index: 2;
 }

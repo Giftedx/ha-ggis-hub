@@ -55,7 +55,7 @@ async function start(root: HTMLElement): Promise<void> {
     });
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      shell.status.textContent = 'reduced motion · animation paused';
+      shell.status.textContent = 'reduced motion · the bothy bides quiet';
       return;
     }
 
@@ -81,7 +81,7 @@ async function start(root: HTMLElement): Promise<void> {
     };
     window.requestAnimationFrame(loop);
   } catch (error: unknown) {
-    shell.status.textContent = 'could not load · direct play below';
+    shell.status.textContent = 'the bothy wouldnae load — try the corner link';
     console.error(error);
   }
 }
@@ -107,7 +107,7 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
   const direct = document.createElement('a');
   direct.className = 'scene-direct';
   direct.href = model.directPlay.target;
-  direct.textContent = 'enter ⏎';
+  direct.textContent = 'awa’ in →';
   direct.rel = 'noopener noreferrer';
   direct.setAttribute('aria-label', model.directPlay.label);
 

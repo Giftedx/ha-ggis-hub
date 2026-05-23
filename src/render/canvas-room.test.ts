@@ -126,7 +126,7 @@ describe('createCanvasRoomRenderer', () => {
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_AT_LAUNCHABLE);
     const promptCall = context.calls.find(
-      (c) => c.startsWith('fillText:Enter Wild Haggis Survivors')
+      (c) => c.startsWith('fillText:Awa’ in — Wild Haggis Survivors')
     );
     expect(promptCall).toBeDefined();
   });
@@ -138,7 +138,7 @@ describe('createCanvasRoomRenderer', () => {
       interactionDoorIndex: 1,
       interactionKind: 'locked'
     });
-    const promptCall = context.calls.find((c) => c.startsWith('fillText:Locked'));
+    const promptCall = context.calls.find((c) => c.startsWith('fillText:Locked. Another bothy'));
     expect(promptCall).toBeDefined();
   });
 
@@ -146,7 +146,7 @@ describe('createCanvasRoomRenderer', () => {
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_NO_INTERACTION);
     const promptCall = context.calls.find(
-      (c) => c.startsWith('fillText:Enter') || c.startsWith('fillText:Locked')
+      (c) => c.startsWith('fillText:Awa’') || c.startsWith('fillText:Locked.')
     );
     expect(promptCall).toBeUndefined();
   });
@@ -170,7 +170,7 @@ describe('createCanvasRoomRenderer', () => {
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, room).render(snapshot);
-    const promptCall = context.calls.find((c) => c.startsWith('fillText:Enter Mystery Room'));
+    const promptCall = context.calls.find((c) => c.startsWith('fillText:Awa’ in — Mystery Room'));
     expect(promptCall).toBeDefined();
   });
 
