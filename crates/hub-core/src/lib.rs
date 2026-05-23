@@ -1,5 +1,7 @@
 #![doc = "Deterministic core primitives for ha.ggis Hub."]
 
+pub mod hash;
+
 /// Human-readable project name shared across core and host surfaces.
 pub const PROJECT_NAME: &str = "ha.ggis Hub";
 
