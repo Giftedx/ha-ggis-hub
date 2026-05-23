@@ -4,8 +4,11 @@ package gate
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -36,35 +39,69 @@ type Result struct {
 // last test result lines without bloating the report.
 const stdoutTailBytes = 8 * 1024
 
-// Run executes the command and captures its outcome.
+// DefaultTimeout is the per-gate wall-clock budget when callers do not
+// pick one explicitly. Big enough for rust workspace tests + ts vitest
+// + a vite build, small enough that a hung browser smoke or a stalled
+// preview server gets killed instead of consuming the whole CI runner.
+const DefaultTimeout = 10 * time.Minute
+
+// Run executes the command with the default timeout and captures its
+// outcome.  Stdout and stderr are streamed live to the parent process
+// (so `haggis-eval all` shows progress in CI logs) *and* tailed into
+// the Result for the signed report.
 //
 // `category` and `name` are recorded in the result for grouping; `bin`
-// and `args` are passed straight to exec.Command.
+// and `args` are passed straight to exec.CommandContext.
 func Run(category, name, bin string, args ...string) Result {
+	return RunWithTimeout(DefaultTimeout, category, name, bin, args...)
+}
+
+// RunWithTimeout is Run with an explicit budget. Use for categories
+// known to legitimately take longer than DefaultTimeout — e.g. the
+// differential proptest fuzz at --include-ignored.
+func RunWithTimeout(timeout time.Duration, category, name, bin string, args ...string) Result {
 	cmdLine := bin
 	if len(args) > 0 {
 		cmdLine = bin + " " + strings.Join(args, " ")
 	}
-	cmd := exec.Command(bin, args...)
+	fmt.Fprintf(os.Stdout, "[gate] %s/%s start: %s\n", category, name, cmdLine)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, args...)
 	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdout)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderr)
 
 	start := time.Now()
 	runErr := cmd.Run()
-	dur := time.Since(start).Milliseconds()
+	dur := time.Since(start)
 
 	out := tailBytes(stdout.Bytes(), stdoutTailBytes)
 	errOut := tailBytes(stderr.Bytes(), stdoutTailBytes)
 
-	var execErr *exec.Error
-	if errors.As(runErr, &execErr) {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		fmt.Fprintf(os.Stdout, "[gate] %s/%s TIMEOUT after %s (budget %s)\n", category, name, dur.Round(time.Millisecond), timeout)
 		return Result{
 			Category:   category,
 			Name:       name,
 			Status:     StatusError,
 			ExitCode:   -1,
-			DurationMs: dur,
+			DurationMs: dur.Milliseconds(),
+			StdoutTail: out,
+			StderrTail: fmt.Sprintf("gate timed out after %s\n%s", timeout, errOut),
+			Command:    cmdLine,
+		}
+	}
+
+	var execErr *exec.Error
+	if errors.As(runErr, &execErr) {
+		fmt.Fprintf(os.Stdout, "[gate] %s/%s ERROR: %v\n", category, name, runErr)
+		return Result{
+			Category:   category,
+			Name:       name,
+			Status:     StatusError,
+			ExitCode:   -1,
+			DurationMs: dur.Milliseconds(),
 			StdoutTail: out,
 			StderrTail: fmt.Sprintf("could not execute %q: %v", bin, runErr),
 			Command:    cmdLine,
@@ -75,12 +112,13 @@ func Run(category, name, bin string, args ...string) Result {
 	if exit != 0 {
 		status = StatusFail
 	}
+	fmt.Fprintf(os.Stdout, "[gate] %s/%s %s exit=%d (%s)\n", category, name, status, exit, dur.Round(time.Millisecond))
 	return Result{
 		Category:   category,
 		Name:       name,
 		Status:     status,
 		ExitCode:   exit,
-		DurationMs: dur,
+		DurationMs: dur.Milliseconds(),
 		StdoutTail: out,
 		StderrTail: errOut,
 		Command:    cmdLine,
