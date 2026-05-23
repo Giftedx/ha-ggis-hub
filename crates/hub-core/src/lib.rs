@@ -1,6 +1,7 @@
 #![doc = "Deterministic core primitives for ha.ggis Hub."]
 
 pub mod hash;
+pub mod log;
 pub mod rng;
 pub mod sim;
 
