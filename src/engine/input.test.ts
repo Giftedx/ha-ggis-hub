@@ -14,11 +14,16 @@ class FakeKeyboardTarget {
     this.listeners.get(type)?.delete(listener);
   }
 
-  dispatch(type: string, code: string): void {
-    const event = { code } as unknown as Event;
+  dispatch(type: string, code: string): { preventedDefault: boolean } {
+    let preventedDefault = false;
+    const event = {
+      code,
+      preventDefault: () => { preventedDefault = true; }
+    } as unknown as Event;
     for (const listener of this.listeners.get(type) ?? []) {
       listener(event);
     }
+    return { preventedDefault };
   }
 }
 
@@ -42,6 +47,54 @@ describe('input sampling', () => {
 
     target.dispatch('keyup', 'KeyD');
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+  });
+
+  it('fires consumeInteract once per fresh press, then waits for release', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+
+    expect(sampler.consumeInteract()).toBe(false);
+    target.dispatch('keydown', 'Enter');
+    expect(sampler.consumeInteract()).toBe(true);
+    // Still held — repeated calls return false until release.
+    expect(sampler.consumeInteract()).toBe(false);
+    expect(sampler.consumeInteract()).toBe(false);
+    // Release re-arms.
+    target.dispatch('keyup', 'Enter');
+    target.dispatch('keydown', 'Enter');
+    expect(sampler.consumeInteract()).toBe(true);
+  });
+
+  it('treats Space and KeyE as interact keys', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    target.dispatch('keydown', 'Space');
+    expect(sampler.consumeInteract()).toBe(true);
+    target.dispatch('keyup', 'Space');
+    target.dispatch('keydown', 'KeyE');
+    expect(sampler.consumeInteract()).toBe(true);
+  });
+
+  it('preventDefault fires for hub-claimed keys so arrows do not scroll', () => {
+    const target = new FakeKeyboardTarget();
+    createKeyboardInputSampler(target);
+    // Movement keys — preventDefault stops page scroll.
+    expect(target.dispatch('keydown', 'ArrowDown').preventedDefault).toBe(true);
+    expect(target.dispatch('keydown', 'ArrowRight').preventedDefault).toBe(true);
+    // Interact keys — preventDefault stops Space activating buttons.
+    expect(target.dispatch('keydown', 'Space').preventedDefault).toBe(true);
+    expect(target.dispatch('keydown', 'Enter').preventedDefault).toBe(true);
+    // Unrelated keys — no preventDefault, browser keeps default behaviour.
+    expect(target.dispatch('keydown', 'Tab').preventedDefault).toBe(false);
+    expect(target.dispatch('keydown', 'KeyM').preventedDefault).toBe(false);
+  });
+
+  it('movement keys are not interact keys', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    target.dispatch('keydown', 'ArrowRight');
+    target.dispatch('keydown', 'KeyD');
+    expect(sampler.consumeInteract()).toBe(false);
   });
 
   it('removes listeners when destroyed', () => {
