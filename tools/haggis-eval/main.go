@@ -34,13 +34,19 @@ func main() {
 		}
 		os.Exit(printAndExit("differential", cmd.Differential(os.Args[2])))
 	case "browser":
-		os.Exit(cmd.Stub("browser", "Playwright config not yet present"))
+		os.Exit(printAndExit("browser", cmd.Browser()))
 	case "determinism":
-		os.Exit(cmd.Stub("determinism", "Playwright capture pipeline not yet present"))
+		os.Exit(printAndExit("determinism", cmd.Determinism()))
 	case "perf":
-		os.Exit(cmd.Stub("perf", "size-limit and Lighthouse configs not yet present"))
+		os.Exit(printAndExit("perf", cmd.Perf()))
 	case "security":
-		os.Exit(cmd.Stub("security", "public/_headers spec not yet present"))
+		os.Exit(printAndExit("security", cmd.Security()))
+	case "visual":
+		mode := "verify"
+		if len(os.Args) >= 3 {
+			mode = os.Args[2]
+		}
+		os.Exit(printAndExit("visual", cmd.Visual(mode)))
 	case "slice":
 		os.Exit(cmd.Stub("slice", "slices.toml gate-set config not yet present"))
 	case "all":
@@ -71,12 +77,17 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
+	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
+	fmt.Fprintln(w, "  perf                       Bundle-size budgets (scripts/perf-budgets.mjs, perf-budgets.json)")
+	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")
+	fmt.Fprintln(w, "  determinism                Same seed + same input → same state hash (browser replay)")
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")
+	fmt.Fprintln(w, "  visual [verify|capture]    Perceptual aHash diff vs tests/golden/ (default verify)")
 	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Stubs (return exit 78 until implemented):")
-	fmt.Fprintln(w, "  browser determinism perf security slice")
+	fmt.Fprintln(w, "  slice")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Common flags:")
 	fmt.Fprintln(w, "  --version    Print version")

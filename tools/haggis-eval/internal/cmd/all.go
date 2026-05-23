@@ -12,6 +12,10 @@ func All() []gate.Result {
 	out := []gate.Result{}
 	out = append(out, Rust()...)
 	out = append(out, Ts()...)
+	out = append(out, Security()...)
+	out = append(out, Perf()...)
+	out = append(out, Browser()...)
+	out = append(out, Determinism()...)
 	out = append(out, Differential("hash")...)
 	out = append(out, Differential("rng")...)
 	return out
