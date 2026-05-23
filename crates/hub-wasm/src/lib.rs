@@ -1,5 +1,10 @@
 #![doc = "WebAssembly boundary for ha.ggis Hub."]
 
+mod handle;
+mod room_def;
+mod snapshot_view;
+pub use handle::{HubErrorTag, HubHandle, hub_core_api_version_v2, replay_run};
+
 use wasm_bindgen::prelude::*;
 
 use hub_core::{
