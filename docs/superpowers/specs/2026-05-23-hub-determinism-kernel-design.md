@@ -121,7 +121,7 @@ Binary, append-only, versioned. Layout:
 | Body | record | `(u32 tick_index, u32 input_packed)` per entry | omitted when input unchanged from prior frame |
 | Trailer | final_state_hash | `u64` | `state_hash(&Sim)` after the last tick |
 | Trailer | total_ticks | `u32` | |
-| Trailer | log_digest | `u64` | FNV-1a of (header + body) |
+| Trailer | log_digest | `u64` | FNV-1a of (header + body + final_state_hash + total_ticks) — covers everything except the digest itself, so tampering with the final hash or tick count is also detected |
 
 Reader/writer implemented in Rust, callable from both native and WASM. TS host writes the log to a `Uint8Array` in memory; Playwright extracts the buffer and hands it to `haggis-eval determinism`.
 
