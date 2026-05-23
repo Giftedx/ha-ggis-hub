@@ -39,7 +39,7 @@ describe('launch planning', () => {
     expect(future === undefined ? undefined : createLaunchPlan(future)).toEqual({
       kind: 'unavailable',
       gameId: 'future-bothy',
-      title: 'Future Bothy',
+      title: "Comin' Wi' The Next Moon",
       reason: 'coming-soon'
     });
   });

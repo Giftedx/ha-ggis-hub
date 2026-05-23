@@ -33,8 +33,11 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
     launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' }
   },
   {
+    // Comin' wi' the next moon — placeholder for the next door in the
+    // bothy. Title is Scots-tinted lobby voice, not a final game name.
+    // Replaced wholesale when game 2 ships.
     id: 'future-bothy',
-    title: 'Future Bothy',
+    title: "Comin' Wi' The Next Moon",
     status: 'coming-soon',
     launch: { kind: 'none' }
   }
