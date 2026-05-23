@@ -2,7 +2,7 @@
 
 Status: canonical security policy (executable foundation phase)
 Scope: how to report vulnerabilities in `ha.ggis Hub`
-Related: [Security model](docs/architecture/security-model.md), [Dependency policy](docs/foundation/06-dependency-policy.md), [Quality gates](docs/foundation/07-quality-gates.md)
+Related: [Security model](docs/architecture/security-model.md), [Dependency policy](docs/foundation/12-craft-commitments.md#dependency-policy), [Quality gates](docs/foundation/07-quality-gates.md)
 
 ## Current phase
 

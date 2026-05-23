@@ -2,7 +2,7 @@
 
 Status: canonical documentation policy
 Scope: how Markdown docs are named, structured, cross-linked, and maintained
-Related: [Documentation index](README.md), [Agent operating mode](foundation/08-agent-operating-mode.md)
+Related: [Documentation index](README.md), [Autopilot rules](foundation/11-quality-manifesto.md#autopilot-rules)
 
 ## File naming
 

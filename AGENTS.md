@@ -6,14 +6,12 @@ This file is the fast path for autonomous agents entering the repository. It sum
 
 1. `README.md`
 2. `docs/README.md`
-3. `docs/foundation/11-quality-manifesto.md`
-4. `docs/foundation/00-project-charter.md`
-5. `docs/foundation/01-engineering-principles.md`
-6. `docs/foundation/08-agent-operating-mode.md`
-7. `docs/foundation/05-stack-decision-record.md`
-8. `docs/foundation/07-quality-gates.md`
-9. `docs/foundation/12-craft-commitments.md`
-10. Any ADR related to the files you will touch ([ADR index](docs/decisions/README.md))
+3. `docs/foundation/11-quality-manifesto.md` (covers engineering principles and autopilot rules)
+4. `docs/foundation/00-project-charter.md` (covers product vision)
+5. `docs/foundation/05-stack-decision-record.md`
+6. `docs/foundation/07-quality-gates.md` (covers technical bar and release definition)
+7. `docs/foundation/12-craft-commitments.md` (covers dependency policy)
+8. Any ADR related to the files you will touch ([ADR index](docs/decisions/README.md))
 
 ## Current phase
 

@@ -2,7 +2,7 @@
 
 Status: planned architecture
 Scope: game registry, hub persistence, and Wild Haggis Survivors separation
-Related: [Runtime boundaries](runtime-boundaries.md), [Product vision](../foundation/03-product-vision.md)
+Related: [Runtime boundaries](runtime-boundaries.md), [Project charter — Product vision](../foundation/00-project-charter.md#product-vision)
 
 ## Registry principle
 

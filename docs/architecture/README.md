@@ -44,4 +44,4 @@ Every doc in this section follows the documentation [style guide](../style-guide
 - describes target behavior, not current behavior, while implementation is absent
 - never claims a file or command exists unless it is in the actual repository
 
-When implementation begins, the corresponding architecture doc must be updated in the same slice as the code (see [Quality gates](../foundation/07-quality-gates.md) and [Agent operating mode](../foundation/08-agent-operating-mode.md)).
+When implementation begins, the corresponding architecture doc must be updated in the same slice as the code (see [Quality gates](../foundation/07-quality-gates.md) and [Autopilot rules](../foundation/11-quality-manifesto.md#autopilot-rules)).

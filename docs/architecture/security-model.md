@@ -2,7 +2,7 @@
 
 Status: planned architecture
 Scope: static-app security posture, browser boundary risk, supply chain, deployment
-Related: [Dependency policy](../foundation/06-dependency-policy.md), [Cloudflare Pages](../deployment/cloudflare-pages.md)
+Related: [Dependency policy](../foundation/12-craft-commitments.md#dependency-policy), [Cloudflare Pages](../deployment/cloudflare-pages.md)
 
 ## Threat model summary
 
@@ -34,7 +34,7 @@ This is a static browser app, so primary risks are:
 
 ## Dependency rules
 
-Use `cargo audit`, `cargo deny`, frontend audit tooling, and lockfiles. See [Dependency policy](../foundation/06-dependency-policy.md).
+Use `cargo audit`, `cargo deny`, frontend audit tooling, and lockfiles. See [Dependency policy](../foundation/12-craft-commitments.md#dependency-policy).
 
 ## Deployment rules
 

@@ -20,7 +20,7 @@ If you only have time for the load-bearing four, read these in order:
 1. [Quality manifesto](docs/foundation/11-quality-manifesto.md) — why this project exists and what it refuses to be
 2. [Project charter](docs/foundation/00-project-charter.md) — identity, non-negotiables, WHS boundary
 3. [Stack decision record](docs/foundation/05-stack-decision-record.md) — Rust/WASM core + TypeScript host
-4. [First Perfect Slice](docs/foundation/10-first-perfect-slice.md) — scope of the first public release
+4. [First public release requirements](docs/foundation/07-quality-gates.md#first-public-release-requirements) — scope of the first public release
 
 [`AGENTS.md`](AGENTS.md) is the entry point for autonomous agents. [`CONTRIBUTING.md`](CONTRIBUTING.md) is the entry point for humans contributing changes. [`SECURITY.md`](SECURITY.md) covers vulnerability reporting.
 
@@ -73,9 +73,9 @@ A Go-built orchestrator CLI bundles every gate above into one command with a sig
 
 Future contributors and agents must read:
 
-- [Agent operating mode](docs/foundation/08-agent-operating-mode.md)
+- [Autopilot rules](docs/foundation/11-quality-manifesto.md#autopilot-rules)
 - [Stack decision record](docs/foundation/05-stack-decision-record.md)
 - [Quality gates](docs/foundation/07-quality-gates.md)
-- [First Perfect Slice](docs/foundation/10-first-perfect-slice.md)
+- [First public release requirements](docs/foundation/07-quality-gates.md#first-public-release-requirements)
 
 Do not scaffold from the archived original plan. It is preserved only as historical input.

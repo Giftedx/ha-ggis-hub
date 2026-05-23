@@ -2,7 +2,7 @@
 
 Status: planned architecture
 Scope: what gets tested where and why
-Related: [Quality gates](../foundation/07-quality-gates.md), [Technical bar](../foundation/02-technical-bar.md)
+Related: [Quality gates](../foundation/07-quality-gates.md), [Technical bar](../foundation/07-quality-gates.md#technical-bar)
 
 ## Testing pyramid for this project
 

@@ -1,5 +1,7 @@
 # 2026-05-22 Implementation Sequence Plan
 
+> **Historical plan, preserved as provenance.** Links in this plan may point to docs that have since moved to `docs/archive/` as part of the 2026-05-23 foundation prune. The current canonical foundation lives at `docs/foundation/` (5 numbered files).
+
 Status: planned implementation sequence
 Scope: ordered slices after documentation foundation
 Related: [First Perfect Slice](../foundation/10-first-perfect-slice.md), [Architecture overview](../architecture/overview.md), [Quality gates](../foundation/07-quality-gates.md)

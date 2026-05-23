@@ -1,5 +1,7 @@
 # ha.ggis Hub Foundation Plan
 
+> **Historical plan, preserved as provenance.** Links in this plan may point to docs that have since moved to `docs/archive/` as part of the 2026-05-23 foundation prune. The current canonical foundation lives at `docs/foundation/` (5 numbered files).
+
 Status: historical plan
 Scope: the plan that drove the foundation phase
 Related: [Implementation sequence](2026-05-22-implementation-sequence.md), [Documentation index](../README.md), [2026-05-23 docs audit](../audit/2026-05-23-docs-audit.md)

@@ -10,13 +10,11 @@ Read:
 
 - `README.md`
 - `docs/README.md`
-- `docs/foundation/11-quality-manifesto.md`
-- `docs/foundation/00-project-charter.md`
-- `docs/foundation/01-engineering-principles.md`
+- `docs/foundation/11-quality-manifesto.md` (covers engineering principles and autopilot rules)
+- `docs/foundation/00-project-charter.md` (covers product vision)
 - `docs/foundation/05-stack-decision-record.md`
-- `docs/foundation/08-agent-operating-mode.md`
-- `docs/foundation/07-quality-gates.md`
-- `docs/foundation/12-craft-commitments.md`
+- `docs/foundation/07-quality-gates.md` (covers technical bar and release definition)
+- `docs/foundation/12-craft-commitments.md` (covers dependency policy)
 
 If you are an autonomous agent, also read [`AGENTS.md`](AGENTS.md).
 

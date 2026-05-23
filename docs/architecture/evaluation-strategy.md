@@ -2,7 +2,7 @@
 
 Status: planned architecture
 Scope: evals that let humans and agents judge whether the project is improving
-Related: [Testing strategy](testing-strategy.md), [Agent operating mode](../foundation/08-agent-operating-mode.md), [Quality manifesto](../foundation/11-quality-manifesto.md)
+Related: [Testing strategy](testing-strategy.md), [Autopilot rules](../foundation/11-quality-manifesto.md#autopilot-rules), [Quality manifesto](../foundation/11-quality-manifesto.md)
 
 ## Purpose
 

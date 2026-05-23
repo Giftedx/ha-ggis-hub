@@ -199,7 +199,7 @@ Drift modes this catches that the current test suite cannot:
 
 ## 6. Agent autopilot loop
 
-Per [[autopilot-believer]] and [Agent operating mode](../../foundation/08-agent-operating-mode.md):
+Per [[autopilot-believer]] and [Autopilot rules](../../foundation/11-quality-manifesto.md#autopilot-rules):
 
 1. Slice spec lives in `docs/superpowers/specs/<date>-<slice>-design.md` — this template.
 2. Implementation plan lives in `docs/superpowers/plans/<date>-<slice>-plan.md`, produced by the `writing-plans` skill from the approved spec.

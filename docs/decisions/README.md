@@ -2,7 +2,7 @@
 
 Status: section index
 Scope: catalog of all ADRs in this project, with current status
-Related: [Documentation index](../README.md), [Style guide](../style-guide.md), [Engineering principles](../foundation/01-engineering-principles.md)
+Related: [Documentation index](../README.md), [Style guide](../style-guide.md), [Engineering principles](../foundation/11-quality-manifesto.md#engineering-principles)
 
 ## What an ADR is here
 

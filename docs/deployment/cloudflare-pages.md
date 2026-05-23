@@ -2,7 +2,7 @@
 
 Status: planned deployment foundation
 Scope: target hosting, redirects, headers, caching, source maps
-Related: [Release definition](../foundation/09-release-definition.md), [Quality gates](../foundation/07-quality-gates.md)
+Related: [First public release requirements](../foundation/07-quality-gates.md#first-public-release-requirements), [Quality gates](../foundation/07-quality-gates.md)
 
 ## Current status
 

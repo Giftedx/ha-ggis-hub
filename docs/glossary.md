@@ -18,17 +18,17 @@ Wild Haggis Survivors, the first game linked from the hub. It remains a separate
 
 ## Bothy
 
-A small Scottish hut. The leading fiction for the first hub room (see [product vision](foundation/03-product-vision.md)). "The Haggis Bothy" is the working name for the first playable scene.
+A small Scottish hut. The leading fiction for the first hub room (see [Project charter — Product vision](foundation/00-project-charter.md#product-vision)). "The Haggis Bothy" is the working name for the first playable scene.
 
 ## First Perfect Slice
 
-The smallest public slice that demonstrates the final standard of craft. Defined in [docs/foundation/10-first-perfect-slice.md](foundation/10-first-perfect-slice.md). Replaces MVP framing.
+The smallest public slice that demonstrates the final standard of craft. Acceptance criteria live in [Quality gates — First public release requirements](foundation/07-quality-gates.md#first-public-release-requirements). Replaces MVP framing.
 
 When other docs say "first slice" or "first public slice" they refer to the same concept.
 
 ## Slice
 
-A coherent, end-to-end change that advances the project by one verifiable step — code, tests, and documentation in the same commit/PR. See [agent operating mode](foundation/08-agent-operating-mode.md). A slice is the unit of work for both humans and agents; "vertical slice" is used interchangeably.
+A coherent, end-to-end change that advances the project by one verifiable step — code, tests, and documentation in the same commit/PR. See [Autopilot rules](foundation/11-quality-manifesto.md#autopilot-rules). A slice is the unit of work for both humans and agents; "vertical slice" is used interchangeably.
 
 ## Host
 
@@ -64,11 +64,11 @@ The object returned by `GameModule.mount` that the hub holds for the lifetime of
 
 ## Direct play
 
-The non-game launch path — a plain HTML button outside the canvas that launches Wild Haggis Survivors immediately. Required so visitors who do not engage with the playable hub still reach the linked game. See [product vision](foundation/03-product-vision.md).
+The non-game launch path — a plain HTML button outside the canvas that launches Wild Haggis Survivors immediately. Required so visitors who do not engage with the playable hub still reach the linked game. See [Project charter — Product vision](foundation/00-project-charter.md#product-vision).
 
 ## Reduced motion
 
-The visitor preference (`prefers-reduced-motion`) for less animation. The first slice must respect this — see [product vision](foundation/03-product-vision.md) and [First Perfect Slice](foundation/10-first-perfect-slice.md).
+The visitor preference (`prefers-reduced-motion`) for less animation. The first slice must respect this — see [Project charter — Product vision](foundation/00-project-charter.md#product-vision) and [Quality gates — First public release requirements](foundation/07-quality-gates.md#first-public-release-requirements).
 
 ## Smoke test
 
@@ -80,7 +80,7 @@ A measurement (broader than a test) that judges whether the project is improving
 
 ## Autopilot
 
-The intended pattern for autonomous agents to plan, build, review, run gates, and update docs without weakening the project's quality bar. Operational rules in [agent operating mode](foundation/08-agent-operating-mode.md); the long-term roadmap of readiness levels is in [autopilot system](architecture/autopilot-system.md).
+The intended pattern for autonomous agents to plan, build, review, run gates, and update docs without weakening the project's quality bar. Operational rules in [Autopilot rules](foundation/11-quality-manifesto.md#autopilot-rules); the long-term roadmap of readiness levels is in [autopilot system](architecture/autopilot-system.md).
 
 ## Quality gate
 

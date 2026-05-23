@@ -2,7 +2,7 @@
 
 Status: accepted
 Date: 2026-05-23
-Related: [ADR-0001](0001-rust-wasm-core-typescript-host.md), [ADR-0002](0002-renderer-evaluation-plan.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [First Perfect Slice](../foundation/10-first-perfect-slice.md)
+Related: [ADR-0001](0001-rust-wasm-core-typescript-host.md), [ADR-0002](0002-renderer-evaluation-plan.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [First public release requirements](../foundation/07-quality-gates.md#first-public-release-requirements)
 
 ## Context
 

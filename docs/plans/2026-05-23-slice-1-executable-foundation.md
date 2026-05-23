@@ -144,7 +144,7 @@
 - Modify: `docs/README.md`
 - Modify: `docs/foundation/07-quality-gates.md`
 - Modify: `docs/plans/2026-05-22-implementation-sequence.md`
-- Create: `docs/audit/2026-05-23-slice-1-executable-foundation-report.md`
+- Create: `docs/audit/2026-05-23-slice-1-executable-foundation-report.md` (since archived to `docs/archive/2026-05-23-slice-1-executable-foundation-report.md`)
 
 **Required doc changes:**
 - Root README current state must say the implementation skeleton exists.

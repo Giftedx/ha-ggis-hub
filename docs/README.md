@@ -22,37 +22,29 @@ The list below is the full sequence. The root [`README.md`](../README.md) highli
 
 Foundation (read in numeric order):
 
-1. [Project charter](foundation/00-project-charter.md)
-2. [Engineering principles](foundation/01-engineering-principles.md)
-3. [Technical bar](foundation/02-technical-bar.md)
-4. [Product vision](foundation/03-product-vision.md)
-5. [Architecture options](foundation/04-architecture-options.md)
-6. [Stack decision record](foundation/05-stack-decision-record.md)
-7. [Dependency policy](foundation/06-dependency-policy.md)
-8. [Quality gates](foundation/07-quality-gates.md)
-9. [Agent operating mode](foundation/08-agent-operating-mode.md)
-10. [Release definition](foundation/09-release-definition.md)
-11. [First Perfect Slice](foundation/10-first-perfect-slice.md)
-12. [Quality manifesto](foundation/11-quality-manifesto.md)
-13. [Craft commitments](foundation/12-craft-commitments.md)
+1. [Project charter](foundation/00-project-charter.md) — identity, non-negotiables, WHS boundary, and product vision
+2. [Stack decision record](foundation/05-stack-decision-record.md) — Rust/WASM core + TypeScript host + replaceable renderer
+3. [Quality gates](foundation/07-quality-gates.md) — technical bar, gate tiers, budgets, and release definition
+4. [Quality manifesto](foundation/11-quality-manifesto.md) — uncompromising bar, language taste, engineering principles, autopilot rules
+5. [Craft commitments](foundation/12-craft-commitments.md) — hand-rolled primitives, hard-language artifacts, and dependency policy
 
 Project-wide:
 
-14. [Glossary](glossary.md)
+6. [Glossary](glossary.md)
 
 Architecture (start with overview, then the section index can steer):
 
-15. [Architecture section index](architecture/README.md)
-16. [Architecture overview](architecture/overview.md)
-17. [Runtime boundaries](architecture/runtime-boundaries.md)
-18. [Data and save boundaries](architecture/data-and-save-boundaries.md)
-19. [Testing strategy](architecture/testing-strategy.md)
-20. [Security model](architecture/security-model.md)
+7. [Architecture section index](architecture/README.md)
+8. [Architecture overview](architecture/overview.md)
+9. [Runtime boundaries](architecture/runtime-boundaries.md)
+10. [Data and save boundaries](architecture/data-and-save-boundaries.md)
+11. [Testing strategy](architecture/testing-strategy.md)
+12. [Security model](architecture/security-model.md)
 
 Decisions and plans:
 
-21. [ADR index](decisions/README.md)
-22. [Implementation sequence](plans/2026-05-22-implementation-sequence.md)
+13. [ADR index](decisions/README.md)
+14. [Implementation sequence](plans/2026-05-22-implementation-sequence.md)
 
 ## Canonical docs
 
@@ -63,19 +55,23 @@ Decisions and plans:
 
 ### Foundation
 
-- [00 Project charter](foundation/00-project-charter.md)
-- [01 Engineering principles](foundation/01-engineering-principles.md)
-- [02 Technical bar](foundation/02-technical-bar.md)
-- [03 Product vision](foundation/03-product-vision.md)
-- [04 Architecture options](foundation/04-architecture-options.md)
-- [05 Stack decision record](foundation/05-stack-decision-record.md)
-- [06 Dependency policy](foundation/06-dependency-policy.md)
-- [07 Quality gates](foundation/07-quality-gates.md)
-- [08 Agent operating mode](foundation/08-agent-operating-mode.md)
-- [09 Release definition](foundation/09-release-definition.md)
-- [10 First Perfect Slice](foundation/10-first-perfect-slice.md)
-- [11 Quality manifesto](foundation/11-quality-manifesto.md)
-- [12 Craft commitments](foundation/12-craft-commitments.md)
+The foundation set was pruned on 2026-05-23 from 13 numbered docs to 5 canonical ones. Distilled content from the absorbed docs lives inside the keepers; the originals are preserved under `docs/archive/` for provenance.
+
+- [00 Project charter](foundation/00-project-charter.md) — identity, non-negotiables, WHS boundary, and product vision (absorbs former `03-product-vision`)
+- [05 Stack decision record](foundation/05-stack-decision-record.md) — Rust/WASM core + TypeScript host + replaceable renderer (former `04-architecture-options` moved to [`docs/research/`](research/2026-05-23-architecture-options-evaluation.md))
+- [07 Quality gates](foundation/07-quality-gates.md) — technical bar, gate tiers, initial budgets, release blockers, first-release requirements, preview-vs-production, rollback posture (absorbs former `02-technical-bar` and `09-release-definition`; `10-first-perfect-slice` archived — acceptance criteria live here)
+- [11 Quality manifesto](foundation/11-quality-manifesto.md) — uncompromising bar, language taste, hand-rolled craft, autopilot philosophy, the 10 engineering principles, and the autopilot rules (absorbs former `01-engineering-principles` and `08-agent-operating-mode`)
+- [12 Craft commitments](foundation/12-craft-commitments.md) — hand-rolled primitives catalogue, hard-language commitments, and the dependency policy (absorbs former `06-dependency-policy`)
+
+Archived foundation docs (provenance only — content distilled into the keepers above):
+
+- [`archive/2026-05-23-foundation-01-engineering-principles.md`](archive/2026-05-23-foundation-01-engineering-principles.md)
+- [`archive/2026-05-23-foundation-02-technical-bar.md`](archive/2026-05-23-foundation-02-technical-bar.md)
+- [`archive/2026-05-23-foundation-03-product-vision.md`](archive/2026-05-23-foundation-03-product-vision.md)
+- [`archive/2026-05-23-foundation-06-dependency-policy.md`](archive/2026-05-23-foundation-06-dependency-policy.md)
+- [`archive/2026-05-23-foundation-08-agent-operating-mode.md`](archive/2026-05-23-foundation-08-agent-operating-mode.md)
+- [`archive/2026-05-23-foundation-09-release-definition.md`](archive/2026-05-23-foundation-09-release-definition.md)
+- [`archive/2026-05-23-foundation-10-first-perfect-slice.md`](archive/2026-05-23-foundation-10-first-perfect-slice.md)
 
 ### Architecture
 
@@ -112,14 +108,12 @@ Decisions and plans:
 ### Research
 
 - [2026-05-22 foundation research notes](research/2026-05-22-foundation-research-notes.md)
+- [2026-05-23 architecture options evaluation](research/2026-05-23-architecture-options-evaluation.md) — moved from `docs/foundation/04-architecture-options.md`
 
 ### Audit
 
-- [2026-05-23 Slice 5 Canvas2D first room report](audit/2026-05-23-slice-5-canvas2d-first-room-report.md) — current
-- [2026-05-23 Slice 4 TypeScript host lifecycle report](audit/2026-05-23-slice-4-typescript-host-lifecycle-report.md) — current
-- [2026-05-23 Slice 3 WASM boundary report](audit/2026-05-23-slice-3-wasm-boundary-report.md) — current
-- [2026-05-23 Slice 2 hub-core movement and doors report](audit/2026-05-23-slice-2-hub-core-movement-and-doors-report.md) — current
-- [2026-05-23 Slice 1 executable foundation report](audit/2026-05-23-slice-1-executable-foundation-report.md) — current
+Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [`tools/haggis-eval/README.md`](../tools/haggis-eval/README.md)). Slice 1–5 reports were moved to `docs/archive/` on 2026-05-23.
+
 - [2026-05-23 documentation audit](audit/2026-05-23-docs-audit.md) — historical
 - [2026-05-22 foundation strengthening report](audit/2026-05-22-foundation-strengthening-report.md) — historical
 - [2026-05-22 documentation audit](audit/2026-05-22-docs-audit.md) — historical
@@ -127,6 +121,12 @@ Decisions and plans:
 ### Archive
 
 - [Original seed plan, superseded](archive/2026-05-22-original-ha-ggis-hub-plan.md)
+- [Slice 1 executable foundation report](archive/2026-05-23-slice-1-executable-foundation-report.md) — superseded by `haggis-eval`
+- [Slice 2 hub-core movement and doors report](archive/2026-05-23-slice-2-hub-core-movement-and-doors-report.md) — superseded by `haggis-eval`
+- [Slice 3 WASM boundary report](archive/2026-05-23-slice-3-wasm-boundary-report.md) — superseded by `haggis-eval`
+- [Slice 4 TypeScript host lifecycle report](archive/2026-05-23-slice-4-typescript-host-lifecycle-report.md) — superseded by `haggis-eval`
+- [Slice 5 Canvas2D first room report](archive/2026-05-23-slice-5-canvas2d-first-room-report.md) — superseded by `haggis-eval`
+- Foundation docs 01, 02, 03, 06, 08, 09, 10 archived in the foundation prune — see the Foundation section above for direct links and distillation targets.
 
 ## Current executable foundation files
 

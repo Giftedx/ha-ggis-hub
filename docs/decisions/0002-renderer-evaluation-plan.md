@@ -2,7 +2,7 @@
 
 Status: superseded by [ADR-0005](0005-canvas2d-first-room-renderer.md)
 Date: 2026-05-22
-Related: [Architecture options](../foundation/04-architecture-options.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [ADR template](adr-template.md)
+Related: [Architecture options](../research/2026-05-23-architecture-options-evaluation.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [ADR template](adr-template.md)
 
 This ADR uses the decision-pending shape. The renderer choice has not been made; this document commits to *how* it will be made and what evidence must exist before a follow-up ADR records the actual choice.
 
