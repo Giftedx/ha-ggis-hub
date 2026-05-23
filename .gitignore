@@ -37,6 +37,13 @@ yarn-error.log*
 # Per-session worktrees created by Claude Code's EnterWorktree tool
 .claude/worktrees/
 
+# Serena MCP plugin local state (project cache, memories, machine config).
+.serena/
+
+# Research image references (large, local-only; tracked separately if needed).
+docs/research/refs/
+docs/research/*.zip
+
 # haggis-eval CLI build artifacts (reports already covered by target/ above)
 tools/haggis-eval/haggis-eval
 tools/haggis-eval/haggis-eval.exe
