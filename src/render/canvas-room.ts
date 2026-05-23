@@ -414,27 +414,46 @@ function drawTopWallWindow(
   // Recessed frame (stone shadow)
   ctx.fillStyle = PX.stoneShadow;
   ctx.fillRect(wx - 1, wy - 1, winW + 2, winH + 2);
-  // Window pane — cool moonlit blue
-  ctx.fillStyle = '#3a5878';
+  // Night sky — deep blue with slight gradient
+  ctx.fillStyle = '#1a2840';
   ctx.fillRect(wx, wy, winW, winH);
-  // Pane lighter near top (moonlight gradient suggestion)
-  ctx.fillStyle = '#6080a0';
-  ctx.fillRect(wx, wy, winW, 2);
-  // Stars — tiny bright pixels that twinkle
-  ctx.fillStyle = '#f0f0f0';
-  const twinkleA = Math.sin(phase * 1.5) > 0.3 ? 1 : 0;
-  const twinkleB = Math.sin(phase * 1.1 + 1) > 0.2 ? 1 : 0;
-  if (twinkleA) ctx.fillRect(wx + 3, wy + 2, 1, 1);
-  if (twinkleB) ctx.fillRect(wx + 11, wy + 1, 1, 1);
-  ctx.fillRect(wx + 7, wy + 3, 1, 1);
-  ctx.fillRect(wx + 13, wy + 4, 1, 1);
-  // Cross mullion (window frame)
+  ctx.fillStyle = '#2a3858';
+  ctx.fillRect(wx, wy, winW, 3);
+  ctx.fillStyle = '#3a4868';
+  ctx.fillRect(wx, wy, winW, 1);
+
+  // The moon — crescent shape in the right half of the window
+  ctx.fillStyle = '#e8e0c8';
+  ctx.fillRect(wx + 11, wy + 2, 2, 4);
+  ctx.fillRect(wx + 12, wy + 1, 1, 6);
+  // Moon shadow (the dark side of the crescent)
+  ctx.fillStyle = '#1a2840';
+  ctx.fillRect(wx + 11, wy + 2, 1, 4);
+
+  // Stars — twinkle independently
+  const stars: ReadonlyArray<readonly [number, number, number]> = [
+    [3, 1, 1.5],
+    [6, 3, 1.1],
+    [8, 1, 2.2],
+    [4, 4, 1.7],
+    [2, 5, 1.3]
+  ];
+  for (const [sx, sy, freq] of stars) {
+    if (Math.sin(phase * freq + sx) > 0) {
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(wx + sx, wy + sy, 1, 1);
+    }
+  }
+
+  // Cross mullion (window frame) — drawn AFTER the moon so it overlaps
   ctx.fillStyle = '#1a0e06';
   ctx.fillRect(wx + Math.round(winW / 2) - 1, wy, 2, winH);
   ctx.fillRect(wx, wy + Math.round(winH / 2) - 1, winW, 2);
-  // Stone sill below the window
+  // Stone sill below the window — and a tiny shadow on the wall below
   ctx.fillStyle = PX.stoneHighlight;
   ctx.fillRect(wx - 2, wy + winH, winW + 4, 1);
+  ctx.fillStyle = PX.stoneShadow;
+  ctx.fillRect(wx - 2, wy + winH + 1, winW + 4, 1);
 }
 
 function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
@@ -681,6 +700,20 @@ function drawDoor(
     ctx.fillRect(lockX + 1, lockY - 3, 1, 3);
     ctx.fillRect(lockX + lockW - 2, lockY - 3, 1, 3);
     ctx.fillRect(lockX + 1, lockY - 3, lockW - 2, 1);
+  }
+  // Keyhole tease — tiny red glow on the locked door's keyhole that
+  // pulses, hinting "this opens someday". Only when nobody's actively
+  // peeking (interactingId !== door.id) so it isn't competing with the
+  // active glow. Animated independently of interaction state.
+  if (!isLaunchable && interactingId !== door.id) {
+    // Recompute keyhole position to match the padlock above
+    const cx = x + Math.round(width / 2);
+    const cy = Math.round(y + height / 2);
+    const pulse = 0.4 + Math.sin(0.0001 * Date.now() * 6) * 0.3;
+    ctx.fillStyle = '#c44218';
+    ctx.globalAlpha = pulse;
+    ctx.fillRect(cx, cy + 1, 1, 2);
+    ctx.globalAlpha = 1;
   }
 
   // Active glow — pulses warm light around the doorway
@@ -1088,13 +1121,19 @@ function drawHaggis(
   ctx.fillRect(cx - Math.round(r * 0.7), cy + r + 1, Math.round(r * 1.4), 2);
   ctx.globalAlpha = 1;
 
-  // Legs (drawn before body so body covers their tops)
+  // Legs (drawn before body so body covers their tops). Each leg
+  // alternates up/down by 1px out of phase with the other so the
+  // haggis looks like he's bobbing/stepping in place even when idle —
+  // and looks like he's walking when actually moving.
   ctx.fillStyle = PX.legDark;
   const legW = 2;
-  const legH = 3;
-  const legY = cy + bob + Math.round(r * 0.55);
-  ctx.fillRect(cx - Math.round(r * 0.45), legY, legW, legH);
-  ctx.fillRect(cx + Math.round(r * 0.45) - legW, legY, legW, legH);
+  const legBaseY = cy + bob + Math.round(r * 0.55);
+  const stepL = Math.sin(phase * 5.5) > 0 ? 0 : 1;
+  const stepR = 1 - stepL;
+  const legHL = 3 + stepL;
+  const legHR = 3 + stepR;
+  ctx.fillRect(cx - Math.round(r * 0.45), legBaseY - stepL, legW, legHL);
+  ctx.fillRect(cx + Math.round(r * 0.45) - legW, legBaseY - stepR, legW, legHR);
 
   // Outline ring (1px around body for that hand-drawn pixel feel)
   ctx.fillStyle = PX.hagOutline;
