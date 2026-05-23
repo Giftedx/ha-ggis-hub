@@ -1,0 +1,20 @@
+{
+  "name": "hub-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aggis/ha-ggis-hub"
+  },
+  "files": [
+    "hub_wasm_bg.wasm",
+    "hub_wasm.js",
+    "hub_wasm.d.ts"
+  ],
+  "main": "hub_wasm.js",
+  "types": "hub_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
