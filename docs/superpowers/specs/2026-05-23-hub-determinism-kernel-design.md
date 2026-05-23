@@ -1,0 +1,236 @@
+# Hub-Determinism Kernel — Design Spec
+
+Status: approved design, pre-implementation
+Date: 2026-05-23
+Scope: first of two sub-projects under the locked technical thesis for ha.ggis Hub
+Related:
+- [Project charter](../../foundation/00-project-charter.md)
+- [Stack decision record](../../foundation/05-stack-decision-record.md)
+- [Quality manifesto](../../foundation/11-quality-manifesto.md)
+- [Craft commitments](../../foundation/12-craft-commitments.md)
+- [Architecture overview](../../architecture/overview.md)
+- [Runtime boundaries](../../architecture/runtime-boundaries.md)
+- [ADR-0001 Rust/WASM core](../../decisions/0001-rust-wasm-core-typescript-host.md)
+- [ADR-0004 Language and craft philosophy](../../decisions/0004-language-and-craft-philosophy.md)
+- [ADR-0005 Canvas2D first room](../../decisions/0005-canvas2d-first-room-renderer.md)
+
+## 0. Context and thesis
+
+ha.ggis Hub is a professional-portfolio artifact judged by a generalist senior reviewer. The locked technical thesis is:
+
+> **A deterministic, replayable, agent-evaluable web game hub.**
+
+Every gameplay session is reproducible byte-exact from `(seed, input-log)` in both the browser and a native CI binary. The eval harness can replay any session, assert state, diff against golden snapshots, and gate merges on the result. This thesis makes every hard-language commitment from [Craft commitments](../../foundation/12-craft-commitments.md) load-bearing rather than vanity, and makes the agent autopilot loop tractable because every gate has an unambiguous oracle.
+
+The project is decomposed into two sub-projects, each with its own design / plan / implementation cycle:
+
+1. **Hub-Determinism Kernel** (this spec) — deterministic Rust core, WASM boundary, WAT RNG, C hash, replay engine, Go `haggis-eval` CLI. No new gameplay.
+2. **WHS-Stub Slice** (future spec) — a small in-hub demo gameplay slice (e.g. a fixed-seed 30-second first wave) that consumes the kernel and proves the replay thesis end-to-end on real workload. Full Wild Haggis Survivors remains an external link governed by a future ADR.
+
+This spec covers sub-project one. The kernel is the foundation that lets sub-project two ship without fear of drift.
+
+## 1. Architecture
+
+```
++---------------------------------------------------------------+
+|  haggis-eval (Go CLI) — single binary, signed JSON report     |
+|  orchestrates every gate below                                |
++---------------------------------------------------------------+
+              |                              |
+              v                              v
++--------------------------+      +-------------------------------+
+|  Native test binary      |      |  Browser host (Playwright)    |
+|  cargo nextest +         |      |  records session, persists    |
+|  replay::run(seed, log)  |      |  input log + state hashes     |
++--------------------------+      +-------------------------------+
+              |                              |
+              +---- identical hash ----+----+
+                                       v
+                          +--------------------------+
+                          |  hub-core (Rust)         |
+                          |  Sim::tick pure fn       |
+                          |  RNG  ┐    Hash  ┐       |
+                          |  Rust |    Rust  |       |
+                          |  WAT  ┘ diff'd   C  ┘    |
+                          +--------------------------+
+                                  |        |
+                                  v        v
+                         asm/*.wat    c/*.c (via FFI)
+```
+
+**Single source of truth: `hub-core`.** The WASM module is a boundary, not a parallel implementation. Native tests and browser sessions feed the same core. Replay reproducibility across surfaces is the headline guarantee and the primary gate.
+
+## 2. Components
+
+### 2.1 `hub-core` — deterministic kernel (Rust)
+
+- `Sim` — pure state machine. Signature: `Sim::tick(input: InputSnapshot, rng: &mut Rng) -> RenderSnapshot`. No `std::time`, no float in gameplay paths, no global state. Every RNG draw routed through the seedable `Rng`.
+- `Rng` — xoshiro128**. 16 bytes of state. Public seed API, `next_u32`, `next_bounded`. Reference vectors verified in unit tests.
+- `Hash` — FNV-1a 64-bit, pure Rust implementation in `hub-core`. Used as the default at runtime; the C implementation (§2.3) is the second backend for differential testing.
+- `InputSnapshot` — packed `u16` carrying movement axes, interact bit, and reserved bits. Tick-aligned. No floats. Bit layout fixed and documented as part of the public boundary.
+- `RenderSnapshot` — flat `#[repr(C)]` struct, copyable, no allocations. Lives on Rust stack, copied into a JS-side `Uint32Array` view by the boundary.
+- `state_hash(&Sim) -> u64` — canonicalised digest over every gameplay-relevant byte. Used by replay verification and by the input log trailer.
+
+The full top-level entity model (rooms, doors, future enemies/projectiles) lives inside `Sim` and is exposed to JS only through the flat render snapshot. JS has no per-entity round-trips.
+
+### 2.2 `asm/xoshiro128_starstar.wat` — WAT RNG kernel
+
+- Hand-authored. Target ~80–120 lines of WebAssembly Text Format.
+- Single exported function `next_u32(state_ptr: i32) -> i32` operating on 16 bytes of linear memory shared with Rust.
+- Compiled with `wat2wasm` at build time into a sibling module. Loaded behind an opt-in test feature (`--rng-backend=wat`).
+- Not used at runtime. Sole purpose: a differential oracle for the Rust `Rng`. Reader can compare the algorithm twice — once in Rust, once in WAT — and the test proves they agree.
+
+### 2.3 `c/fnv1a.c` — C hash kernel
+
+- ~40 LOC. Public signature `uint64_t fnv1a_64(const uint8_t* data, size_t len)`.
+- Compiled twice from one source file: `clang` to a native object linked into the Rust crate via `cc-rs` for native test builds; `clang --target=wasm32-unknown-unknown` to a freestanding wasm object linked into the Rust → wasm pipeline for browser builds. Same `.c`, two targets.
+- Not used at runtime as the primary hash. Sole purpose: a differential oracle for the Rust hash.
+
+### 2.4 `hub-wasm` — boundary
+
+The WASM boundary collapses to four functions, fixing the per-tick allocation problem identified in the prior review:
+
+- `init(seed: u64) -> handle`
+- `tick(handle, input_packed: u32) -> void` — writes into a preallocated snapshot buffer
+- `snapshot_ptr(handle) -> u32`, `snapshot_len(handle) -> u32` — zero-copy view into linear memory
+- `state_hash(handle) -> u64`
+
+No per-tick allocations. No per-tick string returns. The TS host reads a `Uint32Array` over the snapshot buffer once per frame and decodes it into a TS render struct. Door titles and other static metadata are obtained once at init via a separate `room_definition()` call returning a JSON-encoded blob.
+
+### 2.5 Input log format — `.haggislog`
+
+Binary, append-only, versioned. Layout:
+
+| Section | Field | Type | Notes |
+|---|---|---|---|
+| Header | magic | `[u8;4]` | `HGLG` |
+| Header | format_version | `u16` | starts at 1 |
+| Header | core_api_version | `u32` | matches `hub_core::CORE_API_VERSION` at write time |
+| Header | seed | `u64` | RNG seed for the session |
+| Header | started_at_utc_ms | `u64` | informational; not part of replay verification |
+| Header | initial_state_hash | `u64` | `state_hash(&Sim)` immediately after `init(seed)` |
+| Body | record | `(u32 tick_index, u32 input_packed)` per entry | omitted when input unchanged from prior frame |
+| Trailer | final_state_hash | `u64` | `state_hash(&Sim)` after the last tick |
+| Trailer | total_ticks | `u32` | |
+| Trailer | log_digest | `u64` | FNV-1a of (header + body) |
+
+Reader/writer implemented in Rust, callable from both native and WASM. TS host writes the log to a `Uint8Array` in memory; Playwright extracts the buffer and hands it to `haggis-eval determinism`.
+
+### 2.6 Replay engine
+
+- `replay::run(log: &Log) -> Result<ReplayOutcome, ReplayError>`. Reconstructs Sim from header seed, feeds every tick's input (filling unchanged frames from the previous input), hashes final state, compares against the log's trailer hash. Mismatch produces `ReplayError::Divergence { at_tick }`.
+- The same `replay::run` is invoked by `haggis-eval determinism`: take a log produced by the browser, replay native, assert digests match. This is the headline guarantee.
+
+### 2.7 `tools/haggis-eval/` — Go orchestrator CLI
+
+Single Go binary, single source tree. Subcommands:
+
+| Command | Gate it runs |
+|---|---|
+| `haggis-eval rust` | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo nextest run` |
+| `haggis-eval ts` | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm eslint` |
+| `haggis-eval browser` | Playwright smoke + replay capture |
+| `haggis-eval determinism` | Replay every captured log natively, diff hashes |
+| `haggis-eval differential rng` | Rust vs WAT xoshiro128**, fixed seed, 1M draws |
+| `haggis-eval differential hash` | Rust vs C FNV-1a, published vectors + fuzz |
+| `haggis-eval perf` | `size-limit` budgets, Lighthouse against local preview |
+| `haggis-eval security` | Live preview response headers diffed against `public/_headers` |
+| `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.toml` |
+| `haggis-eval all` | Every gate above; exit non-zero on any failure |
+
+Output: a human-readable report on stdout and a signed JSON report at `target/haggis-eval/<utc>.json`. Signature is the FNV-1a of the report payload — proves the eval bundle was not edited after the fact.
+
+Implemented in Go because Go's small typed binary that orchestrates processes is exactly the right tool, per [Craft commitments §B-Go](../../foundation/12-craft-commitments.md#go--haggis-eval-cli). It replaces what would otherwise be a tangled shell pipeline or a Python harness whose dependencies are themselves a maintenance burden.
+
+## 3. Data flow — the replay-determinism path
+
+```
+Browser session
+  -> input log written into linear memory
+  -> Playwright extracts .haggislog blob
+  -> haggis-eval determinism feeds blob to native replay::run
+  -> compares final_state_hash with blob's trailer hash
+  -> green: byte-exact reproduction across browser + native
+  -> red:   ReplayError::Divergence { at_tick } printed; eval fails
+```
+
+Drift modes this catches that the current test suite cannot:
+
+- Float creep into gameplay paths
+- Allocator-order dependence
+- Browser-vs-native ordering bugs in the boundary
+- WAT/Rust RNG drift
+- C/Rust hash drift
+- Hidden non-determinism from third-party code that may slip in later
+
+## 4. Error handling
+
+- `hub-core` returns `Result` from anything that can fail. No `unwrap()` on a path reachable by a non-test caller.
+- The WASM boundary translates errors into a tagged `u32` return code plus a pointer to a zero-copy error message; the TS host throws `HubCoreError { tag, message }`. A window-level error boundary (`error` + `unhandledrejection` listeners) swaps the canvas for the fallback shell containing the direct-play link and runtime status. The existing `try`/`catch` in `src/main.ts` is the seed of this; the kernel slice hardens it into the boundary described here.
+- `haggis-eval` always exits with a numeric code matching the failing subcommand category; never swallows a failure; never returns 0 on partial success.
+- Replay divergence is a hard failure with `at_tick` for fast bisection.
+
+## 5. Testing strategy
+
+| Layer | Test type | Where it runs |
+|---|---|---|
+| `hub-core` unit | Rust `#[test]`, fixed seeds, golden vectors | `cargo nextest` |
+| `hub-core` property | `proptest` over RNG distribution, hash collisions, Sim idempotence on no-input ticks | `cargo nextest` |
+| WAT differential | Rust RNG vs WAT RNG over 1M draws | `haggis-eval differential rng` |
+| C differential | Rust hash vs C hash, vectors + 100k fuzz | `haggis-eval differential hash` |
+| Boundary | Vitest against a real WASM init — no mocks | `pnpm vitest` |
+| Browser smoke | Playwright load + input + capture log | `haggis-eval browser` |
+| Replay determinism | Browser-captured log replayed native, hash equal | `haggis-eval determinism` |
+| Perf budget | `size-limit` + Lighthouse | `haggis-eval perf` |
+| Security headers | Live preview headers vs `public/_headers` | `haggis-eval security` |
+
+**No layer mocks another layer in the gating tests.** Mocks are permitted only in `hub-core` unit tests where the boundary itself is the system-under-test.
+
+## 6. Agent autopilot loop
+
+Per [[autopilot-believer]] and [Agent operating mode](../../foundation/08-agent-operating-mode.md):
+
+1. Slice spec lives in `docs/superpowers/specs/<date>-<slice>-design.md` — this template.
+2. Implementation plan lives in `docs/superpowers/plans/<date>-<slice>-plan.md`, produced by the `writing-plans` skill from the approved spec.
+3. The agent works one task at a time from the plan, in a worktree, with a coherent commit per completed task.
+4. A slice cannot be marked complete until `haggis-eval slice <name>` is green, the JSON report is committed to `target/haggis-eval/<utc>.json`, and the JSON is pasted into the PR description.
+5. After merge, the agent writes a one-line reflection to `~/.claude/memory/reflections.jsonl`.
+6. Foundation docs and ADRs are updated in the same PR if the slice changed reality.
+7. Gate weakening is the one PR rule that auto-rejects. Suppressing a clippy warning, mocking a differential test, or commenting out an assertion in a gating test all qualify.
+
+## 7. Touchpoints with existing code
+
+The current Canvas2D first-room slice is not discarded. The kernel design lands on top of it. Specific touchpoints:
+
+- The current per-tick `tick_player` WASM boundary is collapsed into the coarser `tick(input_packed)` of §2.4.
+- The current `interaction_for` returning owned strings becomes a packed numeric result inside the render snapshot; door titles are resolved in TS from a static table populated once at init.
+- The current TS `DEFAULT_HUB_ROOM_DOORS` literal is deleted; doors come from `room_definition()` exposed by `hub-wasm`, single source of truth.
+- The current RAF tick-per-frame becomes a fixed-step accumulator. Replay requires it.
+- The foundation document set is pruned: the 13 numbered foundation docs collapse to four — charter, stack, gates, manifesto — with the remainder moved to `docs/archive/`. ADRs stay where they are. Per-slice audit reports stop being written; the `haggis-eval` signed JSON report replaces them as the slice-level evidence.
+
+## 8. Out of scope for this sub-project
+
+- WHS stub gameplay — sub-project two, future spec.
+- WebGPU renderer — later ADR; Canvas2D stays for the first slice per [ADR-0005](../../decisions/0005-canvas2d-first-room-renderer.md).
+- Save schema versioning — later, once there is gameplay state worth saving.
+- Multi-room hub layout — later, once one room is perfect.
+- Server, accounts, telemetry, leaderboards — explicitly excluded.
+
+## 9. Acceptance criteria
+
+The kernel sub-project is complete when all of the following are true:
+
+1. `hub-core` exposes the `Sim`, `Rng`, `Hash`, `InputSnapshot`, `RenderSnapshot`, `state_hash`, and `replay::run` surfaces described in §2.1 and §2.6, with the test coverage described in §5.
+2. `asm/xoshiro128_starstar.wat` and `c/fnv1a.c` exist and pass differential tests against the Rust implementations.
+3. `hub-wasm` exposes only the four boundary functions in §2.4; the prior per-entity round-trips are gone.
+4. The `.haggislog` reader/writer exists and round-trips on a synthetic log.
+5. `tools/haggis-eval/` exists as a single Go binary with every subcommand in §2.7 implemented; `haggis-eval all` passes on a clean checkout.
+6. A Playwright session can record a log; `haggis-eval determinism` replays it native; final hashes match.
+7. Foundation docs are pruned per §7; archived material moved with supersession notes.
+8. The current first-room behaviour still works for the visitor: walk the haggis with WASD/arrows, see door prompts, use the direct-play link. Visible behaviour is unchanged or improved; nothing regresses.
+
+## 10. Non-goals of this spec
+
+- This spec does not pick an implementation order. That is the job of the plan produced by `writing-plans`.
+- This spec does not enumerate every test case. It enumerates test *layers* and gate composition; concrete cases land in the plan or the test files.
+- This spec does not redesign visible UX. Visible behaviour is preserved or strictly improved; nothing in this kernel sub-project requires a UX redesign.
