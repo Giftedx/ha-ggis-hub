@@ -1,6 +1,21 @@
 import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
 import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
+import { blitSprite } from './sprite';
+import { drawWhsHaggis } from './whs-haggis';
+import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
+import {
+  drawWhsBothyWalls, drawWhsBothyFloor, drawWhsWindowBay, drawWhsDoor,
+  drawWhsMantelpiece, type BothyEnvelope
+} from './whs-bothy';
+import {
+  PALETTE,
+  makeBeamGeometry,
+  lightZoneAt,
+  hardContactShadow
+} from './palette';
+import { DOOR_SIGN, LANTERN_LIT } from './sprites/door';
+import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './sprites/pixel-font';
 
 // Pixel-art renderer for the ha.ggis bothy. The host sizes the canvas
 // internal buffer to roughly 320×180 (or wider for ultrawide aspect)
@@ -25,6 +40,13 @@ export interface CanvasRoomContext {
   fill(): void;
   stroke(): void;
   fillText(text: string, x: number, y: number): void;
+  save(): void;
+  restore(): void;
+  ellipse(
+    x: number, y: number, radiusX: number, radiusY: number,
+    rotation: number, startAngle: number, endAngle: number
+  ): void;
+  clip(): void;
 }
 
 export interface CanvasRoomSurface {
@@ -37,69 +59,78 @@ export interface CanvasRoomRenderer {
   render(snapshot: DecodedSnapshot): void;
 }
 
-// Palette — aligned to Wild Haggis Survivors `DESIGN.md` tokens so the
-// hub reads as a sibling of WHS, not a separate brand. See
-// docs/research/2026-05-23-haggis-canon-and-whs-design-language.md.
+// Palette — Hub Dawn Bothy tokens locked in
+// docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md.
+// The hub has its OWN palette; it does NOT adopt WHS's DESIGN.md tokens.
+// Field names match the prior structure so draw fns are unchanged.
 const PX = {
-  // Night-moor base (the back-of-the-stage void)
-  void: '#0a0a14',                  // surface-dim
-  // Stone walls — WHS art-stone-*
-  stoneShadow: '#1a1a28',           // surface-container
-  stoneDark: '#2a2a30',             // art-stone-shadow
-  stoneMid: '#4a4a50',              // art-stone-mid
-  stoneLight: '#6a6a72',
-  stoneHighlight: '#8a8a90',        // art-stone-highlight
-  mortar: '#0a0a14',
-  // Floor — peat boards rather than warm wood
-  floorDark: '#1a1a28',             // surface-container
-  floorMid: '#2a2438',
-  floorLight: '#3a3450',
-  floorSeam: '#0a0a14',
-  floorKnot: '#1a0e1a',
-  floorLitWash: '#5a3e20',          // art-peat-mid (warm splash from fire)
-  // Wooden doors — slightly warmer than walls but in the WHS register
-  woodWarm: '#5a3e20',              // art-peat-mid
-  woodWarmShade: '#3a2818',         // art-peat-shadow
-  woodWarmHighlight: '#7a5028',
-  woodCold: '#2a2a30',              // art-stone-shadow (locked door is stone-cold)
-  woodColdShade: '#1a1a28',
+  // Backdrop behind the bothy (deepest ink that peeks past walls)
+  void: '#1a0e08',                  // ink-deep
+  // Warm sandstone-plastered walls — lit by dawn through the window
+  stoneShadow: '#3a2418',           // peat-brown
+  stoneDark: '#4a2c18',
+  stoneMid: '#8a6a4a',              // sandstone mid (lit warm)
+  stoneLight: '#b8a878',            // cairn-stone
+  stoneHighlight: '#d8c898',
+  mortar: '#3a2418',
+  // Floor — warm peat-stained oak boards
+  floorDark: '#2a1810',
+  floorMid: '#4a2c1c',
+  floorLight: '#7a5230',
+  floorSeam: '#1a0e08',
+  floorKnot: '#1a0a04',
+  floorLitWash: '#e4a020',          // neeps-orange wash from the hearth
+  // Wooden doors — warm timber, lit
+  woodWarm: '#5a3220',
+  woodWarmShade: '#2a1808',
+  woodWarmHighlight: '#8a5630',
+  woodCold: '#3a2a30',              // locked door reads ash-grey (still warm-tinted)
+  woodColdShade: '#1a1218',
   // Iron + brass
-  iron: '#2a2a30',
-  ironHighlight: '#4a4a50',
-  goldHandle: '#d4a017',            // secondary (whisky gold)
-  goldHandleDark: '#8a6814',
-  // Fire — WHS art-red-* + warm gold
-  flameCore: '#ffe8b0',
-  flameMid: '#ffc840',              // art-gold-bright
-  flameOuter: '#c42828',            // art-red-arterial
-  ember: '#aa2020',                 // art-red-deep
-  // Wild haggis sprite — WHS art-peat-* family
-  hagOutline: '#1a1018',            // dark ink
-  hagDark: '#3a2818',               // art-peat-shadow
-  hagBody: '#5a3e20',               // art-peat-mid (canonical body)
-  hagLight: '#7a5028',
-  hagRim: '#9a6e3c',
-  hagBlush: '#c44a52',              // pink nose / cheek blush
-  hagShadow: 'rgba(0, 0, 0, 0.55)',
-  // Face details
-  eyeWhite: '#e4e9f0',              // text-bright
-  eyePupil: '#0a0a14',              // surface-dim
-  legDark: '#1a1018',
-  // Lantern halo — whisky gold
-  haloWarm: '#d4a017',              // secondary
-  haloCool: '#596780',              // text-dim (cool counterpoint for the locked door)
-  // Signs — peat wood + gold paint
-  signWood: '#5a3e20',
-  signEdge: '#1a1018',
-  signText: '#e8d4a0',              // warm-tan
-  signTextShadow: '#3a2818',
+  iron: '#2a1a14',
+  ironHighlight: '#5a4a3a',
+  goldHandle: '#c8842a',            // whisky-amber
+  goldHandleDark: '#7a5018',
+  // Fire — banked embers from last night, warm but not roaring
+  flameCore: '#fff0c8',
+  flameMid: '#e4a020',              // neeps-orange
+  flameOuter: '#c8842a',            // whisky-amber
+  ember: '#c44218',                 // ember-red
+  // Wild haggis — peat-brown body with a ginger mane suggestion
+  hagOutline: '#1a0e08',
+  hagDark: '#3a2418',
+  hagBody: '#5a3a20',
+  hagLight: '#8a6038',              // ginger highlight (mane hint)
+  hagRim: '#c8a058',                // warm rim catching the dawn
+  hagBlush: '#a44030',              // dusty rose nose (warm, not pink)
+  hagShadow: 'rgba(20, 10, 4, 0.5)',
+  // Eyes — cream whites read warmer than cool blue-white in the dawn light
+  eyeWhite: '#f0e6c8',              // tatties-cream
+  eyePupil: '#1a0e08',
+  legDark: '#1a0e08',
+  // Lantern halo + active glow — warm dawn glow
+  haloWarm: '#e4a020',              // neeps-orange (launchable)
+  haloCool: '#7a4a9c',              // heather-purple (locked counterpoint, dawn-correct)
+  // Door signs — oat wood + cream paint
+  signWood: '#5a3220',
+  signEdge: '#1a0e08',
+  signText: '#f0e6c8',              // tatties-cream
+  signTextShadow: '#2a1408',
   // Interaction prompt
-  promptShadow: 'rgba(10, 10, 20, 0.92)',
-  promptText: '#e4e9f0'              // text-bright
+  promptShadow: 'rgba(26, 14, 8, 0.92)',
+  promptText: '#f0e6c8'              // tatties-cream
 } as const;
 
-// Wall thickness — sized for the 640×360 internal canvas. ~7% of height.
-const WALL_THICK = 28;
+// Wall thickness — 3/4 OBLIQUE PROJECTION (committed after reviewer
+// diagnosed mixed-projection as root cause of "sloped up" feeling).
+// The BACK wall (top of screen) is the dominant feature in 3/4
+// framing; side + bottom walls are thinner trim. This converts the
+// scene from "4-wall frame seen top-down with elevation cheating"
+// into "looking into the bothy through a 3/4 angle, back wall front
+// and centre".
+const WALL_THICK_BACK = 96;   // back wall — dominant, holds window/decor
+const WALL_THICK_SIDE = 24;   // side walls — thin trim
+const WALL_THICK_FRONT = 24;  // front wall — thin trim
 
 interface ScaledRect {
   readonly x: number;
@@ -168,13 +199,13 @@ function snapDoorToWall(
   // door's outer plank and reads as a doorway opening).
   switch (side) {
     case 'left':
-      return { ...rect, x: WALL_THICK - 2 };
+      return { ...rect, x: WALL_THICK_SIDE - 2 };
     case 'right':
-      return { ...rect, x: surface.width - WALL_THICK - rect.width + 2 };
+      return { ...rect, x: surface.width - WALL_THICK_SIDE - rect.width + 2 };
     case 'top':
-      return { ...rect, y: WALL_THICK - 2 };
+      return { ...rect, y: WALL_THICK_BACK - 2 };
     case 'bottom':
-      return { ...rect, y: surface.height - WALL_THICK - rect.height + 2 };
+      return { ...rect, y: surface.height - WALL_THICK_FRONT - rect.height + 2 };
   }
 }
 
@@ -210,10 +241,19 @@ function renderRoom(
     drawDoor(ctx, door, interactingId);
   }
 
-  // 5. Perimeter walls — drawn AFTER doors so the wall trim sits over
-  //    any door pixel that strays beyond its frame. Door inset slightly
-  //    inside the interior means the wall doesn't cover the door body.
-  drawWalls(ctx, surface);
+  // 5. Perimeter walls — WHS bothy port (peat-plaster + timber beams).
+  //    Replaces the prior pixel stone-tile wall drawer. The pixel
+  //    drawWalls fn is retired in favor of procedural plaster substrate
+  //    that matches the WHS-quality haggis + hearth register.
+  const bothyEnv: BothyEnvelope = {
+    left: WALL_THICK_SIDE,
+    right: surface.width - WALL_THICK_SIDE,
+    top: 0,
+    wallBottom: WALL_THICK_BACK,
+    floorBottom: surface.height - WALL_THICK_FRONT,
+    compact: surface.width < 600
+  };
+  drawWhsBothyWalls(ctx, bothyEnv);
 
   // 6. Wall-mounted lanterns above each door — only the launchable
   //    one gets a fixture (unlit lanterns are visual noise).
@@ -224,29 +264,56 @@ function renderRoom(
     }
   }
 
-  // 7. Floor furnishings — placed in the corners so the central play
-  //    area stays clear for the haggis. Minimal: woodpile + barrel,
-  //    plus a few floor scatter sparks.
-  drawFloorScatter(ctx, surface);
-  drawWoodpile(ctx, surface);
-  drawBarrel(ctx, surface);
-
-  // 8. Fire pit — placed lower in the room (and large enough to read as a
-  //    focal point) so the haggis spawning at world-center doesn't sit
-  //    on top of it.
+  // 7. Hearth — WHS port (drawWhsHearthFrame). 72×72 native; scale 2
+  // = 144×144 footprint. Anchor: fireCenter is the hearthstone center,
+  // we shift origin so the hearthstone slab (s-8..s-2) sits at floor.
   const fireCenter = {
     x: Math.round(surface.width / 2),
-    y: Math.round(surface.height * 0.8)
+    y: Math.round(surface.height * 0.78)
   };
-  drawFloorRug(ctx, fireCenter);
-  drawFirePit(ctx, fireCenter, phase);
+  const HEARTH_SCALE = 1.4;
+  const hearthSize = HEARTH_CANVAS_SIZE * HEARTH_SCALE;
+  const hearthOriginX = fireCenter.x - hearthSize / 2;
+  const hearthOriginY = fireCenter.y - hearthSize / 2;
 
-  // 7.5 Wall decorations — small moonlit window on the top wall +
-  //     decorative hangings on each side. Adds character without
-  //     cluttering the floor.
+  // Warm floor glow around hearth — smooth translucent ellipses,
+  // pulsing with the flame flicker. Clipped to the floor area so it
+  // doesn't spill onto the front wall.
+  const hearthFlicker = 0.75 + Math.sin(phase * 4.2) * 0.1;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(WALL_THICK_SIDE, WALL_THICK_BACK);
+  ctx.lineTo(surface.width - WALL_THICK_SIDE, WALL_THICK_BACK);
+  ctx.lineTo(surface.width - WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
+  ctx.lineTo(WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
+  ctx.closePath();
+  ctx.clip();
+  for (let i = 4; i >= 1; i--) {
+    const r = 100 * (i / 4);
+    ctx.save();
+    ctx.globalAlpha = 0.055 * i * hearthFlicker;
+    ctx.fillStyle = PALETTE.dawnPeach;
+    ctx.beginPath();
+    ctx.ellipse(fireCenter.x, fireCenter.y, r * 1.2, r * 0.95, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+  hardContactShadow(ctx, fireCenter.x, fireCenter.y + Math.round(hearthSize / 2) + 2, 50, 3);
+  // 4 frames; ~7 fps cycle.
+  const hearthFrameIdx = Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
+  drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
+
+  // 8. Wall decorations — WHS window in the back wall + mantelpiece.
   drawTopWallWindow(ctx, surface, phase);
-  drawWallHanging(ctx, surface);
-  drawSideWallSconces(ctx, surface, phase);
+
+  // Mantelpiece on the back wall, centred above the hearth. Sits at
+  // the lower back wall area so the candle flame catches firelight.
+  const mantelW = Math.min(180, Math.round(surface.width * 0.32));
+  const mantelH = 8;
+  const mantelX = Math.round(surface.width / 2 - mantelW / 2);
+  const mantelY = WALL_THICK_BACK - mantelH - 6;
+  drawWhsMantelpiece(ctx, { x: mantelX, y: mantelY, w: mantelW, h: mantelH });
 
   // 8. Haggis player
   drawHaggis(ctx, surface, room, snapshot, phase);
@@ -270,147 +337,63 @@ function drawAmbientParticles(
   fireCenter: { readonly x: number; readonly y: number },
   phase: number
 ): void {
-  // Smoke wisps from the fire — soft grey pixels rising and fading.
-  // Each wisp cycles through a 4-second life independently.
-  for (let i = 0; i < 4; i += 1) {
-    const life = ((phase * 0.25 + i * 0.27) % 1);
-    if (life < 0.1) continue;
-    const sway = Math.sin(phase * 1.7 + i * 2.1) * 5;
-    const sx = Math.round(fireCenter.x + sway);
-    const sy = Math.round(fireCenter.y - 28 - life * 60);
-    const alpha = (1 - life) * 0.45;
-    ctx.fillStyle = '#9a8a7a';
+  // Ember sparks rising from the fire — small bright orange specks
+  // that fade fast. Sells the fire as "active" not painted-on.
+  for (let i = 0; i < 5; i += 1) {
+    const life = ((phase * 0.5 + i * 0.31) % 1);
+    if (life < 0.05 || life > 0.85) continue;
+    const sway = Math.sin(phase * 3.1 + i * 1.7) * 4;
+    const sx = fireCenter.x + sway + (i - 2) * 2;
+    const sy = fireCenter.y - 18 - life * 50;
+    const alpha = (1 - life) * 0.9;
+    ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillRect(sx, sy, 1, 1);
-    if (life < 0.6) {
-      ctx.fillRect(sx + 1, sy + 1, 1, 1);
-    }
-    if (life < 0.4) {
-      ctx.fillRect(sx - 1, sy, 1, 1);
-    }
+    ctx.fillStyle = life < 0.4 ? '#ffe080' : '#ff8a40';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
-  ctx.globalAlpha = 1;
 
-  // Dust motes drifting in the moonlight column under the window.
-  // 6 motes orbit slowly in a small area below the window, each at a
-  // different vertical speed.
+  // Smoke wisps rising from hearth — smooth small ellipses scaling
+  // larger + fading as they rise. Two-tone (warm at base → cool grey
+  // higher). Phase 3-coherent: no pixel rects.
+  for (let i = 0; i < 8; i += 1) {
+    const life = ((phase * 0.3 + i * 0.22) % 1);
+    if (life < 0.05) continue;
+    const sway = Math.sin(phase * 1.7 + i * 2.1) * 8;
+    const sx = fireCenter.x + sway;
+    const sy = fireCenter.y - 32 - life * 90;
+    const alpha = (1 - life) * 0.55;
+    const r = 2 + life * 5;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = life < 0.3 ? '#c89880' : '#9a8a7a';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, r, r * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Dust motes in the dawn beam — small cream specks drifting down,
+  // brightest near the window, fading toward the floor. Smooth tiny
+  // circles instead of pixel rects.
   const windowCx = Math.round(surface.width / 2);
-  for (let i = 0; i < 6; i += 1) {
-    const motePhase = phase * 0.35 + i * 0.5;
-    const my = WALL_THICK + 4 + ((motePhase * 18) % 60);
-    const mx = windowCx + Math.round(Math.sin(motePhase * 1.4) * 12) + ((i - 3) * 3);
-    // Brighter near the top (lit by moonlight), fading into shadow
-    const lit = Math.max(0, 1 - (my - WALL_THICK) / 50);
-    ctx.fillStyle = '#a0b0c8';
-    ctx.globalAlpha = 0.4 * lit;
-    ctx.fillRect(mx, my, 1, 1);
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawSideWallSconces(
-  ctx: CanvasRoomContext,
-  surface: CanvasRoomSurface,
-  phase: number
-): void {
-  // Small wall-mounted torch sconces on each side wall — one above the
-  // door area and one below. Pulses gently for ambient life.
-  const sconces: ReadonlyArray<{
-    readonly x: number;
-    readonly y: number;
-    readonly side: 'left' | 'right';
-  }> = [
-    { x: Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.3), side: 'left' },
-    { x: Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.85), side: 'left' },
-    { x: surface.width - Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.3), side: 'right' },
-    { x: surface.width - Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.85), side: 'right' }
-  ];
-
-  for (const s of sconces) {
-    const pulse = 0.7 + Math.sin(phase * 5 + s.y * 0.01) * 0.15;
-
-    // Iron bracket
-    ctx.fillStyle = PX.iron;
-    ctx.fillRect(s.x - 1, s.y, 3, 4);
-    // Cup
-    ctx.fillRect(s.x - 2, s.y - 1, 5, 2);
-
-    // Flame
-    ctx.fillStyle = PX.flameOuter;
+  for (let i = 0; i < 14; i += 1) {
+    const motePhase = phase * 0.25 + i * 0.31;
+    const my = WALL_THICK_BACK + 8 + ((motePhase * 32) % 180);
+    const swayAmp = 18 + (i % 3) * 6;
+    const mx = windowCx + Math.sin(motePhase * 1.4 + i) * swayAmp + (i - 7) * 5;
+    const lit = Math.max(0, 1 - (my - WALL_THICK_BACK) / 160);
+    if (lit < 0.05) continue;
+    ctx.save();
+    ctx.globalAlpha = 0.7 * lit;
+    ctx.fillStyle = '#fff0c8';
     ctx.beginPath();
-    ctx.moveTo(s.x - 2, s.y - 1);
-    ctx.lineTo(s.x + 2, s.y - 1);
-    ctx.lineTo(s.x, s.y - 6 - Math.floor(Math.sin(phase * 8) * 1));
-    ctx.closePath();
+    ctx.arc(mx, my, 1.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = PX.flameMid;
-    ctx.beginPath();
-    ctx.moveTo(s.x - 1, s.y - 1);
-    ctx.lineTo(s.x + 1, s.y - 1);
-    ctx.lineTo(s.x, s.y - 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = PX.flameCore;
-    ctx.fillRect(s.x, s.y - 3, 1, 2);
-
-    // Small halo on the wall around the torch
-    for (let i = 4; i > 0; i -= 1) {
-      ctx.fillStyle = PX.haloWarm;
-      ctx.globalAlpha = 0.07 * pulse * (i / 4);
-      ctx.beginPath();
-      ctx.arc(s.x, s.y - 2, 4 + i * 5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
-}
-
-function drawWallHanging(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
-  // Two simple decorations on the top wall, left and right of the window:
-  // a pair of antlers (left) and a stag-painted small banner (right).
-  const cx = Math.round(surface.width / 2);
-  const wy = Math.round(WALL_THICK / 2);
-
-  // CROSSED CLAYMORES on the left — two crossed sword silhouettes
-  // (top-down view). More interesting than the round shield, which
-  // read as a circle with a dot.
-  const swordX = cx - Math.round(surface.width * 0.18);
-  const swordY = wy + 1;
-  // Sword 1 (top-left to bottom-right)
-  ctx.fillStyle = '#c8c0a8'; // blade
-  for (let i = -5; i <= 5; i += 1) {
-    ctx.fillRect(swordX + i, swordY + Math.round(i * 0.4), 1, 1);
-  }
-  // Sword 2 (top-right to bottom-left)
-  for (let i = -5; i <= 5; i += 1) {
-    ctx.fillRect(swordX - i, swordY + Math.round(i * 0.4), 1, 1);
-  }
-  // Hilts (small dark crosspieces at the ends of each sword)
-  ctx.fillStyle = '#3a2810';
-  ctx.fillRect(swordX - 6, swordY - 2, 2, 4);
-  ctx.fillRect(swordX + 5, swordY - 2, 2, 4);
-  ctx.fillRect(swordX - 6, swordY + 2, 2, 1);
-  ctx.fillRect(swordX + 5, swordY + 2, 2, 1);
-  // Center binding (where they cross)
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(swordX - 1, swordY, 3, 2);
-
-  // BANNER on the right
-  const bannerX = cx + Math.round(surface.width * 0.18);
-  // Hanging rod
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(bannerX - 4, wy - 5, 9, 1);
-  // Banner
-  ctx.fillStyle = '#5a2818';
-  ctx.fillRect(bannerX - 3, wy - 4, 7, 7);
-  // Banner edge
-  ctx.fillStyle = '#3a1808';
-  ctx.fillRect(bannerX - 3, wy - 4, 7, 1);
-  ctx.fillRect(bannerX - 3, wy + 2, 7, 1);
-  // Tartan-ish pattern (just stripes)
-  ctx.fillStyle = '#8a3a18';
-  ctx.fillRect(bannerX - 3, wy - 2, 7, 1);
-  ctx.fillRect(bannerX, wy - 4, 1, 7);
 }
 
 function drawTopWallWindow(
@@ -418,225 +401,125 @@ function drawTopWallWindow(
   surface: CanvasRoomSurface,
   phase: number
 ): void {
-  // Small arched window in the top wall, centered. Lets in cool blue
-  // moonlight as a counterpoint to the warm fire/lantern interior.
+  void phase;
+  // Phase 3a: window now uses WHS drawWhsWindowBay — loch view +
+  // distant mountains + dawn sun glow + cross mullion + wood sill +
+  // heather curtains. Highland Dawn theme literal.
   const cx = Math.round(surface.width / 2);
-  const winW = 16;
-  const winH = 8;
-  const wy = Math.round((WALL_THICK - winH) / 2);
+  const winW = 56;
+  const winH = 44;
+  const wy = Math.round((WALL_THICK_BACK - winH) / 2);
   const wx = cx - Math.round(winW / 2);
-
-  // Recessed frame (stone shadow)
-  ctx.fillStyle = PX.stoneShadow;
-  ctx.fillRect(wx - 1, wy - 1, winW + 2, winH + 2);
-  // Night sky — deep blue with slight gradient
-  ctx.fillStyle = '#1a2840';
-  ctx.fillRect(wx, wy, winW, winH);
-  ctx.fillStyle = '#2a3858';
-  ctx.fillRect(wx, wy, winW, 3);
-  ctx.fillStyle = '#3a4868';
-  ctx.fillRect(wx, wy, winW, 1);
-
-  // The moon — crescent shape in the right half of the window
-  ctx.fillStyle = '#e8e0c8';
-  ctx.fillRect(wx + 11, wy + 2, 2, 4);
-  ctx.fillRect(wx + 12, wy + 1, 1, 6);
-  // Moon shadow (the dark side of the crescent)
-  ctx.fillStyle = '#1a2840';
-  ctx.fillRect(wx + 11, wy + 2, 1, 4);
-
-  // Stars — twinkle independently
-  const stars: ReadonlyArray<readonly [number, number, number]> = [
-    [3, 1, 1.5],
-    [6, 3, 1.1],
-    [8, 1, 2.2],
-    [4, 4, 1.7],
-    [2, 5, 1.3]
-  ];
-  for (const [sx, sy, freq] of stars) {
-    if (Math.sin(phase * freq + sx) > 0) {
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(wx + sx, wy + sy, 1, 1);
-    }
-  }
-
-  // Cross mullion (window frame) — drawn AFTER the moon so it overlaps
-  ctx.fillStyle = '#1a0e06';
-  ctx.fillRect(wx + Math.round(winW / 2) - 1, wy, 2, winH);
-  ctx.fillRect(wx, wy + Math.round(winH / 2) - 1, winW, 2);
-  // Stone sill below the window — and a tiny shadow on the wall below
-  ctx.fillStyle = PX.stoneHighlight;
-  ctx.fillRect(wx - 2, wy + winH, winW + 4, 1);
-  ctx.fillStyle = PX.stoneShadow;
-  ctx.fillRect(wx - 2, wy + winH + 1, winW + 4, 1);
+  drawWhsWindowBay(ctx, { x: wx, y: wy, w: winW, h: winH }, surface.width < 600);
 }
 
 function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
   const w = surface.width;
   const h = surface.height;
-  // Four corner blocks of darkness, stacked with low alpha — fakes a
-  // radial vignette without needing createRadialGradient (which isn't on
-  // our structural context interface).
-  const layers = 4;
+  // Softer corner vignette — previous (4 layers at 0.045+0.035i) was
+  // eating the corners. Halved to a gentler frame.
+  const layers = 3;
   for (let i = 0; i < layers; i += 1) {
-    const fade = 0.045 + i * 0.035;
-    const thickness = Math.round(((i + 1) / layers) * 38);
+    const fade = 0.018 + i * 0.012;
+    const thickness = Math.round(((i + 1) / layers) * 24);
     ctx.fillStyle = '#000000';
     ctx.globalAlpha = fade;
-    // Top band
     ctx.fillRect(0, 0, w, thickness);
-    // Bottom band
     ctx.fillRect(0, h - thickness, w, thickness);
-    // Left band
     ctx.fillRect(0, 0, thickness, h);
-    // Right band
     ctx.fillRect(w - thickness, 0, thickness, h);
   }
   ctx.globalAlpha = 1;
 }
 
+// drawFloor — WHS bothy flagstone substrate + dawn-beam overlay +
+// mullion shadows. Replaced 160+ lines of pixel-art per-zone dither
+// (Phase 2b) with WHS-quality smooth flagstones + simple translucent
+// beam ellipse. Keeps signature dawn-light-from-window flourish.
 function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number): void {
-  // Base fill
-  ctx.fillStyle = PX.floorDark;
-  ctx.fillRect(0, 0, surface.width, surface.height);
+  void phase;
+  const env: BothyEnvelope = {
+    left: WALL_THICK_SIDE,
+    right: surface.width - WALL_THICK_SIDE,
+    top: 0,
+    wallBottom: WALL_THICK_BACK,
+    floorBottom: surface.height - WALL_THICK_FRONT,
+    compact: surface.width < 600
+  };
+  drawWhsBothyFloor(ctx, env);
 
-  // Vertical planks alternating two darknesses
-  const plankW = 16;
-  for (let x = 0; x < surface.width; x += plankW) {
-    const isMid = Math.floor(x / plankW) % 2 === 0;
-    ctx.fillStyle = isMid ? PX.floorMid : PX.floorDark;
-    ctx.fillRect(x, 0, plankW, surface.height);
-    // Seam
-    ctx.fillStyle = PX.floorSeam;
-    ctx.fillRect(x, 0, 1, surface.height);
-  }
+  // Dawn beam — translucent warm trapezoid + subtle COOL loch-tint
+  // beneath. The window shows a loch view (blue water + green hills)
+  // so light through it picks up a hint of the loch's cool cast,
+  // like stained-glass tinting. Reads as "actual window-cast light".
+  const beam = makeBeamGeometry(surface.width, surface.height, WALL_THICK_BACK);
+  fillTrapezoidAlpha(ctx, beam, '#6a90b0', 0.06);  // cool loch cast (very subtle)
+  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnPeach, 0.18);
+  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnGold, 0.10);
 
-  // Plank-end horizontal seams (staggered every other plank)
-  for (let x = 0; x < surface.width; x += plankW) {
-    const seamY = ((Math.floor(x / plankW) % 3) + 1) * 38 + ((x * 7) % 11);
-    ctx.fillStyle = PX.floorSeam;
-    ctx.fillRect(x, seamY, plankW, 1);
-    ctx.fillStyle = PX.floorLight;
-    ctx.globalAlpha = 0.18;
-    ctx.fillRect(x + 1, seamY + 1, plankW - 2, 1);
-    ctx.globalAlpha = 1;
-  }
-
-  // Wood knots — small dark spots scattered deterministically
-  ctx.fillStyle = PX.floorKnot;
-  for (let i = 0; i < 22; i += 1) {
-    const kx = (i * 47) % surface.width;
-    const ky = ((i * 31) % (surface.height - 30)) + 12;
-    ctx.fillRect(kx, ky, 2, 2);
-    ctx.fillRect(kx - 1, ky + 1, 1, 1);
-    ctx.fillRect(kx + 2, ky, 1, 1);
-  }
-
-  // Warm wash from the fire — soft circular gradient approximated by
-  // stacked alpha rings centred on the fire pit
-  const fireX = Math.round(surface.width / 2);
-  const fireY = Math.round(surface.height * 0.62);
-  const flicker = 1 + Math.sin(phase * 6.1) * 0.04 + Math.sin(phase * 3.3 + 1) * 0.03;
-  for (let i = 8; i > 0; i -= 1) {
-    ctx.fillStyle = PX.floorLitWash;
-    ctx.globalAlpha = 0.045 * (i / 8) * flicker;
-    ctx.beginPath();
-    ctx.arc(fireX, fireY, 18 * i, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
+  // Mullion shadows — two perpendicular dark stripes through the beam
+  // marking the window's cross frame. The "actual sun-through-window"
+  // signature flourish.
+  drawMullionShadow(ctx, beam);
 }
 
-function drawWalls(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
-  const W = surface.width;
-  const H = surface.height;
-
-  // Four wall strips: top, bottom, left, right
-  drawWallStrip(ctx, 0, 0, W, WALL_THICK, 'horizontal');
-  drawWallStrip(ctx, 0, H - WALL_THICK, W, WALL_THICK, 'horizontal');
-  drawWallStrip(ctx, 0, 0, WALL_THICK, H, 'vertical');
-  drawWallStrip(ctx, W - WALL_THICK, 0, WALL_THICK, H, 'vertical');
-
-  // Inner shadow ring (1 pixel) — separates wall from floor
-  ctx.fillStyle = PX.stoneShadow;
-  ctx.fillRect(WALL_THICK, WALL_THICK, W - WALL_THICK * 2, 1);
-  ctx.fillRect(WALL_THICK, H - WALL_THICK - 1, W - WALL_THICK * 2, 1);
-  ctx.fillRect(WALL_THICK, WALL_THICK, 1, H - WALL_THICK * 2);
-  ctx.fillRect(W - WALL_THICK - 1, WALL_THICK, 1, H - WALL_THICK * 2);
-}
-
-function drawWallStrip(
+// Paint a beam trapezoid with a flat translucent colour (no dither).
+function fillTrapezoidAlpha(
   ctx: CanvasRoomContext,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  orientation: 'horizontal' | 'vertical'
+  beam: ReturnType<typeof makeBeamGeometry>,
+  colour: string,
+  alpha: number
 ): void {
-  // Base fill — use the MID stone tone (not the darkest) so the gaps
-  // between bricks read as mortar / shadow joints, not as void.
-  ctx.fillStyle = PX.stoneMid;
-  ctx.fillRect(x, y, w, h);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = colour;
+  ctx.beginPath();
+  ctx.moveTo(beam.cx - beam.topHalfWidth, beam.topY);
+  ctx.lineTo(beam.cx + beam.topHalfWidth, beam.topY);
+  ctx.lineTo(beam.cx + beam.bottomHalfWidth, beam.topY + beam.length);
+  ctx.lineTo(beam.cx - beam.bottomHalfWidth, beam.topY + beam.length);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
 
-  // Brick pattern — staggered rows. Bricks fill the row fully (no gap
-  // between rows) and the mortar is drawn as a separate 1px dark line.
-  const brickW = orientation === 'horizontal' ? 20 : 14;
-  const brickH = orientation === 'horizontal' ? 7 : 10;
-  if (orientation === 'horizontal') {
-    const rows = Math.ceil(h / brickH);
-    for (let r = 0; r < rows; r += 1) {
-      const off = r % 2 === 0 ? 0 : Math.round(brickW / 2);
-      const ry = y + r * brickH;
-      for (let bx = x - brickW; bx < x + w + brickW; bx += brickW) {
-        const px = bx + off;
-        const shade = (r * 17 + Math.floor((bx - x) / brickW) * 11) % 7;
-        const fill =
-          shade < 2 ? PX.stoneLight : shade < 4 ? PX.stoneMid : shade < 6 ? PX.stoneHighlight : PX.stoneLight;
-        ctx.fillStyle = fill;
-        // Full-height brick (no internal margin) so adjacent bricks
-        // tile cleanly. Mortar is drawn afterwards as overlay lines.
-        ctx.fillRect(px, ry, brickW, brickH);
-        // Top highlight
-        ctx.fillStyle = PX.stoneHighlight;
-        ctx.globalAlpha = 0.4;
-        ctx.fillRect(px, ry, brickW, 1);
-        ctx.globalAlpha = 1;
-      }
-    }
-  } else {
-    const cols = Math.ceil(w / brickW);
-    const rows = Math.ceil(h / brickH);
-    for (let r = 0; r < rows; r += 1) {
-      const off = r % 2 === 0 ? 0 : Math.round(brickH / 2);
-      for (let c = 0; c < cols; c += 1) {
-        const bx = x + c * brickW;
-        const by = y + r * brickH + off;
-        const shade = (r * 13 + c * 19) % 7;
-        const fill =
-          shade < 2 ? PX.stoneLight : shade < 4 ? PX.stoneMid : shade < 6 ? PX.stoneHighlight : PX.stoneLight;
-        ctx.fillStyle = fill;
-        ctx.fillRect(bx, by, brickW, brickH);
-        ctx.fillStyle = PX.stoneHighlight;
-        ctx.globalAlpha = 0.4;
-        ctx.fillRect(bx, by, brickW, 1);
-        ctx.globalAlpha = 1;
-      }
-    }
+// Fill a beam zone (pool or edge) as a single trapezoid covering all
+// pixels that classify into that zone.
+// One-row Bayer transition between two colours — used for the window
+// sky band transitions. Walks a single horizontal row and picks one of
+// the two colours per pixel based on the Bayer 4×4 cell.
+// Dither the beam zone boundaries — walk down both diagonal edges of
+// the pool + edge trapezoids and paint hard-pixel speckle of the
+// adjacent zone's colour just inside/outside the edge. Removes the
+// razor diagonal that reads as "two floor textures, not light".
+// Paint cross-mullion shadow lines through the dawn pool — a vertical
+// line down the centre, a horizontal line across the upper-middle.
+// Mullion is dithered so it's hard-pixel but reads as a soft shadow.
+// This converts the dawn-pool from a generic light wedge into a
+// readable "window-cast" light.
+function drawMullionShadow(
+  ctx: CanvasRoomContext,
+  beam: ReturnType<typeof makeBeamGeometry>
+): void {
+  // Smooth mullion cross — vertical + horizontal stripes through the
+  // beam trapezoid as solid translucent dark fills (no dither). The
+  // shadow is constrained to the beam zones (pool + edge), so it ends
+  // at the trapezoid boundaries naturally.
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = PALETTE.shadowDeep;
+  // Vertical mullion: 3px wide central stripe down the beam.
+  for (let yy = beam.topY; yy < beam.topY + beam.length; yy += 1) {
+    if (lightZoneAt(beam.cx, yy, beam) === 'shadow') continue;
+    ctx.fillRect(beam.cx - 1, yy, 3, 1);
   }
-
-  // Mortar joints (1px dark lines between brick courses)
-  ctx.fillStyle = PX.stoneShadow;
-  if (orientation === 'horizontal') {
-    const rows = Math.ceil(h / brickH);
-    for (let r = 1; r < rows; r += 1) {
-      ctx.fillRect(x, y + r * brickH - 1, w, 1);
-    }
-  } else {
-    const cols = Math.ceil(w / brickW);
-    for (let c = 1; c < cols; c += 1) {
-      ctx.fillRect(x + c * brickW - 1, y, 1, h);
-    }
+  // Horizontal mullion: 3px tall stripe across the beam at ~32%.
+  const horizMullionY = beam.topY + Math.round(beam.length * 0.32);
+  for (let xx = beam.cx - beam.bottomHalfWidth - 8; xx <= beam.cx + beam.bottomHalfWidth + 8; xx += 1) {
+    if (lightZoneAt(xx, horizMullionY, beam) === 'shadow') continue;
+    ctx.fillRect(xx, horizMullionY - 1, 1, 3);
   }
+  ctx.restore();
 }
 
 function drawDoor(
@@ -646,486 +529,91 @@ function drawDoor(
 ): void {
   const { x, y, width, height } = door.rect;
   const isLaunchable = door.status === 'launchable';
+  const isLocked = door.status === 'locked';
 
-  // Stone arch frame around door (extends beyond door bounds)
-  const frame = 3;
-  ctx.fillStyle = PX.stoneShadow;
-  ctx.fillRect(x - frame, y - frame, width + frame * 2, height + frame * 2);
-  // Lighter frame highlight
-  ctx.fillStyle = PX.stoneHighlight;
-  ctx.fillRect(x - frame, y - frame, width + frame * 2, 1);
+  // Phase 3b: WHS smooth door port. Locked → dark wood. Launchable →
+  // lit warm wood with brass handle catching the dawn glow. Available
+  // (in-between) → mid wood.
+  const state = isLaunchable ? 'open' : isLocked ? 'locked' : 'available';
+  drawWhsDoor(ctx, { x, y, w: width, h: height }, state);
 
-  // Door body (planks)
-  ctx.fillStyle = isLaunchable ? PX.woodWarm : PX.woodCold;
-  ctx.fillRect(x, y, width, height);
-
-  // Vertical plank seams (3 planks)
-  ctx.fillStyle = isLaunchable ? PX.woodWarmShade : PX.woodColdShade;
-  const plankW = Math.floor(width / 3);
-  ctx.fillRect(x + plankW, y, 1, height);
-  ctx.fillRect(x + plankW * 2, y, 1, height);
-
-  // Plank highlight strips (catches light along left edge of each plank)
-  if (isLaunchable) {
-    ctx.fillStyle = PX.woodWarmHighlight;
-    ctx.globalAlpha = 0.5;
-    ctx.fillRect(x + 1, y + 1, 1, height - 2);
-    ctx.fillRect(x + plankW + 1, y + 1, 1, height - 2);
-    ctx.fillRect(x + plankW * 2 + 1, y + 1, 1, height - 2);
-    ctx.globalAlpha = 1;
-  }
-
-  // Iron hinges (top + bottom on hinge side)
-  const hingeSide = door.side === 'right' ? x : x + width - 5;
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(hingeSide, y + 3, 5, 3);
-  ctx.fillRect(hingeSide, y + height - 6, 5, 3);
-  ctx.fillStyle = PX.ironHighlight;
-  ctx.fillRect(hingeSide, y + 3, 5, 1);
-  ctx.fillRect(hingeSide, y + height - 6, 5, 1);
-
-  // Door handle
-  const handleSide = door.side === 'right' ? x + width - 3 : x + 1;
-  ctx.fillStyle = isLaunchable ? PX.goldHandle : PX.goldHandleDark;
-  ctx.fillRect(handleSide, Math.round(y + height / 2) - 1, 2, 3);
-
-  // Locked door — heavy nailed-on cross planks (X pattern). Reads
-  // unambiguously as "do not open" at any scale.
-  if (!isLaunchable) {
-    const cx = x + Math.round(width / 2);
-    const cy = Math.round(y + height / 2);
-    // Two nailed boards crossing diagonally
-    drawCrossPlank(ctx, x - 2, y + 4, x + width + 2, y + height - 4);
-    drawCrossPlank(ctx, x + width + 2, y + 4, x - 2, y + height - 4);
-    // Padlock at the crossing point
-    const lockW = 7;
-    const lockH = 8;
-    const lockX = cx - Math.round(lockW / 2);
-    const lockY = cy - 2;
-    ctx.fillStyle = PX.iron;
-    ctx.fillRect(lockX, lockY, lockW, lockH);
-    ctx.fillStyle = PX.ironHighlight;
-    ctx.fillRect(lockX, lockY, lockW, 1);
-    // Keyhole
-    ctx.fillStyle = PX.eyePupil;
-    ctx.fillRect(lockX + 3, lockY + 2, 1, 2);
-    ctx.fillRect(lockX + 2, lockY + 4, 3, 1);
-    // Shackle
-    ctx.fillStyle = PX.iron;
-    ctx.fillRect(lockX + 1, lockY - 3, 1, 3);
-    ctx.fillRect(lockX + lockW - 2, lockY - 3, 1, 3);
-    ctx.fillRect(lockX + 1, lockY - 3, lockW - 2, 1);
-  }
-  // Keyhole tease — tiny red glow on the locked door's keyhole that
-  // pulses, hinting "this opens someday". Only when nobody's actively
-  // peeking (interactingId !== door.id) so it isn't competing with the
-  // active glow. Animated independently of interaction state.
-  if (!isLaunchable && interactingId !== door.id) {
-    // Recompute keyhole position to match the padlock above
-    const cx = x + Math.round(width / 2);
-    const cy = Math.round(y + height / 2);
-    const pulse = 0.4 + Math.sin(0.0001 * Date.now() * 6) * 0.3;
-    ctx.fillStyle = '#c44218';
-    ctx.globalAlpha = pulse;
-    ctx.fillRect(cx, cy + 1, 1, 2);
-    ctx.globalAlpha = 1;
-  }
-
-  // Active glow — pulses warm light around the doorway
+  // Active interaction glow — smooth translucent ellipse (no dither;
+  // those pixel dots were screaming against the smooth substrate).
   if (interactingId === door.id) {
-    const glow = isLaunchable ? PX.haloWarm : PX.haloCool;
-    for (let i = 5; i > 0; i -= 1) {
-      ctx.fillStyle = glow;
-      ctx.globalAlpha = 0.06 * (i / 5);
+    const glowColor = isLaunchable ? PALETTE.dawnGold : PALETTE.shadowHeather;
+    const cx = x + Math.round(width / 2);
+    const cy = y + Math.round(height / 2);
+    for (let i = 3; i >= 1; i--) {
+      const r = (width * 0.6) * (i / 3);
+      ctx.save();
+      ctx.globalAlpha = 0.10 * i;
+      ctx.fillStyle = glowColor;
       ctx.beginPath();
-      ctx.arc(
-        x + width / 2,
-        y + height / 2,
-        Math.max(width, height) * 0.6 * (i / 3),
-        0,
-        Math.PI * 2
-      );
+      ctx.ellipse(cx, cy, r * 1.1, r * 1.4, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
-    ctx.globalAlpha = 1;
-    // Sharp bright outline
-    ctx.fillStyle = glow;
-    ctx.fillRect(x - frame, y - frame - 1, width + frame * 2, 1);
-    ctx.fillRect(x - frame, y + height + frame, width + frame * 2, 1);
-    ctx.fillRect(x - frame - 1, y - frame, 1, height + frame * 2);
-    ctx.fillRect(x + width + frame, y - frame, 1, height + frame * 2);
-  }
-}
-
-function drawCrossPlank(
-  ctx: CanvasRoomContext,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): void {
-  // Heavy nailed board between two points — 5px thick with wood-grain
-  // highlight stripe and iron nail heads at each end.
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const steps = Math.max(Math.abs(dx), Math.abs(dy));
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    const px = Math.round(x1 + dx * t);
-    const py = Math.round(y1 + dy * t);
-    // Heavy dark plank body (5x5 stamp at every point)
-    ctx.fillStyle = '#1a0e06';
-    ctx.fillRect(px - 2, py - 2, 5, 5);
-    // Mid wood tone over the top
-    ctx.fillStyle = '#3a2210';
-    ctx.fillRect(px - 1, py - 1, 3, 3);
-    // Highlight stripe
-    ctx.fillStyle = '#5a3818';
-    ctx.fillRect(px - 1, py - 1, 3, 1);
-  }
-  // Nail heads at each end
-  for (const [nx, ny] of [
-    [x1, y1],
-    [x2, y2]
-  ] as ReadonlyArray<readonly [number, number]>) {
-    ctx.fillStyle = PX.iron;
-    ctx.fillRect(nx - 1, ny - 1, 3, 3);
-    ctx.fillStyle = PX.ironHighlight;
-    ctx.fillRect(nx, ny - 1, 1, 1);
   }
 }
 
 function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): void {
   const { x, y, width } = door.rect;
   const isLit = door.status === 'launchable';
-  // Lantern hangs above the door — bigger, with a proper bracket so it
-  // reads as wall-mounted lighting, not a floating icon.
+  // Lantern hangs above the door. Substantially bigger now — the
+  // previous size was a 10px wide pinprick that disappeared at viewport
+  // scale. Now 22px wide with a proper iron bracket curl off the wall.
   const cx = x + Math.round(width / 2);
-  const cy = y - 18;
-  // Bracket from wall to lantern top
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(cx, cy - 8, 1, 8);
-  ctx.fillRect(cx - 2, cy - 8, 4, 1);
-  // Bracket curl
-  ctx.fillRect(cx + 1, cy - 7, 1, 1);
-  ctx.fillRect(cx - 3, cy - 7, 1, 1);
-  // Top cap (wider)
-  ctx.fillRect(cx - 7, cy - 2, 15, 2);
-  // Body frame (proper iron sides)
-  ctx.fillRect(cx - 7, cy, 2, 12);
-  ctx.fillRect(cx + 5, cy, 2, 12);
-  // Crossbars (lantern grille)
-  ctx.fillRect(cx - 7, cy + 5, 14, 1);
-  ctx.fillRect(cx - 7, cy + 9, 14, 1);
-  // Bottom cap with hook for hanging things
-  ctx.fillRect(cx - 7, cy + 12, 15, 2);
-  ctx.fillRect(cx - 1, cy + 14, 2, 2);
-  // Glass
+  const lanternCy = y - 22;
   if (isLit) {
-    const pulse = 0.7 + Math.sin(phase * 4) * 0.15 + Math.sin(phase * 9.1) * 0.08;
-
-    // Halo — even bigger now to match the larger fixture
-    for (let i = 8; i > 0; i -= 1) {
-      ctx.fillStyle = PX.haloWarm;
-      ctx.globalAlpha = 0.085 * pulse * (i / 8);
+    const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
+    // Phase 3c: smooth translucent halo (dithered version read as
+    // noise against the WHS substrate). Two layered ellipses fading
+    // outward, multiplied by pulse for the lantern flicker.
+    for (let i = 4; i >= 1; i--) {
+      const r = 80 * (i / 4);
+      ctx.save();
+      ctx.globalAlpha = 0.05 * i * pulse;
+      ctx.fillStyle = PALETTE.dawnGold;
       ctx.beginPath();
-      ctx.arc(cx, cy + 6, 14 + i * 10, 0, Math.PI * 2);
+      ctx.ellipse(cx, lanternCy, r, r * 0.85, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
-    ctx.globalAlpha = 1;
-    // Warm glass with three internal panes (the crossbars sit over)
-    ctx.fillStyle = PX.flameMid;
-    ctx.fillRect(cx - 5, cy + 1, 10, 11);
-    // Inner glow
-    ctx.fillStyle = '#ffc060';
-    ctx.fillRect(cx - 3, cy + 2, 6, 9);
-    // Bright candle core
-    ctx.fillStyle = PX.flameCore;
-    ctx.fillRect(cx - 1, cy + 5, 2, 4);
-    // Flicker spark inside the glass
-    if (Math.sin(phase * 11) > 0.5) {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(cx, cy + 6, 1, 1);
-    }
-  } else {
-    ctx.fillStyle = '#2a2520';
-    ctx.fillRect(cx - 5, cy + 1, 10, 11);
+    ctx.save();
+    ctx.globalAlpha = 0.4 * pulse;
+    ctx.fillStyle = PALETTE.dawnHighlight;
+    ctx.beginPath();
+    ctx.ellipse(cx, lanternCy, 14, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
+  // Blit the lantern sprite (centred at cx, lanternCy)
+  blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2);
 }
 
 function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void {
   const { x, y, width } = door.rect;
   const cx = x + Math.round(width / 2);
-  // Sign hangs above the lantern — bumped position to clear the bigger
-  // lantern below
-  const signW = Math.max(width + 12, 36);
-  const signH = 11;
-  const signX = cx - Math.round(signW / 2);
-  const signY = y - 32;
+  // Sign hangs above the lantern. Sprite-based now.
+  const signCy = y - 50;
+  blitSprite(ctx, DOOR_SIGN, cx, signCy, 1);
 
-  // Hanging strings
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(signX + 2, signY - 2, 1, 2);
-  ctx.fillRect(signX + signW - 3, signY - 2, 1, 2);
-
-  // Sign edge
-  ctx.fillStyle = PX.signEdge;
-  ctx.fillRect(signX - 1, signY - 1, signW + 2, signH + 2);
-  // Sign board
-  ctx.fillStyle = PX.signWood;
-  ctx.fillRect(signX, signY, signW, signH);
-  // Top highlight
-  ctx.fillStyle = '#8a4818';
-  ctx.fillRect(signX + 1, signY, signW - 2, 1);
-
-  // Label — monospace per WHS typography. textBaseline isn't on our
-  // interface so we offset y manually.
-  ctx.fillStyle = PX.signText;
-  ctx.font = `bold 9px ui-monospace, "JetBrains Mono", Consolas, monospace`;
-  ctx.textAlign = 'center';
-  ctx.fillText(label, cx, signY + signH - 2);
+  // Label rendered in HAND-PAINTED PIXEL FONT (rules.md §6) — no more
+  // anti-aliased browser fillText that read as a UI sticker.
+  // ASCII-only: convert label to uppercase since the pixel font is
+  // single-case. Strip non-supported chars rendered as space.
+  const upper = label.toUpperCase();
+  const scale = 2;
+  const textW = measurePixelText(upper, scale);
+  const textH = PIXEL_FONT_HEIGHT * scale;
+  renderPixelText(ctx, upper, cx - Math.round(textW / 2), signCy - Math.round(textH / 2) + 2, scale, PALETTE.bone);
 }
 
-function drawFloorScatter(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
-  // Light dust + straw flecks across the floor. Deterministic placement
-  // so the pattern doesn't flicker between frames.
-  ctx.fillStyle = PX.floorLight;
-  ctx.globalAlpha = 0.35;
-  const w = surface.width;
-  const h = surface.height;
-  for (let i = 0; i < 28; i += 1) {
-    const fx = WALL_THICK + 4 + ((i * 53) % (w - WALL_THICK * 2 - 8));
-    const fy = WALL_THICK + 4 + ((i * 41) % (h - WALL_THICK * 2 - 8));
-    ctx.fillRect(fx, fy, 1, 1);
-    if (i % 3 === 0) ctx.fillRect(fx + 2, fy, 1, 1);
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawWoodpile(ctx: CanvasRoomContext, _surface: CanvasRoomSurface): void {
-  // Small stack of logs in the upper-left of the floor — bothy fuel.
-  const baseX = WALL_THICK + 4;
-  const baseY = WALL_THICK + 6;
-  const logW = 18;
-  const logH = 3;
-  // Three stacked logs, slightly offset
-  for (let row = 0; row < 3; row += 1) {
-    const offset = row % 2 === 0 ? 0 : 2;
-    // Log body
-    ctx.fillStyle = '#3a2210';
-    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), logW, logH);
-    // Log top highlight
-    ctx.fillStyle = '#5a3818';
-    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), logW, 1);
-    // End caps (rings)
-    ctx.fillStyle = '#1a0c04';
-    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), 2, logH);
-    ctx.fillRect(baseX + offset + logW - 2, baseY + row * (logH + 1), 2, logH);
-    ctx.fillStyle = '#8a5828';
-    ctx.fillRect(baseX + offset, baseY + row * (logH + 1) + 1, 1, 1);
-    ctx.fillRect(baseX + offset + logW - 1, baseY + row * (logH + 1) + 1, 1, 1);
-  }
-}
-
-function drawBarrel(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
-  // Small ale barrel in the upper-right floor area, set off the wall.
-  const bx = surface.width - WALL_THICK - 16;
-  const by = WALL_THICK + 6;
-  const bw = 12;
-  const bh = 14;
-  // Barrel body
-  ctx.fillStyle = '#4a2812';
-  ctx.fillRect(bx, by, bw, bh);
-  // Side shading (right edge slightly darker)
-  ctx.fillStyle = '#2a180a';
-  ctx.fillRect(bx + bw - 1, by, 1, bh);
-  ctx.fillRect(bx, by, 1, bh);
-  // Iron hoops (3 horizontal bands)
-  ctx.fillStyle = PX.iron;
-  ctx.fillRect(bx, by + 2, bw, 1);
-  ctx.fillRect(bx, by + Math.round(bh / 2), bw, 1);
-  ctx.fillRect(bx, by + bh - 3, bw, 1);
-  // Top (slightly lighter — looking down at the lid)
-  ctx.fillStyle = '#6a3818';
-  ctx.fillRect(bx, by, bw, 1);
-  // Wood grain on lid
-  ctx.fillStyle = '#3a1c0c';
-  ctx.fillRect(bx + 2, by, bw - 4, 1);
-}
-
-function drawFloorRug(
-  ctx: CanvasRoomContext,
-  fireCenter: { readonly x: number; readonly y: number }
-): void {
-  // Round-ish woven mat under the fire — pure tonal pattern, no crosses
-  // (the previous "+" stripe read like a logo). Oval shape with
-  // concentric subtle bands.
-  const rugW = 70;
-  const rugH = 44;
-  const rx = fireCenter.x - Math.round(rugW / 2);
-  const ry = fireCenter.y - Math.round(rugH / 2);
-  // Outer dark ring
-  ctx.fillStyle = '#1a0a04';
-  ctx.fillRect(rx - 1, ry, rugW + 2, rugH);
-  ctx.fillRect(rx, ry - 1, rugW, rugH + 2);
-  // Main weave (warm reddish-brown)
-  ctx.fillStyle = '#4a2010';
-  ctx.fillRect(rx, ry, rugW, rugH);
-  // Inner shaded ring
-  ctx.fillStyle = '#5a2818';
-  ctx.fillRect(rx + 2, ry + 2, rugW - 4, rugH - 4);
-  // Inner-most warm panel
-  ctx.fillStyle = '#6a3220';
-  ctx.fillRect(rx + 5, ry + 4, rugW - 10, rugH - 8);
-  // Concentric stripe pattern — thin horizontal bands every other row
-  ctx.fillStyle = '#3a1808';
-  ctx.globalAlpha = 0.45;
-  for (let yy = 0; yy < rugH; yy += 4) {
-    ctx.fillRect(rx + 1, ry + yy, rugW - 2, 1);
-  }
-  ctx.globalAlpha = 1;
-  // Fringe at left/right edges (top-down looks like braided ends)
-  ctx.fillStyle = '#3a1808';
-  for (let i = 2; i < rugH - 2; i += 3) {
-    ctx.fillRect(rx - 2, ry + i, 2, 1);
-    ctx.fillRect(rx + rugW, ry + i, 2, 1);
-  }
-}
-
-function drawFirePit(
-  ctx: CanvasRoomContext,
-  center: { readonly x: number; readonly y: number },
-  phase: number
-): void {
-  // Larger oval stone ring — proper focal point. Drawn as a proper
-  // stone-rimmed pit: outer mid-tone ring, inner dark cavity, then a
-  // row of individual rim stones drawn ALL around the rim so the pit
-  // reads as masonry, not a flat bowl.
-  const ringW = 60;
-  const ringH = 40;
-
-  // Outer ring (the "shoulder" of the pit — light stone)
-  ctx.fillStyle = PX.stoneMid;
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, ringW * 0.5, 0, Math.PI * 2);
-  ctx.fill();
-  // Inner cavity (dark)
-  ctx.fillStyle = '#0a0604';
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, ringW * 0.5 - 4, 0, Math.PI * 2);
-  ctx.fill();
-  // Glowing ember bed at the bottom of the cavity — a flat oval, not a
-  // half-disc, so it doesn't read as a frowning mouth.
-  ctx.fillStyle = '#3a1408';
-  for (let dy = 0; dy < 8; dy += 1) {
-    const halfW = Math.round((ringW * 0.5 - 8) * (1 - dy * 0.1));
-    ctx.fillRect(center.x - halfW, center.y + 2 + dy, halfW * 2, 1);
-  }
-  // Brightest ember pixels
-  ctx.fillStyle = '#7a2818';
-  ctx.fillRect(center.x - 10, center.y + 4, 20, 2);
-  ctx.fillStyle = '#c4421a';
-  ctx.fillRect(center.x - 6, center.y + 4, 12, 2);
-  // Individual ember dots
-  ctx.fillStyle = '#ff6020';
-  for (let i = 0; i < 5; i += 1) {
-    const ex = center.x - 8 + i * 4;
-    ctx.fillRect(ex, center.y + 5, 2, 1);
-  }
-
-  // Stones around the rim — irregularly spaced, varying sizes, so the
-  // pit doesn't read as a gear. Predefined positions for control.
-  const stones: ReadonlyArray<{ readonly a: number; readonly sw: number; readonly sh: number }> = [
-    { a: -Math.PI * 0.95, sw: 10, sh: 6 }, // upper-left big
-    { a: -Math.PI * 0.55, sw: 8, sh: 6 }, // top-left
-    { a: -Math.PI * 0.25, sw: 10, sh: 6 }, // top-right
-    { a: -Math.PI * 0.02, sw: 8, sh: 6 }, // right
-    { a: Math.PI * 0.25, sw: 10, sh: 6 }, // lower-right
-    { a: Math.PI * 0.55, sw: 8, sh: 6 }, // bottom-left
-    { a: Math.PI * 0.95, sw: 10, sh: 6 } // left
-  ];
-  for (const s of stones) {
-    const sx = Math.round(center.x + Math.cos(s.a) * (ringW * 0.5));
-    const sy = Math.round(center.y + Math.sin(s.a) * (ringH * 0.55));
-    const isTop = Math.sin(s.a) < -0.1;
-    ctx.fillStyle = isTop ? PX.stoneHighlight : PX.stoneLight;
-    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, s.sh);
-    ctx.fillStyle = isTop ? '#a08868' : PX.stoneHighlight;
-    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, 2);
-    ctx.fillStyle = PX.stoneShadow;
-    ctx.fillRect(sx - Math.round(s.sw / 2), sy + Math.round(s.sh / 2) - 2, s.sw, 2);
-  }
-
-  // Embers — animated dark-red dots inside the pit
-  ctx.fillStyle = PX.ember;
-  for (let i = 0; i < 8; i += 1) {
-    const a = (i / 8) * Math.PI * 2 + phase * 0.4;
-    const r = (ringW * 0.5 - 6) * (0.5 + 0.5 * Math.sin(phase * 2 + i));
-    const ex = center.x + Math.round(Math.cos(a) * r);
-    const ey = center.y + Math.round(Math.sin(a) * r * 0.6);
-    ctx.fillRect(ex, ey, 2, 1);
-  }
-
-  // Flames (3 layered, animated, scaled to 640×360 baseline)
-  const flickerA = Math.floor((Math.sin(phase * 7) + 1) * 4);
-  const flickerB = Math.floor((Math.sin(phase * 5.3 + 1) + 1) * 4);
-  // Outer flame
-  ctx.fillStyle = PX.flameOuter;
-  ctx.beginPath();
-  ctx.moveTo(center.x - 18, center.y - 2);
-  ctx.lineTo(center.x + 18, center.y - 2);
-  ctx.lineTo(center.x + 8, center.y - 24 - flickerA);
-  ctx.lineTo(center.x, center.y - 40 - flickerA);
-  ctx.lineTo(center.x - 8, center.y - 24 - flickerB);
-  ctx.closePath();
-  ctx.fill();
-  // Mid flame
-  ctx.fillStyle = PX.flameMid;
-  ctx.beginPath();
-  ctx.moveTo(center.x - 10, center.y - 2);
-  ctx.lineTo(center.x + 10, center.y - 2);
-  ctx.lineTo(center.x + 4, center.y - 18);
-  ctx.lineTo(center.x, center.y - 32 - flickerB);
-  ctx.lineTo(center.x - 4, center.y - 18);
-  ctx.closePath();
-  ctx.fill();
-  // Core flame
-  ctx.fillStyle = PX.flameCore;
-  ctx.beginPath();
-  ctx.moveTo(center.x - 4, center.y - 6);
-  ctx.lineTo(center.x + 4, center.y - 6);
-  ctx.lineTo(center.x, center.y - 22 - flickerA);
-  ctx.closePath();
-  ctx.fill();
-
-  // Rising sparks — small bright pixels drifting up above the flames.
-  // Position is a function of phase so each spark follows a smooth
-  // upward arc; the modulo gives them a finite life and they cycle.
-  for (let i = 0; i < 6; i += 1) {
-    const life = ((phase * 0.6 + i * 0.37) % 1); // 0..1
-    if (life < 0.05) continue;
-    const sway = Math.sin(phase * 4 + i * 1.7) * 4;
-    const sx = Math.round(center.x + sway);
-    const sy = Math.round(center.y - 18 - life * 36);
-    const alpha = 1 - life;
-    const col = life < 0.5 ? PX.flameCore : life < 0.85 ? PX.flameMid : PX.ember;
-    ctx.fillStyle = col;
-    ctx.globalAlpha = alpha;
-    ctx.fillRect(sx, sy, 1, 1);
-    if (life < 0.4) ctx.fillRect(sx + 1, sy - 1, 1, 1);
-  }
-  ctx.globalAlpha = 1;
-}
-
-// Wild haggis — proportions taken from the actual WHS player sprite
-// (see docs/research/refs/2026-05-23-whs-player-sprites.png):
-//   - Roundish body, slightly oval, flat bottom
-//   - LARGE expressive eyes (whites + dark pupils, high on the face)
-//   - Pink button nose between the eyes
-//   - NO visible ears at rest (some WHS variants add headgear)
-//   - NO visible legs at rest (the iconic uneven legs are a gameplay
-//     mechanic — clockwise drift — not visible sprite art)
-//   - Peat-brown fur (WHS art-peat-mid #5a3e20)
+// Wild haggis — now rendered via hand-painted pixel-art sprite.
+// See src/render/sprites/haggis.ts for the char-grid definition.
+// Iteration history: v1 toad-box, v2 sunglass-bar, v3 horizontal-pillow
+// with eye-gleam pop, v4 hamster face, v5 = current (split gleams,
+// proper pink-snout bump, darker body fur).
 function drawHaggis(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -1135,105 +623,45 @@ function drawHaggis(
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
-  // r = body half-width. Body is round-ish, slightly wider than tall.
-  const r = Math.max(
-    12,
-    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.5)
-  );
-  const rh = Math.round(r * 0.85); // body height (almost as tall as wide)
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // Soft elliptical floor shadow tucked under the body
-  ctx.fillStyle = PX.hagShadow;
-  ctx.globalAlpha = 0.5;
-  for (let i = 0; i < 5; i += 1) {
-    const sw = Math.round(r * (0.95 - i * 0.05));
-    const sy = cy + rh + 2 + i;
-    ctx.fillRect(cx - sw, sy, sw * 2, 1);
-  }
-  ctx.globalAlpha = 1;
+  // PIVOT: After 11 pixel-art iterations failing the user bar, we port
+  // WHS's drawHaggisBody() — same haggis the user told me I authored
+  // in a past session. It's not pixel art; it's procedural ellipse/
+  // circle/triangle ops at 56×56 baked once to a texture. Porting the
+  // shape logic directly to Canvas2D produces the same charm.
+  //
+  // Hub scale: native 56×56 → 2× = 112×112 footprint. The body anchor
+  // sits at the haggis's body-center (the eyes/snout cluster). Snapshot
+  // (cx,cy) is the player feet position, so offset the body up so the
+  // feet land on the floor.
+  const HAGGIS_SCALE = 2;
+  const FEET_OFFSET = 14 * HAGGIS_SCALE; // body center is ~14px above feet at native
+  const bodyCx = cx;
+  const bodyCy = cy + bob - FEET_OFFSET;
 
-  // ====== BODY — layered ellipses, flat-bottomed
-  drawEllipse(ctx, cx, cy + bob + 1, r + 1, rh + 1, PX.hagOutline);
-  drawEllipse(ctx, cx, cy + bob, r, rh, PX.hagDark);
-  drawEllipse(ctx, cx, cy + bob - 1, r - 1, rh - 1, PX.hagBody);
+  // CONTACT SHADOW under feet. Body footprint width ~44 native → 88 scaled.
+  hardContactShadow(ctx, cx, cy + bob + 6, 44, 2);
 
-  // Soft upper highlight — top-left lit, like an indoor lantern wash
-  ctx.globalAlpha = 0.45;
-  drawEllipse(ctx, cx - Math.round(r * 0.2), cy + bob - Math.round(rh * 0.3), Math.round(r * 0.6), Math.round(rh * 0.4), PX.hagLight);
-  ctx.globalAlpha = 1;
-  // Tiny rim highlight (brightest patch)
-  ctx.globalAlpha = 0.55;
-  drawEllipse(ctx, cx - Math.round(r * 0.38), cy + bob - Math.round(rh * 0.42), Math.round(r * 0.18), Math.round(rh * 0.12), PX.hagRim);
-  ctx.globalAlpha = 1;
-
-  // Subtle fur shading — short horizontal streaks across the lower body
-  // (very subtle; the WHS sprite reads as smooth-shaded, not shaggy)
-  ctx.fillStyle = PX.hagDark;
-  ctx.globalAlpha = 0.35;
-  for (let yy = Math.round(rh * 0.1); yy < Math.round(rh * 0.7); yy += 4) {
-    const width = Math.round(r * 0.5 * (1 - yy / rh));
-    ctx.fillRect(cx - width, cy + bob + yy, width * 2, 1);
-  }
-  ctx.globalAlpha = 1;
-
-  // ====== FACE — drawn high on the body, big and expressive
-  // Eyes — large white sclera, big dark pupils. Spacing matches WHS
-  // sprite: roughly r*0.3 from centre on each side.
-  const eyeOffX = Math.round(r * 0.3);
-  const eyeY = cy + bob - Math.round(rh * 0.28);
-  const eyeR = Math.max(3, Math.round(r * 0.28));
-  // Dark socket
-  drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
-  drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
-  // White
-  drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
-  drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
-  // Pupil — large relative to white. WHS sprite has very expressive
-  // pupils that fill most of the eye.
-  const pupilR = Math.max(2, Math.round(eyeR * 0.7));
-  const glance = Math.round(Math.sin(phase * 0.7) * 1);
-  drawEllipse(ctx, cx - eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
-  drawEllipse(ctx, cx + eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
-  // Catchlight — top-left of each pupil
-  ctx.fillStyle = PX.eyeWhite;
-  ctx.fillRect(cx - eyeOffX + glance - 1, eyeY - 1, 1, 1);
-  ctx.fillRect(cx + eyeOffX + glance - 1, eyeY - 1, 1, 1);
-
-  // Pink button nose — between the eyes, centred, slightly raised
-  ctx.fillStyle = PX.hagBlush;
-  const noseY = cy + bob + Math.round(rh * 0.02);
-  const noseW = Math.max(4, Math.round(r * 0.18));
-  const noseH = Math.max(3, Math.round(r * 0.12));
-  drawEllipse(ctx, cx, noseY, noseW, noseH, PX.hagBlush);
-  // Nose highlight
-  ctx.fillStyle = '#e88090';
-  ctx.fillRect(cx - 1, noseY - 1, 2, 1);
-
-  // No ears, no legs — matches WHS sprite. The wild-haggis-iconic
-  // uneven legs are a gameplay mechanic (clockwise drift), not visible
-  // sprite art.
+  drawWhsHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, { breathY: Math.sin(phase * 1.4) * 0.4 });
 }
 
-// Pixel-art filled ellipse — built from horizontal strips so the shape
-// stays crisp at integer pixel coordinates and works against the
-// structural CanvasRoomContext interface (no native `ellipse`).
-function drawEllipse(
-  ctx: CanvasRoomContext,
-  cx: number,
-  cy: number,
-  rx: number,
-  ry: number,
-  color: string
-): void {
-  ctx.fillStyle = color;
-  const rxs = rx * rx;
-  const rys = ry * ry;
-  for (let dy = -ry; dy <= ry; dy += 1) {
-    const w = Math.round(Math.sqrt(Math.max(0, rxs * (1 - (dy * dy) / rys))));
-    if (w <= 0) continue;
-    ctx.fillRect(cx - w, cy + dy, w * 2 + 1, 1);
+// Pure text-formatter for interaction prompts. Exposed so tests can
+// verify the right label is chosen without driving the canvas. Single
+// case (the pixel font is uppercase-only).
+export function formatPromptText(
+  interactionKind: 'launchable' | 'locked' | 'none',
+  doorTitle: string
+): string {
+  if (interactionKind === 'launchable') {
+    // Two-line prompt: title on top, "press enter" hint below. Joined
+    // with newline; drawPrompt splits and renders both lines.
+    return `AWA' IN — ${doorTitle.toUpperCase()}\nPRESS ENTER`;
   }
+  if (interactionKind === 'locked') {
+    return `LOCKED. ANOTHER BOTHY, ANOTHER DAY.`;
+  }
+  return '';
 }
 
 function drawPrompt(
@@ -1250,39 +678,36 @@ function drawPrompt(
     return;
   }
 
-  // Scots-tinted prompts. Launchable doors get the warm "Awa’ in"
-  // phrasing; locked doors get the wry "Another day" line. See
-  // docs/research/2026-05-23-haggis-canon-and-whs-design-language.md
-  // — the hub voice should match the WHS Scots register.
-  const text =
-    snapshot.interactionKind === 'launchable'
-      ? `Awa’ in — ${door.title}`
-      : `Locked. Another bothy, another day.`;
+  const text = formatPromptText(snapshot.interactionKind, door.title);
   const x = Math.round(surface.width / 2);
-  const y = surface.height - 8;
+  const baseY = surface.height - 12;
 
-  ctx.font = `bold 10px ui-monospace, "JetBrains Mono", Consolas, monospace`;
-  ctx.textAlign = 'center';
-  // Faux text-width estimate (no measureText on the structural interface).
-  // 6px per char is a safe upper bound at 10px monospace.
-  const approxW = text.length * 6;
-  // Background plate keeps the text legible against the busy floor
+  const scale = 2;
+  const lineH = PIXEL_FONT_HEIGHT * scale;
+  const lineGap = 2;
+  // Split on \n for multi-line prompts (e.g. "AWA' IN — TITLE\nPRESS ENTER").
+  const lines = text.split('\n');
+  const widths = lines.map((line) => measurePixelText(line, scale));
+  const plateW = Math.max(...widths) + 8;
+  const plateH = lines.length * lineH + (lines.length - 1) * lineGap + 4;
+  const plateX = x - Math.round(plateW / 2);
+  const plateY = baseY - plateH;
+
+  // Dark background plate so text reads on the busy floor.
   ctx.fillStyle = PX.promptShadow;
-  ctx.fillRect(x - Math.round(approxW / 2) - 6, y - 11, approxW + 12, 16);
-  // Heavy ink stroke effect — draw the text in surface-dim slightly
-  // offset on every side for a chunky stroked feel, then the bright
-  // text on top
-  ctx.fillStyle = PX.signEdge;
-  for (const [dx, dy] of [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1]
-  ] as ReadonlyArray<readonly [number, number]>) {
-    ctx.fillText(text, x + dx, y + dy);
+  ctx.fillRect(plateX, plateY, plateW, plateH);
+
+  // Each line: 4-direction ink halo + cream main fill, centred.
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]!;
+    const lineW = widths[i]!;
+    const lx = x - Math.round(lineW / 2);
+    const ly = plateY + 2 + i * (lineH + lineGap);
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as ReadonlyArray<readonly [number, number]>) {
+      renderPixelText(ctx, line, lx + dx, ly + dy, scale, PALETTE.shadowDeep);
+    }
+    renderPixelText(ctx, line, lx, ly, scale, PALETTE.bone);
   }
-  ctx.fillStyle = PX.promptText;
-  ctx.fillText(text, x, y);
 }
 
 function activeDoorId(snapshot: DecodedSnapshot): string | null {

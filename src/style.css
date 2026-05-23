@@ -1,19 +1,23 @@
 :root {
-  color-scheme: dark;
-  /* WHS brand tokens — see docs/research/2026-05-23-haggis-canon-and-whs-design-language.md */
-  --whs-background: #1a1a2e;
-  --whs-surface: #111728;
-  --whs-surface-dim: #0a0a14;
-  --whs-outline: #2a3450;
-  --whs-secondary: #d4a017;      /* whisky gold */
-  --whs-warm-tan: #e8d4a0;
-  --whs-text-primary: #c4cdd8;
-  --whs-text-secondary: #9ea8bb;
-  --whs-text-dim: #596780;
+  color-scheme: light dark;
+  /* Hub Dawn Bothy tokens — locked in docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md.
+     The hub has its OWN palette/typography; it does NOT adopt WHS's DESIGN.md tokens. */
+  --hub-peat-brown:     #3a2418;
+  --hub-oat-tan:        #c4a878;
+  --hub-tatties-cream:  #f0e6c8;
+  --hub-neeps-orange:   #e4a020;
+  --hub-heather-purple: #7a4a9c;
+  --hub-dawn-pink:      #f4c8b8;
+  --hub-whisky-amber:   #c8842a;
+  --hub-bracken-green:  #5a7a5a;
+  --hub-cairn-stone:    #b8a878;
+  --hub-ember-red:      #c44218;
+  --hub-ink-deep:       #1a0e08;
 
-  color: var(--whs-text-primary);
-  background: var(--whs-background);
-  font-family: ui-monospace, "JetBrains Mono", "Consolas", "Liberation Mono", monospace;
+  color: var(--hub-tatties-cream);
+  background: var(--hub-peat-brown);
+  font-family: Georgia, "Iowan Old Style", "Apple Garamond", "Baskerville",
+               "Times New Roman", serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -29,7 +33,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--whs-surface-dim);
+  background: var(--hub-ink-deep);
 }
 
 #app {
@@ -45,11 +49,13 @@ body {
 
 .scene-canvas {
   display: block;
+  /* 3:2 playfield is centred on the viewport. Any extra viewport area
+     (on widescreens) shows the deeper peat-brown background, framing
+     the bothy like a picture rather than stretching it sideways. */
   width: 100vw;
   height: 100vh;
-  background: var(--whs-background);
-  /* Light smoothing — keeps procedural shapes from looking like a 6× mosaic
-     while still preserving the chunky pixel feel of the internal buffer. */
+  object-fit: contain;
+  background: var(--hub-peat-brown);
   image-rendering: auto;
 }
 
@@ -57,21 +63,21 @@ body {
   position: fixed;
   right: 1.2rem;
   bottom: 0.85rem;
-  color: var(--whs-text-dim);
+  color: var(--hub-cairn-stone);
   font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-decoration: none;
-  text-transform: lowercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.02em;
   pointer-events: auto;
-  transition: color 160ms ease;
+  transition: color 200ms ease;
   z-index: 2;
 }
 
 .scene-direct:hover,
 .scene-direct:focus-visible {
-  color: var(--whs-secondary);
+  color: var(--hub-neeps-orange);
   outline: none;
 }
 
@@ -81,15 +87,43 @@ body {
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  color: var(--whs-text-secondary);
+  color: var(--hub-tatties-cream);
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-style: italic;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   pointer-events: none;
   z-index: 2;
+  opacity: 0.78;
 }
 
 .scene-status:empty {
   display: none;
+}
+
+/* First-time visitor hint — fades on first input. Centred just under
+   the canvas at the top so it doesn't fight the bottom-right direct
+   link or the bottom-of-canvas door prompt. */
+.scene-hint {
+  position: fixed;
+  top: 1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.4rem 0.85rem;
+  color: var(--hub-tatties-cream);
+  background: rgba(26, 14, 8, 0.78);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.92;
+  transition: opacity 700ms ease;
+  border-radius: 2px;
+}
+
+.scene-hint--fading {
+  opacity: 0;
 }

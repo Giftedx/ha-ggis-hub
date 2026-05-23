@@ -1,14 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ha.ggis Hub — a playable haggis game front door." />
+
+    <title>ha.ggis Hub — a wee front door for haggis games</title>
+    <meta name="description" content="ha + ggis = haggis. The playable front door to a wee family of haggis-themed Highland games." />
+    <meta name="author" content="Michael McMillan" />
+    <meta name="theme-color" content="#3a2418" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="canonical" href="https://ha.ggis.xyz/" />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2324170f'/%3E%3Cellipse cx='16' cy='19' rx='10' ry='8' fill='%238b5a2b'/%3E%3Cellipse cx='16' cy='17' rx='10' ry='6' fill='%23a06e3a'/%3E%3Ccircle cx='12' cy='15' r='1.4' fill='%23150a05'/%3E%3Ccircle cx='20' cy='15' r='1.4' fill='%23150a05'/%3E%3Crect x='10' y='26' width='3' height='3' fill='%23150a05'/%3E%3Crect x='19' y='26' width='3' height='3' fill='%23150a05'/%3E%3C/svg%3E" />
-    <title>ha.ggis Hub</title>
+
+    <!-- Open Graph — Slack / Discord / LinkedIn / Facebook rich preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ha.ggis Hub" />
+    <meta property="og:title" content="ha.ggis Hub — a wee front door for haggis games" />
+    <meta property="og:description" content="ha + ggis = haggis. Walk a wild haggis through the bothy and chap the door tae play." />
+    <meta property="og:url" content="https://ha.ggis.xyz/" />
+    <meta property="og:locale" content="en_GB" />
+    <!-- PNG is the universal image; SVG remains the source of truth at
+         /og.svg (regenerate via `pnpm rasterize:og`). -->
+    <meta property="og:image" content="https://ha.ggis.xyz/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A wild haggis silhouette beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn." />
+
+    <!-- Twitter / X — large image card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ha.ggis Hub — a wee front door for haggis games" />
+    <meta name="twitter:description" content="ha + ggis = haggis. Walk a wild haggis through the bothy and chap the door tae play." />
+    <meta name="twitter:image" content="https://ha.ggis.xyz/og.png" />
+    <meta name="twitter:image:alt" content="A wild haggis silhouette beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn." />
+
+    <!-- JSON-LD structured data — search + AI agents -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ha.ggis Hub",
+        "alternateName": "ha + ggis = haggis",
+        "url": "https://ha.ggis.xyz/",
+        "description": "ha + ggis = haggis. The playable front door to a wee family of haggis-themed Highland games.",
+        "inLanguage": "en-GB",
+        "author": {
+          "@type": "Person",
+          "name": "Michael McMillan"
+        },
+        "license": "https://opensource.org/licenses/MIT"
+      }
+    </script>
   </head>
   <body>
-    <main id="app" aria-live="polite"></main>
+    <main id="app" aria-live="polite">
+      <noscript>
+        <p style="color:#f0e6c8;background:#1a0e08;padding:1rem;font-family:Georgia,serif">
+          The bothy needs JavaScript tae open the door. Awa' tae
+          <a href="https://wild-haggis-survivors.pages.dev/" style="color:#e4a020">Wild Haggis Survivors</a>
+          direct in the meantime.
+        </p>
+      </noscript>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
