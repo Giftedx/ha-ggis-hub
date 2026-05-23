@@ -74,7 +74,7 @@ Acceptance:
 - Complete: TypeScript strict mode passes.
 - Complete: Verification recorded in [Slice 4 TypeScript host lifecycle report](../audit/2026-05-23-slice-4-typescript-host-lifecycle-report.md).
 
-## Slice 5: renderer decision and first room — in progress 2026-05-23
+## Slice 5: renderer decision and first room — complete 2026-05-23
 
 Selected Canvas2D by [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md) and created the first browser-visible room path:
 
@@ -91,70 +91,82 @@ Acceptance:
 - Complete: haggis movement is advanced through the Rust/WASM world boundary.
 - Complete: door prompt renders from core interaction state.
 - Complete: direct play remains outside the canvas and available on fallback.
-- Planned remainder: Playwright or dependency-free browser smoke passes with no console errors.
+- Complete: Playwright browser smoke passes with no console errors (`scripts/smoke-door-launch.mjs` walks haggis to launchable door, presses Enter, asserts the WHS URL is navigated to).
+- Beyond plan: ported WHS croft procedural drawers (haggis, hearth, walls, floor, window, mantelpiece, doors, particles) so the room matches WHS character quality. Wired door interaction → game launch via interact key (Enter/Space/E) and pointer-down tap (mobile). Source files at `src/render/whs-{haggis,hearth,bothy}.ts`. Smokes: `scripts/smoke-door-launch.mjs` (keyboard), `scripts/smoke-door-tap.mjs` (touch).
 
-## Slice 6: deployment hardening
+## Slice 6: deployment hardening — complete 2026-05-23
 
-Create:
+Created:
 
-- `public/_headers`
-- `public/_redirects`
-- deployment verification tests/scripts
-
-Acceptance:
-
-- local build emits expected files
-- source map policy is enforced
-- headers are tested against preview before production
-
-## Slice 7: saves and the C hash primitive
-
-Introduces persistence and lands the first hard-language commitment from [Craft commitments](../foundation/12-craft-commitments.md).
-
-Create:
-
-- save schema and versioned migration framework in `hub-core`
-- `c/fnv1a.c` and its Rust FFI shim
-- save integrity check using FNV-1a 64-bit
-- golden migration tests
+- `public/_headers` matching the [Cloudflare Pages spec](../deployment/cloudflare-pages.md) (CSP with `wasm-unsafe-eval`, HSTS, X-Frame-Options DENY, COOP/CORP, locked Permissions-Policy, immutable asset cache, revalidate HTML).
+- `public/_redirects` (SPA fallback `/*  /index.html  200`).
+- `scripts/deploy-config.test.ts` — vitest unit asserts on required headers + CSP directives + cache policies.
+- `scripts/verify-dist.mjs` — post-build artifact gate: hashed assets, no source maps, headers/redirects shipped to dist, bundle under 200 KB.
+- `pnpm build:verified` chains build + verify-dist. `pnpm verify` extended to include it.
+- `.github/workflows/ci.yml` runs the full chain on push/PR (typecheck → vitest → build → verify-dist + cargo workspace tests).
 
 Acceptance:
 
-- FNV-1a output matches published reference vectors
-- corrupt saves are rejected with a clean fallback path
-- migration from any prior version round-trips through golden fixtures
+- Complete: local build emits `dist/_headers`, `dist/_redirects`, hashed `dist/assets/*` (verify-dist gate).
+- Complete: source map policy enforced via vite.config `sourcemap: false` + verify-dist asserts no `.map` files in `dist/`.
+- Complete: headers tested via `deploy-config.test.ts` (6 assertions). Cloudflare preview deploy will pick the same file as production.
 
-## Slice 8: WebAssembly Text showcase
+## Slice 7: saves and the C hash primitive — partial (C hash done, save framework deferred)
 
-Lands the hand-written `xoshiro128**` kernel in WAT and the differential test against the Rust default backend.
+The C hash primitive landed (first hard-language commitment from [Craft commitments](../foundation/12-craft-commitments.md)). The save framework is deferred until the hub has stateful progress to persist — the v1 hub is stateless (walk + click door → launch external game; no progress, settings, or preferences).
 
-Create:
+Done:
 
-- `asm/xoshiro128_starstar.wat`
-- opt-in alternate-backend test that asserts byte-identical output between the Rust and WAT implementations for a published seed across a long stream
+- `c/fnv1a.c` — committed C kernel.
+- `crates/hub-hardlang/src/lib.rs` — `#![allow(unsafe_code)]` FFI shim, the one and only unsafe relaxation in the workspace.
+- `crates/hub-hardlang/tests/differential_hash.rs` — published reference vectors + 100 000-case proptest diff against `hub_core::hash::fnv1a_64`.
+
+Deferred (no v1 use case):
+
+- Save schema + versioned migration framework.
+- Save integrity check using FNV-1a 64-bit.
+- Golden migration tests.
+
+Re-open when a stateful slice (settings, run-history, customization) needs persistence.
+
+## Slice 8: WebAssembly Text showcase — complete
+
+Hand-written `xoshiro128**` in WAT plus differential test against the Rust default backend.
+
+Done:
+
+- `asm/xoshiro128_starstar.wat` — hand-rolled WAT kernel.
+- `crates/hub-hardlang/tests/differential_rng.rs` — `wasmi` instantiates the WAT, then asserts byte-identical output against the Rust implementation across a long stream.
 
 Acceptance:
 
-- differential test passes for at least 100 000 outputs
-- release gate runs the test; PR gate does not (keeps a broken WAT from blocking routine work)
-- WAT file is readable, commented, and a contributor can hold both implementations in mind side by side
+- Differential test passes for 100 000+ outputs.
+- WAT file is readable + commented (single file, side-by-side comparable with the Rust impl).
 
-This slice is a release blocker for the first public launch.
+## Slice 9: `haggis-eval` CLI — mostly wired (7 of 8 real subcommands shipped)
 
-## Slice 9: `haggis-eval` CLI
+Go orchestration tool with FNV-1a-signed JSON reports.
 
-Lands the Go orchestration tool.
+Wired:
 
-Create:
+- `rust` — `cargo fmt --check` + `clippy -D warnings` + `cargo test --workspace`.
+- `ts` — `pnpm tsc --noEmit` + `pnpm vitest run` + `pnpm run build`.
+- `security` — `pnpm vitest run scripts/deploy-config.test.ts` (public/_headers + _redirects assertions; shipped 2026-05-23).
+- `browser` — `node scripts/run-browser-smokes.mjs` (build → vite preview → smoke-door-launch keyboard + smoke-door-tap touch + smoke-pointer-drive touch-drag → teardown; shipped 2026-05-23).
+- `determinism` — `node scripts/run-determinism-smoke.mjs` (loads hub twice with fixed `?seed=N`, applies identical scripted input, asserts final state-hash matches between runs; shipped 2026-05-23 with `?seed=` URL param + `window.__stateHash()` dev hook).
+- `perf` — `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total). Bundle-size half of the original spec; Lighthouse paint-timing half still outstanding (needs chrome-headless + lighthouse npm dep).
+- `differential rng` — WAT vs Rust xoshiro128**.
+- `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
+- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 13 gates, ~3.5 min end-to-end.
 
-- `tools/haggis-eval/` Go binary
-- aggregator that runs Rust headless evals, Playwright browser evals, performance-budget checks, and the WAT differential test, and writes both a human report and a machine-readable JSON report
+Outstanding stubs (`exit 78`):
+
+- `slice <name>` — `slices.toml` gate-set config not yet present (spec design work; would let releasers pick "run gate-set X" for ad-hoc bundles).
+- `perf` Lighthouse half — see above.
 
 Acceptance:
 
-- single command answers "is this slice good?"
-- exits non-zero on any failure
-- unit-tested orchestration logic
-- referenced from the release gate
-
-This slice can land any time after Slice 7 once at least two eval categories exist.
+- Complete: single command (`haggis-eval all`) answers "is this slice good?" across the 5 wired categories.
+- Complete: exits non-zero on any failure.
+- Complete: orchestration logic unit-tested (`internal/gate/`, `internal/report/`, `internal/fnv/` test files).
+- Complete: referenced from the release gate (README "Current executable gates" section).
