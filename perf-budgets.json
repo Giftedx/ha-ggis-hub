@@ -1,0 +1,20 @@
+{
+  "_comment": "Per-asset size budgets for production dist/. Bytes uncompressed. Matched against dist/assets/ files by stem prefix (vite hashes filenames). A budget can list multiple acceptable stems if vite splits chunks; the script asserts each stem's total bytes <= max_bytes. Total budget asserts the sum across all dist/assets/ files. Update consciously when a planned feature genuinely needs more.",
+  "totals": {
+    "all_assets_max_bytes": 200000
+  },
+  "per_stem": [
+    {
+      "stem": "index",
+      "extensions": ["js", "css"],
+      "max_bytes": 64000,
+      "note": "TypeScript host bundle + style.css. Procedural Canvas2D renderer + WHS croft ports + door-launch + pointer-drive."
+    },
+    {
+      "stem": "hub_wasm_bg",
+      "extensions": ["wasm"],
+      "max_bytes": 48000,
+      "note": "WASM kernel from crates/hub-wasm. Houses hub-core sim + boundary."
+    }
+  ]
+}

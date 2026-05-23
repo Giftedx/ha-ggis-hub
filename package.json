@@ -11,9 +11,13 @@
   },
   "scripts": {
     "build": "vite build",
+    "build:verified": "vite build && node scripts/verify-dist.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm run typecheck && pnpm run test && pnpm run build"
+    "verify": "pnpm run typecheck && pnpm run test && pnpm run build:verified",
+    "rasterize:og": "node scripts/rasterize-og.mjs",
+    "visual:capture": "node scripts/run-visual-gate.mjs capture",
+    "visual:verify": "node scripts/run-visual-gate.mjs verify"
   },
   "devDependencies": {
     "playwright": "^1.60.0",

@@ -1,0 +1,22 @@
+{
+  "name": "ha.ggis Hub",
+  "short_name": "ha.ggis",
+  "description": "ha + ggis = haggis. The playable front door to a wee family of haggis-themed Highland games.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "background_color": "#1a0e08",
+  "theme_color": "#3a2418",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2324170f'/%3E%3Cellipse cx='16' cy='19' rx='10' ry='8' fill='%238b5a2b'/%3E%3Cellipse cx='16' cy='17' rx='10' ry='6' fill='%23a06e3a'/%3E%3Ccircle cx='12' cy='15' r='1.4' fill='%23150a05'/%3E%3Ccircle cx='20' cy='15' r='1.4' fill='%23150a05'/%3E%3Crect x='10' y='26' width='3' height='3' fill='%23150a05'/%3E%3Crect x='19' y='26' width='3' height='3' fill='%23150a05'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
