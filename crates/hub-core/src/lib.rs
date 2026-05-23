@@ -2,6 +2,7 @@
 
 pub mod hash;
 pub mod rng;
+pub mod sim;
 
 /// Human-readable project name shared across core and host surfaces.
 pub const PROJECT_NAME: &str = "ha.ggis Hub";

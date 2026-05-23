@@ -45,6 +45,14 @@ impl Rng {
         result
     }
 
+    /// Snapshot the internal state. Used by `Sim::state_hash` to canonicalise
+    /// RNG advance into the state digest. Not part of the public RNG API for
+    /// callers outside the crate.
+    #[must_use]
+    pub(crate) fn state(&self) -> [u32; 4] {
+        self.s
+    }
+
     /// Draw the next `u32` bounded to `[0, bound)`. Uses Lemire's debiased
     /// integer-multiplication method — branch-free in the common case.
     pub fn next_bounded(&mut self, bound: u32) -> u32 {
