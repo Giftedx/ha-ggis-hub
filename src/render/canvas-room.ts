@@ -226,6 +226,12 @@ function renderRoom(
   drawFloorRug(ctx, fireCenter);
   drawFirePit(ctx, fireCenter, phase);
 
+  // 7.5 Wall decorations — small moonlit window on the top wall +
+  //     decorative hangings on each side. Adds character without
+  //     cluttering the floor.
+  drawTopWallWindow(ctx, surface, phase);
+  drawWallHanging(ctx, surface);
+
   // 8. Haggis player
   drawHaggis(ctx, surface, room, snapshot, phase);
 
@@ -235,6 +241,91 @@ function renderRoom(
 
   // 10. Prompt (only when at a door)
   drawPrompt(ctx, surface, doors, snapshot);
+}
+
+function drawWallHanging(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  // Two simple decorations on the top wall, left and right of the window:
+  // a pair of antlers (left) and a stag-painted small banner (right).
+  const cx = Math.round(surface.width / 2);
+  const wy = Math.round(WALL_THICK / 2);
+
+  // SHIELD on the left — round wooden shield with iron rim
+  const shieldX = cx - Math.round(surface.width * 0.18);
+  ctx.fillStyle = PX.iron;
+  // Iron rim
+  ctx.beginPath();
+  ctx.arc(shieldX, wy + 2, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#5a2818';
+  ctx.beginPath();
+  ctx.arc(shieldX, wy + 2, 5, 0, Math.PI * 2);
+  ctx.fill();
+  // Centre boss
+  ctx.fillStyle = PX.iron;
+  ctx.beginPath();
+  ctx.arc(shieldX, wy + 2, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = PX.ironHighlight;
+  ctx.fillRect(shieldX - 1, wy + 1, 1, 1);
+  // Plank seams across the shield
+  ctx.fillStyle = '#3a1808';
+  ctx.fillRect(shieldX - 4, wy + 2, 8, 1);
+
+  // BANNER on the right
+  const bannerX = cx + Math.round(surface.width * 0.18);
+  // Hanging rod
+  ctx.fillStyle = PX.iron;
+  ctx.fillRect(bannerX - 4, wy - 5, 9, 1);
+  // Banner
+  ctx.fillStyle = '#5a2818';
+  ctx.fillRect(bannerX - 3, wy - 4, 7, 7);
+  // Banner edge
+  ctx.fillStyle = '#3a1808';
+  ctx.fillRect(bannerX - 3, wy - 4, 7, 1);
+  ctx.fillRect(bannerX - 3, wy + 2, 7, 1);
+  // Tartan-ish pattern (just stripes)
+  ctx.fillStyle = '#8a3a18';
+  ctx.fillRect(bannerX - 3, wy - 2, 7, 1);
+  ctx.fillRect(bannerX, wy - 4, 1, 7);
+}
+
+function drawTopWallWindow(
+  ctx: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  phase: number
+): void {
+  // Small arched window in the top wall, centered. Lets in cool blue
+  // moonlight as a counterpoint to the warm fire/lantern interior.
+  const cx = Math.round(surface.width / 2);
+  const winW = 16;
+  const winH = 8;
+  const wy = Math.round((WALL_THICK - winH) / 2);
+  const wx = cx - Math.round(winW / 2);
+
+  // Recessed frame (stone shadow)
+  ctx.fillStyle = PX.stoneShadow;
+  ctx.fillRect(wx - 1, wy - 1, winW + 2, winH + 2);
+  // Window pane — cool moonlit blue
+  ctx.fillStyle = '#3a5878';
+  ctx.fillRect(wx, wy, winW, winH);
+  // Pane lighter near top (moonlight gradient suggestion)
+  ctx.fillStyle = '#6080a0';
+  ctx.fillRect(wx, wy, winW, 2);
+  // Stars — tiny bright pixels that twinkle
+  ctx.fillStyle = '#f0f0f0';
+  const twinkleA = Math.sin(phase * 1.5) > 0.3 ? 1 : 0;
+  const twinkleB = Math.sin(phase * 1.1 + 1) > 0.2 ? 1 : 0;
+  if (twinkleA) ctx.fillRect(wx + 3, wy + 2, 1, 1);
+  if (twinkleB) ctx.fillRect(wx + 11, wy + 1, 1, 1);
+  ctx.fillRect(wx + 7, wy + 3, 1, 1);
+  ctx.fillRect(wx + 13, wy + 4, 1, 1);
+  // Cross mullion (window frame)
+  ctx.fillStyle = '#1a0e06';
+  ctx.fillRect(wx + Math.round(winW / 2) - 1, wy, 2, winH);
+  ctx.fillRect(wx, wy + Math.round(winH / 2) - 1, winW, 2);
+  // Stone sill below the window
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(wx - 2, wy + winH, winW + 4, 1);
 }
 
 function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
@@ -516,9 +607,8 @@ function drawCrossPlank(
   x2: number,
   y2: number
 ): void {
-  // Thick dark plank between two points — draw multiple parallel lines
-  // to fake a thicker stroke since our context interface doesn't expose
-  // lineCap, and stroke alone is fiddly for pixel-art.
+  // Heavy nailed board between two points — 5px thick with wood-grain
+  // highlight stripe and iron nail heads at each end.
   const dx = x2 - x1;
   const dy = y2 - y1;
   const steps = Math.max(Math.abs(dx), Math.abs(dy));
@@ -526,54 +616,83 @@ function drawCrossPlank(
     const t = i / steps;
     const px = Math.round(x1 + dx * t);
     const py = Math.round(y1 + dy * t);
-    ctx.fillStyle = '#2a1a0c';
+    // Heavy dark plank body (5x5 stamp at every point)
+    ctx.fillStyle = '#1a0e06';
+    ctx.fillRect(px - 2, py - 2, 5, 5);
+    // Mid wood tone over the top
+    ctx.fillStyle = '#3a2210';
     ctx.fillRect(px - 1, py - 1, 3, 3);
-    ctx.fillStyle = '#3a2410';
-    ctx.fillRect(px, py - 1, 1, 1);
+    // Highlight stripe
+    ctx.fillStyle = '#5a3818';
+    ctx.fillRect(px - 1, py - 1, 3, 1);
+  }
+  // Nail heads at each end
+  for (const [nx, ny] of [
+    [x1, y1],
+    [x2, y2]
+  ] as ReadonlyArray<readonly [number, number]>) {
+    ctx.fillStyle = PX.iron;
+    ctx.fillRect(nx - 1, ny - 1, 3, 3);
+    ctx.fillStyle = PX.ironHighlight;
+    ctx.fillRect(nx, ny - 1, 1, 1);
   }
 }
 
 function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): void {
   const { x, y, width } = door.rect;
   const isLit = door.status === 'launchable';
-  // Lantern hangs above the door — bigger so it reads as a fixture, not
-  // a sprite glitch
+  // Lantern hangs above the door — bigger, with a proper bracket so it
+  // reads as wall-mounted lighting, not a floating icon.
   const cx = x + Math.round(width / 2);
-  const cy = y - 14;
-  // Chain
+  const cy = y - 18;
+  // Bracket from wall to lantern top
   ctx.fillStyle = PX.iron;
-  ctx.fillRect(cx, cy - 6, 1, 6);
-  // Top cap
-  ctx.fillRect(cx - 5, cy - 2, 11, 2);
-  // Body frame
-  ctx.fillRect(cx - 5, cy, 1, 8);
-  ctx.fillRect(cx + 4, cy, 1, 8);
+  ctx.fillRect(cx, cy - 8, 1, 8);
+  ctx.fillRect(cx - 2, cy - 8, 4, 1);
+  // Bracket curl
+  ctx.fillRect(cx + 1, cy - 7, 1, 1);
+  ctx.fillRect(cx - 3, cy - 7, 1, 1);
+  // Top cap (wider)
+  ctx.fillRect(cx - 7, cy - 2, 15, 2);
+  // Body frame (proper iron sides)
+  ctx.fillRect(cx - 7, cy, 2, 12);
+  ctx.fillRect(cx + 5, cy, 2, 12);
   // Crossbars (lantern grille)
-  ctx.fillRect(cx - 5, cy + 3, 10, 1);
-  // Bottom cap
-  ctx.fillRect(cx - 5, cy + 8, 11, 2);
+  ctx.fillRect(cx - 7, cy + 5, 14, 1);
+  ctx.fillRect(cx - 7, cy + 9, 14, 1);
+  // Bottom cap with hook for hanging things
+  ctx.fillRect(cx - 7, cy + 12, 15, 2);
+  ctx.fillRect(cx - 1, cy + 14, 2, 2);
   // Glass
   if (isLit) {
     const pulse = 0.7 + Math.sin(phase * 4) * 0.15 + Math.sin(phase * 9.1) * 0.08;
 
-    // Halo — bigger, more layers for a soft warm wash on the wall
-    for (let i = 7; i > 0; i -= 1) {
+    // Halo — even bigger now to match the larger fixture
+    for (let i = 8; i > 0; i -= 1) {
       ctx.fillStyle = PX.haloWarm;
-      ctx.globalAlpha = 0.09 * pulse * (i / 7);
+      ctx.globalAlpha = 0.085 * pulse * (i / 8);
       ctx.beginPath();
-      ctx.arc(cx, cy + 4, 10 + i * 8, 0, Math.PI * 2);
+      ctx.arc(cx, cy + 6, 14 + i * 10, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    // Warm glass
+    // Warm glass with three internal panes (the crossbars sit over)
     ctx.fillStyle = PX.flameMid;
-    ctx.fillRect(cx - 4, cy + 1, 8, 7);
+    ctx.fillRect(cx - 5, cy + 1, 10, 11);
+    // Inner glow
+    ctx.fillStyle = '#ffc060';
+    ctx.fillRect(cx - 3, cy + 2, 6, 9);
     // Bright candle core
     ctx.fillStyle = PX.flameCore;
-    ctx.fillRect(cx - 1, cy + 4, 2, 3);
+    ctx.fillRect(cx - 1, cy + 5, 2, 4);
+    // Flicker spark inside the glass
+    if (Math.sin(phase * 11) > 0.5) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx, cy + 6, 1, 1);
+    }
   } else {
     ctx.fillStyle = '#2a2520';
-    ctx.fillRect(cx - 4, cy + 1, 8, 7);
+    ctx.fillRect(cx - 5, cy + 1, 10, 11);
   }
 }
 
@@ -721,34 +840,52 @@ function drawFirePit(
   center: { readonly x: number; readonly y: number },
   phase: number
 ): void {
-  // Larger oval stone ring — proper focal point
-  const ringW = 28;
-  const ringH = 18;
-  ctx.fillStyle = PX.stoneLight;
+  // Larger oval stone ring — proper focal point. Drawn as a proper
+  // stone-rimmed pit: outer mid-tone ring, inner dark cavity, then a
+  // row of individual rim stones drawn ALL around the rim so the pit
+  // reads as masonry, not a flat bowl.
+  const ringW = 30;
+  const ringH = 20;
+
+  // Outer ring (the "shoulder" of the pit — light stone)
+  ctx.fillStyle = PX.stoneMid;
   ctx.beginPath();
   ctx.arc(center.x, center.y, ringW * 0.5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = PX.stoneDark;
+  // Inner cavity (dark)
+  ctx.fillStyle = '#0a0604';
   ctx.beginPath();
-  ctx.arc(center.x, center.y, ringW * 0.5 - 3, 0, Math.PI * 2);
+  ctx.arc(center.x, center.y, ringW * 0.5 - 4, 0, Math.PI * 2);
   ctx.fill();
+  // Glowing ember bed at the bottom of the cavity — a flat oval, not a
+  // half-disc, so it doesn't read as a frowning mouth.
+  ctx.fillStyle = '#3a1408';
+  for (let dy = 0; dy < 4; dy += 1) {
+    const halfW = Math.round((ringW * 0.5 - 6) * (1 - dy * 0.18));
+    ctx.fillRect(center.x - halfW, center.y + 1 + dy, halfW * 2, 1);
+  }
+  // Brightest ember pixels
+  ctx.fillStyle = '#7a2818';
+  ctx.fillRect(center.x - 5, center.y + 2, 10, 1);
+  ctx.fillStyle = '#c4421a';
+  ctx.fillRect(center.x - 3, center.y + 2, 6, 1);
 
-  // Stones around the rim — just a few well-placed chunks (sides only,
-  // not top/bottom, so they don't form a "tooth-row" pattern around the
-  // base of the flames).
-  const stones: ReadonlyArray<{ readonly ax: number; readonly ay: number }> = [
-    { ax: -1, ay: 0.1 }, // left
-    { ax: -0.85, ay: -0.6 }, // upper-left
-    { ax: 0.85, ay: -0.6 }, // upper-right
-    { ax: 1, ay: 0.1 } // right
-  ];
-  for (const s of stones) {
-    const sx = Math.round(center.x + s.ax * (ringW * 0.5));
-    const sy = Math.round(center.y + s.ay * (ringH * 0.55));
-    ctx.fillStyle = PX.stoneLight;
+  // Stones around the rim — small bumps all the way around so the pit
+  // reads as masonry. 12 small stones in an oval.
+  const stoneCount = 12;
+  for (let i = 0; i < stoneCount; i += 1) {
+    const a = (i / stoneCount) * Math.PI * 2;
+    const sx = Math.round(center.x + Math.cos(a) * (ringW * 0.5));
+    const sy = Math.round(center.y + Math.sin(a) * (ringH * 0.55));
+    const isTop = Math.sin(a) < -0.2;
+    // Vary stone tone with position — top stones catch light, bottom
+    // stones sit in shadow.
+    ctx.fillStyle = isTop ? PX.stoneHighlight : PX.stoneLight;
     ctx.fillRect(sx - 2, sy - 1, 4, 3);
-    ctx.fillStyle = PX.stoneHighlight;
+    ctx.fillStyle = isTop ? '#9a7a5a' : PX.stoneHighlight;
     ctx.fillRect(sx - 2, sy - 1, 4, 1);
+    ctx.fillStyle = PX.stoneShadow;
+    ctx.fillRect(sx - 2, sy + 1, 4, 1);
   }
 
   // Embers — animated dark-red dots inside the pit
@@ -792,6 +929,24 @@ function drawFirePit(
   ctx.lineTo(center.x, center.y - 11 - flickerA);
   ctx.closePath();
   ctx.fill();
+
+  // Rising sparks — small bright pixels drifting up above the flames.
+  // Position is a function of phase so each spark follows a smooth
+  // upward arc; the modulo gives them a finite life and they cycle.
+  for (let i = 0; i < 6; i += 1) {
+    const life = ((phase * 0.6 + i * 0.37) % 1); // 0..1
+    if (life < 0.05) continue;
+    const sway = Math.sin(phase * 4 + i * 1.7) * 4;
+    const sx = Math.round(center.x + sway);
+    const sy = Math.round(center.y - 18 - life * 36);
+    const alpha = 1 - life;
+    const col = life < 0.5 ? PX.flameCore : life < 0.85 ? PX.flameMid : PX.ember;
+    ctx.fillStyle = col;
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(sx, sy, 1, 1);
+    if (life < 0.4) ctx.fillRect(sx + 1, sy - 1, 1, 1);
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawHaggis(
@@ -866,21 +1021,50 @@ function drawHaggis(
   ctx.fillRect(cx + Math.round(r * 0.4), cy + bob + Math.round(r * 0.12), 2, 1);
   ctx.globalAlpha = 1;
 
-  // Eyes — pixel-style: white square with single black pupel
-  const eyeOffX = Math.round(r * 0.32);
-  const eyeY = cy + bob - Math.round(r * 0.15);
-  const eyeSize = Math.max(2, Math.round(r * 0.22));
+  // Eyes — bigger white sclera, dark pupil close together for "cute"
+  // proportion. Pupil position blinks subtly with the bob phase so the
+  // character feels alive when standing still.
+  const eyeOffX = Math.round(r * 0.28);
+  const eyeY = cy + bob - Math.round(r * 0.18);
+  const eyeR = Math.max(2, Math.round(r * 0.28));
+  // Outer dark socket (around the white) for depth
+  ctx.fillStyle = PX.hagOutline;
+  ctx.beginPath();
+  ctx.arc(cx - eyeOffX, eyeY, eyeR + 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + eyeOffX, eyeY, eyeR + 1, 0, Math.PI * 2);
+  ctx.fill();
+  // White
   ctx.fillStyle = PX.eyeWhite;
-  ctx.fillRect(cx - eyeOffX - Math.round(eyeSize / 2), eyeY - Math.round(eyeSize / 2), eyeSize, eyeSize);
-  ctx.fillRect(cx + eyeOffX - Math.round(eyeSize / 2), eyeY - Math.round(eyeSize / 2), eyeSize, eyeSize);
+  ctx.beginPath();
+  ctx.arc(cx - eyeOffX, eyeY, eyeR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + eyeOffX, eyeY, eyeR, 0, Math.PI * 2);
+  ctx.fill();
+  // Pupil — bigger relative to white so it reads as wide-eyed-cute
+  const pupilR = Math.max(1, Math.round(eyeR * 0.65));
+  // Subtle glance — pupil drifts a fraction to mimic "looking around"
+  const glance = Math.round(Math.sin(phase * 0.7) * 1);
   ctx.fillStyle = PX.eyePupil;
-  const pupil = Math.max(1, Math.floor(eyeSize / 2));
-  ctx.fillRect(cx - eyeOffX, eyeY - Math.floor(pupil / 2), pupil, pupil);
-  ctx.fillRect(cx + eyeOffX, eyeY - Math.floor(pupil / 2), pupil, pupil);
+  ctx.beginPath();
+  ctx.arc(cx - eyeOffX + glance, eyeY + 1, pupilR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + eyeOffX + glance, eyeY + 1, pupilR, 0, Math.PI * 2);
+  ctx.fill();
+  // Catchlight (tiny white pixel in upper-left of each pupil)
+  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillRect(cx - eyeOffX + glance - 1, eyeY, 1, 1);
+  ctx.fillRect(cx + eyeOffX + glance - 1, eyeY, 1, 1);
 
-  // Tiny mouth dot
+  // Mouth — small smiling curve made of 3 pixels
   ctx.fillStyle = PX.eyePupil;
-  ctx.fillRect(cx - 1, cy + bob + Math.round(r * 0.18), 2, 1);
+  const mouthY = cy + bob + Math.round(r * 0.32);
+  ctx.fillRect(cx - 1, mouthY, 2, 1);
+  ctx.fillRect(cx - 2, mouthY - 1, 1, 1);
+  ctx.fillRect(cx + 1, mouthY - 1, 1, 1);
 }
 
 function drawPrompt(
