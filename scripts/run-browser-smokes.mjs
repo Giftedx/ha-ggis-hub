@@ -95,3 +95,11 @@ if (failures > 0) {
   process.exit(1);
 }
 log('all smokes passed');
+// Explicit exit. Without this, `pnpm exec vite preview` spawned with
+// shell:true leaves an orphan vite grandchild (SIGTERM goes to the
+// shell wrapper, not vite), keeping Node's event loop alive — the
+// script then hangs forever waiting for handles to close. CI saw a
+// 10-minute timeout here before this fix. Sister scripts
+// run-determinism-smoke.mjs and run-visual-gate.mjs already exit
+// explicitly for the same reason.
+process.exit(0);

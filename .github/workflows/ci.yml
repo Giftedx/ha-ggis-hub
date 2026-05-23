@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel any in-flight CI run on the same ref when a new push lands.
+# Without this, queued runs pile up (visible during the 2026-05-23
+# bring-up where four runs queued in sequence after rapid fixes).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Fast PR gate — runs the TS verify chain alone. Keeps PR feedback
   # under 30s on typical changes.
