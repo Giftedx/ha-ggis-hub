@@ -1,6 +1,119 @@
 /* @ts-self-types="./hub_wasm.d.ts" */
 
 /**
+ * Error tag returned by `tick`. Zero is success.
+ * @enum {0 | 1}
+ */
+export const HubErrorTag = Object.freeze({
+    /**
+     * Operation completed successfully.
+     */
+    Ok: 0, "0": "Ok",
+    /**
+     * The `input_packed` value contained reserved bits or otherwise
+     * could not be reconstructed into a valid `InputSnapshot`.
+     */
+    InvalidInput: 1, "1": "InvalidInput",
+});
+
+/**
+ * Owning handle exposed to JavaScript. Pointer fields and the snapshot byte
+ * buffer live in linear memory so the TS side can build zero-copy views.
+ */
+export class HubHandle {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        HubHandleFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_hubhandle_free(ptr, 0);
+    }
+    /**
+     * Length of the last error message in bytes.
+     * @returns {number}
+     */
+    error_message_len() {
+        const ret = wasm.hubhandle_error_message_len(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Pointer to the last error message string. Length is `error_message_len`.
+     * Valid until the next boundary call.
+     * @returns {number}
+     */
+    error_message_ptr() {
+        const ret = wasm.hubhandle_error_message_ptr(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Create a new handle, seeding `Sim` with the supplied seed and
+     * publishing the initial render snapshot into the snapshot buffer.
+     * @param {bigint} seed
+     */
+    constructor(seed) {
+        const ret = wasm.hubhandle_new(seed);
+        this.__wbg_ptr = ret;
+        HubHandleFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * Build a JSON room descriptor from the current snapshot. Init-only —
+     * the host should call this once at handle creation and cache the result.
+     * @returns {string}
+     */
+    room_definition() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.hubhandle_room_definition(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * Length of the snapshot buffer in bytes (stable for the handle's lifetime).
+     * @returns {number}
+     */
+    snapshot_len() {
+        const ret = wasm.hubhandle_snapshot_len(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * Pointer to the snapshot buffer in linear memory.
+     * @returns {number}
+     */
+    snapshot_ptr() {
+        const ret = wasm.hubhandle_snapshot_ptr(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * FNV-1a 64-bit digest over the current Sim state.
+     * @returns {bigint}
+     */
+    state_hash() {
+        const ret = wasm.hubhandle_state_hash(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * Advance one tick. Writes the post-tick render snapshot into the
+     * snapshot buffer in place. Returns `HubErrorTag::Ok` on success.
+     * @param {number} input_packed
+     * @returns {HubErrorTag}
+     */
+    tick(input_packed) {
+        const ret = wasm.hubhandle_tick(this.__wbg_ptr, input_packed);
+        return ret;
+    }
+}
+if (Symbol.dispose) HubHandle.prototype[Symbol.dispose] = HubHandle.prototype.free;
+
+/**
  * Interaction kind exposed as a compact JavaScript-readable enum.
  * @enum {0 | 1 | 2}
  */
@@ -209,6 +322,16 @@ export function hub_core_api_version() {
 }
 
 /**
+ * Hub core API version exposed to JS so the host can refuse a binding /
+ * host pair whose protocol versions disagree.
+ * @returns {number}
+ */
+export function hub_core_api_version_v2() {
+    const ret = wasm.hub_core_api_version_v2();
+    return ret >>> 0;
+}
+
+/**
  * Return the project name exposed through WASM for host diagnostics.
  * @returns {string}
  */
@@ -223,6 +346,29 @@ export function hub_core_project_name() {
     } finally {
         wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
     }
+}
+
+/**
+ * Replay a `.haggislog` byte buffer natively inside WASM and return the
+ * final state hash. Used by the in-browser determinism gate; can be called
+ * without owning a `HubHandle`.
+ *
+ * On success the returned `u64` is the final state hash from the replayed
+ * session. On failure the high 32 bits encode a non-zero error code and the
+ * low 32 bits are zero:
+ * - `(1u64 << 32)` = log decode failure
+ * - `(2u64 << 32)` = replay divergence
+ *
+ * Callers should compare the returned hash against an expected value; a
+ * mismatch (including the error patterns) signals an unsuccessful replay.
+ * @param {Uint8Array} log_bytes
+ * @returns {bigint}
+ */
+export function replay_run(log_bytes) {
+    const ptr0 = passArray8ToWasm0(log_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.replay_run(ptr0, len0);
+    return BigInt.asUintN(64, ret);
 }
 function __wbg_get_imports() {
     const import0 = {
@@ -246,6 +392,9 @@ function __wbg_get_imports() {
     };
 }
 
+const HubHandleFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_hubhandle_free(ptr, 1));
 const HubInteractionSnapshotFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_hubinteractionsnapshot_free(ptr, 1));
@@ -268,6 +417,13 @@ function getUint8ArrayMemory0() {
     return cachedUint8ArrayMemory0;
 }
 
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 cachedTextDecoder.decode();
 const MAX_SAFARI_DECODE_BYTES = 2146435072;
@@ -281,6 +437,8 @@ function decodeText(ptr, len) {
     }
     return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
 }
+
+let WASM_VECTOR_LEN = 0;
 
 let wasmModule, wasmInstance, wasm;
 function __wbg_finalize_init(instance, module) {

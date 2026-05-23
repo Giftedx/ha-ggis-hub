@@ -2,6 +2,66 @@
 /* eslint-disable */
 
 /**
+ * Error tag returned by `tick`. Zero is success.
+ */
+export enum HubErrorTag {
+    /**
+     * Operation completed successfully.
+     */
+    Ok = 0,
+    /**
+     * The `input_packed` value contained reserved bits or otherwise
+     * could not be reconstructed into a valid `InputSnapshot`.
+     */
+    InvalidInput = 1,
+}
+
+/**
+ * Owning handle exposed to JavaScript. Pointer fields and the snapshot byte
+ * buffer live in linear memory so the TS side can build zero-copy views.
+ */
+export class HubHandle {
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Length of the last error message in bytes.
+     */
+    error_message_len(): number;
+    /**
+     * Pointer to the last error message string. Length is `error_message_len`.
+     * Valid until the next boundary call.
+     */
+    error_message_ptr(): number;
+    /**
+     * Create a new handle, seeding `Sim` with the supplied seed and
+     * publishing the initial render snapshot into the snapshot buffer.
+     */
+    constructor(seed: bigint);
+    /**
+     * Build a JSON room descriptor from the current snapshot. Init-only —
+     * the host should call this once at handle creation and cache the result.
+     */
+    room_definition(): string;
+    /**
+     * Length of the snapshot buffer in bytes (stable for the handle's lifetime).
+     */
+    snapshot_len(): number;
+    /**
+     * Pointer to the snapshot buffer in linear memory.
+     */
+    snapshot_ptr(): number;
+    /**
+     * FNV-1a 64-bit digest over the current Sim state.
+     */
+    state_hash(): bigint;
+    /**
+     * Advance one tick. Writes the post-tick render snapshot into the
+     * snapshot buffer in place. Returns `HubErrorTag::Ok` on success.
+     */
+    tick(input_packed: number): HubErrorTag;
+}
+
+/**
  * Interaction kind exposed as a compact JavaScript-readable enum.
  */
 export enum HubInteractionKind {
@@ -97,14 +157,47 @@ export function create_demo_world(): HubWorld;
 export function hub_core_api_version(): number;
 
 /**
+ * Hub core API version exposed to JS so the host can refuse a binding /
+ * host pair whose protocol versions disagree.
+ */
+export function hub_core_api_version_v2(): number;
+
+/**
  * Return the project name exposed through WASM for host diagnostics.
  */
 export function hub_core_project_name(): string;
+
+/**
+ * Replay a `.haggislog` byte buffer natively inside WASM and return the
+ * final state hash. Used by the in-browser determinism gate; can be called
+ * without owning a `HubHandle`.
+ *
+ * On success the returned `u64` is the final state hash from the replayed
+ * session. On failure the high 32 bits encode a non-zero error code and the
+ * low 32 bits are zero:
+ * - `(1u64 << 32)` = log decode failure
+ * - `(2u64 << 32)` = replay divergence
+ *
+ * Callers should compare the returned hash against an expected value; a
+ * mismatch (including the error patterns) signals an unsuccessful replay.
+ */
+export function replay_run(log_bytes: Uint8Array): bigint;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_hubhandle_free: (a: number, b: number) => void;
+    readonly hub_core_api_version_v2: () => number;
+    readonly hubhandle_error_message_len: (a: number) => number;
+    readonly hubhandle_error_message_ptr: (a: number) => number;
+    readonly hubhandle_new: (a: bigint) => number;
+    readonly hubhandle_room_definition: (a: number) => [number, number];
+    readonly hubhandle_snapshot_len: (a: number) => number;
+    readonly hubhandle_snapshot_ptr: (a: number) => number;
+    readonly hubhandle_state_hash: (a: number) => bigint;
+    readonly hubhandle_tick: (a: number, b: number) => number;
+    readonly replay_run: (a: number, b: number) => bigint;
     readonly __wbg_hubinteractionsnapshot_free: (a: number, b: number) => void;
     readonly __wbg_hubplayersnapshot_free: (a: number, b: number) => void;
     readonly __wbg_hubworld_free: (a: number, b: number) => void;
@@ -122,6 +215,7 @@ export interface InitOutput {
     readonly hubworld_tick_player: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_start: () => void;
 }
 
