@@ -143,7 +143,7 @@ pub fn replay_run(log_bytes: &[u8]) -> u64 {
 /// host pair whose protocol versions disagree.
 #[wasm_bindgen]
 #[must_use]
-pub fn hub_core_api_version_v2() -> u32 {
+pub fn hub_core_api_version() -> u32 {
     CORE_API_VERSION
 }
 

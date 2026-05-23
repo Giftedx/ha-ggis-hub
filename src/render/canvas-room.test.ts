@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createCanvasRoomRenderer, type CanvasRoomSurface } from './canvas-room';
-import type { RoomDefinition } from '../wasm/boundary-v2';
+import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 class RecordingCanvasContext {

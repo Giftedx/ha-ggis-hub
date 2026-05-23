@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createHubRoomController } from './room';
-import type { HubBoundary, RoomDefinition } from '../wasm/boundary-v2';
+import type { HubBoundary, RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 function emptyRoom(): RoomDefinition {

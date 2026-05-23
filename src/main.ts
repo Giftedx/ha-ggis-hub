@@ -5,7 +5,7 @@ import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from './engine/fixed-step';
 import { InputLogWriter } from './engine/input-log';
 import { createHubRoomController } from './hub/room';
 import { createCanvasRoomRenderer } from './render/canvas-room';
-import { initializeHubBoundaryV2 } from './wasm/boundary-v2';
+import { initializeHubBoundaryV2 } from './wasm/boundary';
 import { loadGeneratedHubWasm } from './wasm/generated-loader';
 
 const appRoot = document.querySelector<HTMLElement>('#app');
@@ -23,14 +23,7 @@ async function start(root: HTMLElement): Promise<void> {
 
   try {
     const seed = BigInt(Date.now());
-    // Type seam: the existing generated-loader was typed for the OLD
-    // generated bindings shape. Phase 6 deletes the old boundary and
-    // retypes the loader; until then the cast is the one-line escape
-    // hatch documented in the migration plan.
-    const boundary = await initializeHubBoundaryV2(
-      loadGeneratedHubWasm as unknown as () => Promise<any>,
-      seed
-    );
+    const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
     const renderer = createCanvasRoomRenderer(shell.canvas, boundary.room);
     const keyboard = createKeyboardInputSampler(window);
 

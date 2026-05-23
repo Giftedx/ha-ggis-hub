@@ -1,4 +1,11 @@
-import type { HubInputVector } from '../wasm/boundary';
+/**
+ * Raw axis vector sampled from the keyboard. The host packs this into the
+ * boundary's `InputSnapshot` bitfield via `main.ts` before each tick.
+ */
+export interface HubInputVector {
+  readonly x: -1 | 0 | 1;
+  readonly y: -1 | 0 | 1;
+}
 
 export interface KeyboardInputSampler {
   snapshot(): HubInputVector;

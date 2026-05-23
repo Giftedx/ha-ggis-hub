@@ -1,152 +1,126 @@
-export interface HubPlayerState {
-  readonly x: number;
-  readonly y: number;
-  readonly halfExtent: number;
-  readonly speedPerTick: number;
-}
+import { decodeSnapshot, type DecodedSnapshot, SNAPSHOT_BYTES } from './snapshot-codec';
 
-export interface HubInputVector {
-  readonly x: number;
-  readonly y: number;
-}
-
-export type HubInteractionKind = 'none' | 'launchable' | 'locked';
-
-export interface HubInteraction {
-  readonly kind: HubInteractionKind;
+export interface RoomDoorDefinition {
   readonly id: string;
-  readonly title: string;
+  readonly status: 'launchable' | 'locked';
+  readonly bounds: {
+    readonly minX: number;
+    readonly minY: number;
+    readonly maxX: number;
+    readonly maxY: number;
+  };
 }
 
-export interface HubCoreIdentity {
-  readonly projectName: string;
+export interface RoomDefinition {
+  readonly worldWidth: number;
+  readonly worldHeight: number;
+  readonly doors: readonly RoomDoorDefinition[];
+}
+
+export class HubBoundaryError extends Error {
+  constructor(public readonly tag: number, message: string) {
+    super(message);
+    this.name = 'HubBoundaryError';
+  }
+}
+
+export interface HubBoundary {
   readonly apiVersion: number;
-}
-
-export interface HubCoreWorld {
-  tickPlayer(player: HubPlayerState, input: HubInputVector): HubPlayerState;
-  interactionFor(player: HubPlayerState): HubInteraction;
-}
-
-export interface InitializedHubCore {
-  readonly identity: HubCoreIdentity;
-  readonly world: HubCoreWorld;
-}
-
-interface GeneratedPlayerSnapshot {
-  x(): number;
-  y(): number;
-  half_extent(): number;
-  speed_per_tick(): number;
-  free(): void;
-}
-
-interface GeneratedInteractionSnapshot {
-  kind(): number;
-  id(): string;
-  title(): string;
-  free(): void;
-}
-
-interface GeneratedHubWorld {
-  tick_player(
-    x: number,
-    y: number,
-    halfExtent: number,
-    speedPerTick: number,
-    inputX: number,
-    inputY: number
-  ): GeneratedPlayerSnapshot;
-  interaction_for(x: number, y: number, halfExtent: number, speedPerTick: number): GeneratedInteractionSnapshot;
+  readonly room: RoomDefinition;
+  tick(inputPacked: number): DecodedSnapshot;
+  stateHash(): bigint;
+  destroy(): void;
 }
 
 export interface GeneratedHubWasmModule {
+  default(): Promise<unknown>;
+  HubHandle: new (seed: bigint) => GeneratedHandle;
   hub_core_api_version(): number;
-  hub_core_project_name(): string;
-  create_demo_world(): GeneratedHubWorld;
+  memory: WebAssembly.Memory;
+}
+
+interface GeneratedHandle {
+  tick(input_packed: number): number;
+  snapshot_ptr(): number;
+  snapshot_len(): number;
+  state_hash(): bigint;
+  room_definition(): string;
+  error_message_ptr(): number;
+  error_message_len(): number;
+  free(): void;
 }
 
 export type HubWasmModuleLoader = () => Promise<GeneratedHubWasmModule>;
 
-export class HubWasmInitializationError extends Error {
-  readonly cause: unknown;
-
-  constructor(cause: unknown) {
-    super('Unable to initialize ha.ggis Hub core WASM module');
-    this.name = 'HubWasmInitializationError';
-    this.cause = cause;
+export async function initializeHubBoundaryV2(
+  loadModule: HubWasmModuleLoader,
+  seed: bigint
+): Promise<HubBoundary> {
+  const module = await loadModule();
+  await module.default();
+  const apiVersion = module.hub_core_api_version();
+  const handle = new module.HubHandle(seed);
+  const room = parseRoomDefinition(handle.room_definition());
+  const snapshotBufferLen = handle.snapshot_len();
+  if (snapshotBufferLen !== SNAPSHOT_BYTES) {
+    handle.free();
+    throw new HubBoundaryError(-1, `unexpected snapshot length ${snapshotBufferLen}`);
   }
-}
 
-export async function initializeHubCore(loadModule: HubWasmModuleLoader): Promise<InitializedHubCore> {
-  try {
-    const generated = await loadModule();
-    const world = generated.create_demo_world();
+  function snapshotBytes(): Uint8Array {
+    const ptr = handle.snapshot_ptr();
+    return new Uint8Array(module.memory.buffer, ptr, snapshotBufferLen);
+  }
 
-    return {
-      identity: {
-        projectName: generated.hub_core_project_name(),
-        apiVersion: generated.hub_core_api_version()
-      },
-      world: {
-        tickPlayer(player: HubPlayerState, input: HubInputVector): HubPlayerState {
-          const snapshot = world.tick_player(
-            player.x,
-            player.y,
-            player.halfExtent,
-            player.speedPerTick,
-            input.x,
-            input.y
-          );
+  function readErrorMessage(): string {
+    const ptr = handle.error_message_ptr();
+    const len = handle.error_message_len();
+    const bytes = new Uint8Array(module.memory.buffer, ptr, len);
+    return new TextDecoder().decode(bytes);
+  }
 
-          return playerSnapshotFromGenerated(snapshot);
-        },
-        interactionFor(player: HubPlayerState): HubInteraction {
-          return interactionFromGenerated(
-            world.interaction_for(player.x, player.y, player.halfExtent, player.speedPerTick)
-          );
-        }
+  return {
+    apiVersion,
+    room,
+    tick(inputPacked: number): DecodedSnapshot {
+      const tag = handle.tick(inputPacked);
+      if (tag !== 0) {
+        throw new HubBoundaryError(tag, readErrorMessage());
       }
-    };
-  } catch (error: unknown) {
-    throw new HubWasmInitializationError(error);
-  }
+      // The snapshot buffer is shared with WASM linear memory; rebuild the
+      // view in case memory was reallocated (which can happen if the
+      // generated bindings grow the heap).
+      return decodeSnapshot(snapshotBytes());
+    },
+    stateHash(): bigint {
+      return handle.state_hash();
+    },
+    destroy(): void {
+      handle.free();
+    }
+  };
 }
 
-function playerSnapshotFromGenerated(snapshot: GeneratedPlayerSnapshot): HubPlayerState {
-  try {
-    return {
-      x: snapshot.x(),
-      y: snapshot.y(),
-      halfExtent: snapshot.half_extent(),
-      speedPerTick: snapshot.speed_per_tick()
-    };
-  } finally {
-    snapshot.free();
-  }
-}
-
-function interactionFromGenerated(snapshot: GeneratedInteractionSnapshot): HubInteraction {
-  try {
-    return {
-      kind: interactionKindFromGenerated(snapshot.kind()),
-      id: snapshot.id(),
-      title: snapshot.title()
-    };
-  } finally {
-    snapshot.free();
-  }
-}
-
-function interactionKindFromGenerated(kind: number): HubInteractionKind {
-  switch (kind) {
-    case 0:
-      return 'none';
-    case 1:
-      return 'launchable';
-    case 2:
-      return 'locked';
-    default:
-      throw new Error(`Unknown hub interaction kind from WASM: ${kind}`);
-  }
+function parseRoomDefinition(json: string): RoomDefinition {
+  const parsed = JSON.parse(json) as {
+    worldWidth: number;
+    worldHeight: number;
+    doors: ReadonlyArray<{
+      id: string;
+      status: number;
+      boundsMinX: number;
+      boundsMinY: number;
+      boundsMaxX: number;
+      boundsMaxY: number;
+    }>;
+  };
+  return {
+    worldWidth: parsed.worldWidth,
+    worldHeight: parsed.worldHeight,
+    doors: parsed.doors.map((d) => ({
+      id: d.id,
+      status: d.status === 1 ? 'launchable' : 'locked',
+      bounds: { minX: d.boundsMinX, minY: d.boundsMinY, maxX: d.boundsMaxX, maxY: d.boundsMaxY }
+    }))
+  };
 }

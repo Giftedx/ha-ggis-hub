@@ -3,9 +3,9 @@ import {
   HUB_GAME_REGISTRY,
   getGameById,
   interactionToRegistryEntry,
-  validateGameRegistry
+  validateGameRegistry,
+  type HubInteraction
 } from './registry';
-import type { HubInteraction } from '../wasm/boundary';
 
 describe('game registry', () => {
   it('keeps the canonical registry valid and maps Wild Haggis Survivors by stable id', () => {
@@ -103,14 +103,10 @@ describe('game registry', () => {
   });
 
   it('maps WASM interactions to registry entries by id and fails closed for unknown or empty interactions', () => {
-    const launchable: HubInteraction = {
-      kind: 'launchable',
-      id: 'wild-haggis-survivors',
-      title: 'Title drift from core'
-    };
-    const locked: HubInteraction = { kind: 'locked', id: 'future-bothy', title: 'Future Bothy' };
-    const unknown: HubInteraction = { kind: 'launchable', id: 'missing-game', title: 'Missing Game' };
-    const empty: HubInteraction = { kind: 'none', id: '', title: '' };
+    const launchable: HubInteraction = { kind: 'launchable', id: 'wild-haggis-survivors' };
+    const locked: HubInteraction = { kind: 'locked', id: 'future-bothy' };
+    const unknown: HubInteraction = { kind: 'launchable', id: 'missing-game' };
+    const empty: HubInteraction = { kind: 'none', id: '' };
 
     expect(interactionToRegistryEntry(launchable, HUB_GAME_REGISTRY)?.title).toBe('Wild Haggis Survivors');
     expect(interactionToRegistryEntry(locked, HUB_GAME_REGISTRY)?.launch.kind).toBe('none');

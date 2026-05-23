@@ -1,4 +1,13 @@
-import type { HubInteraction } from '../wasm/boundary';
+/**
+ * Minimal interaction shape consumed by the registry lookup. The kernel's
+ * full interaction lives inside `DecodedSnapshot`; the registry only needs
+ * to know whether an interaction exists and which door id it targets, so
+ * a local alias keeps the boundary surface lean.
+ */
+export interface HubInteraction {
+  readonly kind: 'none' | 'launchable' | 'locked';
+  readonly id: string;
+}
 
 export type HubGameStatus = 'playable' | 'coming-soon' | 'disabled';
 

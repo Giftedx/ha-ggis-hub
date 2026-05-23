@@ -1,4 +1,4 @@
-import type { HubBoundary } from '../wasm/boundary-v2';
+import type { HubBoundary } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 export interface HubRoomRenderer {

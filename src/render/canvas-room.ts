@@ -1,5 +1,5 @@
 import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
-import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary-v2';
+import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 export interface CanvasRoomContext {
