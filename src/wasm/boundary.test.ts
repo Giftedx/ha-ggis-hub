@@ -52,10 +52,12 @@ function makeStubModule(): {
 
   return {
     loader: async () => ({
-      default: async () => undefined,
+      // Mirror wasm-bindgen: `default` returns the live instance exports
+      // including `memory`. The module namespace itself does not expose
+      // memory directly.
+      default: async () => ({ memory }),
       HubHandle,
-      hub_core_api_version: () => 1,
-      memory
+      hub_core_api_version: () => 1
     }),
     memory
   };

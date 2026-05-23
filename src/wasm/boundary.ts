@@ -36,11 +36,18 @@ export interface HubBoundary {
   destroy(): void;
 }
 
+/** Shape of the object wasm-bindgen's `default` init returns — the live
+ *  wasm instance exports. We only need `memory` from it; the wrapper
+ *  functions like `HubHandle` and `hub_core_api_version` are accessed
+ *  through the module namespace instead. */
+export interface GeneratedHubWasmInitResult {
+  readonly memory: WebAssembly.Memory;
+}
+
 export interface GeneratedHubWasmModule {
-  default(): Promise<unknown>;
+  default(): Promise<GeneratedHubWasmInitResult>;
   HubHandle: new (seed: bigint) => GeneratedHandle;
   hub_core_api_version(): number;
-  memory: WebAssembly.Memory;
 }
 
 interface GeneratedHandle {
@@ -61,7 +68,10 @@ export async function initializeHubBoundaryV2(
   seed: bigint
 ): Promise<HubBoundary> {
   const module = await loadModule();
-  await module.default();
+  // `default()` returns the wasm instance exports including `memory`. The
+  // module namespace itself does NOT expose `memory` directly — only the
+  // wrapper functions (HubHandle, hub_core_api_version, etc).
+  const wasm = await module.default();
   const apiVersion = module.hub_core_api_version();
   const handle = new module.HubHandle(seed);
   const room = parseRoomDefinition(handle.room_definition());
@@ -73,13 +83,13 @@ export async function initializeHubBoundaryV2(
 
   function snapshotBytes(): Uint8Array {
     const ptr = handle.snapshot_ptr();
-    return new Uint8Array(module.memory.buffer, ptr, snapshotBufferLen);
+    return new Uint8Array(wasm.memory.buffer, ptr, snapshotBufferLen);
   }
 
   function readErrorMessage(): string {
     const ptr = handle.error_message_ptr();
     const len = handle.error_message_len();
-    const bytes = new Uint8Array(module.memory.buffer, ptr, len);
+    const bytes = new Uint8Array(wasm.memory.buffer, ptr, len);
     return new TextDecoder().decode(bytes);
   }
 
