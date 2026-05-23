@@ -1,9 +1,9 @@
 //! Differential test surface for the hand-rolled C and WAT kernels
 //! committed under [Craft commitments §B](../../docs/foundation/12-craft-commitments.md).
 //!
-//! The C FNV-1a hash (and, in plan 3 phase 2, the WAT xoshiro128** RNG)
-//! are linked here only so they can be diffed against the canonical Rust
-//! implementations in `hub-core`. They are not runtime code paths.
+//! The C FNV-1a hash and the WAT xoshiro128** RNG are linked here only so
+//! they can be diffed against the canonical Rust implementations in
+//! `hub-core`. They are not runtime code paths.
 //!
 //! ## Unsafe relaxation
 //!
@@ -13,6 +13,17 @@
 //! codebase, and it exists solely so the `extern "C"` block can declare
 //! `fnv1a_64` and the safe wrapper can call it. No other `unsafe` is
 //! permitted in this crate.
+//!
+//! ## WAT runtime
+//!
+//! The WAT xoshiro128** kernel at `asm/xoshiro128_starstar.wat` is
+//! compiled and instantiated under `wasmi` by `tests/differential_rng.rs`.
+//! The driver code (`make_wat_rng`, `WatRngError`) lives in that
+//! integration test rather than in this library because `wat` and
+//! `wasmi` are `[dev-dependencies]` — per plan 3's directive to keep
+//! them out of the production build graph — and `src/lib.rs` cannot
+//! reference dev-deps. We re-export the WAT source string here so the
+//! test can read it through a stable, in-crate path.
 
 #![allow(unsafe_code)]
 
@@ -39,3 +50,9 @@ pub fn fnv1a_64_c(bytes: &[u8]) -> u64 {
     // function does not retain the pointer and only reads `len` bytes.
     unsafe { fnv1a_64(bytes.as_ptr(), bytes.len()) }
 }
+
+/// The committed hand-authored WAT source for the xoshiro128** kernel.
+/// Re-exported here so the WAT-runtime integration test under `tests/`
+/// can compile it via `wat::parse_str` without duplicating the
+/// `include_str!` path glue.
+pub const XOSHIRO_WAT_SOURCE: &str = include_str!("../../../asm/xoshiro128_starstar.wat");

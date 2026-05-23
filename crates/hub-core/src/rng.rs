@@ -45,12 +45,30 @@ impl Rng {
         result
     }
 
-    /// Snapshot the internal state. Used by `Sim::state_hash` to canonicalise
-    /// RNG advance into the state digest. Not part of the public RNG API for
-    /// callers outside the crate.
+    /// Snapshot the internal state as four little-endian-ordered `u32`
+    /// words. Used by `Sim::state_hash` to canonicalise RNG advance into
+    /// the state digest, by `hub-hardlang`'s differential test to seed
+    /// both backends from a shared `SplitMix64` expansion, and acceptable
+    /// for production callers that need to persist RNG state (e.g. into
+    /// a save-file header). Dual of [`Rng::from_state`].
     #[must_use]
-    pub(crate) fn state(&self) -> [u32; 4] {
+    pub fn state(&self) -> [u32; 4] {
         self.s
+    }
+
+    /// Construct an `Rng` directly from raw `[u32; 4]` state. Used by
+    /// `hub-hardlang`'s differential test to seed the WAT and Rust
+    /// backends from a shared `SplitMix64` expansion, and acceptable for
+    /// production callers that have their own seed-expansion strategy
+    /// (e.g. derived from a save-file header). Prefer [`Rng::seed`] for
+    /// everyday use. Dual of [`Rng::state`].
+    #[must_use]
+    pub fn from_state(s: [u32; 4]) -> Self {
+        debug_assert!(
+            s.iter().any(|&w| w != 0),
+            "xoshiro128** rejects all-zero state"
+        );
+        Self { s }
     }
 
     /// Draw the next `u32` bounded to `[0, bound)`. Uses Lemire's debiased
@@ -130,6 +148,16 @@ mod tests {
         let mut rng = Rng::seed(1);
         for &expected in &REFERENCE_STREAM_SEED_ONE {
             assert_eq!(rng.next_u32(), expected);
+        }
+    }
+
+    #[test]
+    fn from_state_produces_same_stream_as_matching_seed_expansion() {
+        let mut from_seed = Rng::seed(1);
+        let expected_state = from_seed.state();
+        let mut from_state = Rng::from_state(expected_state);
+        for _ in 0..256 {
+            assert_eq!(from_state.next_u32(), from_seed.next_u32());
         }
     }
 

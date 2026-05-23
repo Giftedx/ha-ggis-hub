@@ -27,3 +27,5 @@ cc = "1"
 [dev-dependencies]
 hub-core = { path = "../hub-core" }
 proptest = { version = "1", default-features = false, features = ["std"] }
+wat = "1"
+wasmi = "0.45"
