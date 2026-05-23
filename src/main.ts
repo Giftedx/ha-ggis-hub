@@ -19,7 +19,7 @@ void start(appRoot);
 async function start(root: HTMLElement): Promise<void> {
   const model = createAppModel();
   const shell = createShell(model);
-  root.replaceChildren(shell.section);
+  root.replaceChildren(shell.scene);
 
   try {
     const seed = BigInt(Date.now());
@@ -46,9 +46,8 @@ async function start(root: HTMLElement): Promise<void> {
 
     const room = createHubRoomController({ boundary, renderer });
     room.render();
+    shell.status.textContent = '';
 
-    // beforeunload is registered before any early return so reduced-motion
-    // sessions still surface their (empty) log if any tooling collects it.
     let stepState = INITIAL_FIXED_STEP_STATE;
     window.addEventListener('beforeunload', () => {
       const bytes = inputLog.finish(stepState.tick, boundary.stateHash());
@@ -56,8 +55,7 @@ async function start(root: HTMLElement): Promise<void> {
     });
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      shell.status.textContent =
-        'Reduced motion is on: room animation is paused; direct play remains available.';
+      shell.status.textContent = 'reduced motion · animation paused';
       return;
     }
 
@@ -68,97 +66,75 @@ async function start(root: HTMLElement): Promise<void> {
       last = now;
       const pumped = pumpFixedStep(config, stepState, delta);
       if (pumped.ticksToAdvance > 0) {
-        // Sample input once for the whole batch and feed the same packed
-        // value into every tick — keeps the log and the sim in lock-step
-        // even if the player releases a key mid-batch.
         const packed = samplePackedInput();
         inputLog.recordIfChanged(stepState.tick, packed);
         for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
           room.tick(packed);
         }
+      } else {
+        // No tick advanced this frame but we still want animation (fire,
+        // lanterns) to update — re-render the last snapshot.
+        room.render();
       }
       stepState = pumped.state;
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);
   } catch (error: unknown) {
-    shell.status.textContent = 'The playable room could not load. Direct play is still available below.';
+    shell.status.textContent = 'could not load · direct play below';
     console.error(error);
   }
 }
 
-interface ShellElements {
-  readonly section: HTMLElement;
+interface SceneElements {
+  readonly scene: HTMLElement;
   readonly canvas: HTMLCanvasElement;
   readonly status: HTMLElement;
 }
 
-function createShell(model: ReturnType<typeof createAppModel>): ShellElements {
-  const shell = document.createElement('section');
-  shell.className = 'shell';
-  shell.setAttribute('aria-labelledby', 'project-title');
-
-  const eyebrow = document.createElement('p');
-  eyebrow.className = 'eyebrow';
-  eyebrow.textContent = 'say it without the dot';
-
-  const title = document.createElement('h1');
-  title.id = 'project-title';
-  title.textContent = model.projectName;
-
-  const tagline = document.createElement('p');
-  tagline.className = 'tagline';
-  tagline.textContent = 'A tiny playable haggis bothy, driven by Rust/WASM state and rendered with Canvas2D.';
-
-  const roomFrame = document.createElement('figure');
-  roomFrame.className = 'room-frame';
+function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
+  const scene = document.createElement('section');
+  scene.className = 'scene';
+  scene.setAttribute('aria-label', 'ha.ggis hub bothy');
 
   const canvas = document.createElement('canvas');
-  canvas.className = 'room-canvas';
-  canvas.width = 800;
-  canvas.height = 500;
-  canvas.setAttribute('aria-label', 'Playable haggis hub room. Use WASD or arrow keys to move.');
+  canvas.className = 'scene-canvas';
+  canvas.setAttribute('aria-label', model.projectName);
   canvas.setAttribute('role', 'img');
+  sizeCanvasToViewport(canvas);
+  window.addEventListener('resize', () => sizeCanvasToViewport(canvas), { passive: true });
 
-  const caption = document.createElement('figcaption');
-  caption.textContent = 'Move with WASD or arrow keys. Walk to a glowing door, or use direct play.';
-
-  roomFrame.append(canvas, caption);
-
-  const directPlay = document.createElement('a');
-  directPlay.className = 'direct-play';
-  directPlay.href = model.directPlay.target;
-  directPlay.textContent = model.directPlay.label;
-  directPlay.setAttribute('aria-label', `${model.directPlay.label} from ha.ggis Hub`);
-  directPlay.rel = 'noopener noreferrer';
+  const direct = document.createElement('a');
+  direct.className = 'scene-direct';
+  direct.href = model.directPlay.target;
+  direct.textContent = 'enter ⏎';
+  direct.rel = 'noopener noreferrer';
+  direct.setAttribute('aria-label', model.directPlay.label);
 
   const status = document.createElement('p');
-  status.className = 'runtime-status';
+  status.className = 'scene-status';
   status.setAttribute('role', 'status');
-  status.textContent = 'Loading playable room…';
 
-  const facts = document.createElement('dl');
-  facts.className = 'facts';
-  facts.setAttribute('aria-label', 'Current project foundation state');
+  scene.append(canvas, direct, status);
+  return { scene, canvas, status };
+}
 
-  const factEntries: ReadonlyArray<readonly [string, string]> = [
-    ['Public target', model.publicUrl],
-    ['Stack', model.stack],
-    ['Phase', model.phase]
-  ];
-
-  for (const [label, value] of factEntries) {
-    const row = document.createElement('div');
-    const term = document.createElement('dt');
-    const description = document.createElement('dd');
-
-    term.textContent = label;
-    description.textContent = value;
-
-    row.append(term, description);
-    facts.append(row);
+function sizeCanvasToViewport(canvas: HTMLCanvasElement): void {
+  // Fixed internal pixel-art resolution. CSS scales the canvas to the
+  // viewport with `image-rendering: pixelated`, so every internal pixel
+  // becomes a chunky block on screen. Resolution chosen for crisp 16:9
+  // integer scaling on common displays (1080p = 6× scale, 1440p ≈ 7-8×).
+  const internalWidth = 320;
+  const internalHeight = 180;
+  // Adapt to viewport aspect ratio so we don't letterbox awkwardly.
+  // Pick the closer of 16:9 or the viewport ratio, but stay near our
+  // baseline so the per-pixel layout reads at any window.
+  const aspect = window.innerWidth / window.innerHeight;
+  const targetWidth = Math.round(internalHeight * aspect);
+  const w = Math.max(internalWidth, targetWidth);
+  const h = internalHeight;
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
   }
-
-  shell.append(eyebrow, title, tagline, roomFrame, directPlay, status, facts);
-  return { section: shell, canvas, status };
 }
