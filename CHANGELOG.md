@@ -2,6 +2,45 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-23 CI bring-up session
+
+First public push of the repository (private mirror at github.com/Giftedx/ha-ggis-hub). Initial CI was red four times in a row; sequenced fixes from "won't start" through "release gate hangs invisibly" to a fully green run with signed report `0xd6e4bda3f111a7cf`.
+
+### Added
+
+- **`LICENSE`** + **`.github/workflows/ci.yml`** — MIT, plus two-tier CI: `pnpm verify` as the sub-30s PR gate and `haggis-eval all` (cargo workspace + ts + security + perf + browser + determinism + differential hash/rng + signed JSON report) as the release gate on push-to-main. Concurrency: cancel-in-progress on the same ref.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`visual-budgets.json`** — first capture of the perceptual visual-gate golden so `pnpm visual:verify` works from a cold clone. aHash `7c3cfc3ffc3f7c3e80398039e03bf033e033c003e00760066006e00740020000` at tolerance 18/256. Captured on Windows chromium; a Linux re-capture may be needed before wiring `visual` into `haggis-eval all`.
+- **`@types/node@22`** devDependency — required for clean `tsc --noEmit` on a frozen-lockfile install (the local node_modules had it hoisted; CI didn't).
+- **`gate.RunWithTimeout`** + per-gate `[gate]` streaming progress lines in `tools/haggis-eval/internal/gate/gate.go` — previous gate runs buffered all stdout/stderr and had no timeout, so a hung browser smoke was invisible until the whole CI job hit GitHub's 6-hour limit. Default budget 10min; 20min for `differential/wat-rust-rng` (100k-case proptest fuzz).
+
+### Changed
+
+- **`.gitignore`** — exclude `.serena/` (Serena MCP local state) + `docs/research/refs/` (170MB of local-only reference images) + `docs/research/*.zip`.
+- **`tsconfig.json`** — `lib` adds `ESNext.Disposable` (rolldown's `.d.mts` references `Symbol.asyncDispose`); `types` adds `"node"` so `node:*` imports in vite's d.ts resolve under the explicit type-package whitelist.
+- **`.github/workflows/ci.yml`** — drop `with: version: 10` on `pnpm/action-setup` (clashed with package.json's `packageManager: pnpm@10.12.1` and aborted setup); disable `actions/setup-go` module cache (haggis-eval is stdlib-only, no go.sum).
+- **`scripts/run-browser-smokes.mjs`** — explicit `process.exit(0)` after success. Without it the orphaned `vite preview` grandchild kept Node's event loop alive after `preview.kill('SIGTERM')` killed only the shell wrapper; sister scripts already exit explicitly.
+
+### Notable not-done (carried forward)
+
+- **Wire `visual` into `haggis-eval all`** — golden was captured on Windows; need a Linux capture before adding to `all` or the perceptual diff will likely false-trip in CI. Carried from the design-review session.
+- **Kill preview process group cleanly** — `preview.kill('SIGTERM')` with `shell: true` still leaks the vite grandchild (4 node orphans at job cleanup on the green run). Functional but not hygienic; needs detached spawn + process-group kill on POSIX.
+- **Bump deprecated action versions** — `pnpm/action-setup@v4`, `actions/setup-go@v5`, `actions/upload-artifact@v4` are flagged as Node.js-20 actions. Forced to Node.js 24 by GitHub on 2026-06-02; until then, warnings only.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        21s
+haggis-eval all (release gate)  5m37s   signed=0xd6e4bda3f111a7cf
+  rust/cargo-fmt, clippy, test          PASS  (2m29s combined)
+  ts/tsc-noemit, vitest, vite-build     PASS  (9.2s)
+  security/deploy-config                PASS  (0.8s)
+  perf/build + bundle-budgets           PASS  (0.6s)
+  browser/smokes-all (3 smokes)         PASS  (12s)
+  determinism/browser-replay-hash       PASS  (7.1s)
+  differential/c-rust-hash              PASS  (1m35s)
+  differential/wat-rust-rng (100k fuzz) PASS  (3.8s)
+```
+
 ## [Unreleased] — 2026-05-23 design-review session
 
 Cross-session foundation expansion. Every artifact passed `pnpm verify` (194/194 vitest, tsc strict, vite build, dist verify) and `cargo test --workspace --exclude hub-wasm`. Bundle stayed at 78 KB throughout.
