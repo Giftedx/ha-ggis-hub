@@ -2,6 +2,7 @@
 
 pub mod hash;
 pub mod log;
+pub mod replay;
 pub mod rng;
 pub mod sim;
 
