@@ -1,8 +1,8 @@
 # 07 Quality Gates
 
 Status: canonical foundation policy
-Scope: required validation before PR, main, and release milestones
-Related: [Technical bar](02-technical-bar.md), [Release definition](09-release-definition.md), [Agent operating mode](08-agent-operating-mode.md)
+Scope: technical bar, required validation before PR/main/release milestones, and release definition
+Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-craft-commitments.md), [Deployment foundation](../deployment/cloudflare-pages.md)
 
 ## Current repo status
 
@@ -77,6 +77,71 @@ pnpm outdated
 cargo outdated --workspace
 ```
 
+## Technical bar
+
+### Baseline bar
+
+The baseline is not “it runs.” The baseline is:
+
+- architecture is documented
+- code paths are testable
+- core behavior has unit tests
+- browser behavior has smoke tests
+- dependencies are justified
+- build output is budgeted
+- deployment is hardened
+- errors fail safely
+- docs match the repo
+
+### Architecture bar
+
+A valid implementation slice must have:
+
+- clear ownership boundaries between Rust core, WASM wrapper, TypeScript host, renderer, and deployment
+- no hidden global runtime state
+- explicit lifecycle for game modules
+- explicit save/settings boundaries
+- a documented route and launch model
+
+### Correctness bar
+
+Core rules should have tests for:
+
+- movement bounds
+- input mapping
+- door proximity
+- launch eligibility
+- registry validation
+- save schema and migration once saves exist
+
+### Performance bar
+
+The app should feel instant at the hub level. Games can lazy-load; the front door cannot feel bloated.
+
+Initial budgets are defined below in [Initial budgets](#initial-budgets). Budgets may change only by documented decision.
+
+### Security bar
+
+The app is static, but static does not mean unserious.
+
+Requirements:
+
+- no committed secrets
+- no high/critical dependency vulnerabilities
+- restrictive CSP
+- no accidental public source maps in production
+- strict cache policy for hashed assets vs HTML
+- no mixed content
+- no broad third-party origins without explicit justification
+
+### Documentation bar
+
+Docs must say whether examples are current or planned. A command that cannot run yet because files are not scaffolded must not be presented as current.
+
+### Visual/product bar
+
+Programmer art is allowed during internal iteration. Public-facing placeholder slop is not. The first public slice needs intentional visual direction, even if minimal.
+
 ## Initial budgets
 
 - Rust core line coverage: >= 85%, target 90%.
@@ -112,3 +177,46 @@ cargo outdated --workspace
 ## No weakening policy
 
 Quality gates may be staged while scaffolding. They may not be weakened to make an implementation look done. If a gate is too strict or wrong, update this policy with an explanation and evidence.
+
+## Release philosophy
+
+A release is not a build artifact. It is a claim that the project is safe, understandable, polished, and representative of the quality bar.
+
+## First public release requirements
+
+Product:
+
+- `ha.ggis.xyz` loads the hub.
+- `ggis.xyz` redirects to `ha.ggis.xyz`.
+- The domain joke is visible.
+- The haggis hub is playable.
+- Wild Haggis Survivors can be launched.
+- A direct launch button exists outside the canvas.
+- Reduced-motion or non-game fallback path exists.
+
+Engineering:
+
+- Rust/WASM core exists for meaningful deterministic behavior.
+- TypeScript host is strict and tested.
+- Renderer lifecycle is clean.
+- Game registry is data-driven and validated.
+- Save/settings boundaries are documented.
+- Security headers are configured.
+- Production source-map policy is enforced.
+- Browser smoke tests pass with no console errors.
+
+Documentation:
+
+- README and docs index are accurate.
+- Foundation docs match implementation.
+- ADRs exist for stack and renderer choices.
+- Deployment docs match actual hosting configuration.
+- Any planned command that cannot run is not represented as current.
+
+## Preview vs production
+
+Preview deployments may expose incomplete slices if clearly labelled and safe. Production must meet the release definition.
+
+## Rollback posture
+
+Static deployment should allow rollback to a previous known-good build. The release plan must include how to identify and restore that build before first production launch.

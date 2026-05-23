@@ -1,8 +1,8 @@
 # 11 Quality Manifesto
 
 Status: canonical foundation policy
-Scope: uncompromising project bar, language taste, hand-rolled craft, and autopilot philosophy
-Related: [Engineering principles](01-engineering-principles.md), [Technical bar](02-technical-bar.md), [Agent operating mode](08-agent-operating-mode.md), [Craft commitments](12-craft-commitments.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md)
+Scope: uncompromising project bar, language taste, hand-rolled craft, autopilot philosophy, engineering principles, and autopilot rules
+Related: [Quality gates](07-quality-gates.md), [Craft commitments](12-craft-commitments.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md)
 
 ## Manifesto
 
@@ -103,3 +103,116 @@ It does not mean under-engineered. It means engineered without waste.
 A visitor should feel the charm.
 A senior engineer should see the discipline.
 A future agent should see the path forward.
+
+## Engineering principles
+
+### 1. No slop
+
+No rushed scaffolds, no dependency soup, no untested core behavior, no TODO-driven architecture, and no “we will clean this later” foundations.
+
+Temporary code may exist only inside clearly scoped experiments or spikes, not in the public path.
+
+### 2. Small scope beats weak scope
+
+The first release should be small enough to finish, but not hollow. A tiny polished room with serious architecture is better than a large fragile playground.
+
+### 3. Explain decisions, do not merely state them
+
+Every major technical choice needs the reason, alternatives considered, consequences, and reversal cost. Use ADRs for decisions that shape the architecture.
+
+### 4. Prefer deterministic, testable core logic
+
+Core state transitions should be testable without a browser when reasonable. Rendering should present state; it should not be the source of truth.
+
+### 5. Use systems languages where they earn their keep
+
+Rust/WASM is preferred for deterministic simulation, validation, replay, save schema, and future agent-evaluable logic. Browser orchestration remains TypeScript because the DOM, CSS, input, audio unlock, and deployment toolchain are native browser concerns.
+
+### 6. Hand-roll central primitives when that improves quality
+
+Hand-rolling is encouraged for central identity-bearing systems where control, correctness, and learning matter. It is discouraged for security-sensitive or commodity problems where battle-tested implementations are safer.
+
+### 7. Dependencies are liabilities until proven otherwise
+
+Every dependency adds supply-chain, bundle-size, maintenance, license, and security cost. Add dependencies by policy, not convenience.
+
+### 8. Tests are part of the product
+
+Tests, browser smoke checks, benchmarks, fuzz targets, and quality gates are not chores after coding. They are how the project earns trust.
+
+### 9. Accessibility and fallback paths matter
+
+The hub may be playful, but visitors still need obvious controls, direct links, reduced-motion behavior, keyboard support, and graceful failure states.
+
+### 10. Agent autonomy requires guardrails
+
+Agents may plan, research, implement, review, and verify, but only through documented rules. Agents must not weaken quality gates, invent unrecorded architecture, or claim success without verification.
+
+## Autopilot rules
+
+### Prime directive
+
+Agents may work autonomously, but autonomy must increase quality, not bypass it.
+
+### Required pre-flight
+
+Before changing files, an agent must inspect:
+
+1. `README.md`
+2. `docs/README.md`
+3. relevant `docs/foundation/*` files
+4. relevant ADRs under `docs/decisions/`
+5. current file tree and git status
+
+### Planning rules
+
+- Pick a coherent slice.
+- Keep foundation decisions and implementation plans aligned.
+- Do not implement from archived plans.
+- If a decision changes, update the ADR or create a new ADR.
+- Prefer testable core work over visual-only progress unless the slice is explicitly art/UX.
+
+### Implementation rules
+
+- Use TDD for Rust core behavior and pure TypeScript logic.
+- Keep browser rendering separate from simulation truth.
+- Add tests in the same slice as the behavior.
+- Do not add dependencies without following the [Dependency policy](12-craft-commitments.md#dependency-policy).
+- Do not weaken lint, type, test, or security gates to pass.
+- Avoid TODOs in production code. If unavoidable, link them to a tracked issue/plan and explain why they are safe.
+
+### Verification rules
+
+Run the narrowest relevant verification first, then the broader gate appropriate for the slice.
+
+Examples:
+
+- Rust core change: run Rust tests and clippy for the affected workspace.
+- TypeScript pure logic change: run Vitest and typecheck.
+- Browser behavior change: run Playwright smoke and check console errors.
+- Docs-only change: run link/audit checks and cross-check claims against actual files.
+
+### Reporting rules
+
+A completion report must list:
+
+- files changed
+- behavior changed
+- tests/checks run
+- checks not run and why
+- open risks
+- any docs or ADRs updated
+
+Never claim a check passed unless it was actually run.
+
+### Stop/escalate conditions
+
+Escalate to the user only for genuinely product-shaping decisions, such as:
+
+- final renderer choice if evidence is inconclusive
+- public domain/deployment account decisions
+- asset style direction requiring taste approval
+- accepting a major dependency with meaningful tradeoffs
+- weakening a release blocker
+
+Routine doc fixes, link fixes, drift corrections, and consistency edits should be made autonomously.

@@ -1,8 +1,8 @@
 # 12 Craft Commitments
 
 Status: canonical foundation policy
-Scope: which primitives this project hand-rolls, and where C, WebAssembly Text, and Go legitimately appear
-Related: [Quality manifesto](11-quality-manifesto.md), [Engineering principles](01-engineering-principles.md), [Dependency policy](06-dependency-policy.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md), [Architecture overview](../architecture/overview.md), [Implementation sequence](../plans/2026-05-22-implementation-sequence.md)
+Scope: which primitives this project hand-rolls, where C, WebAssembly Text, and Go legitimately appear, and how dependencies are selected, justified, audited, and removed
+Related: [Quality manifesto](11-quality-manifesto.md), [Quality gates](07-quality-gates.md), [ADR-0004](../decisions/0004-language-and-craft-philosophy.md), [Architecture overview](../architecture/overview.md), [Implementation sequence](../plans/2026-05-22-implementation-sequence.md)
 
 ## Purpose
 
@@ -47,7 +47,7 @@ Every primitive below refuses a specific library or class of library. The hand-r
 
 ### Owner column
 
-Each primitive's owner is either *human*, *agent*, or *either*. The default is *either*, given the [Agent operating mode](08-agent-operating-mode.md) gates. Exceptions are recorded when the primitive needs taste calibration that agents currently cannot supply:
+Each primitive's owner is either *human*, *agent*, or *either*. The default is *either*, given the [Autopilot rules](11-quality-manifesto.md#autopilot-rules) gates. Exceptions are recorded when the primitive needs taste calibration that agents currently cannot supply:
 
 - *human-led*: CSS layout (visual taste).
 - *agent-led acceptable*: everything else above. An agent may produce the first draft; review still gates merge.
@@ -124,7 +124,7 @@ All three current hard-language entries (C, Assembly, Go) are decided. Future ca
 
 When you add, remove, or change an entry above, update each of these that applies:
 
-- [Dependency policy](06-dependency-policy.md) — if a refused dependency moves classes, or if a new toolchain (e.g. `clang`, Go) needs to be sanctioned.
+- [Dependency policy](#dependency-policy) — if a refused dependency moves classes, or if a new toolchain (e.g. `clang`, Go) needs to be sanctioned.
 - [Implementation sequence](../plans/2026-05-22-implementation-sequence.md) — if the change shifts what lands in which slice.
 - [Architecture overview](../architecture/overview.md) — if the new primitive needs a place in the planned top-level layout.
 - [ADR-0004](../decisions/0004-language-and-craft-philosophy.md) — if a new hard-language commitment is added, or if a hard-language entry is removed.
@@ -133,8 +133,100 @@ When you add, remove, or change an entry above, update each of these that applie
 
 If a hand-roll commitment is broken (e.g. the project adopts a router library), an ADR is required. The dependency policy alone is not sufficient cover.
 
+## Dependency policy
+
+### Principle
+
+Every dependency is a liability until proven valuable.
+
+Dependencies add bundle size, supply-chain risk, license obligations, maintenance burden, security exposure, and architectural gravity. Convenience is not enough.
+
+### Dependency classes
+
+#### Allowed by foundation decision
+
+These are accepted as part of the planned foundation, subject to normal version/license/security checks:
+
+- Rust toolchain and Cargo workspace
+- wasm-bindgen / wasm-pack for WASM boundary
+- TypeScript
+- Vite
+- pnpm
+- Vitest
+- Playwright
+- proptest for Rust property tests
+- cargo-audit / cargo-deny / cargo-nextest / cargo-llvm-cov for quality gates
+- `clang` toolchain — for compiling the C primitives committed in [Craft commitments](#section-b-hard-language-commitments) (currently the FNV-1a hash) to WebAssembly
+- Go toolchain — for building the `haggis-eval` CLI committed in [Craft commitments](#section-b-hard-language-commitments)
+
+#### Requires ADR or dependency rationale
+
+- renderer dependency such as PixiJS
+- any UI framework
+- any game engine such as Phaser or Bevy
+- analytics/error tracking SDKs
+- external asset pipeline tools
+- routing frameworks
+- state-management libraries
+
+#### Suspicious by default
+
+- broad utility libraries for tiny helpers
+- unmaintained packages
+- packages with unclear licenses
+- packages that force weak CSP
+- packages with large transitive dependency trees
+- packages that duplicate native platform features
+
+### Required rationale for new dependencies
+
+When adding a dependency, document:
+
+- name and version range
+- purpose
+- why hand-rolling is worse
+- bundle/runtime impact if frontend
+- license
+- maintenance signal
+- security considerations
+- removal/replacement plan if it disappoints
+
+Use `docs/decisions/` for architectural dependencies and the relevant implementation plan for small tooling dependencies.
+
+### Lockfiles
+
+Lockfiles are mandatory:
+
+- frontend: `pnpm-lock.yaml`
+- Rust: `Cargo.lock` should be committed for this application repo
+
+CI must use frozen/locked installs.
+
+### License posture
+
+Default acceptable licenses:
+
+- MIT
+- Apache-2.0
+- BSD-2-Clause
+- BSD-3-Clause
+- ISC
+- Zlib
+
+Licenses requiring review:
+
+- MPL-2.0
+- LGPL
+- GPL
+- AGPL
+- unknown/custom licenses
+
+### Removal policy
+
+Dependencies that are unused, replaceable by simple local code, or responsible for recurring problems should be removed. Dependency cleanup is quality work, not churn.
+
 ## Non-goals
 
 - This doc does not catalogue every file the project will ever produce. It catalogues the primitives we *commit* to hand-rolling and the artifacts we *commit* to writing in a hard language.
-- This doc does not duplicate the [Dependency policy](06-dependency-policy.md). It is the positive-space counterpart: the things we are not going to reach for a library for.
+- This doc does not duplicate the [Dependency policy](#dependency-policy). It is the positive-space counterpart: the things we are not going to reach for a library for.
 - This doc does not pick the renderer; that remains [ADR-0002](../decisions/0002-renderer-evaluation-plan.md)'s job. If a custom renderer is chosen later, it joins Section A.
