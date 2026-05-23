@@ -2,17 +2,28 @@ import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
 import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
+// Pixel-art renderer for the ha.ggis bothy. The host sizes the canvas
+// internal buffer to roughly 320×180 (or wider for ultrawide aspect)
+// and CSS scales it to the viewport with `image-rendering: pixelated`.
+// Every draw call here lives at integer pixel coordinates so the upscaled
+// result stays crisp and intentional.
+
 export interface CanvasRoomContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
   strokeStyle: string | CanvasGradient | CanvasPattern;
   lineWidth: number;
   font: string;
   textAlign: CanvasTextAlign;
+  globalAlpha: number;
   fillRect(x: number, y: number, width: number, height: number): void;
   strokeRect(x: number, y: number, width: number, height: number): void;
   beginPath(): void;
+  closePath(): void;
+  moveTo(x: number, y: number): void;
+  lineTo(x: number, y: number): void;
   arc(x: number, y: number, radius: number, startAngle: number, endAngle: number): void;
   fill(): void;
+  stroke(): void;
   fillText(text: string, x: number, y: number): void;
 }
 
@@ -26,14 +37,54 @@ export interface CanvasRoomRenderer {
   render(snapshot: DecodedSnapshot): void;
 }
 
-const COLORS = {
-  background: '#24170f',
-  launchableDoor: '#7a3f1d',
-  lockedDoor: '#3d3328',
-  activeOutline: '#f4c95d',
-  haggis: '#8b5a2b',
-  text: '#f9efd2'
+const PX = {
+  void: '#050307',
+  stoneShadow: '#0c0805',
+  stoneDark: '#1c1410',
+  stoneMid: '#2e231a',
+  stoneLight: '#4a3a28',
+  stoneHighlight: '#6a543a',
+  mortar: '#08050',
+  floorDark: '#2a1a0e',
+  floorMid: '#3c2614',
+  floorLight: '#5c3e22',
+  floorSeam: '#150a04',
+  floorKnot: '#1f1208',
+  floorLitWash: '#5a2e10',
+  woodWarm: '#7a3f18',
+  woodWarmShade: '#5a2a10',
+  woodWarmHighlight: '#a05828',
+  woodCold: '#3a302a',
+  woodColdShade: '#2a221c',
+  iron: '#2a2520',
+  ironHighlight: '#4a4238',
+  goldHandle: '#d4a04d',
+  goldHandleDark: '#8a6628',
+  flameCore: '#fff0c0',
+  flameMid: '#ff9b3a',
+  flameOuter: '#c4441a',
+  ember: '#8a2818',
+  hagOutline: '#1a0a04',
+  hagDark: '#5a3014',
+  hagBody: '#7a4422',
+  hagLight: '#9c6432',
+  hagRim: '#c8884a',
+  hagBlush: '#a8442c',
+  hagShadow: 'rgba(0, 0, 0, 0.55)',
+  eyeWhite: '#f0e6d0',
+  eyePupil: '#0a0604',
+  legDark: '#1a0a04',
+  haloWarm: '#f4c95d',
+  haloCool: '#8a6b48',
+  signWood: '#6a3614',
+  signEdge: '#1a0a04',
+  signText: '#f4e0a8',
+  signTextShadow: '#3a1a08',
+  promptShadow: 'rgba(0, 0, 0, 0.85)',
+  promptText: '#f7e8c4'
 } as const;
+
+const WALL_THICK = 14;
 
 interface ScaledRect {
   readonly x: number;
@@ -47,6 +98,7 @@ interface DoorLayout {
   readonly status: 'launchable' | 'locked';
   readonly rect: ScaledRect;
   readonly title: string;
+  readonly side: 'left' | 'right' | 'top' | 'bottom';
 }
 
 export function createCanvasRoomRenderer(
@@ -54,81 +106,785 @@ export function createCanvasRoomRenderer(
   room: RoomDefinition
 ): CanvasRoomRenderer {
   const context = surface.getContext('2d');
-
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
   }
+  // Pixel-art: disable smoothing so every fill stays crisp at integer
+  // boundaries. This is a no-op on the test recording context (it has no
+  // such property) but matters on the real CanvasRenderingContext2D.
+  const smoothable = context as unknown as { imageSmoothingEnabled?: boolean };
+  if ('imageSmoothingEnabled' in smoothable) {
+    smoothable.imageSmoothingEnabled = false;
+  }
 
-  // Precompute door layout once. Door geometry is part of the room
-  // definition and never changes after init.
-  const doors: readonly DoorLayout[] = room.doors.map((door) => ({
-    id: door.id,
-    status: door.status,
-    rect: scaleDoorBounds(surface, room, door),
-    title: doorTitleForId(door.id)
-  }));
+  const titles = new Map(room.doors.map((d) => [d.id, doorTitleForId(d.id)]));
+  const startedAt = nowMillis();
 
   return {
     render(snapshot: DecodedSnapshot): void {
-      renderRoom(context, surface, room, doors, snapshot);
+      const doors: readonly DoorLayout[] = room.doors.map((door) => {
+        const simRect = scaleDoorBounds(surface, room, door);
+        const side = doorSide(simRect, surface);
+        // Snap the visual door to the side wall so it reads as an
+        // opening carved into the perimeter rather than floating on the
+        // floor. Collision still uses sim coords; this is presentation.
+        const rect = snapDoorToWall(simRect, surface, side);
+        return {
+          id: door.id,
+          status: door.status,
+          rect,
+          title: titles.get(door.id) ?? door.id,
+          side
+        };
+      });
+      const phase = (nowMillis() - startedAt) / 1000;
+      renderRoom(context, surface, room, doors, snapshot, phase);
     }
   };
 }
 
+function snapDoorToWall(
+  rect: ScaledRect,
+  surface: CanvasRoomSurface,
+  side: 'left' | 'right' | 'top' | 'bottom'
+): ScaledRect {
+  // Door visually nestles its outer edge into the wall (-2 means the
+  // door bleeds 2 pixels into the wall mass so the wall covers the
+  // door's outer plank and reads as a doorway opening).
+  switch (side) {
+    case 'left':
+      return { ...rect, x: WALL_THICK - 2 };
+    case 'right':
+      return { ...rect, x: surface.width - WALL_THICK - rect.width + 2 };
+    case 'top':
+      return { ...rect, y: WALL_THICK - 2 };
+    case 'bottom':
+      return { ...rect, y: surface.height - WALL_THICK - rect.height + 2 };
+  }
+}
+
+function nowMillis(): number {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+    return performance.now();
+  }
+  return Date.now();
+}
+
 function renderRoom(
-  context: CanvasRoomContext,
+  ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
   room: RoomDefinition,
   doors: readonly DoorLayout[],
-  snapshot: DecodedSnapshot
+  snapshot: DecodedSnapshot,
+  phase: number
 ): void {
-  context.fillStyle = COLORS.background;
-  context.fillRect(0, 0, surface.width, surface.height);
+  // 1. Void backdrop (frames the room)
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(0, 0, surface.width, surface.height);
 
+  // 2. Floor
+  drawFloor(ctx, surface, phase);
+
+  // 3. Active interaction id (drives door + lantern + interior light)
   const interactingId = activeDoorId(snapshot);
+
+  // 4. Door openings + frames (drawn before walls so the wall masks the
+  //    door edge if needed; but with our layout the door sits inside the
+  //    interior and the wall is its border, so order is just visual stacking)
   for (const door of doors) {
-    drawDoor(context, door, interactingId);
+    drawDoor(ctx, door, interactingId);
   }
 
-  drawHaggis(context, surface, room, snapshot);
-  drawPrompt(context, surface, doors, snapshot);
+  // 5. Perimeter walls — drawn AFTER doors so the wall trim sits over
+  //    any door pixel that strays beyond its frame. Door inset slightly
+  //    inside the interior means the wall doesn't cover the door body.
+  drawWalls(ctx, surface);
+
+  // 6. Wall-mounted lanterns above each door — only the launchable
+  //    one gets a fixture (unlit lanterns are visual noise).
+  for (const door of doors) {
+    if (door.status === 'launchable') {
+      drawLantern(ctx, door, phase);
+      drawSign(ctx, door, doorShortLabel(door.title));
+    }
+  }
+
+  // 7. Floor furnishings — placed in the corners so the central play
+  //    area stays clear for the haggis. Minimal: woodpile + barrel,
+  //    plus a few floor scatter sparks.
+  drawFloorScatter(ctx, surface);
+  drawWoodpile(ctx, surface);
+  drawBarrel(ctx, surface);
+
+  // 8. Fire pit — placed lower in the room (and large enough to read as a
+  //    focal point) so the haggis spawning at world-center doesn't sit
+  //    on top of it.
+  const fireCenter = {
+    x: Math.round(surface.width / 2),
+    y: Math.round(surface.height * 0.8)
+  };
+  drawFloorRug(ctx, fireCenter);
+  drawFirePit(ctx, fireCenter, phase);
+
+  // 8. Haggis player
+  drawHaggis(ctx, surface, room, snapshot, phase);
+
+  // 9. Vignette — soft dark falloff at the corners to focus attention
+  //    inward. Drawn just before the prompt so the prompt remains crisp.
+  drawVignette(ctx, surface);
+
+  // 10. Prompt (only when at a door)
+  drawPrompt(ctx, surface, doors, snapshot);
+}
+
+function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  const w = surface.width;
+  const h = surface.height;
+  // Four corner blocks of darkness, stacked with low alpha — fakes a
+  // radial vignette without needing createRadialGradient (which isn't on
+  // our structural context interface).
+  const layers = 4;
+  for (let i = 0; i < layers; i += 1) {
+    const fade = 0.045 + i * 0.035;
+    const thickness = Math.round(((i + 1) / layers) * 38);
+    ctx.fillStyle = '#000000';
+    ctx.globalAlpha = fade;
+    // Top band
+    ctx.fillRect(0, 0, w, thickness);
+    // Bottom band
+    ctx.fillRect(0, h - thickness, w, thickness);
+    // Left band
+    ctx.fillRect(0, 0, thickness, h);
+    // Right band
+    ctx.fillRect(w - thickness, 0, thickness, h);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number): void {
+  // Base fill
+  ctx.fillStyle = PX.floorDark;
+  ctx.fillRect(0, 0, surface.width, surface.height);
+
+  // Vertical planks alternating two darknesses
+  const plankW = 16;
+  for (let x = 0; x < surface.width; x += plankW) {
+    const isMid = Math.floor(x / plankW) % 2 === 0;
+    ctx.fillStyle = isMid ? PX.floorMid : PX.floorDark;
+    ctx.fillRect(x, 0, plankW, surface.height);
+    // Seam
+    ctx.fillStyle = PX.floorSeam;
+    ctx.fillRect(x, 0, 1, surface.height);
+  }
+
+  // Plank-end horizontal seams (staggered every other plank)
+  for (let x = 0; x < surface.width; x += plankW) {
+    const seamY = ((Math.floor(x / plankW) % 3) + 1) * 38 + ((x * 7) % 11);
+    ctx.fillStyle = PX.floorSeam;
+    ctx.fillRect(x, seamY, plankW, 1);
+    ctx.fillStyle = PX.floorLight;
+    ctx.globalAlpha = 0.18;
+    ctx.fillRect(x + 1, seamY + 1, plankW - 2, 1);
+    ctx.globalAlpha = 1;
+  }
+
+  // Wood knots — small dark spots scattered deterministically
+  ctx.fillStyle = PX.floorKnot;
+  for (let i = 0; i < 22; i += 1) {
+    const kx = (i * 47) % surface.width;
+    const ky = ((i * 31) % (surface.height - 30)) + 12;
+    ctx.fillRect(kx, ky, 2, 2);
+    ctx.fillRect(kx - 1, ky + 1, 1, 1);
+    ctx.fillRect(kx + 2, ky, 1, 1);
+  }
+
+  // Warm wash from the fire — soft circular gradient approximated by
+  // stacked alpha rings centred on the fire pit
+  const fireX = Math.round(surface.width / 2);
+  const fireY = Math.round(surface.height * 0.62);
+  const flicker = 1 + Math.sin(phase * 6.1) * 0.04 + Math.sin(phase * 3.3 + 1) * 0.03;
+  for (let i = 8; i > 0; i -= 1) {
+    ctx.fillStyle = PX.floorLitWash;
+    ctx.globalAlpha = 0.045 * (i / 8) * flicker;
+    ctx.beginPath();
+    ctx.arc(fireX, fireY, 18 * i, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawWalls(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  const W = surface.width;
+  const H = surface.height;
+
+  // Four wall strips: top, bottom, left, right
+  drawWallStrip(ctx, 0, 0, W, WALL_THICK, 'horizontal');
+  drawWallStrip(ctx, 0, H - WALL_THICK, W, WALL_THICK, 'horizontal');
+  drawWallStrip(ctx, 0, 0, WALL_THICK, H, 'vertical');
+  drawWallStrip(ctx, W - WALL_THICK, 0, WALL_THICK, H, 'vertical');
+
+  // Inner shadow ring (1 pixel) — separates wall from floor
+  ctx.fillStyle = PX.stoneShadow;
+  ctx.fillRect(WALL_THICK, WALL_THICK, W - WALL_THICK * 2, 1);
+  ctx.fillRect(WALL_THICK, H - WALL_THICK - 1, W - WALL_THICK * 2, 1);
+  ctx.fillRect(WALL_THICK, WALL_THICK, 1, H - WALL_THICK * 2);
+  ctx.fillRect(W - WALL_THICK - 1, WALL_THICK, 1, H - WALL_THICK * 2);
+}
+
+function drawWallStrip(
+  ctx: CanvasRoomContext,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  orientation: 'horizontal' | 'vertical'
+): void {
+  // Base fill — use the MID stone tone (not the darkest) so the gaps
+  // between bricks read as mortar / shadow joints, not as void.
+  ctx.fillStyle = PX.stoneMid;
+  ctx.fillRect(x, y, w, h);
+
+  // Brick pattern — staggered rows. Bricks fill the row fully (no gap
+  // between rows) and the mortar is drawn as a separate 1px dark line.
+  const brickW = orientation === 'horizontal' ? 20 : 14;
+  const brickH = orientation === 'horizontal' ? 7 : 10;
+  if (orientation === 'horizontal') {
+    const rows = Math.ceil(h / brickH);
+    for (let r = 0; r < rows; r += 1) {
+      const off = r % 2 === 0 ? 0 : Math.round(brickW / 2);
+      const ry = y + r * brickH;
+      for (let bx = x - brickW; bx < x + w + brickW; bx += brickW) {
+        const px = bx + off;
+        const shade = (r * 17 + Math.floor((bx - x) / brickW) * 11) % 7;
+        const fill =
+          shade < 2 ? PX.stoneLight : shade < 4 ? PX.stoneMid : shade < 6 ? PX.stoneHighlight : PX.stoneLight;
+        ctx.fillStyle = fill;
+        // Full-height brick (no internal margin) so adjacent bricks
+        // tile cleanly. Mortar is drawn afterwards as overlay lines.
+        ctx.fillRect(px, ry, brickW, brickH);
+        // Top highlight
+        ctx.fillStyle = PX.stoneHighlight;
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(px, ry, brickW, 1);
+        ctx.globalAlpha = 1;
+      }
+    }
+  } else {
+    const cols = Math.ceil(w / brickW);
+    const rows = Math.ceil(h / brickH);
+    for (let r = 0; r < rows; r += 1) {
+      const off = r % 2 === 0 ? 0 : Math.round(brickH / 2);
+      for (let c = 0; c < cols; c += 1) {
+        const bx = x + c * brickW;
+        const by = y + r * brickH + off;
+        const shade = (r * 13 + c * 19) % 7;
+        const fill =
+          shade < 2 ? PX.stoneLight : shade < 4 ? PX.stoneMid : shade < 6 ? PX.stoneHighlight : PX.stoneLight;
+        ctx.fillStyle = fill;
+        ctx.fillRect(bx, by, brickW, brickH);
+        ctx.fillStyle = PX.stoneHighlight;
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(bx, by, brickW, 1);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  // Mortar joints (1px dark lines between brick courses)
+  ctx.fillStyle = PX.stoneShadow;
+  if (orientation === 'horizontal') {
+    const rows = Math.ceil(h / brickH);
+    for (let r = 1; r < rows; r += 1) {
+      ctx.fillRect(x, y + r * brickH - 1, w, 1);
+    }
+  } else {
+    const cols = Math.ceil(w / brickW);
+    for (let c = 1; c < cols; c += 1) {
+      ctx.fillRect(x + c * brickW - 1, y, 1, h);
+    }
+  }
 }
 
 function drawDoor(
-  context: CanvasRoomContext,
+  ctx: CanvasRoomContext,
   door: DoorLayout,
   interactingId: string | null
 ): void {
-  context.fillStyle = door.status === 'launchable' ? COLORS.launchableDoor : COLORS.lockedDoor;
-  context.fillRect(door.rect.x, door.rect.y, door.rect.width, door.rect.height);
+  const { x, y, width, height } = door.rect;
+  const isLaunchable = door.status === 'launchable';
 
+  // Stone arch frame around door (extends beyond door bounds)
+  const frame = 3;
+  ctx.fillStyle = PX.stoneShadow;
+  ctx.fillRect(x - frame, y - frame, width + frame * 2, height + frame * 2);
+  // Lighter frame highlight
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(x - frame, y - frame, width + frame * 2, 1);
+
+  // Door body (planks)
+  ctx.fillStyle = isLaunchable ? PX.woodWarm : PX.woodCold;
+  ctx.fillRect(x, y, width, height);
+
+  // Vertical plank seams (3 planks)
+  ctx.fillStyle = isLaunchable ? PX.woodWarmShade : PX.woodColdShade;
+  const plankW = Math.floor(width / 3);
+  ctx.fillRect(x + plankW, y, 1, height);
+  ctx.fillRect(x + plankW * 2, y, 1, height);
+
+  // Plank highlight strips (catches light along left edge of each plank)
+  if (isLaunchable) {
+    ctx.fillStyle = PX.woodWarmHighlight;
+    ctx.globalAlpha = 0.5;
+    ctx.fillRect(x + 1, y + 1, 1, height - 2);
+    ctx.fillRect(x + plankW + 1, y + 1, 1, height - 2);
+    ctx.fillRect(x + plankW * 2 + 1, y + 1, 1, height - 2);
+    ctx.globalAlpha = 1;
+  }
+
+  // Iron hinges (top + bottom on hinge side)
+  const hingeSide = door.side === 'right' ? x : x + width - 5;
+  ctx.fillStyle = PX.iron;
+  ctx.fillRect(hingeSide, y + 3, 5, 3);
+  ctx.fillRect(hingeSide, y + height - 6, 5, 3);
+  ctx.fillStyle = PX.ironHighlight;
+  ctx.fillRect(hingeSide, y + 3, 5, 1);
+  ctx.fillRect(hingeSide, y + height - 6, 5, 1);
+
+  // Door handle
+  const handleSide = door.side === 'right' ? x + width - 3 : x + 1;
+  ctx.fillStyle = isLaunchable ? PX.goldHandle : PX.goldHandleDark;
+  ctx.fillRect(handleSide, Math.round(y + height / 2) - 1, 2, 3);
+
+  // Locked door — heavy nailed-on cross planks (X pattern). Reads
+  // unambiguously as "do not open" at any scale.
+  if (!isLaunchable) {
+    const cx = x + Math.round(width / 2);
+    const cy = Math.round(y + height / 2);
+    // Two nailed boards crossing diagonally
+    drawCrossPlank(ctx, x - 2, y + 4, x + width + 2, y + height - 4);
+    drawCrossPlank(ctx, x + width + 2, y + 4, x - 2, y + height - 4);
+    // Padlock at the crossing point
+    const lockW = 7;
+    const lockH = 8;
+    const lockX = cx - Math.round(lockW / 2);
+    const lockY = cy - 2;
+    ctx.fillStyle = PX.iron;
+    ctx.fillRect(lockX, lockY, lockW, lockH);
+    ctx.fillStyle = PX.ironHighlight;
+    ctx.fillRect(lockX, lockY, lockW, 1);
+    // Keyhole
+    ctx.fillStyle = PX.eyePupil;
+    ctx.fillRect(lockX + 3, lockY + 2, 1, 2);
+    ctx.fillRect(lockX + 2, lockY + 4, 3, 1);
+    // Shackle
+    ctx.fillStyle = PX.iron;
+    ctx.fillRect(lockX + 1, lockY - 3, 1, 3);
+    ctx.fillRect(lockX + lockW - 2, lockY - 3, 1, 3);
+    ctx.fillRect(lockX + 1, lockY - 3, lockW - 2, 1);
+  }
+
+  // Active glow — pulses warm light around the doorway
   if (interactingId === door.id) {
-    context.strokeStyle = COLORS.activeOutline;
-    context.lineWidth = 3;
-    context.strokeRect(door.rect.x, door.rect.y, door.rect.width, door.rect.height);
+    const glow = isLaunchable ? PX.haloWarm : PX.haloCool;
+    for (let i = 5; i > 0; i -= 1) {
+      ctx.fillStyle = glow;
+      ctx.globalAlpha = 0.06 * (i / 5);
+      ctx.beginPath();
+      ctx.arc(
+        x + width / 2,
+        y + height / 2,
+        Math.max(width, height) * 0.6 * (i / 3),
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // Sharp bright outline
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - frame, y - frame - 1, width + frame * 2, 1);
+    ctx.fillRect(x - frame, y + height + frame, width + frame * 2, 1);
+    ctx.fillRect(x - frame - 1, y - frame, 1, height + frame * 2);
+    ctx.fillRect(x + width + frame, y - frame, 1, height + frame * 2);
   }
 }
 
+function drawCrossPlank(
+  ctx: CanvasRoomContext,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): void {
+  // Thick dark plank between two points — draw multiple parallel lines
+  // to fake a thicker stroke since our context interface doesn't expose
+  // lineCap, and stroke alone is fiddly for pixel-art.
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const steps = Math.max(Math.abs(dx), Math.abs(dy));
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const px = Math.round(x1 + dx * t);
+    const py = Math.round(y1 + dy * t);
+    ctx.fillStyle = '#2a1a0c';
+    ctx.fillRect(px - 1, py - 1, 3, 3);
+    ctx.fillStyle = '#3a2410';
+    ctx.fillRect(px, py - 1, 1, 1);
+  }
+}
+
+function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): void {
+  const { x, y, width } = door.rect;
+  const isLit = door.status === 'launchable';
+  // Lantern hangs above the door — bigger so it reads as a fixture, not
+  // a sprite glitch
+  const cx = x + Math.round(width / 2);
+  const cy = y - 14;
+  // Chain
+  ctx.fillStyle = PX.iron;
+  ctx.fillRect(cx, cy - 6, 1, 6);
+  // Top cap
+  ctx.fillRect(cx - 5, cy - 2, 11, 2);
+  // Body frame
+  ctx.fillRect(cx - 5, cy, 1, 8);
+  ctx.fillRect(cx + 4, cy, 1, 8);
+  // Crossbars (lantern grille)
+  ctx.fillRect(cx - 5, cy + 3, 10, 1);
+  // Bottom cap
+  ctx.fillRect(cx - 5, cy + 8, 11, 2);
+  // Glass
+  if (isLit) {
+    const pulse = 0.7 + Math.sin(phase * 4) * 0.15 + Math.sin(phase * 9.1) * 0.08;
+
+    // Halo — bigger, more layers for a soft warm wash on the wall
+    for (let i = 7; i > 0; i -= 1) {
+      ctx.fillStyle = PX.haloWarm;
+      ctx.globalAlpha = 0.09 * pulse * (i / 7);
+      ctx.beginPath();
+      ctx.arc(cx, cy + 4, 10 + i * 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // Warm glass
+    ctx.fillStyle = PX.flameMid;
+    ctx.fillRect(cx - 4, cy + 1, 8, 7);
+    // Bright candle core
+    ctx.fillStyle = PX.flameCore;
+    ctx.fillRect(cx - 1, cy + 4, 2, 3);
+  } else {
+    ctx.fillStyle = '#2a2520';
+    ctx.fillRect(cx - 4, cy + 1, 8, 7);
+  }
+}
+
+function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void {
+  const { x, y, width } = door.rect;
+  const cx = x + Math.round(width / 2);
+  // Sign hangs above the lantern — bumped position to clear the bigger
+  // lantern below
+  const signW = Math.max(width + 12, 36);
+  const signH = 11;
+  const signX = cx - Math.round(signW / 2);
+  const signY = y - 32;
+
+  // Hanging strings
+  ctx.fillStyle = PX.iron;
+  ctx.fillRect(signX + 2, signY - 2, 1, 2);
+  ctx.fillRect(signX + signW - 3, signY - 2, 1, 2);
+
+  // Sign edge
+  ctx.fillStyle = PX.signEdge;
+  ctx.fillRect(signX - 1, signY - 1, signW + 2, signH + 2);
+  // Sign board
+  ctx.fillStyle = PX.signWood;
+  ctx.fillRect(signX, signY, signW, signH);
+  // Top highlight
+  ctx.fillStyle = '#8a4818';
+  ctx.fillRect(signX + 1, signY, signW - 2, 1);
+
+  // Label — small pixel-friendly serif. textBaseline isn't on our
+  // interface so we offset y manually.
+  ctx.fillStyle = PX.signText;
+  ctx.font = `bold 8px Georgia, "Liberation Serif", serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(label, cx, signY + signH - 2);
+}
+
+function drawFloorScatter(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  // Light dust + straw flecks across the floor. Deterministic placement
+  // so the pattern doesn't flicker between frames.
+  ctx.fillStyle = PX.floorLight;
+  ctx.globalAlpha = 0.35;
+  const w = surface.width;
+  const h = surface.height;
+  for (let i = 0; i < 28; i += 1) {
+    const fx = WALL_THICK + 4 + ((i * 53) % (w - WALL_THICK * 2 - 8));
+    const fy = WALL_THICK + 4 + ((i * 41) % (h - WALL_THICK * 2 - 8));
+    ctx.fillRect(fx, fy, 1, 1);
+    if (i % 3 === 0) ctx.fillRect(fx + 2, fy, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawWoodpile(ctx: CanvasRoomContext, _surface: CanvasRoomSurface): void {
+  // Small stack of logs in the upper-left of the floor — bothy fuel.
+  const baseX = WALL_THICK + 4;
+  const baseY = WALL_THICK + 6;
+  const logW = 18;
+  const logH = 3;
+  // Three stacked logs, slightly offset
+  for (let row = 0; row < 3; row += 1) {
+    const offset = row % 2 === 0 ? 0 : 2;
+    // Log body
+    ctx.fillStyle = '#3a2210';
+    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), logW, logH);
+    // Log top highlight
+    ctx.fillStyle = '#5a3818';
+    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), logW, 1);
+    // End caps (rings)
+    ctx.fillStyle = '#1a0c04';
+    ctx.fillRect(baseX + offset, baseY + row * (logH + 1), 2, logH);
+    ctx.fillRect(baseX + offset + logW - 2, baseY + row * (logH + 1), 2, logH);
+    ctx.fillStyle = '#8a5828';
+    ctx.fillRect(baseX + offset, baseY + row * (logH + 1) + 1, 1, 1);
+    ctx.fillRect(baseX + offset + logW - 1, baseY + row * (logH + 1) + 1, 1, 1);
+  }
+}
+
+function drawBarrel(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  // Small ale barrel in the upper-right floor area, set off the wall.
+  const bx = surface.width - WALL_THICK - 16;
+  const by = WALL_THICK + 6;
+  const bw = 12;
+  const bh = 14;
+  // Barrel body
+  ctx.fillStyle = '#4a2812';
+  ctx.fillRect(bx, by, bw, bh);
+  // Side shading (right edge slightly darker)
+  ctx.fillStyle = '#2a180a';
+  ctx.fillRect(bx + bw - 1, by, 1, bh);
+  ctx.fillRect(bx, by, 1, bh);
+  // Iron hoops (3 horizontal bands)
+  ctx.fillStyle = PX.iron;
+  ctx.fillRect(bx, by + 2, bw, 1);
+  ctx.fillRect(bx, by + Math.round(bh / 2), bw, 1);
+  ctx.fillRect(bx, by + bh - 3, bw, 1);
+  // Top (slightly lighter — looking down at the lid)
+  ctx.fillStyle = '#6a3818';
+  ctx.fillRect(bx, by, bw, 1);
+  // Wood grain on lid
+  ctx.fillStyle = '#3a1c0c';
+  ctx.fillRect(bx + 2, by, bw - 4, 1);
+}
+
+function drawFloorRug(
+  ctx: CanvasRoomContext,
+  fireCenter: { readonly x: number; readonly y: number }
+): void {
+  // Round-ish woven mat under the fire — pure tonal pattern, no crosses
+  // (the previous "+" stripe read like a logo). Oval shape with
+  // concentric subtle bands.
+  const rugW = 70;
+  const rugH = 44;
+  const rx = fireCenter.x - Math.round(rugW / 2);
+  const ry = fireCenter.y - Math.round(rugH / 2);
+  // Outer dark ring
+  ctx.fillStyle = '#1a0a04';
+  ctx.fillRect(rx - 1, ry, rugW + 2, rugH);
+  ctx.fillRect(rx, ry - 1, rugW, rugH + 2);
+  // Main weave (warm reddish-brown)
+  ctx.fillStyle = '#4a2010';
+  ctx.fillRect(rx, ry, rugW, rugH);
+  // Inner shaded ring
+  ctx.fillStyle = '#5a2818';
+  ctx.fillRect(rx + 2, ry + 2, rugW - 4, rugH - 4);
+  // Inner-most warm panel
+  ctx.fillStyle = '#6a3220';
+  ctx.fillRect(rx + 5, ry + 4, rugW - 10, rugH - 8);
+  // Concentric stripe pattern — thin horizontal bands every other row
+  ctx.fillStyle = '#3a1808';
+  ctx.globalAlpha = 0.45;
+  for (let yy = 0; yy < rugH; yy += 4) {
+    ctx.fillRect(rx + 1, ry + yy, rugW - 2, 1);
+  }
+  ctx.globalAlpha = 1;
+  // Fringe at left/right edges (top-down looks like braided ends)
+  ctx.fillStyle = '#3a1808';
+  for (let i = 2; i < rugH - 2; i += 3) {
+    ctx.fillRect(rx - 2, ry + i, 2, 1);
+    ctx.fillRect(rx + rugW, ry + i, 2, 1);
+  }
+}
+
+function drawFirePit(
+  ctx: CanvasRoomContext,
+  center: { readonly x: number; readonly y: number },
+  phase: number
+): void {
+  // Larger oval stone ring — proper focal point
+  const ringW = 28;
+  const ringH = 18;
+  ctx.fillStyle = PX.stoneLight;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, ringW * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = PX.stoneDark;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, ringW * 0.5 - 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Stones around the rim — just a few well-placed chunks (sides only,
+  // not top/bottom, so they don't form a "tooth-row" pattern around the
+  // base of the flames).
+  const stones: ReadonlyArray<{ readonly ax: number; readonly ay: number }> = [
+    { ax: -1, ay: 0.1 }, // left
+    { ax: -0.85, ay: -0.6 }, // upper-left
+    { ax: 0.85, ay: -0.6 }, // upper-right
+    { ax: 1, ay: 0.1 } // right
+  ];
+  for (const s of stones) {
+    const sx = Math.round(center.x + s.ax * (ringW * 0.5));
+    const sy = Math.round(center.y + s.ay * (ringH * 0.55));
+    ctx.fillStyle = PX.stoneLight;
+    ctx.fillRect(sx - 2, sy - 1, 4, 3);
+    ctx.fillStyle = PX.stoneHighlight;
+    ctx.fillRect(sx - 2, sy - 1, 4, 1);
+  }
+
+  // Embers — animated dark-red dots inside the pit
+  ctx.fillStyle = PX.ember;
+  for (let i = 0; i < 8; i += 1) {
+    const a = (i / 8) * Math.PI * 2 + phase * 0.4;
+    const r = (ringW * 0.5 - 6) * (0.5 + 0.5 * Math.sin(phase * 2 + i));
+    const ex = center.x + Math.round(Math.cos(a) * r);
+    const ey = center.y + Math.round(Math.sin(a) * r * 0.6);
+    ctx.fillRect(ex, ey, 2, 1);
+  }
+
+  // Flames (3 layered, animated, much bigger)
+  const flickerA = Math.floor((Math.sin(phase * 7) + 1) * 2);
+  const flickerB = Math.floor((Math.sin(phase * 5.3 + 1) + 1) * 2);
+  // Outer flame
+  ctx.fillStyle = PX.flameOuter;
+  ctx.beginPath();
+  ctx.moveTo(center.x - 9, center.y - 1);
+  ctx.lineTo(center.x + 9, center.y - 1);
+  ctx.lineTo(center.x + 4, center.y - 12 - flickerA);
+  ctx.lineTo(center.x, center.y - 20 - flickerA);
+  ctx.lineTo(center.x - 4, center.y - 12 - flickerB);
+  ctx.closePath();
+  ctx.fill();
+  // Mid flame
+  ctx.fillStyle = PX.flameMid;
+  ctx.beginPath();
+  ctx.moveTo(center.x - 5, center.y - 1);
+  ctx.lineTo(center.x + 5, center.y - 1);
+  ctx.lineTo(center.x + 2, center.y - 9);
+  ctx.lineTo(center.x, center.y - 16 - flickerB);
+  ctx.lineTo(center.x - 2, center.y - 9);
+  ctx.closePath();
+  ctx.fill();
+  // Core flame
+  ctx.fillStyle = PX.flameCore;
+  ctx.beginPath();
+  ctx.moveTo(center.x - 2, center.y - 3);
+  ctx.lineTo(center.x + 2, center.y - 3);
+  ctx.lineTo(center.x, center.y - 11 - flickerA);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawHaggis(
-  context: CanvasRoomContext,
+  ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
   room: RoomDefinition,
-  snapshot: DecodedSnapshot
+  snapshot: DecodedSnapshot,
+  phase: number
 ): void {
-  const center = scalePoint(surface, room, snapshot.playerX, snapshot.playerY);
-  const radius = Math.max(
-    8,
-    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.5)
+  const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
+  const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
+  // Player half_extent in sim units → canvas pixels. Scale factor tuned
+  // so the haggis reads as a character in the room rather than dominating
+  // it — about 7-9 internal pixels of radius at the 320×180 baseline.
+  const r = Math.max(
+    6,
+    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.42)
   );
+  const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  context.fillStyle = COLORS.haggis;
-  context.beginPath();
-  context.arc(center.x, center.y, radius, 0, Math.PI * 2);
-  context.fill();
+  // Soft flat shadow tucked under the haggis — small, low opacity, no
+  // wider than the body so it doesn't look like a separate object.
+  ctx.fillStyle = PX.hagShadow;
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(cx - Math.round(r * 0.7), cy + r + 1, Math.round(r * 1.4), 2);
+  ctx.globalAlpha = 1;
+
+  // Legs (drawn before body so body covers their tops)
+  ctx.fillStyle = PX.legDark;
+  const legW = 2;
+  const legH = 3;
+  const legY = cy + bob + Math.round(r * 0.55);
+  ctx.fillRect(cx - Math.round(r * 0.45), legY, legW, legH);
+  ctx.fillRect(cx + Math.round(r * 0.45) - legW, legY, legW, legH);
+
+  // Outline ring (1px around body for that hand-drawn pixel feel)
+  ctx.fillStyle = PX.hagOutline;
+  ctx.beginPath();
+  ctx.arc(cx, cy + bob, r + 1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Under-body shadow
+  ctx.fillStyle = PX.hagDark;
+  ctx.beginPath();
+  ctx.arc(cx, cy + bob + Math.round(r * 0.18), r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Main body
+  ctx.fillStyle = PX.hagBody;
+  ctx.beginPath();
+  ctx.arc(cx, cy + bob, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Highlight (top-left)
+  ctx.fillStyle = PX.hagLight;
+  ctx.beginPath();
+  ctx.arc(cx - Math.round(r * 0.22), cy + bob - Math.round(r * 0.25), Math.round(r * 0.7), 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rim light (smaller, brighter)
+  ctx.fillStyle = PX.hagRim;
+  ctx.globalAlpha = 0.5;
+  ctx.beginPath();
+  ctx.arc(cx - Math.round(r * 0.38), cy + bob - Math.round(r * 0.38), Math.round(r * 0.42), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Cheeks (blush)
+  ctx.fillStyle = PX.hagBlush;
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(cx - Math.round(r * 0.5), cy + bob + Math.round(r * 0.12), 2, 1);
+  ctx.fillRect(cx + Math.round(r * 0.4), cy + bob + Math.round(r * 0.12), 2, 1);
+  ctx.globalAlpha = 1;
+
+  // Eyes — pixel-style: white square with single black pupel
+  const eyeOffX = Math.round(r * 0.32);
+  const eyeY = cy + bob - Math.round(r * 0.15);
+  const eyeSize = Math.max(2, Math.round(r * 0.22));
+  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillRect(cx - eyeOffX - Math.round(eyeSize / 2), eyeY - Math.round(eyeSize / 2), eyeSize, eyeSize);
+  ctx.fillRect(cx + eyeOffX - Math.round(eyeSize / 2), eyeY - Math.round(eyeSize / 2), eyeSize, eyeSize);
+  ctx.fillStyle = PX.eyePupil;
+  const pupil = Math.max(1, Math.floor(eyeSize / 2));
+  ctx.fillRect(cx - eyeOffX, eyeY - Math.floor(pupil / 2), pupil, pupil);
+  ctx.fillRect(cx + eyeOffX, eyeY - Math.floor(pupil / 2), pupil, pupil);
+
+  // Tiny mouth dot
+  ctx.fillStyle = PX.eyePupil;
+  ctx.fillRect(cx - 1, cy + bob + Math.round(r * 0.18), 2, 1);
 }
 
 function drawPrompt(
-  context: CanvasRoomContext,
+  ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
   doors: readonly DoorLayout[],
   snapshot: DecodedSnapshot
@@ -136,17 +892,27 @@ function drawPrompt(
   if (snapshot.interactionKind === 'none') {
     return;
   }
-
   const door = doors[snapshot.interactionDoorIndex];
   if (door === undefined) {
     return;
   }
 
   const verb = snapshot.interactionKind === 'launchable' ? 'Enter' : 'Locked';
-  context.fillStyle = COLORS.text;
-  context.font = '16px system-ui, sans-serif';
-  context.textAlign = 'center';
-  context.fillText(`${verb} ${door.title}`, Math.round(surface.width / 2), surface.height - 24);
+  const text = `${verb} ${door.title}`;
+  const x = Math.round(surface.width / 2);
+  const y = surface.height - 6;
+
+  // Background plate — keeps text legible no matter what's behind
+  ctx.font = `bold 8px Georgia, "Liberation Serif", serif`;
+  ctx.textAlign = 'center';
+  // Faux text-width estimate (no measureText on the structural interface)
+  const approxW = text.length * 5;
+  ctx.fillStyle = PX.promptShadow;
+  ctx.fillRect(x - Math.round(approxW / 2) - 4, y - 8, approxW + 8, 12);
+
+  // Text
+  ctx.fillStyle = PX.promptText;
+  ctx.fillText(text, x, y);
 }
 
 function activeDoorId(snapshot: DecodedSnapshot): string | null {
@@ -172,20 +938,37 @@ function scaleDoorBounds(
   };
 }
 
-function scalePoint(
-  surface: CanvasRoomSurface,
-  room: RoomDefinition,
-  x: number,
-  y: number
-): { readonly x: number; readonly y: number } {
-  return {
-    x: Math.round((x / room.worldWidth) * surface.width),
-    y: Math.round((y / room.worldHeight) * surface.height)
-  };
+function doorSide(
+  rect: ScaledRect,
+  surface: CanvasRoomSurface
+): 'left' | 'right' | 'top' | 'bottom' {
+  const cx = rect.x + rect.width / 2;
+  const cy = rect.y + rect.height / 2;
+  const w = surface.width;
+  const h = surface.height;
+  // Closest edge wins
+  const distLeft = cx;
+  const distRight = w - cx;
+  const distTop = cy;
+  const distBottom = h - cy;
+  const min = Math.min(distLeft, distRight, distTop, distBottom);
+  if (min === distLeft) return 'left';
+  if (min === distRight) return 'right';
+  if (min === distTop) return 'top';
+  return 'bottom';
 }
 
 function doorTitleForId(id: string): string {
   return getGameById(HUB_GAME_REGISTRY, id)?.title ?? prettifyKebab(id);
+}
+
+function doorShortLabel(title: string): string {
+  // Sign space is tight — use initials for multi-word titles
+  const words = title.split(/\s+/).filter((w) => w.length > 0);
+  if (words.length >= 2) {
+    return words.map((w) => w[0]!.toUpperCase()).join('');
+  }
+  return title;
 }
 
 function prettifyKebab(id: string): string {
