@@ -231,9 +231,15 @@ function renderRoom(
   //     cluttering the floor.
   drawTopWallWindow(ctx, surface, phase);
   drawWallHanging(ctx, surface);
+  drawSideWallSconces(ctx, surface, phase);
 
   // 8. Haggis player
   drawHaggis(ctx, surface, room, snapshot, phase);
+
+  // 8.5 Ambient particles — smoke wisps rising from the fire, and dust
+  //     motes drifting in the cool moonlight under the window. Subtle
+  //     motion that brings the room alive without distracting.
+  drawAmbientParticles(ctx, surface, fireCenter, phase);
 
   // 9. Vignette — soft dark falloff at the corners to focus attention
   //    inward. Drawn just before the prompt so the prompt remains crisp.
@@ -243,33 +249,136 @@ function renderRoom(
   drawPrompt(ctx, surface, doors, snapshot);
 }
 
+function drawAmbientParticles(
+  ctx: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  fireCenter: { readonly x: number; readonly y: number },
+  phase: number
+): void {
+  // Smoke wisps from the fire — soft grey pixels rising and fading.
+  // Each wisp cycles through a 4-second life independently.
+  for (let i = 0; i < 4; i += 1) {
+    const life = ((phase * 0.25 + i * 0.27) % 1);
+    if (life < 0.1) continue;
+    const sway = Math.sin(phase * 1.7 + i * 2.1) * 5;
+    const sx = Math.round(fireCenter.x + sway);
+    const sy = Math.round(fireCenter.y - 28 - life * 60);
+    const alpha = (1 - life) * 0.45;
+    ctx.fillStyle = '#9a8a7a';
+    ctx.globalAlpha = alpha;
+    ctx.fillRect(sx, sy, 1, 1);
+    if (life < 0.6) {
+      ctx.fillRect(sx + 1, sy + 1, 1, 1);
+    }
+    if (life < 0.4) {
+      ctx.fillRect(sx - 1, sy, 1, 1);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Dust motes drifting in the moonlight column under the window.
+  // 6 motes orbit slowly in a small area below the window, each at a
+  // different vertical speed.
+  const windowCx = Math.round(surface.width / 2);
+  for (let i = 0; i < 6; i += 1) {
+    const motePhase = phase * 0.35 + i * 0.5;
+    const my = WALL_THICK + 4 + ((motePhase * 18) % 60);
+    const mx = windowCx + Math.round(Math.sin(motePhase * 1.4) * 12) + ((i - 3) * 3);
+    // Brighter near the top (lit by moonlight), fading into shadow
+    const lit = Math.max(0, 1 - (my - WALL_THICK) / 50);
+    ctx.fillStyle = '#a0b0c8';
+    ctx.globalAlpha = 0.4 * lit;
+    ctx.fillRect(mx, my, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSideWallSconces(
+  ctx: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  phase: number
+): void {
+  // Small wall-mounted torch sconces on each side wall — one above the
+  // door area and one below. Pulses gently for ambient life.
+  const sconces: ReadonlyArray<{
+    readonly x: number;
+    readonly y: number;
+    readonly side: 'left' | 'right';
+  }> = [
+    { x: Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.3), side: 'left' },
+    { x: Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.85), side: 'left' },
+    { x: surface.width - Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.3), side: 'right' },
+    { x: surface.width - Math.round(WALL_THICK / 2), y: Math.round(surface.height * 0.85), side: 'right' }
+  ];
+
+  for (const s of sconces) {
+    const pulse = 0.7 + Math.sin(phase * 5 + s.y * 0.01) * 0.15;
+
+    // Iron bracket
+    ctx.fillStyle = PX.iron;
+    ctx.fillRect(s.x - 1, s.y, 3, 4);
+    // Cup
+    ctx.fillRect(s.x - 2, s.y - 1, 5, 2);
+
+    // Flame
+    ctx.fillStyle = PX.flameOuter;
+    ctx.beginPath();
+    ctx.moveTo(s.x - 2, s.y - 1);
+    ctx.lineTo(s.x + 2, s.y - 1);
+    ctx.lineTo(s.x, s.y - 6 - Math.floor(Math.sin(phase * 8) * 1));
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = PX.flameMid;
+    ctx.beginPath();
+    ctx.moveTo(s.x - 1, s.y - 1);
+    ctx.lineTo(s.x + 1, s.y - 1);
+    ctx.lineTo(s.x, s.y - 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = PX.flameCore;
+    ctx.fillRect(s.x, s.y - 3, 1, 2);
+
+    // Small halo on the wall around the torch
+    for (let i = 4; i > 0; i -= 1) {
+      ctx.fillStyle = PX.haloWarm;
+      ctx.globalAlpha = 0.07 * pulse * (i / 4);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y - 2, 4 + i * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
 function drawWallHanging(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
   // Two simple decorations on the top wall, left and right of the window:
   // a pair of antlers (left) and a stag-painted small banner (right).
   const cx = Math.round(surface.width / 2);
   const wy = Math.round(WALL_THICK / 2);
 
-  // SHIELD on the left — round wooden shield with iron rim
-  const shieldX = cx - Math.round(surface.width * 0.18);
+  // CROSSED CLAYMORES on the left — two crossed sword silhouettes
+  // (top-down view). More interesting than the round shield, which
+  // read as a circle with a dot.
+  const swordX = cx - Math.round(surface.width * 0.18);
+  const swordY = wy + 1;
+  // Sword 1 (top-left to bottom-right)
+  ctx.fillStyle = '#c8c0a8'; // blade
+  for (let i = -5; i <= 5; i += 1) {
+    ctx.fillRect(swordX + i, swordY + Math.round(i * 0.4), 1, 1);
+  }
+  // Sword 2 (top-right to bottom-left)
+  for (let i = -5; i <= 5; i += 1) {
+    ctx.fillRect(swordX - i, swordY + Math.round(i * 0.4), 1, 1);
+  }
+  // Hilts (small dark crosspieces at the ends of each sword)
+  ctx.fillStyle = '#3a2810';
+  ctx.fillRect(swordX - 6, swordY - 2, 2, 4);
+  ctx.fillRect(swordX + 5, swordY - 2, 2, 4);
+  ctx.fillRect(swordX - 6, swordY + 2, 2, 1);
+  ctx.fillRect(swordX + 5, swordY + 2, 2, 1);
+  // Center binding (where they cross)
   ctx.fillStyle = PX.iron;
-  // Iron rim
-  ctx.beginPath();
-  ctx.arc(shieldX, wy + 2, 6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#5a2818';
-  ctx.beginPath();
-  ctx.arc(shieldX, wy + 2, 5, 0, Math.PI * 2);
-  ctx.fill();
-  // Centre boss
-  ctx.fillStyle = PX.iron;
-  ctx.beginPath();
-  ctx.arc(shieldX, wy + 2, 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = PX.ironHighlight;
-  ctx.fillRect(shieldX - 1, wy + 1, 1, 1);
-  // Plank seams across the shield
-  ctx.fillStyle = '#3a1808';
-  ctx.fillRect(shieldX - 4, wy + 2, 8, 1);
+  ctx.fillRect(swordX - 1, swordY, 3, 2);
 
   // BANNER on the right
   const bannerX = cx + Math.round(surface.width * 0.18);
@@ -870,22 +979,27 @@ function drawFirePit(
   ctx.fillStyle = '#c4421a';
   ctx.fillRect(center.x - 3, center.y + 2, 6, 1);
 
-  // Stones around the rim — small bumps all the way around so the pit
-  // reads as masonry. 12 small stones in an oval.
-  const stoneCount = 12;
-  for (let i = 0; i < stoneCount; i += 1) {
-    const a = (i / stoneCount) * Math.PI * 2;
-    const sx = Math.round(center.x + Math.cos(a) * (ringW * 0.5));
-    const sy = Math.round(center.y + Math.sin(a) * (ringH * 0.55));
-    const isTop = Math.sin(a) < -0.2;
-    // Vary stone tone with position — top stones catch light, bottom
-    // stones sit in shadow.
+  // Stones around the rim — irregularly spaced, varying sizes, so the
+  // pit doesn't read as a gear. Predefined positions for control.
+  const stones: ReadonlyArray<{ readonly a: number; readonly sw: number; readonly sh: number }> = [
+    { a: -Math.PI * 0.95, sw: 5, sh: 3 }, // upper-left big
+    { a: -Math.PI * 0.55, sw: 4, sh: 3 }, // top-left
+    { a: -Math.PI * 0.25, sw: 5, sh: 3 }, // top-right
+    { a: -Math.PI * 0.02, sw: 4, sh: 3 }, // right
+    { a: Math.PI * 0.25, sw: 5, sh: 3 }, // lower-right
+    { a: Math.PI * 0.55, sw: 4, sh: 3 }, // bottom-left
+    { a: Math.PI * 0.95, sw: 5, sh: 3 } // left
+  ];
+  for (const s of stones) {
+    const sx = Math.round(center.x + Math.cos(s.a) * (ringW * 0.5));
+    const sy = Math.round(center.y + Math.sin(s.a) * (ringH * 0.55));
+    const isTop = Math.sin(s.a) < -0.1;
     ctx.fillStyle = isTop ? PX.stoneHighlight : PX.stoneLight;
-    ctx.fillRect(sx - 2, sy - 1, 4, 3);
-    ctx.fillStyle = isTop ? '#9a7a5a' : PX.stoneHighlight;
-    ctx.fillRect(sx - 2, sy - 1, 4, 1);
+    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, s.sh);
+    ctx.fillStyle = isTop ? '#a08868' : PX.stoneHighlight;
+    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, 1);
     ctx.fillStyle = PX.stoneShadow;
-    ctx.fillRect(sx - 2, sy + 1, 4, 1);
+    ctx.fillRect(sx - Math.round(s.sw / 2), sy + Math.round(s.sh / 2) - 1, s.sw, 1);
   }
 
   // Embers — animated dark-red dots inside the pit
