@@ -4,9 +4,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aggis/ha-ggis-hub/tools/haggis-eval/internal/cmd"
 	"github.com/aggis/ha-ggis-hub/tools/haggis-eval/internal/gate"
+	"github.com/aggis/ha-ggis-hub/tools/haggis-eval/internal/report"
 )
 
 const version = "0.1.0"
@@ -31,6 +33,29 @@ func main() {
 			os.Exit(2)
 		}
 		os.Exit(printAndExit("differential", cmd.Differential(os.Args[2])))
+	case "browser":
+		os.Exit(cmd.Stub("browser", "Playwright config not yet present"))
+	case "determinism":
+		os.Exit(cmd.Stub("determinism", "Playwright capture pipeline not yet present"))
+	case "perf":
+		os.Exit(cmd.Stub("perf", "size-limit and Lighthouse configs not yet present"))
+	case "security":
+		os.Exit(cmd.Stub("security", "public/_headers spec not yet present"))
+	case "slice":
+		os.Exit(cmd.Stub("slice", "slices.toml gate-set config not yet present"))
+	case "all":
+		results := cmd.All()
+		now := time.Now()
+		r := report.Build("all", now, results)
+		path, err := r.Write("target/haggis-eval")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not write report: %v\n", err)
+			os.Exit(2)
+		}
+		exit := printAndExit("all", results)
+		fmt.Printf("\nreport: %s\n", path)
+		fmt.Printf("overall=%s signature=%#x\n", r.OverallStatus, r.Signature)
+		os.Exit(exit)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown subcommand: %s\n\n", os.Args[1])
 		usage(os.Stderr)
