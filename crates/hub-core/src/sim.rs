@@ -228,14 +228,17 @@ pub struct Sim {
 
 impl Sim {
     /// Construct a new simulation seeded with `seed`. State at tick zero is
-    /// fully determined by `seed`. Spawn is offset toward the front of the
-    /// room (near the hearth) so the opening composition reads as "haggis
-    /// at the fire", not "haggis adrift at the geometric center".
+    /// fully determined by `seed`. Spawn is offset to the LEFT THIRD of the
+    /// room — per art-direction review, the previous dead-centre spawn put
+    /// the haggis on the same vertical axis as the window, beam, and
+    /// hearth, killing the composition. Off-axis spawn creates narrative
+    /// tension (haggis looking ACROSS toward the hearth and the WHS door
+    /// on the right) and follows the rule-of-thirds.
     #[must_use]
     pub fn new(seed: u64) -> Self {
         Self {
-            player_x: 500,
-            player_y: 560,
+            player_x: 340,
+            player_y: 540,
             rng: Rng::seed(seed),
         }
     }
@@ -444,8 +447,8 @@ mod tests {
         let snapshot = sim.render_snapshot();
         assert_eq!(snapshot.world_width, 1_000);
         assert_eq!(snapshot.world_height, 1_000);
-        assert_eq!(snapshot.player_x, 500);
-        assert_eq!(snapshot.player_y, 560);
+        assert_eq!(snapshot.player_x, 340);
+        assert_eq!(snapshot.player_y, 540);
         assert_eq!(snapshot.door_count, 2);
         assert_eq!(snapshot.doors[0].id_str(), "wild-haggis-survivors");
         assert_eq!(snapshot.doors[1].id_str(), "future-bothy");
@@ -455,16 +458,16 @@ mod tests {
     fn tick_cardinal_movement_advances_one_fixed_unit() {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, 0, false));
-        assert_eq!(snapshot.player_x, 600);
-        assert_eq!(snapshot.player_y, 560);
+        assert_eq!(snapshot.player_x, 440);
+        assert_eq!(snapshot.player_y, 540);
     }
 
     #[test]
     fn tick_diagonal_movement_is_normalised() {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, -1, false));
-        assert_eq!(snapshot.player_x, 570);
-        assert_eq!(snapshot.player_y, 490);
+        assert_eq!(snapshot.player_x, 410);
+        assert_eq!(snapshot.player_y, 470);
     }
 
     #[test]
