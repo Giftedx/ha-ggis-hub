@@ -2,6 +2,7 @@
 members = [
   "crates/hub-core",
   "crates/hub-wasm",
+  "crates/hub-hardlang",
 ]
 resolver = "2"
 

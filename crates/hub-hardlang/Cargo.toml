@@ -1,0 +1,29 @@
+[package]
+name = "hub-hardlang"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints.rust]
+# The workspace lint table sets `unsafe_code = "forbid"`. This crate is
+# the single FFI seam to the committed C kernel at `c/fnv1a.c`, so we
+# downgrade to `deny` here — the same "no unsafe by default" guarantee,
+# but allowing the one `#![allow(unsafe_code)]` in `src/lib.rs` that
+# scopes the FFI block. No other crate may follow suit.
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+
+[dependencies]
+
+[build-dependencies]
+cc = "1"
+
+[dev-dependencies]
+hub-core = { path = "../hub-core" }
+proptest = { version = "1", default-features = false, features = ["std"] }
