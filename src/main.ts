@@ -120,12 +120,12 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
 }
 
 function sizeCanvasToViewport(canvas: HTMLCanvasElement): void {
-  // Fixed internal pixel-art resolution. CSS scales the canvas to the
-  // viewport with `image-rendering: pixelated`, so every internal pixel
-  // becomes a chunky block on screen. Resolution chosen for crisp 16:9
-  // integer scaling on common displays (1080p = 6× scale, 1440p ≈ 7-8×).
-  const internalWidth = 320;
-  const internalHeight = 180;
+  // Internal canvas resolution. 640×360 gives each procedural sprite
+  // enough pixel headroom to read as a real character (haggis, doors,
+  // fire) rather than a 6× mosaic of chunky blocks, while still scaling
+  // cleanly to 1080p (3×) and 1440p (4×).
+  const internalWidth = 640;
+  const internalHeight = 360;
   // Adapt to viewport aspect ratio so we don't letterbox awkwardly.
   // Pick the closer of 16:9 or the viewport ratio, but stay near our
   // baseline so the per-pixel layout reads at any window.

@@ -37,8 +37,9 @@ body {
   width: 100vw;
   height: 100vh;
   background: #0d0907;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  /* Light smoothing — keeps procedural shapes from looking like a 6× mosaic
+     while still preserving the chunky pixel feel of the internal buffer. */
+  image-rendering: auto;
 }
 
 .scene-direct {

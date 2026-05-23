@@ -84,7 +84,8 @@ const PX = {
   promptText: '#f7e8c4'
 } as const;
 
-const WALL_THICK = 14;
+// Wall thickness — sized for the 640×360 internal canvas. ~7% of height.
+const WALL_THICK = 28;
 
 interface ScaledRect {
   readonly x: number;
@@ -986,8 +987,8 @@ function drawFirePit(
   // stone-rimmed pit: outer mid-tone ring, inner dark cavity, then a
   // row of individual rim stones drawn ALL around the rim so the pit
   // reads as masonry, not a flat bowl.
-  const ringW = 30;
-  const ringH = 20;
+  const ringW = 60;
+  const ringH = 40;
 
   // Outer ring (the "shoulder" of the pit — light stone)
   ctx.fillStyle = PX.stoneMid;
@@ -1002,26 +1003,32 @@ function drawFirePit(
   // Glowing ember bed at the bottom of the cavity — a flat oval, not a
   // half-disc, so it doesn't read as a frowning mouth.
   ctx.fillStyle = '#3a1408';
-  for (let dy = 0; dy < 4; dy += 1) {
-    const halfW = Math.round((ringW * 0.5 - 6) * (1 - dy * 0.18));
-    ctx.fillRect(center.x - halfW, center.y + 1 + dy, halfW * 2, 1);
+  for (let dy = 0; dy < 8; dy += 1) {
+    const halfW = Math.round((ringW * 0.5 - 8) * (1 - dy * 0.1));
+    ctx.fillRect(center.x - halfW, center.y + 2 + dy, halfW * 2, 1);
   }
   // Brightest ember pixels
   ctx.fillStyle = '#7a2818';
-  ctx.fillRect(center.x - 5, center.y + 2, 10, 1);
+  ctx.fillRect(center.x - 10, center.y + 4, 20, 2);
   ctx.fillStyle = '#c4421a';
-  ctx.fillRect(center.x - 3, center.y + 2, 6, 1);
+  ctx.fillRect(center.x - 6, center.y + 4, 12, 2);
+  // Individual ember dots
+  ctx.fillStyle = '#ff6020';
+  for (let i = 0; i < 5; i += 1) {
+    const ex = center.x - 8 + i * 4;
+    ctx.fillRect(ex, center.y + 5, 2, 1);
+  }
 
   // Stones around the rim — irregularly spaced, varying sizes, so the
   // pit doesn't read as a gear. Predefined positions for control.
   const stones: ReadonlyArray<{ readonly a: number; readonly sw: number; readonly sh: number }> = [
-    { a: -Math.PI * 0.95, sw: 5, sh: 3 }, // upper-left big
-    { a: -Math.PI * 0.55, sw: 4, sh: 3 }, // top-left
-    { a: -Math.PI * 0.25, sw: 5, sh: 3 }, // top-right
-    { a: -Math.PI * 0.02, sw: 4, sh: 3 }, // right
-    { a: Math.PI * 0.25, sw: 5, sh: 3 }, // lower-right
-    { a: Math.PI * 0.55, sw: 4, sh: 3 }, // bottom-left
-    { a: Math.PI * 0.95, sw: 5, sh: 3 } // left
+    { a: -Math.PI * 0.95, sw: 10, sh: 6 }, // upper-left big
+    { a: -Math.PI * 0.55, sw: 8, sh: 6 }, // top-left
+    { a: -Math.PI * 0.25, sw: 10, sh: 6 }, // top-right
+    { a: -Math.PI * 0.02, sw: 8, sh: 6 }, // right
+    { a: Math.PI * 0.25, sw: 10, sh: 6 }, // lower-right
+    { a: Math.PI * 0.55, sw: 8, sh: 6 }, // bottom-left
+    { a: Math.PI * 0.95, sw: 10, sh: 6 } // left
   ];
   for (const s of stones) {
     const sx = Math.round(center.x + Math.cos(s.a) * (ringW * 0.5));
@@ -1030,9 +1037,9 @@ function drawFirePit(
     ctx.fillStyle = isTop ? PX.stoneHighlight : PX.stoneLight;
     ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, s.sh);
     ctx.fillStyle = isTop ? '#a08868' : PX.stoneHighlight;
-    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, 1);
+    ctx.fillRect(sx - Math.round(s.sw / 2), sy - Math.round(s.sh / 2), s.sw, 2);
     ctx.fillStyle = PX.stoneShadow;
-    ctx.fillRect(sx - Math.round(s.sw / 2), sy + Math.round(s.sh / 2) - 1, s.sw, 1);
+    ctx.fillRect(sx - Math.round(s.sw / 2), sy + Math.round(s.sh / 2) - 2, s.sw, 2);
   }
 
   // Embers — animated dark-red dots inside the pit
@@ -1045,35 +1052,35 @@ function drawFirePit(
     ctx.fillRect(ex, ey, 2, 1);
   }
 
-  // Flames (3 layered, animated, much bigger)
-  const flickerA = Math.floor((Math.sin(phase * 7) + 1) * 2);
-  const flickerB = Math.floor((Math.sin(phase * 5.3 + 1) + 1) * 2);
+  // Flames (3 layered, animated, scaled to 640×360 baseline)
+  const flickerA = Math.floor((Math.sin(phase * 7) + 1) * 4);
+  const flickerB = Math.floor((Math.sin(phase * 5.3 + 1) + 1) * 4);
   // Outer flame
   ctx.fillStyle = PX.flameOuter;
   ctx.beginPath();
-  ctx.moveTo(center.x - 9, center.y - 1);
-  ctx.lineTo(center.x + 9, center.y - 1);
-  ctx.lineTo(center.x + 4, center.y - 12 - flickerA);
-  ctx.lineTo(center.x, center.y - 20 - flickerA);
-  ctx.lineTo(center.x - 4, center.y - 12 - flickerB);
+  ctx.moveTo(center.x - 18, center.y - 2);
+  ctx.lineTo(center.x + 18, center.y - 2);
+  ctx.lineTo(center.x + 8, center.y - 24 - flickerA);
+  ctx.lineTo(center.x, center.y - 40 - flickerA);
+  ctx.lineTo(center.x - 8, center.y - 24 - flickerB);
   ctx.closePath();
   ctx.fill();
   // Mid flame
   ctx.fillStyle = PX.flameMid;
   ctx.beginPath();
-  ctx.moveTo(center.x - 5, center.y - 1);
-  ctx.lineTo(center.x + 5, center.y - 1);
-  ctx.lineTo(center.x + 2, center.y - 9);
-  ctx.lineTo(center.x, center.y - 16 - flickerB);
-  ctx.lineTo(center.x - 2, center.y - 9);
+  ctx.moveTo(center.x - 10, center.y - 2);
+  ctx.lineTo(center.x + 10, center.y - 2);
+  ctx.lineTo(center.x + 4, center.y - 18);
+  ctx.lineTo(center.x, center.y - 32 - flickerB);
+  ctx.lineTo(center.x - 4, center.y - 18);
   ctx.closePath();
   ctx.fill();
   // Core flame
   ctx.fillStyle = PX.flameCore;
   ctx.beginPath();
-  ctx.moveTo(center.x - 2, center.y - 3);
-  ctx.lineTo(center.x + 2, center.y - 3);
-  ctx.lineTo(center.x, center.y - 11 - flickerA);
+  ctx.moveTo(center.x - 4, center.y - 6);
+  ctx.lineTo(center.x + 4, center.y - 6);
+  ctx.lineTo(center.x, center.y - 22 - flickerA);
   ctx.closePath();
   ctx.fill();
 
@@ -1096,6 +1103,13 @@ function drawFirePit(
   ctx.globalAlpha = 1;
 }
 
+// Wild haggis (Haggis scoticus) — small, round, furry Scottish
+// highland creature. Key features per folklore:
+// - Oval body, low-slung, covered in shaggy heather-coloured fur
+// - FOUR LEGS with UNEVEN LENGTHS: two longer on one side, two shorter
+//   on the other (lets it run sideways around mountains)
+// - Small button nose, beady black eyes, tiny pointed ears
+// - Brown/ginger fur that blends with the highland heather
 function drawHaggis(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -1105,119 +1119,168 @@ function drawHaggis(
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
-  // Player half_extent in sim units → canvas pixels. Scale factor tuned
-  // so the haggis reads as a character in the room rather than dominating
-  // it — about 7-9 internal pixels of radius at the 320×180 baseline.
+  // r = body half-width. Body is OBLONG: wider than tall (typical haggis-
+  // creature silhouette — like a small furry haggis-shaped potato).
   const r = Math.max(
-    6,
-    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.42)
+    10,
+    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.48)
   );
+  const rh = Math.round(r * 0.7); // body height
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // Soft flat shadow tucked under the haggis — small, low opacity, no
-  // wider than the body so it doesn't look like a separate object.
+  // Soft elliptical floor shadow
   ctx.fillStyle = PX.hagShadow;
-  ctx.globalAlpha = 0.5;
-  ctx.fillRect(cx - Math.round(r * 0.7), cy + r + 1, Math.round(r * 1.4), 2);
+  ctx.globalAlpha = 0.45;
+  for (let i = 0; i < 5; i += 1) {
+    const sw = Math.round(r * (1.05 - i * 0.05));
+    const sy = cy + rh + 3 + i;
+    ctx.fillRect(cx - sw, sy, sw * 2, 1);
+  }
   ctx.globalAlpha = 1;
 
-  // Legs (drawn before body so body covers their tops). Each leg
-  // alternates up/down by 1px out of phase with the other so the
-  // haggis looks like he's bobbing/stepping in place even when idle —
-  // and looks like he's walking when actually moving.
+  // ============ LEGS — the iconic uneven-length wild-haggis feature
+  // The "left-leggers" run clockwise, the "right-leggers" anti-clockwise.
+  // Ours is a clockwise-runner: LEFT legs LONGER, RIGHT legs SHORTER.
+  // Step animation alternates the leg pairs.
   ctx.fillStyle = PX.legDark;
-  const legW = 2;
-  const legBaseY = cy + bob + Math.round(r * 0.55);
-  const stepL = Math.sin(phase * 5.5) > 0 ? 0 : 1;
-  const stepR = 1 - stepL;
-  const legHL = 3 + stepL;
-  const legHR = 3 + stepR;
-  ctx.fillRect(cx - Math.round(r * 0.45), legBaseY - stepL, legW, legHL);
-  ctx.fillRect(cx + Math.round(r * 0.45) - legW, legBaseY - stepR, legW, legHR);
+  const legW = Math.max(3, Math.round(r * 0.16));
+  const longLegH = Math.max(8, Math.round(r * 0.55));
+  const shortLegH = Math.max(5, Math.round(r * 0.32));
+  const legTopY = cy + bob + Math.round(rh * 0.6);
+  const stepA = Math.sin(phase * 5.5) > 0 ? 0 : 1;
+  const stepB = 1 - stepA;
 
-  // Outline ring (1px around body for that hand-drawn pixel feel)
+  // LEFT side (long legs) — front and back
+  ctx.fillRect(cx - Math.round(r * 0.7), legTopY - stepA, legW, longLegH + stepA);
+  ctx.fillRect(cx - Math.round(r * 0.35), legTopY - stepB, legW, longLegH + stepB);
+  // RIGHT side (short legs) — front and back
+  ctx.fillRect(cx + Math.round(r * 0.35) - legW, legTopY - stepB, legW, shortLegH + stepB);
+  ctx.fillRect(cx + Math.round(r * 0.7) - legW, legTopY - stepA, legW, shortLegH + stepA);
+
+  // Tiny hoofs at the bottom of each leg
   ctx.fillStyle = PX.hagOutline;
-  ctx.beginPath();
-  ctx.arc(cx, cy + bob, r + 1, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillRect(cx - Math.round(r * 0.7), legTopY + longLegH, legW, 1);
+  ctx.fillRect(cx - Math.round(r * 0.35), legTopY + longLegH, legW, 1);
+  ctx.fillRect(cx + Math.round(r * 0.35) - legW, legTopY + shortLegH, legW, 1);
+  ctx.fillRect(cx + Math.round(r * 0.7) - legW, legTopY + shortLegH, legW, 1);
 
-  // Under-body shadow
-  ctx.fillStyle = PX.hagDark;
-  ctx.beginPath();
-  ctx.arc(cx, cy + bob + Math.round(r * 0.18), r, 0, Math.PI * 2);
-  ctx.fill();
+  // ============ BODY — oval base with fur shading
+  // Outline + base shape
+  drawEllipse(ctx, cx, cy + bob + 1, r + 1, rh + 1, PX.hagOutline);
+  drawEllipse(ctx, cx, cy + bob, r, rh, PX.hagDark);
+  drawEllipse(ctx, cx, cy + bob - 1, r - 1, rh - 1, PX.hagBody);
 
-  // Main body
-  ctx.fillStyle = PX.hagBody;
-  ctx.beginPath();
-  ctx.arc(cx, cy + bob, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Highlight (top-left)
+  // ============ FUR TEXTURE — shaggy tufts around the body silhouette
+  // Drawn as small dark spikes on the bottom + sides of the ellipse to
+  // suggest hanging shaggy fur. Top has lighter highlight tufts.
+  ctx.fillStyle = PX.hagOutline;
+  for (let i = -6; i <= 6; i += 1) {
+    const angle = (i / 6) * Math.PI * 0.45 + Math.PI / 2; // bottom arc
+    const fx = Math.round(cx + Math.cos(angle) * r);
+    const fy = Math.round(cy + bob + Math.sin(angle) * rh);
+    // Skip where legs poke out
+    if (Math.abs(fx - cx) < Math.round(r * 0.8) && fy > cy + bob + rh - 2) continue;
+    // Spike pixel for shaggy edge
+    ctx.fillRect(fx, fy, 1, 2);
+  }
+  // Lighter tufts on top (highlight side)
   ctx.fillStyle = PX.hagLight;
-  ctx.beginPath();
-  ctx.arc(cx - Math.round(r * 0.22), cy + bob - Math.round(r * 0.25), Math.round(r * 0.7), 0, Math.PI * 2);
-  ctx.fill();
-
-  // Rim light (smaller, brighter)
-  ctx.fillStyle = PX.hagRim;
-  ctx.globalAlpha = 0.5;
-  ctx.beginPath();
-  ctx.arc(cx - Math.round(r * 0.38), cy + bob - Math.round(r * 0.38), Math.round(r * 0.42), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Cheeks (blush)
-  ctx.fillStyle = PX.hagBlush;
+  for (let i = -5; i <= 5; i += 1) {
+    const angle = (i / 5) * Math.PI * 0.4 - Math.PI / 2; // top arc
+    const fx = Math.round(cx + Math.cos(angle) * (r - 1));
+    const fy = Math.round(cy + bob + Math.sin(angle) * (rh - 1));
+    ctx.fillRect(fx, fy, 1, 1);
+  }
+  // Fur shading streaks across the body — wavy lines suggesting hair
+  ctx.fillStyle = PX.hagDark;
   ctx.globalAlpha = 0.55;
-  ctx.fillRect(cx - Math.round(r * 0.5), cy + bob + Math.round(r * 0.12), 2, 1);
-  ctx.fillRect(cx + Math.round(r * 0.4), cy + bob + Math.round(r * 0.12), 2, 1);
+  for (let yy = -Math.round(rh * 0.6); yy < Math.round(rh * 0.6); yy += 3) {
+    const offset = Math.round(Math.sin(yy * 0.4) * 2);
+    ctx.fillRect(cx - Math.round(r * 0.65) + offset, cy + bob + yy, Math.round(r * 0.25), 1);
+    ctx.fillRect(cx + Math.round(r * 0.25) + offset, cy + bob + yy, Math.round(r * 0.4), 1);
+  }
   ctx.globalAlpha = 1;
 
-  // Eyes — bigger white sclera, dark pupil close together for "cute"
-  // proportion. Pupil position blinks subtly with the bob phase so the
-  // character feels alive when standing still.
-  const eyeOffX = Math.round(r * 0.28);
-  const eyeY = cy + bob - Math.round(r * 0.18);
-  const eyeR = Math.max(2, Math.round(r * 0.28));
-  // Outer dark socket (around the white) for depth
-  ctx.fillStyle = PX.hagOutline;
-  ctx.beginPath();
-  ctx.arc(cx - eyeOffX, eyeY, eyeR + 1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx + eyeOffX, eyeY, eyeR + 1, 0, Math.PI * 2);
-  ctx.fill();
-  // White
-  ctx.fillStyle = PX.eyeWhite;
-  ctx.beginPath();
-  ctx.arc(cx - eyeOffX, eyeY, eyeR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx + eyeOffX, eyeY, eyeR, 0, Math.PI * 2);
-  ctx.fill();
-  // Pupil — bigger relative to white so it reads as wide-eyed-cute
-  const pupilR = Math.max(1, Math.round(eyeR * 0.65));
-  // Subtle glance — pupil drifts a fraction to mimic "looking around"
+  // Highlight (top-left brighter wash)
+  ctx.globalAlpha = 0.55;
+  drawEllipse(ctx, cx - Math.round(r * 0.25), cy + bob - Math.round(rh * 0.3), Math.round(r * 0.55), Math.round(rh * 0.35), PX.hagLight);
+  ctx.globalAlpha = 1;
+  // Rim light (brightest small patch)
+  ctx.globalAlpha = 0.6;
+  drawEllipse(ctx, cx - Math.round(r * 0.4), cy + bob - Math.round(rh * 0.45), Math.round(r * 0.22), Math.round(rh * 0.15), PX.hagRim);
+  ctx.globalAlpha = 1;
+
+  // ============ EARS — tiny pointed ears poking up from the top
+  ctx.fillStyle = PX.hagDark;
+  const earY = cy + bob - rh;
+  // Left ear
+  ctx.fillRect(cx - Math.round(r * 0.4), earY - 1, 3, 2);
+  ctx.fillRect(cx - Math.round(r * 0.4) + 1, earY - 3, 1, 2);
+  // Right ear
+  ctx.fillRect(cx + Math.round(r * 0.4) - 3, earY - 1, 3, 2);
+  ctx.fillRect(cx + Math.round(r * 0.4) - 2, earY - 3, 1, 2);
+  // Inner ear pink
+  ctx.fillStyle = PX.hagBlush;
+  ctx.fillRect(cx - Math.round(r * 0.4) + 1, earY - 1, 1, 1);
+  ctx.fillRect(cx + Math.round(r * 0.4) - 2, earY - 1, 1, 1);
+
+  // ============ FACE
+  // Eyes — small beady eyes, close together for that cute look
+  const eyeOffX = Math.round(r * 0.22);
+  const eyeY = cy + bob - Math.round(rh * 0.22);
+  const eyeR = Math.max(2, Math.round(r * 0.18));
+  drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
+  drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR + 1, eyeR + 1, PX.hagOutline);
+  drawEllipse(ctx, cx - eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
+  drawEllipse(ctx, cx + eyeOffX, eyeY, eyeR, eyeR, PX.eyeWhite);
+  const pupilR = Math.max(1, Math.round(eyeR * 0.7));
   const glance = Math.round(Math.sin(phase * 0.7) * 1);
-  ctx.fillStyle = PX.eyePupil;
-  ctx.beginPath();
-  ctx.arc(cx - eyeOffX + glance, eyeY + 1, pupilR, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx + eyeOffX + glance, eyeY + 1, pupilR, 0, Math.PI * 2);
-  ctx.fill();
-  // Catchlight (tiny white pixel in upper-left of each pupil)
+  drawEllipse(ctx, cx - eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
+  drawEllipse(ctx, cx + eyeOffX + glance, eyeY + 1, pupilR, pupilR, PX.eyePupil);
   ctx.fillStyle = PX.eyeWhite;
   ctx.fillRect(cx - eyeOffX + glance - 1, eyeY, 1, 1);
   ctx.fillRect(cx + eyeOffX + glance - 1, eyeY, 1, 1);
 
-  // Mouth — small smiling curve made of 3 pixels
+  // Nose — small black button below eyes, slightly raised
   ctx.fillStyle = PX.eyePupil;
-  const mouthY = cy + bob + Math.round(r * 0.32);
-  ctx.fillRect(cx - 1, mouthY, 2, 1);
-  ctx.fillRect(cx - 2, mouthY - 1, 1, 1);
-  ctx.fillRect(cx + 1, mouthY - 1, 1, 1);
+  const noseY = cy + bob + Math.round(rh * 0.05);
+  ctx.fillRect(cx - 1, noseY, 3, 2);
+  ctx.fillStyle = PX.hagRim;
+  ctx.fillRect(cx - 1, noseY, 1, 1); // tiny nose-highlight
+
+  // Mouth — small line under the nose
+  ctx.fillStyle = PX.eyePupil;
+  ctx.fillRect(cx, noseY + 3, 1, 2);
+  ctx.fillRect(cx - 2, noseY + 4, 2, 1);
+  ctx.fillRect(cx + 1, noseY + 4, 2, 1);
+
+  // Cheek blush
+  ctx.fillStyle = PX.hagBlush;
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(cx - Math.round(r * 0.5), cy + bob + Math.round(rh * 0.05), 3, 2);
+  ctx.fillRect(cx + Math.round(r * 0.5) - 3, cy + bob + Math.round(rh * 0.05), 3, 2);
+  ctx.globalAlpha = 1;
+}
+
+// Pixel-art filled ellipse — built from horizontal strips so the shape
+// stays crisp at integer pixel coordinates and works against the
+// structural CanvasRoomContext interface (no native `ellipse`).
+function drawEllipse(
+  ctx: CanvasRoomContext,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  color: string
+): void {
+  ctx.fillStyle = color;
+  const rxs = rx * rx;
+  const rys = ry * ry;
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    const w = Math.round(Math.sqrt(Math.max(0, rxs * (1 - (dy * dy) / rys))));
+    if (w <= 0) continue;
+    ctx.fillRect(cx - w, cy + dy, w * 2 + 1, 1);
+  }
 }
 
 function drawPrompt(

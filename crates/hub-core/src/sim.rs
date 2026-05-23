@@ -235,7 +235,7 @@ impl Sim {
     pub fn new(seed: u64) -> Self {
         Self {
             player_x: 500,
-            player_y: 620,
+            player_y: 560,
             rng: Rng::seed(seed),
         }
     }
@@ -445,7 +445,7 @@ mod tests {
         assert_eq!(snapshot.world_width, 1_000);
         assert_eq!(snapshot.world_height, 1_000);
         assert_eq!(snapshot.player_x, 500);
-        assert_eq!(snapshot.player_y, 620);
+        assert_eq!(snapshot.player_y, 560);
         assert_eq!(snapshot.door_count, 2);
         assert_eq!(snapshot.doors[0].id_str(), "wild-haggis-survivors");
         assert_eq!(snapshot.doors[1].id_str(), "future-bothy");
@@ -456,7 +456,7 @@ mod tests {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, 0, false));
         assert_eq!(snapshot.player_x, 600);
-        assert_eq!(snapshot.player_y, 620);
+        assert_eq!(snapshot.player_y, 560);
     }
 
     #[test]
@@ -464,7 +464,7 @@ mod tests {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, -1, false));
         assert_eq!(snapshot.player_x, 570);
-        assert_eq!(snapshot.player_y, 550);
+        assert_eq!(snapshot.player_y, 490);
     }
 
     #[test]
