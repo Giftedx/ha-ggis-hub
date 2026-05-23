@@ -67,6 +67,8 @@ pnpm exec vitest run
 pnpm run build
 ```
 
+A Go-built orchestrator CLI bundles every gate above into one command with a signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+
 ## Before writing implementation code
 
 Future contributors and agents must read:

@@ -36,3 +36,7 @@ yarn-error.log*
 
 # Per-session worktrees created by Claude Code's EnterWorktree tool
 .claude/worktrees/
+
+# haggis-eval CLI build artifacts (reports already covered by target/ above)
+tools/haggis-eval/haggis-eval
+tools/haggis-eval/haggis-eval.exe
