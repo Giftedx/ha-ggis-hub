@@ -1,14 +1,21 @@
 # Runtime Boundaries
 
-Status: planned architecture
+Status: partially current architecture
 Scope: lifecycle and data-flow boundaries between core, host, renderer, and game modules
 Related: [Architecture overview](overview.md), [Data and save boundaries](data-and-save-boundaries.md)
 
 ## Game module contract
 
-Planned TypeScript interface:
+Current TypeScript interface in `src/engine/game-module.ts`:
 
 ```ts
+export type GameLaunchSource = 'direct-play' | 'door' | 'route';
+
+export interface GameMountOptions {
+  readonly launchSource: GameLaunchSource;
+  readonly reducedMotion: boolean;
+}
+
 export interface GameModule {
   readonly id: string;
   readonly title: string;
@@ -19,7 +26,7 @@ export interface GameModule {
 export interface GameInstance {
   pause(): void;
   resume(): void;
-  destroy(): void;
+  destroy(): void | Promise<void>;
   serialize?(): unknown;
   restore?(state: unknown): void;
 }
@@ -31,12 +38,14 @@ export interface GameInstance {
 - `pause` stops simulation advancement but keeps enough state to resume.
 - `resume` continues from the same state.
 - `destroy` releases RAF loops, listeners, renderer resources, object URLs, and WASM-owned handles.
-- Route changes must call `destroy`.
-- Tab hidden events must call `pause` or stop advancing simulation.
+- Current: `src/engine/lifecycle.ts` owns one active `GameInstance`, preloads before mount, destroys replacement instances safely, and treats pause/resume/repeated destroy as safe no-ops when nothing is mounted.
+- Current: `src/engine/input.ts` maps Arrow/WASD key state into compact tick-aligned axes and removes listeners on sampler destruction.
+- Planned: route changes must call `destroy` once routing exists.
+- Planned: tab hidden events must call `pause` or stop advancing simulation once a frame loop exists.
 
 ## Frame loop model
 
-Planned model:
+Current first-room model:
 
 ```text
 requestAnimationFrame
@@ -52,6 +61,9 @@ Rules:
 - Rendering may interpolate but cannot mutate gameplay truth.
 - Input is sampled into compact snapshots.
 - WASM calls are coarse, not per entity.
+- Current: `src/hub/room.ts` owns the first-room controller, samples host input once per frame, advances the player through `HubCoreWorld`, asks the core for door interaction, and renders an immutable room snapshot.
+- Current: `src/render/canvas-room.ts` is the accepted Canvas2D renderer from [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md); it presents snapshots and owns no gameplay truth.
+- Current: `src/wasm/generated-loader.ts` initializes the wasm-bindgen package generated under `src/generated/hub-wasm/` for the browser build.
 
 ## Error handling
 

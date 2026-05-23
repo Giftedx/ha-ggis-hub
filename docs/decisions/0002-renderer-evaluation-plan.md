@@ -1,6 +1,6 @@
 # ADR-0002: Renderer Evaluation Plan
 
-Status: proposed (decision-pending)
+Status: superseded by [ADR-0005](0005-canvas2d-first-room-renderer.md)
 Date: 2026-05-22
 Related: [Architecture options](../foundation/04-architecture-options.md), [Runtime boundaries](../architecture/runtime-boundaries.md), [ADR template](adr-template.md)
 

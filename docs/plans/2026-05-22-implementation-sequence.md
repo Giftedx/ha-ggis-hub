@@ -56,9 +56,9 @@ Acceptance:
 - Complete: boundary tests cover invalid inputs.
 - Verification recorded in [Slice 3 WASM boundary report](../audit/2026-05-23-slice-3-wasm-boundary-report.md).
 
-## Slice 4: TypeScript host lifecycle
+## Slice 4: TypeScript host lifecycle — complete 2026-05-23
 
-Create host modules for:
+Created host modules for:
 
 - game module contract
 - lifecycle management
@@ -68,23 +68,28 @@ Create host modules for:
 
 Acceptance:
 
-- Vitest covers pure logic
-- TypeScript strict mode passes
+- Complete: Vitest covers registry validation/mapping, direct-play planning, keyboard input sampling, lifecycle state transitions, and app model integration.
+- Complete: TypeScript strict mode passes.
+- Complete: Verification recorded in [Slice 4 TypeScript host lifecycle report](../audit/2026-05-23-slice-4-typescript-host-lifecycle-report.md).
 
-## Slice 5: renderer decision and first room
+## Slice 5: renderer decision and first room — in progress 2026-05-23
 
-Before adding renderer dependency, write ADR:
+Selected Canvas2D by [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md) and created the first browser-visible room path:
 
-- Canvas2D if visuals remain simple
-- PixiJS if rendering complexity justifies dependency
+- generated wasm-bindgen browser package under `src/generated/hub-wasm/`
+- `src/wasm/generated-loader.ts` for host initialization
+- `src/hub/room.ts` first-room controller driven by `HubCoreWorld`
+- `src/render/canvas-room.ts` hand-rolled Canvas2D renderer
+- host shell canvas, controls copy, reduced-motion pause, direct-play fallback
 
 Acceptance:
 
-- first room renders
-- haggis moves from Rust state
-- door prompt works
-- direct play works
-- Playwright smoke passes with no console errors
+- Complete: renderer decision captured without adding a dependency.
+- Complete: first room renders in the Vite build.
+- Complete: haggis movement is advanced through the Rust/WASM world boundary.
+- Complete: door prompt renders from core interaction state.
+- Complete: direct play remains outside the canvas and available on fallback.
+- Planned remainder: Playwright or dependency-free browser smoke passes with no console errors.
 
 ## Slice 6: deployment hardening
 

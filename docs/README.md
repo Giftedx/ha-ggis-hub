@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, and deterministic lockfiles exist. `hub-core` also has deterministic fixed-unit movement, player bounds, and door proximity primitives; `hub-wasm` exposes those primitives through a typed boundary and `src/wasm/boundary.ts` provides the host initialization seam. Renderer/gameplay presentation, CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
+The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, deterministic lockfiles, and a generated wasm-bindgen package consumed by the browser build. `hub-core` owns deterministic fixed-unit movement, player bounds, and door proximity primitives; `hub-wasm` exposes those primitives through a typed boundary; and the TypeScript host has lifecycle, keyboard input, registry mapping, direct-play launch seams, and the first Canvas2D room renderer. CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
 
 ## Recommended reading order
 
@@ -94,9 +94,10 @@ Decisions and plans:
 - [ADR index with statuses](decisions/README.md)
 - [ADR template](decisions/adr-template.md)
 - [ADR-0001: Rust/WASM core, TypeScript host, replaceable renderer](decisions/0001-rust-wasm-core-typescript-host.md) — accepted
-- [ADR-0002: Renderer evaluation plan](decisions/0002-renderer-evaluation-plan.md) — proposed (decision-pending)
+- [ADR-0002: Renderer evaluation plan](decisions/0002-renderer-evaluation-plan.md) — superseded by ADR-0005
 - [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — proposed (decision-pending)
 - [ADR-0004: Language and craft philosophy](decisions/0004-language-and-craft-philosophy.md) — accepted
+- [ADR-0005: Canvas2D renderer for first room](decisions/0005-canvas2d-first-room-renderer.md) — accepted
 
 ### Plans
 
@@ -114,6 +115,8 @@ Decisions and plans:
 
 ### Audit
 
+- [2026-05-23 Slice 5 Canvas2D first room report](audit/2026-05-23-slice-5-canvas2d-first-room-report.md) — current
+- [2026-05-23 Slice 4 TypeScript host lifecycle report](audit/2026-05-23-slice-4-typescript-host-lifecycle-report.md) — current
 - [2026-05-23 Slice 3 WASM boundary report](audit/2026-05-23-slice-3-wasm-boundary-report.md) — current
 - [2026-05-23 Slice 2 hub-core movement and doors report](audit/2026-05-23-slice-2-hub-core-movement-and-doors-report.md) — current
 - [2026-05-23 Slice 1 executable foundation report](audit/2026-05-23-slice-1-executable-foundation-report.md) — current
@@ -140,8 +143,26 @@ These files exist now and form the current executable foundation:
 - `src/style.css`
 - `src/app/app.ts`
 - `src/app/app.test.ts`
+- `src/engine/game-module.ts`
+- `src/engine/input.ts`
+- `src/engine/input.test.ts`
+- `src/engine/lifecycle.ts`
+- `src/engine/lifecycle.test.ts`
+- `src/games/registry.ts`
+- `src/games/registry.test.ts`
+- `src/navigation/launch.ts`
+- `src/navigation/launch.test.ts`
 - `src/wasm/boundary.ts`
 - `src/wasm/boundary.test.ts`
+- `src/generated/hub-wasm/hub_wasm.js`
+- `src/generated/hub-wasm/hub_wasm.d.ts`
+- `src/generated/hub-wasm/hub_wasm_bg.wasm`
+- `src/generated/hub-wasm/hub_wasm_bg.wasm.d.ts`
+- `src/generated/hub-wasm/package.json`
+- `src/hub/room.ts`
+- `src/hub/room.test.ts`
+- `src/render/canvas-room.ts`
+- `src/render/canvas-room.test.ts`
 - `src/vite-env.d.ts`
 - `Cargo.toml` (workspace manifest)
 - `Cargo.lock`
@@ -163,7 +184,7 @@ Tooling and config:
 
 TypeScript host planned directories from [Architecture overview](architecture/overview.md):
 
-- `src/engine/`, `src/games/`, `src/navigation/`, `src/render/`, `src/ui/`
+- `src/ui/`
 
 Deployment:
 

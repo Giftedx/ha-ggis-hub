@@ -9,7 +9,7 @@ ha + ggis = haggis
 ha.ggis.xyz = say it without the dot
 ```
 
-This repository has moved from documentation-only foundation into executable foundation work. The current scaffold is intentionally small: a Rust workspace with `hub-core` and `hub-wasm`, plus a strict TypeScript/Vite browser host. `hub-core` now owns deterministic fixed-unit movement and door proximity primitives, and `hub-wasm` exposes the first typed boundary consumed by a TypeScript loader seam. Gameplay rendering, renderer choice, deployment config, and WHS mounting remain planned future slices.
+This repository has moved from documentation-only foundation into executable foundation work. The current scaffold is intentionally small: a Rust workspace with `hub-core` and `hub-wasm`, plus a strict TypeScript/Vite browser host. `hub-core` now owns deterministic fixed-unit movement and door proximity primitives, `hub-wasm` exposes the first typed boundary consumed by the browser build, and the TypeScript host owns lifecycle, input, registry, direct-play launch seams, and a hand-rolled Canvas2D first-room renderer. Browser smoke infrastructure, deployment config, and WHS mounting remain planned future slices.
 
 ## Start here
 
@@ -29,10 +29,10 @@ If you only have time for the load-bearing four, read these in order:
 - Product: planned playable haggis game hub.
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors.
-- Implementation status: executable foundation skeleton plus Rust core movement/door primitives and a typed WASM boundary exist.
+- Implementation status: executable foundation skeleton plus Rust core movement/door primitives, a typed WASM boundary consumed by the browser build, TypeScript host lifecycle/input/registry/direct-play seams, and a Canvas2D first-room renderer exist.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`) + TypeScript/Vite host.
 - Canonical stack direction: Rust/WASM core + TypeScript/Vite host + replaceable renderer.
-- Renderer for the first slice: still open; Canvas2D or PixiJS are the current leading options.
+- Renderer for the first slice: Canvas2D, selected by [ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md).
 
 ## Non-negotiable standard
 
