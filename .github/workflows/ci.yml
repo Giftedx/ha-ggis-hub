@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Fast PR gate — runs the TS verify chain alone. Keeps PR feedback
+  # under 30s on typical changes.
+  ts-verify:
+    name: pnpm verify (fast PR gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+
+  # Full release gate via haggis-eval. Runs the orchestrator's `all`
+  # subcommand which composes: cargo fmt+clippy+test, pnpm tsc+vitest+
+  # build, security (deploy-config.test), browser (build+preview+
+  # door-launch+door-tap), differential hash (100k case fuzz), and
+  # differential rng (WAT vs Rust). Emits signed JSON report to
+  # target/haggis-eval/all-*.json.
+  haggis-eval-all:
+    name: haggis-eval all (release gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - run: pnpm install --frozen-lockfile
+      # Playwright browser needed by `browser` smoke gate.
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build haggis-eval
+        working-directory: tools/haggis-eval
+        run: go build .
+      - name: Run release gate
+        run: ./tools/haggis-eval/haggis-eval all
+      - name: Upload signed report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: haggis-eval-report
+          path: target/haggis-eval/
+          if-no-files-found: warn
