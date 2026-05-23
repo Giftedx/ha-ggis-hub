@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCanvasRoomRenderer, type CanvasRoomSurface } from './canvas-room';
-import type { HubRoomRenderSnapshot } from '../hub/room';
+import type { RoomDefinition } from '../wasm/boundary-v2';
+import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 class RecordingCanvasContext {
   readonly calls: string[] = [];
@@ -35,7 +36,10 @@ class RecordingCanvasContext {
   }
 }
 
-function recordingSurface(width: number, height: number): { surface: CanvasRoomSurface; context: RecordingCanvasContext } {
+function recordingSurface(
+  width: number,
+  height: number
+): { surface: CanvasRoomSurface; context: RecordingCanvasContext } {
   const context = new RecordingCanvasContext();
   return {
     surface: {
@@ -50,32 +54,51 @@ function recordingSurface(width: number, height: number): { surface: CanvasRoomS
   };
 }
 
-const snapshot: HubRoomRenderSnapshot = {
-  world: { width: 1_000, height: 1_000 },
-  player: { x: 500, y: 500, halfExtent: 80, speedPerTick: 100 },
+const ROOM: RoomDefinition = {
+  worldWidth: 1_000,
+  worldHeight: 1_000,
   doors: [
     {
       id: 'wild-haggis-survivors',
-      title: 'Wild Haggis Survivors',
       status: 'launchable',
-      bounds: { x: 820, y: 420, width: 120, height: 160 }
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
     },
     {
       id: 'future-bothy',
-      title: 'Future Bothy',
       status: 'locked',
-      bounds: { x: 80, y: 420, width: 120, height: 160 }
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 }
     }
-  ],
-  interaction: { kind: 'launchable', id: 'wild-haggis-survivors', title: 'Wild Haggis Survivors' }
+  ]
+};
+
+const SNAPSHOT_WITH_LAUNCHABLE: DecodedSnapshot = {
+  playerX: 500,
+  playerY: 500,
+  playerHalfExtent: 80,
+  worldWidth: 1_000,
+  worldHeight: 1_000,
+  interactionKind: 'launchable',
+  interactionDoorIndex: 0,
+  doors: [
+    {
+      id: 'wild-haggis-survivors',
+      status: 'launchable',
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+    },
+    {
+      id: 'future-bothy',
+      status: 'locked',
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 }
+    }
+  ]
 };
 
 describe('createCanvasRoomRenderer', () => {
-  it('renders the first room from a deterministic room snapshot', () => {
+  it('renders the first room from a deterministic snapshot using the room definition for door layout', () => {
     const { surface, context } = recordingSurface(500, 250);
-    const renderer = createCanvasRoomRenderer(surface);
+    const renderer = createCanvasRoomRenderer(surface, ROOM);
 
-    renderer.render(snapshot);
+    renderer.render(SNAPSHOT_WITH_LAUNCHABLE);
 
     expect(context.calls).toContain('fillRect:#24170f:0,0,500,250');
     expect(context.calls).toContain('fillRect:#7a3f1d:410,105,60,40');
@@ -85,6 +108,72 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls).toContain('fillText:#f9efd2:Enter Wild Haggis Survivors:250,226');
   });
 
+  it('emits draw calls in background-then-doors-then-haggis-then-prompt order', () => {
+    const { surface, context } = recordingSurface(500, 250);
+    const renderer = createCanvasRoomRenderer(surface, ROOM);
+
+    renderer.render(SNAPSHOT_WITH_LAUNCHABLE);
+
+    const indexOfBackground = context.calls.indexOf('fillRect:#24170f:0,0,500,250');
+    const indexOfDoor = context.calls.indexOf('fillRect:#7a3f1d:410,105,60,40');
+    const indexOfHaggis = context.calls.indexOf('arc:#8b5a2b:250,125,20');
+    const indexOfPrompt = context.calls.indexOf('fillText:#f9efd2:Enter Wild Haggis Survivors:250,226');
+
+    expect(indexOfBackground).toBeGreaterThanOrEqual(0);
+    expect(indexOfDoor).toBeGreaterThan(indexOfBackground);
+    expect(indexOfHaggis).toBeGreaterThan(indexOfDoor);
+    expect(indexOfPrompt).toBeGreaterThan(indexOfHaggis);
+  });
+
+  it('falls back to a kebab-prettified title when the door id is not in the games registry', () => {
+    const { surface, context } = recordingSurface(500, 250);
+    const room: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'mystery-room',
+          status: 'launchable',
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+        }
+      ]
+    };
+    const snapshot: DecodedSnapshot = {
+      playerX: 500,
+      playerY: 500,
+      playerHalfExtent: 80,
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 0,
+      doors: [
+        {
+          id: 'mystery-room',
+          status: 'launchable',
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+        }
+      ]
+    };
+
+    createCanvasRoomRenderer(surface, room).render(snapshot);
+
+    expect(context.calls).toContain('fillText:#f9efd2:Enter Mystery Room:250,226');
+  });
+
+  it('omits the prompt when there is no interaction', () => {
+    const { surface, context } = recordingSurface(500, 250);
+    const renderer = createCanvasRoomRenderer(surface, ROOM);
+
+    renderer.render({
+      ...SNAPSHOT_WITH_LAUNCHABLE,
+      interactionKind: 'none'
+    });
+
+    expect(context.calls.find((c) => c.startsWith('fillText:'))).toBeUndefined();
+    // Door outline is also suppressed when nothing is being interacted with.
+    expect(context.calls.find((c) => c.startsWith('strokeRect:'))).toBeUndefined();
+  });
+
   it('fails loudly when Canvas2D is unavailable so the host can show fallback UI', () => {
     const surface: CanvasRoomSurface = {
       width: 500,
@@ -92,6 +181,6 @@ describe('createCanvasRoomRenderer', () => {
       getContext: () => null
     };
 
-    expect(() => createCanvasRoomRenderer(surface)).toThrow('Canvas2D context is unavailable');
+    expect(() => createCanvasRoomRenderer(surface, ROOM)).toThrow('Canvas2D context is unavailable');
   });
 });

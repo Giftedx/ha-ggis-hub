@@ -1,4 +1,6 @@
-import type { HubRoomBounds, HubRoomDoor, HubRoomRenderSnapshot } from '../hub/room';
+import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
+import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary-v2';
+import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 export interface CanvasRoomContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
@@ -21,7 +23,7 @@ export interface CanvasRoomSurface {
 }
 
 export interface CanvasRoomRenderer {
-  render(snapshot: HubRoomRenderSnapshot): void;
+  render(snapshot: DecodedSnapshot): void;
 }
 
 const COLORS = {
@@ -33,52 +35,91 @@ const COLORS = {
   text: '#f9efd2'
 } as const;
 
-export function createCanvasRoomRenderer(surface: CanvasRoomSurface): CanvasRoomRenderer {
+interface ScaledRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+interface DoorLayout {
+  readonly id: string;
+  readonly status: 'launchable' | 'locked';
+  readonly rect: ScaledRect;
+  readonly title: string;
+}
+
+export function createCanvasRoomRenderer(
+  surface: CanvasRoomSurface,
+  room: RoomDefinition
+): CanvasRoomRenderer {
   const context = surface.getContext('2d');
 
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
   }
 
+  // Precompute door layout once. Door geometry is part of the room
+  // definition and never changes after init.
+  const doors: readonly DoorLayout[] = room.doors.map((door) => ({
+    id: door.id,
+    status: door.status,
+    rect: scaleDoorBounds(surface, room, door),
+    title: doorTitleForId(door.id)
+  }));
+
   return {
-    render(snapshot: HubRoomRenderSnapshot): void {
-      renderRoom(context, surface, snapshot);
+    render(snapshot: DecodedSnapshot): void {
+      renderRoom(context, surface, room, doors, snapshot);
     }
   };
 }
 
-function renderRoom(context: CanvasRoomContext, surface: CanvasRoomSurface, snapshot: HubRoomRenderSnapshot): void {
+function renderRoom(
+  context: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  room: RoomDefinition,
+  doors: readonly DoorLayout[],
+  snapshot: DecodedSnapshot
+): void {
   context.fillStyle = COLORS.background;
   context.fillRect(0, 0, surface.width, surface.height);
 
-  for (const door of snapshot.doors) {
-    drawDoor(context, surface, snapshot, door);
+  const interactingId = activeDoorId(snapshot);
+  for (const door of doors) {
+    drawDoor(context, door, interactingId);
   }
 
-  drawHaggis(context, surface, snapshot);
-  drawPrompt(context, surface, snapshot);
+  drawHaggis(context, surface, room, snapshot);
+  drawPrompt(context, surface, doors, snapshot);
 }
 
 function drawDoor(
   context: CanvasRoomContext,
-  surface: CanvasRoomSurface,
-  snapshot: HubRoomRenderSnapshot,
-  door: HubRoomDoor
+  door: DoorLayout,
+  interactingId: string | null
 ): void {
-  const rect = scaleBounds(surface, snapshot, door.bounds);
   context.fillStyle = door.status === 'launchable' ? COLORS.launchableDoor : COLORS.lockedDoor;
-  context.fillRect(rect.x, rect.y, rect.width, rect.height);
+  context.fillRect(door.rect.x, door.rect.y, door.rect.width, door.rect.height);
 
-  if (snapshot.interaction.id === door.id) {
+  if (interactingId === door.id) {
     context.strokeStyle = COLORS.activeOutline;
     context.lineWidth = 3;
-    context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+    context.strokeRect(door.rect.x, door.rect.y, door.rect.width, door.rect.height);
   }
 }
 
-function drawHaggis(context: CanvasRoomContext, surface: CanvasRoomSurface, snapshot: HubRoomRenderSnapshot): void {
-  const center = scalePoint(surface, snapshot, snapshot.player.x, snapshot.player.y);
-  const radius = Math.max(8, Math.round((snapshot.player.halfExtent / snapshot.world.width) * surface.width * 0.5));
+function drawHaggis(
+  context: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  room: RoomDefinition,
+  snapshot: DecodedSnapshot
+): void {
+  const center = scalePoint(surface, room, snapshot.playerX, snapshot.playerY);
+  const radius = Math.max(
+    8,
+    Math.round((snapshot.playerHalfExtent / room.worldWidth) * surface.width * 0.5)
+  );
 
   context.fillStyle = COLORS.haggis;
   context.beginPath();
@@ -86,39 +127,70 @@ function drawHaggis(context: CanvasRoomContext, surface: CanvasRoomSurface, snap
   context.fill();
 }
 
-function drawPrompt(context: CanvasRoomContext, surface: CanvasRoomSurface, snapshot: HubRoomRenderSnapshot): void {
-  if (snapshot.interaction.kind === 'none') {
+function drawPrompt(
+  context: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  doors: readonly DoorLayout[],
+  snapshot: DecodedSnapshot
+): void {
+  if (snapshot.interactionKind === 'none') {
     return;
   }
 
-  const verb = snapshot.interaction.kind === 'launchable' ? 'Enter' : 'Locked';
+  const door = doors[snapshot.interactionDoorIndex];
+  if (door === undefined) {
+    return;
+  }
+
+  const verb = snapshot.interactionKind === 'launchable' ? 'Enter' : 'Locked';
   context.fillStyle = COLORS.text;
   context.font = '16px system-ui, sans-serif';
   context.textAlign = 'center';
-  context.fillText(`${verb} ${snapshot.interaction.title}`, Math.round(surface.width / 2), surface.height - 24);
+  context.fillText(`${verb} ${door.title}`, Math.round(surface.width / 2), surface.height - 24);
 }
 
-function scaleBounds(
+function activeDoorId(snapshot: DecodedSnapshot): string | null {
+  if (snapshot.interactionKind === 'none') {
+    return null;
+  }
+  const door = snapshot.doors[snapshot.interactionDoorIndex];
+  return door?.id ?? null;
+}
+
+function scaleDoorBounds(
   surface: CanvasRoomSurface,
-  snapshot: HubRoomRenderSnapshot,
-  bounds: HubRoomBounds
-): HubRoomBounds {
+  room: RoomDefinition,
+  door: RoomDoorDefinition
+): ScaledRect {
+  const width = door.bounds.maxX - door.bounds.minX;
+  const height = door.bounds.maxY - door.bounds.minY;
   return {
-    x: Math.round((bounds.x / snapshot.world.width) * surface.width),
-    y: Math.round((bounds.y / snapshot.world.height) * surface.height),
-    width: Math.round((bounds.width / snapshot.world.width) * surface.width),
-    height: Math.round((bounds.height / snapshot.world.height) * surface.height)
+    x: Math.round((door.bounds.minX / room.worldWidth) * surface.width),
+    y: Math.round((door.bounds.minY / room.worldHeight) * surface.height),
+    width: Math.round((width / room.worldWidth) * surface.width),
+    height: Math.round((height / room.worldHeight) * surface.height)
   };
 }
 
 function scalePoint(
   surface: CanvasRoomSurface,
-  snapshot: HubRoomRenderSnapshot,
+  room: RoomDefinition,
   x: number,
   y: number
 ): { readonly x: number; readonly y: number } {
   return {
-    x: Math.round((x / snapshot.world.width) * surface.width),
-    y: Math.round((y / snapshot.world.height) * surface.height)
+    x: Math.round((x / room.worldWidth) * surface.width),
+    y: Math.round((y / room.worldHeight) * surface.height)
   };
+}
+
+function doorTitleForId(id: string): string {
+  return getGameById(HUB_GAME_REGISTRY, id)?.title ?? prettifyKebab(id);
+}
+
+function prettifyKebab(id: string): string {
+  return id
+    .split('-')
+    .map((part) => (part.length > 0 ? part[0]!.toUpperCase() + part.slice(1) : part))
+    .join(' ');
 }

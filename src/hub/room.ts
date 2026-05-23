@@ -1,96 +1,49 @@
-import type { HubCoreWorld, HubInputVector, HubInteraction, HubPlayerState } from '../wasm/boundary';
-
-export interface HubRoomWorldSize {
-  readonly width: number;
-  readonly height: number;
-}
-
-export interface HubRoomBounds {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-export type HubRoomDoorStatus = 'launchable' | 'locked';
-
-export interface HubRoomDoor {
-  readonly id: string;
-  readonly title: string;
-  readonly status: HubRoomDoorStatus;
-  readonly bounds: HubRoomBounds;
-}
-
-export interface HubRoomRenderSnapshot {
-  readonly world: HubRoomWorldSize;
-  readonly player: HubPlayerState;
-  readonly doors: readonly HubRoomDoor[];
-  readonly interaction: HubInteraction;
-}
+import type { HubBoundary } from '../wasm/boundary-v2';
+import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 export interface HubRoomRenderer {
-  render(snapshot: HubRoomRenderSnapshot): void;
+  render(snapshot: DecodedSnapshot): void;
 }
 
 export interface HubRoomInputSource {
-  snapshot(): HubInputVector;
+  /** Returns the InputSnapshot raw u16 value packed into a number. */
+  packedInput(): number;
 }
 
 export interface HubRoomControllerOptions {
-  readonly world: HubCoreWorld;
-  readonly doors: readonly HubRoomDoor[];
+  readonly boundary: HubBoundary;
   readonly renderer: HubRoomRenderer;
   readonly input: HubRoomInputSource;
-  readonly initialPlayer: HubPlayerState;
-  readonly worldSize?: HubRoomWorldSize;
 }
 
 export interface HubRoomController {
   tick(): void;
   render(): void;
-  player(): HubPlayerState;
+  lastSnapshot(): DecodedSnapshot;
+  destroy(): void;
 }
 
-export const DEFAULT_HUB_ROOM_DOORS: readonly HubRoomDoor[] = [
-  {
-    id: 'wild-haggis-survivors',
-    title: 'Wild Haggis Survivors',
-    status: 'launchable',
-    bounds: { x: 820, y: 420, width: 120, height: 160 }
-  },
-  {
-    id: 'future-bothy',
-    title: 'Future Bothy',
-    status: 'locked',
-    bounds: { x: 80, y: 420, width: 120, height: 160 }
-  }
-];
-
-const DEFAULT_WORLD_SIZE: HubRoomWorldSize = { width: 1_000, height: 1_000 };
-
 export function createHubRoomController(options: HubRoomControllerOptions): HubRoomController {
-  let player = options.initialPlayer;
-  const worldSize = options.worldSize ?? DEFAULT_WORLD_SIZE;
-
-  function snapshot(): HubRoomRenderSnapshot {
-    return {
-      world: worldSize,
-      player,
-      doors: options.doors,
-      interaction: options.world.interactionFor(player)
-    };
-  }
+  // Initial draw: pull the first snapshot by ticking with no input. The Sim
+  // is constructed at the boundary's `init` and already published its
+  // initial render snapshot; ticking with zero input here keeps the
+  // accumulator-driven loop's invariants simple (every snapshot the
+  // renderer sees was produced by a tick call).
+  let last = options.boundary.tick(0);
 
   return {
     tick(): void {
-      player = options.world.tickPlayer(player, options.input.snapshot());
-      options.renderer.render(snapshot());
+      last = options.boundary.tick(options.input.packedInput());
+      options.renderer.render(last);
     },
     render(): void {
-      options.renderer.render(snapshot());
+      options.renderer.render(last);
     },
-    player(): HubPlayerState {
-      return player;
+    lastSnapshot(): DecodedSnapshot {
+      return last;
+    },
+    destroy(): void {
+      options.boundary.destroy();
     }
   };
 }

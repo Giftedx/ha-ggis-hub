@@ -1,58 +1,128 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createHubRoomController, DEFAULT_HUB_ROOM_DOORS } from './room';
-import type { HubCoreWorld, HubPlayerState } from '../wasm/boundary';
+import { createHubRoomController } from './room';
+import type { HubBoundary, RoomDefinition } from '../wasm/boundary-v2';
+import type { DecodedSnapshot } from '../wasm/snapshot-codec';
+
+function emptyRoom(): RoomDefinition {
+  return { worldWidth: 1_000, worldHeight: 1_000, doors: [] };
+}
+
+function snapshotAt(x: number, y: number): DecodedSnapshot {
+  return {
+    playerX: x,
+    playerY: y,
+    playerHalfExtent: 80,
+    worldWidth: 1_000,
+    worldHeight: 1_000,
+    interactionKind: 'none',
+    interactionDoorIndex: 0,
+    doors: []
+  };
+}
+
+interface StubBoundaryHandle {
+  readonly boundary: HubBoundary;
+  readonly tick: ReturnType<typeof vi.fn>;
+  readonly destroy: ReturnType<typeof vi.fn>;
+  setNext(snapshot: DecodedSnapshot): void;
+}
+
+function makeStubBoundary(initial: DecodedSnapshot): StubBoundaryHandle {
+  let nextSnapshot = initial;
+  const tick = vi.fn((_inputPacked: number): DecodedSnapshot => nextSnapshot);
+  const destroy = vi.fn();
+  const boundary: HubBoundary = {
+    apiVersion: 1,
+    room: emptyRoom(),
+    tick,
+    stateHash: () => 0n,
+    destroy
+  };
+  return {
+    boundary,
+    tick,
+    destroy,
+    setNext(snapshot: DecodedSnapshot): void {
+      nextSnapshot = snapshot;
+    }
+  };
+}
 
 describe('createHubRoomController', () => {
-  it('advances player state through the hub core and renders the resulting room snapshot', () => {
-    const initialPlayer: HubPlayerState = { x: 500, y: 500, halfExtent: 80, speedPerTick: 100 };
-    const nextPlayer: HubPlayerState = { x: 600, y: 500, halfExtent: 80, speedPerTick: 100 };
-    const world: HubCoreWorld = {
-      tickPlayer: vi.fn(() => nextPlayer),
-      interactionFor: vi.fn(() => ({ kind: 'launchable' as const, id: 'wild-haggis-survivors', title: 'Wild Haggis Survivors' }))
-    };
+  it('draws the initial frame by ticking the boundary once on construction', () => {
+    const initial = snapshotAt(500, 500);
+    const stub = makeStubBoundary(initial);
     const render = vi.fn();
+
     const controller = createHubRoomController({
-      world,
-      doors: DEFAULT_HUB_ROOM_DOORS,
+      boundary: stub.boundary,
       renderer: { render },
-      input: { snapshot: () => ({ x: 1, y: 0 }) },
-      initialPlayer
+      input: { packedInput: () => 0 }
     });
 
-    controller.tick();
-
-    expect(world.tickPlayer).toHaveBeenCalledWith(initialPlayer, { x: 1, y: 0 });
-    expect(world.interactionFor).toHaveBeenCalledWith(nextPlayer);
-    expect(controller.player()).toEqual(nextPlayer);
-    expect(render).toHaveBeenCalledWith({
-      world: { width: 1_000, height: 1_000 },
-      player: nextPlayer,
-      doors: DEFAULT_HUB_ROOM_DOORS,
-      interaction: { kind: 'launchable', id: 'wild-haggis-survivors', title: 'Wild Haggis Survivors' }
-    });
+    // Constructor invoked tick once with a zero input to seed the first snapshot.
+    expect(stub.tick).toHaveBeenCalledTimes(1);
+    expect(stub.tick).toHaveBeenCalledWith(0);
+    expect(controller.lastSnapshot()).toBe(initial);
+    // render() is not implicitly called on construction — the host pulls it.
+    expect(render).not.toHaveBeenCalled();
   });
 
-  it('renders a no-interaction initial frame before movement starts', () => {
-    const initialPlayer: HubPlayerState = { x: 500, y: 500, halfExtent: 80, speedPerTick: 100 };
+  it('advances the snapshot through the boundary on each tick and renders it', () => {
+    const initial = snapshotAt(500, 500);
+    const moved = snapshotAt(600, 500);
+    const stub = makeStubBoundary(initial);
     const render = vi.fn();
+    const packedInput = vi.fn(() => 0b0001); // x = +1
+
     const controller = createHubRoomController({
-      world: {
-        tickPlayer: vi.fn(),
-        interactionFor: vi.fn(() => ({ kind: 'none' as const, id: '', title: '' }))
-      },
-      doors: DEFAULT_HUB_ROOM_DOORS,
+      boundary: stub.boundary,
       renderer: { render },
-      input: { snapshot: () => ({ x: 0, y: 0 }) },
-      initialPlayer
+      input: { packedInput }
+    });
+
+    stub.setNext(moved);
+    controller.tick();
+
+    expect(packedInput).toHaveBeenCalledTimes(1);
+    // Tick called twice total: once by constructor, once by the controller.tick().
+    expect(stub.tick).toHaveBeenCalledTimes(2);
+    expect(stub.tick).toHaveBeenLastCalledWith(0b0001);
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(render).toHaveBeenCalledWith(moved);
+    expect(controller.lastSnapshot()).toBe(moved);
+  });
+
+  it('renders the last snapshot when render() is called without advancing the boundary', () => {
+    const initial = snapshotAt(500, 500);
+    const stub = makeStubBoundary(initial);
+    const render = vi.fn();
+
+    const controller = createHubRoomController({
+      boundary: stub.boundary,
+      renderer: { render },
+      input: { packedInput: () => 0 }
     });
 
     controller.render();
 
-    expect(render).toHaveBeenCalledWith({
-      world: { width: 1_000, height: 1_000 },
-      player: initialPlayer,
-      doors: DEFAULT_HUB_ROOM_DOORS,
-      interaction: { kind: 'none', id: '', title: '' }
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(render).toHaveBeenCalledWith(initial);
+    // No new boundary ticks beyond construction.
+    expect(stub.tick).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the underlying boundary on destroy()', () => {
+    const stub = makeStubBoundary(snapshotAt(500, 500));
+
+    const controller = createHubRoomController({
+      boundary: stub.boundary,
+      renderer: { render: vi.fn() },
+      input: { packedInput: () => 0 }
     });
+
+    controller.destroy();
+
+    expect(stub.destroy).toHaveBeenCalledTimes(1);
   });
 });

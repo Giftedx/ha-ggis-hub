@@ -1,9 +1,11 @@
 import './style.css';
 import { createAppModel } from './app/app';
 import { createKeyboardInputSampler } from './engine/input';
-import { createHubRoomController, DEFAULT_HUB_ROOM_DOORS } from './hub/room';
+import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from './engine/fixed-step';
+import { InputLogWriter } from './engine/input-log';
+import { createHubRoomController } from './hub/room';
 import { createCanvasRoomRenderer } from './render/canvas-room';
-import { initializeHubCore } from './wasm/boundary';
+import { initializeHubBoundaryV2 } from './wasm/boundary-v2';
 import { loadGeneratedHubWasm } from './wasm/generated-loader';
 
 const appRoot = document.querySelector<HTMLElement>('#app');
@@ -20,29 +22,69 @@ async function start(root: HTMLElement): Promise<void> {
   root.replaceChildren(shell.section);
 
   try {
-    const core = await initializeHubCore(loadGeneratedHubWasm);
-    const renderer = createCanvasRoomRenderer(shell.canvas);
-    const input = createKeyboardInputSampler(window);
-    const room = createHubRoomController({
-      world: core.world,
-      doors: DEFAULT_HUB_ROOM_DOORS,
-      renderer,
-      input,
-      initialPlayer: { x: 500, y: 500, halfExtent: 80, speedPerTick: 18 }
+    const seed = BigInt(Date.now());
+    // Type seam: the existing generated-loader was typed for the OLD
+    // generated bindings shape. Phase 6 deletes the old boundary and
+    // retypes the loader; until then the cast is the one-line escape
+    // hatch documented in the migration plan.
+    const boundary = await initializeHubBoundaryV2(
+      loadGeneratedHubWasm as unknown as () => Promise<any>,
+      seed
+    );
+    const renderer = createCanvasRoomRenderer(shell.canvas, boundary.room);
+    const keyboard = createKeyboardInputSampler(window);
+
+    const inputLog = new InputLogWriter({
+      seed,
+      coreApiVersion: boundary.apiVersion,
+      startedAtUtcMs: BigInt(Date.now()),
+      initialStateHash: boundary.stateHash()
     });
 
+    const input = {
+      packedInput: (): number => {
+        const v = keyboard.snapshot();
+        let bits = 0;
+        if (v.x > 0) bits |= 0b01;
+        else if (v.x < 0) bits |= 0b10;
+        if (v.y > 0) bits |= 0b01 << 2;
+        else if (v.y < 0) bits |= 0b10 << 2;
+        return bits;
+      }
+    };
+
+    const room = createHubRoomController({ boundary, renderer, input });
     room.render();
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      shell.status.textContent = 'Reduced motion is on: room animation is paused; direct play remains available.';
+      shell.status.textContent =
+        'Reduced motion is on: room animation is paused; direct play remains available.';
       return;
     }
 
-    const animate = (): void => {
-      room.tick();
-      window.requestAnimationFrame(animate);
+    const config = { tickMs: 1000 / 60, maxTicksPerPump: 8 };
+    let stepState = INITIAL_FIXED_STEP_STATE;
+    let last = performance.now();
+    const loop = (now: number): void => {
+      const delta = now - last;
+      last = now;
+      const pumped = pumpFixedStep(config, stepState, delta);
+      if (pumped.ticksToAdvance > 0) {
+        const packed = input.packedInput();
+        inputLog.recordIfChanged(stepState.tick, packed);
+        for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
+          room.tick();
+        }
+      }
+      stepState = pumped.state;
+      window.requestAnimationFrame(loop);
     };
-    window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(loop);
+
+    window.addEventListener('beforeunload', () => {
+      const bytes = inputLog.finish(stepState.tick, boundary.stateHash());
+      (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
+    });
   } catch (error: unknown) {
     shell.status.textContent = 'The playable room could not load. Direct play is still available below.';
     console.error(error);
