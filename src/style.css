@@ -28,7 +28,7 @@ body {
 }
 
 .shell {
-  width: min(100%, 56rem);
+  width: min(100%, 58rem);
   border: 1px solid rgb(247 239 224 / 18%);
   border-radius: 1.5rem;
   padding: clamp(1.5rem, 4vw, 4rem);
@@ -52,10 +52,52 @@ h1 {
 }
 
 .tagline {
-  max-width: 42rem;
+  max-width: 44rem;
   margin: 1.5rem 0 2rem;
   color: #d8c4a5;
   font-size: clamp(1.1rem, 2vw, 1.35rem);
+}
+
+.room-frame {
+  margin: 0 0 1.25rem;
+}
+
+.room-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgb(244 201 93 / 35%);
+  border-radius: 1rem;
+  background: #24170f;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 45%);
+}
+
+.room-frame figcaption,
+.runtime-status {
+  margin: 0.75rem 0 0;
+  color: #d8c4a5;
+  font-size: 0.95rem;
+}
+
+.direct-play {
+  display: inline-flex;
+  margin: 0.75rem 0 2rem;
+  border: 1px solid rgb(240 179 91 / 70%);
+  border-radius: 999px;
+  padding: 0.85rem 1.2rem;
+  color: #17110d;
+  background: #f0b35b;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.direct-play:focus-visible {
+  outline: 3px solid #f7efe0;
+  outline-offset: 4px;
+}
+
+.direct-play:hover {
+  background: #ffd38a;
 }
 
 .facts {
@@ -80,4 +122,10 @@ h1 {
 .facts dd {
   margin: 0.35rem 0 0;
   color: #f7efe0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-canvas {
+    box-shadow: none;
+  }
 }
