@@ -27,9 +27,9 @@ Acceptance:
 - Complete: docs updated from “not scaffolded” to “skeleton exists.”
 - Verification recorded in [Slice 1 executable foundation report](../audit/2026-05-23-slice-1-executable-foundation-report.md).
 
-## Slice 2: hub-core movement and doors
+## Slice 2: hub-core movement and doors — complete 2026-05-23
 
-Create Rust core types for:
+Created Rust core types for:
 
 - position
 - bounds
@@ -40,19 +40,21 @@ Create Rust core types for:
 
 Acceptance:
 
-- movement tests pass
-- door proximity tests pass
-- deterministic tick behavior is proven
+- Complete: movement tests pass.
+- Complete: door proximity tests pass.
+- Complete: deterministic tick behavior is proven with fixed integer movement tests.
+- Verification recorded in [Slice 2 hub-core movement and doors report](../audit/2026-05-23-slice-2-hub-core-movement-and-doors-report.md).
 
-## Slice 3: WASM boundary
+## Slice 3: WASM boundary — complete 2026-05-23
 
-Expose core through `hub-wasm`.
+Exposed core through `hub-wasm` and added the TypeScript boundary loader seam.
 
 Acceptance:
 
-- WASM build works
-- TypeScript can initialize module
-- boundary tests cover invalid inputs
+- Complete: WASM build works.
+- Complete: TypeScript can initialize a generated module through `src/wasm/boundary.ts`.
+- Complete: boundary tests cover invalid inputs.
+- Verification recorded in [Slice 3 WASM boundary report](../audit/2026-05-23-slice-3-wasm-boundary-report.md).
 
 ## Slice 4: TypeScript host lifecycle
 

@@ -7,7 +7,7 @@ describe('createAppModel', () => {
       projectName: 'ha.ggis Hub',
       publicUrl: 'https://ha.ggis.xyz',
       stack: 'Rust hub-core -> WASM wrapper -> TypeScript/Vite host -> replaceable renderer',
-      phase: 'executable foundation skeleton'
+      phase: 'executable foundation with Rust/WASM boundary'
     });
   });
 });

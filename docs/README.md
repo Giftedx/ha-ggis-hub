@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, and deterministic lockfiles exist. Renderer/gameplay, CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
+The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, and deterministic lockfiles exist. `hub-core` also has deterministic fixed-unit movement, player bounds, and door proximity primitives; `hub-wasm` exposes those primitives through a typed boundary and `src/wasm/boundary.ts` provides the host initialization seam. Renderer/gameplay presentation, CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
 
 ## Recommended reading order
 
@@ -114,6 +114,8 @@ Decisions and plans:
 
 ### Audit
 
+- [2026-05-23 Slice 3 WASM boundary report](audit/2026-05-23-slice-3-wasm-boundary-report.md) — current
+- [2026-05-23 Slice 2 hub-core movement and doors report](audit/2026-05-23-slice-2-hub-core-movement-and-doors-report.md) — current
 - [2026-05-23 Slice 1 executable foundation report](audit/2026-05-23-slice-1-executable-foundation-report.md) — current
 - [2026-05-23 documentation audit](audit/2026-05-23-docs-audit.md) — historical
 - [2026-05-22 foundation strengthening report](audit/2026-05-22-foundation-strengthening-report.md) — historical
@@ -123,9 +125,9 @@ Decisions and plans:
 
 - [Original seed plan, superseded](archive/2026-05-22-original-ha-ggis-hub-plan.md)
 
-## Current executable skeleton files
+## Current executable foundation files
 
-These files exist now and form the current Slice 1 scaffold:
+These files exist now and form the current executable foundation:
 
 - `.gitignore`
 - `.gitattributes`
@@ -138,6 +140,8 @@ These files exist now and form the current Slice 1 scaffold:
 - `src/style.css`
 - `src/app/app.ts`
 - `src/app/app.test.ts`
+- `src/wasm/boundary.ts`
+- `src/wasm/boundary.test.ts`
 - `src/vite-env.d.ts`
 - `Cargo.toml` (workspace manifest)
 - `Cargo.lock`
@@ -159,7 +163,7 @@ Tooling and config:
 
 TypeScript host planned directories from [Architecture overview](architecture/overview.md):
 
-- `src/engine/`, `src/games/`, `src/navigation/`, `src/render/`, `src/ui/`, `src/wasm/`
+- `src/engine/`, `src/games/`, `src/navigation/`, `src/render/`, `src/ui/`
 
 Deployment:
 
