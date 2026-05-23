@@ -30,3 +30,9 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Scratch — local smoke artifacts, screenshots, etc.
+.tmp/
+
+# Per-session worktrees created by Claude Code's EnterWorktree tool
+.claude/worktrees/
