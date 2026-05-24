@@ -2,6 +2,17 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: boundary + input edge-case coverage (249→252 tests)
+
+3 new boundary.test.ts cases: snapshot-buffer-length-mismatch error (HubBoundaryError tag -1), multi-door room definition with launchable status, and handle.free() via destroy(). 3 new input.test.ts cases: snapshot/consumeInteract after destroy return zero/false; double-destroy is idempotent; keyCodeFromEvent falls back to '' for bare events.
+
+### Added
+
+- **`src/wasm/boundary.test.ts`** — 3 new cases covering error paths and door parsing.
+- **`src/engine/input.test.ts`** — 3 new cases covering post-destroy behaviour and keycode fallback.
+
+---
+
 ## [Unreleased] — 2026-05-24 test: palette drawing-function tests; raise coverage thresholds
 
 36 new vitest cases for `src/render/palette.ts` covering the Bayer-ordered-dither drawing primitives (`ditheredBloom`, `ditheredBloomBiased`, `ditheredAlphaMask`, `radialEllipseAlpha`, `ditherZoneInternal`, `ditherBoundary`, `lightZoneAt`, `makeBeamGeometry`). Mock `HardPixelContext` — no real Canvas2D context needed. All branches of the dither logic (out-of-circle skip, inner-core vs outer-ring, cluster vs single pixel, threshold comparison) are now exercised. Branch coverage rises from 73% to 80.8%. Enforced thresholds raised to lines/stmts/fns ≥ 90%, branches ≥ 78%.
