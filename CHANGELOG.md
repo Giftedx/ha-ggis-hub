@@ -2,6 +2,23 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 haggis mane sway + ADR-0003 closed + doc accuracy pass
+
+### Changed
+
+- **`src/render/canon-haggis.ts`** — Added `maneSway?: number` to `CanonHaggisFrame`. When non-zero, the full mane mass (back-cap, crown, forehead fringe, fringe shadow, strands, cream highlights, ear) translates along the face axis via a new `mmx` helper. Body, legs, tail, face, eye, and snout are unaffected — only the hair moves. Updated the stale comment on the interface that said "Reserved for future locomotion: leg cycle, mane sway"; leg cycle and mane sway are now both wired.
+- **`src/render/canvas-room.ts`** — `drawHaggis` now computes `maneSway = isMoving ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0` (1.5 Hz, half stride frequency) and passes it through to `drawCanonHaggis`. At rest, `maneSway = 0` and the visual golden is unaffected.
+- **`docs/decisions/0003-whs-integration-strategy.md`** — Status updated from `proposed (decision-pending)` to `accepted`. Decision recorded: Option A (external URL to `https://wild-haggis-survivors.pages.dev/`) chosen for first release; Option B (`/wild-haggis-survivors/` mount) documented as the intended end-state.
+- **`docs/decisions/README.md`** — ADR-0003 row updated to `accepted`; corrected the follow-up note that incorrectly described the settled choice as "Option B".
+- **`docs/architecture/overview.md`**, **`security-model.md`**, **`autopilot-system.md`**, **`data-and-save-boundaries.md`**, **`docs/deployment/cloudflare-pages.md`** — Five docs updated from "planned" to reflect shipped state (previous session's doc accuracy pass).
+
+### Gates green
+
+```
+pnpm verify (fast PR gate)        ~7s    194/194
+run-visual-gate.mjs verify        PASS   hamming 3/8 (unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 haggis walking animation + locked-door title prompt
 
 Two renderer quality-of-life improvements with no dependency additions, no gate regressions, and no visual-golden impact (idle state is unchanged).

@@ -663,12 +663,16 @@ function drawHaggis(
   const legAmp = 1.5;
   const leftLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
   const rightLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
+  // Mane sway at half stride frequency — one full pendulum swing per
+  // complete stride cycle so the mane lags the body naturally.
+  const maneSway = isMoving ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0;
 
   drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
     breathY: Math.sin(phase * 1.4) * 0.4,
     facingLeft,
     leftLegY,
-    rightLegY
+    rightLegY,
+    maneSway
   });
 }
 

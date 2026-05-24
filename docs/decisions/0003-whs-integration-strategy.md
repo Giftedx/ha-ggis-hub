@@ -1,10 +1,9 @@
 # ADR-0003: Wild Haggis Survivors Integration Strategy
 
-Status: proposed (decision-pending)
+Status: accepted
 Date: 2026-05-22
+Decision date: 2026-05-23
 Related: [Data and save boundaries](../architecture/data-and-save-boundaries.md), [Cloudflare Pages](../deployment/cloudflare-pages.md), [ADR template](adr-template.md)
-
-This ADR uses the decision-pending shape. The launch strategy will be chosen after deployment is real and the WHS build base path can be tested under the production hub.
 
 ## Context
 
@@ -12,9 +11,9 @@ The hub’s first real game is Wild Haggis Survivors. WHS remains a separate pro
 
 ## Options
 
-### Option A: external URL first
+### Option A: external URL (chosen)
 
-Hub launches WHS at its existing deployment URL.
+Hub launches WHS at its existing deployment URL (`https://wild-haggis-survivors.pages.dev/`).
 
 Pros:
 
@@ -25,7 +24,7 @@ Pros:
 Cons:
 
 - less polished public URL
-- migration needed later
+- migration needed if the canonical URL should move to `ha.ggis.xyz/wild-haggis-survivors`
 
 ### Option B: mount static WHS build under `/wild-haggis-survivors/`
 
@@ -38,14 +37,18 @@ Pros:
 
 Cons:
 
-- needs WHS Vite/base-path compatibility
+- needs WHS Vite/base-path compatibility (`base: ‘/wild-haggis-survivors/’`)
 - deployment pipeline must coordinate two builds
 - route fallback must be tested carefully
 
-## Current recommendation
+## Decision
 
-Start configurable. Use external URL first if needed to keep the First Perfect Slice safe. Move to `/wild-haggis-survivors/` only after WHS build/base-path and Cloudflare route behavior are verified.
+**Option A chosen** for the first public release. Rationale: WHS is already live and deploys independently. Absorbing it into the hub build requires WHS Vite base-path reconfiguration and a combined pipeline — that coordination cost is not justified while the hub URL is new and the combined-build behavior is untested.
 
-## Decision required later
+Option B remains the intended end-state. The migration path is documented in [`docs/DEPLOYMENT.md`](../DEPLOYMENT.md) §WHS Integration Decision.
 
-Before public production launch, decide whether the first launch uses Option A or Option B.
+## Implementation
+
+`src/games/registry.ts`: `launch: { kind: ‘external-url’, target: ‘https://wild-haggis-survivors.pages.dev/’ }`
+
+External URL launch is validated at startup — must use `https:` and be a valid URL. No additional code path needed; the hub’s existing registry/launch machinery handles it.

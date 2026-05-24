@@ -74,10 +74,10 @@ export const CANON_HAGGIS_PALETTE: CanonHaggisPalette = {
 
 export interface CanonHaggisFrame {
   breathY?: number;
-  // Reserved for future locomotion: leg cycle, mane sway.
-  leftLegY?: number;
-  rightLegY?: number;
+  leftLegY?: number;   // back-pair leg offset (design units, + = down)
+  rightLegY?: number;  // front-pair leg offset (design units, + = down)
   facingLeft?: boolean;
+  maneSway?: number;   // lateral mane oscillation (design units, + = toward face)
 }
 
 // Draw the canonical wild-haggis. (cx, cy) is the body center in
@@ -100,6 +100,10 @@ export function drawCanonHaggis(
   // mirroring + breath bob applied.
   const mx = (dx: number): number => cx + dx * dir * s;
   const my = (dy: number): number => cy + dy * s + breathY;
+  // mmx offsets mane elements by maneSway along the face axis so the
+  // mane mass swings naturally during a trot without moving body/legs.
+  const maneSwayX = (frame.maneSway ?? 0) * s * dir;
+  const mmx = (dx: number): number => mx(dx) + maneSwayX;
 
   // ── Ground heather-purple shadow ────────────────────────────────
   fillEllipse(ctx, palette.heatherShadow, 0.55, cx, cy + 24 * s, 60 * s, 6 * s);
@@ -150,13 +154,13 @@ export function drawCanonHaggis(
   //    Crucial: must NOT cover the whole body. The body's back half
   //    stays bare; the mane sits like a wig over the face side. ───
   // Small back-cap (transition into body)
-  fillEllipse(ctx, palette.maneDark, 0.9, mx(2),  my(-4), 18 * s, 10 * s);
+  fillEllipse(ctx, palette.maneDark, 0.9, mmx(2),  my(-4), 18 * s, 10 * s);
   // Main mane crown — the dome
-  fillEllipse(ctx, palette.maneMid,  1,   mx(8),  my(-5), 22 * s, 11 * s);
+  fillEllipse(ctx, palette.maneMid,  1,   mmx(8),  my(-5), 22 * s, 11 * s);
   // Forehead fringe — covers UPPER face only
-  fillEllipse(ctx, palette.maneMid,  1,   mx(20), my(-2), 14 * s, 9 * s);
+  fillEllipse(ctx, palette.maneMid,  1,   mmx(20), my(-2), 14 * s, 9 * s);
   // Darker shadow under the fringe edge
-  fillEllipse(ctx, palette.maneDark, 0.85, mx(22), my(1), 10 * s, 5 * s);
+  fillEllipse(ctx, palette.maneDark, 0.85, mmx(22), my(1), 10 * s, 5 * s);
 
   // ── Eye — peeks out below the mane fringe edge ──────────────────
   fillCircle(ctx, palette.faceSkin, 1, mx(24), my(3),   1.3 * s);
@@ -173,22 +177,22 @@ export function drawCanonHaggis(
     { x: 18,  tipY: 17, w: 2.2, color: palette.maneMid  }
   ];
   for (const st of strands) {
-    fillStrandTaper(ctx, st.color, mx(st.x), my(4), my(st.tipY), st.w * s);
+    fillStrandTaper(ctx, st.color, mmx(st.x), my(4), my(st.tipY), st.w * s);
   }
 
   // ── Cream highlight on mane crown ───────────────────────────────
-  fillEllipse(ctx, palette.maneLight, 0.78, mx(8),  my(-9), 18 * s, 4 * s);
-  fillEllipse(ctx, palette.maneLight, 0.42, mx(14), my(-6), 10 * s, 2.5 * s);
+  fillEllipse(ctx, palette.maneLight, 0.78, mmx(8),  my(-9), 18 * s, 4 * s);
+  fillEllipse(ctx, palette.maneLight, 0.42, mmx(14), my(-6), 10 * s, 2.5 * s);
 
   // ── Ear — small triangle poking UP through mane top ─────────────
   fillTriangle(ctx, palette.bodyMid, 1,
-    mx(4),  my(-12),
-    mx(9),  my(-7),
-    mx(-1), my(-7));
+    mmx(4),  my(-12),
+    mmx(9),  my(-7),
+    mmx(-1), my(-7));
   fillTriangle(ctx, palette.bodyDark, 1,
-    mx(5),  my(-10),
-    mx(7),  my(-7.5),
-    mx(2),  my(-7.5));
+    mmx(5),  my(-10),
+    mmx(7),  my(-7.5),
+    mmx(2),  my(-7.5));
 }
 
 // ─── Canvas2D primitive helpers ───────────────────────────────────
