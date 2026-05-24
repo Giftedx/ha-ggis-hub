@@ -51,9 +51,12 @@ function waitForPort(url, timeoutMs) {
 buildDist();
 
 log(`starting preview on :${PORT}…`);
+// See run-browser-smokes.mjs for why detached:true on POSIX.
+const isPosix = process.platform !== 'win32';
 const preview = spawn('pnpm', ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
+  detached: isPosix,
 });
 
 const previewOut = [];
@@ -78,7 +81,14 @@ try {
   console.log(previewOut.join(''));
   failed = true;
 } finally {
-  preview.kill();
+  if (preview.pid && !preview.killed) {
+    try {
+      if (isPosix) process.kill(-preview.pid, 'SIGTERM');
+      else preview.kill('SIGTERM');
+    } catch {
+      // Already dead.
+    }
+  }
 }
 
 process.exit(failed ? 1 : 0);

@@ -45,9 +45,13 @@ function waitForPort(url, timeoutMs) {
 buildDist();
 
 log(`starting preview on :${PORT}…`);
+// See run-browser-smokes.mjs for why detached:true on POSIX — same
+// shell-wrapper-vs-vite-grandchild story.
+const isPosix = process.platform !== 'win32';
 const preview = spawn('pnpm', ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
+  detached: isPosix,
 });
 
 const previewOut = [];
@@ -76,7 +80,14 @@ try {
   failed = true;
 } finally {
   log('killing preview');
-  preview.kill('SIGTERM');
+  if (preview.pid && !preview.killed) {
+    try {
+      if (isPosix) process.kill(-preview.pid, 'SIGTERM');
+      else preview.kill('SIGTERM');
+    } catch {
+      // Already dead.
+    }
+  }
   await new Promise((r) => setTimeout(r, 200));
 }
 

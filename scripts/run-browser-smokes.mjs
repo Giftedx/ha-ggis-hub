@@ -52,9 +52,15 @@ function waitForPort(url, timeoutMs) {
 buildDist();
 
 log(`starting preview on :${PORT}…`);
+// detached:true on POSIX so vite becomes its own process-group leader
+// and we can kill the whole group (shell wrapper + vite grandchild) via
+// `process.kill(-pid)` below. Without this, kill('SIGTERM') only takes
+// out the shell and CI logs end with "Terminate orphan process: node".
+const isPosix = process.platform !== 'win32';
 const preview = spawn('pnpm', ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
+  detached: isPosix,
 });
 
 const previewOut = [];
@@ -85,9 +91,23 @@ try {
   failures = 1;
 } finally {
   log('killing preview');
-  preview.kill('SIGTERM');
+  killPreview();
   // Wait a beat so the port releases cleanly.
   await new Promise((r) => setTimeout(r, 200));
+}
+
+function killPreview() {
+  if (!preview.pid || preview.killed) return;
+  try {
+    if (isPosix) {
+      // Negative pid = signal entire process group.
+      process.kill(-preview.pid, 'SIGTERM');
+    } else {
+      preview.kill('SIGTERM');
+    }
+  } catch {
+    // Already dead.
+  }
 }
 
 if (failures > 0) {
