@@ -190,4 +190,22 @@ describe('game lifecycle host', () => {
     expect(destroySpy).toHaveBeenCalledOnce();
     expect(host.current()).toBeNull();
   });
+
+  it('covers the ?? null branch in destroyPartialInstance when instance property is undefined', async () => {
+    const host = createGameLifecycleHost({} as HTMLElement);
+    // Error with `instance: undefined` — passes isErrorWithPartialInstance (property
+    // exists) but error.instance ?? null evaluates to null, covering branch 1[1].
+    await expect(
+      host.launch(
+        {
+          id: 'undef-instance',
+          title: 'Undefined instance',
+          mount: () =>
+            Promise.reject(Object.assign(new Error('mount failed'), { instance: undefined }))
+        },
+        { launchSource: 'route', reducedMotion: false }
+      )
+    ).rejects.toThrow('mount failed');
+    expect(host.current()).toBeNull();
+  });
 });

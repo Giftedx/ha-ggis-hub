@@ -2,6 +2,43 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: branch coverage 89.11% → 89.41%; cover app error path and lifecycle ?? null branch
+
+2 new tests across 2 files (1 new, 1 extended) — closes the last two reachable branches. 258 → 260 vitest.
+
+### Added
+
+- **`src/app/app-error.test.ts`** (new) — 1 test using `vi.mock('../navigation/launch')` to stub `createDirectPlayPlan` returning `kind: 'missing-game'`; exercises the `directPlayPlan.kind !== 'launchable'` throw on `app.ts` line 22.
+
+### Changed
+
+- **`src/engine/lifecycle.test.ts`** — new case: `mount` rejects with `{ instance: undefined }` — passes `isErrorWithPartialInstance` (property exists) but `error.instance ?? null` evaluates to `null`, covering the false side of the nullish-coalescing branch in `destroyPartialInstance` (line 67).
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 258 → 260.
+
+### Gates green
+
+```
+pnpm verify    ~10s    260/260
+pnpm coverage         branches 89.41% (583/652) ≥ 78% configured, above 85% target
+```
+
+### Remaining unreachable branches (acknowledged)
+
+- `canvas-room.ts` Branch 2[1]: imageSmoothingEnabled false path — context always has the property in tests
+- `canvas-room.ts` Branches 3[0]/4[0]/4[1] line=183: `window` and `devicePixelRatio` — browser-only, no DOM in Node
+- `canvas-room.ts` Branch 8[1] line=206: `titles.get(door.id) ?? door.id` — map is keyed on `room.doors`, so lookup never misses
+- `canvas-room.ts` Branch 10[1]: `Date.now()` fallback — `performance` is always defined in Node
+- `canvas-room.ts` Branches 23[0]/26[0]: dust-mote and window-beam conditions depend on floating-point phase values, not controllable from tests
+- `canvas-room.ts` Branch 29[1]: `'available'` door state — `door.status` is `'launchable'|'locked'` by type; no third value exists
+- `canvas-room.ts` Branch 32[1]: `drawLantern` `isLit=false` — `drawLantern` only called for `status==='launchable'` doors (line 288)
+- `pixel-font.ts` Branches 5[1]/9[1]: `GLYPH_WIDTHS[ch] ?? GLYPH_FULL_WIDTH` — every GLYPHS key is in GLYPH_WIDTHS
+- `pixel-font.ts` Branches 0[0]/1[0]/2[0]: glyph validation throws in unexported factory
+- `whs-bothy.ts` Branch 2[0] line=144: floor remainder defensive guard — total plank height always overshoots
+- `sprite.ts` Branch 6[0]: `colour === undefined` — `pixelColours` never contains undefined
+- `launch.ts` Branch 4[0]: dead guard after `canLaunchGame` — logically unreachable
+
+---
+
 ## [Unreleased] — 2026-05-24 test: branch coverage 88.19% → 89.11%; cover small-dx guard, prettifyKebab empty part, door available state, pixel-font unknown-char
 
 7 new tests across 3 files (1 new, 2 extended) — closes remaining testable branches. 251 → 258 vitest.
