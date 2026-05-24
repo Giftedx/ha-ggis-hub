@@ -17,11 +17,11 @@ import {
 import { DOOR_SIGN, LANTERN_LIT } from './sprites/door';
 import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './sprites/pixel-font';
 
-// Pixel-art renderer for the ha.ggis bothy. The host sizes the canvas
-// internal buffer to roughly 320×180 (or wider for ultrawide aspect)
-// and CSS scales it to the viewport with `image-rendering: pixelated`.
-// Every draw call here lives at integer pixel coordinates so the upscaled
-// result stays crisp and intentional.
+// ha.ggis bothy renderer. The host locks the canvas internal buffer to
+// 540×360 (3:2 aspect); CSS object-fit:contain + image-rendering:auto
+// scales it to the viewport with bilinear smoothing, which suits the
+// AA-smooth procedural art (haggis, walls, hearth). Every draw call uses
+// integer pixel coordinates so shapes stay sharp at native resolution.
 
 export interface CanvasRoomContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
