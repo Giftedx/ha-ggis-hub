@@ -34,7 +34,7 @@ jobs:
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
   # subcommand which composes 19 gate groups sequentially:
   # rust (cargo fmt+clippy+test), ts (tsc+vitest+build), coverage
-  # (vitest v8 thresholds: lines≥80% stmts≥80% fns≥85% branches≥60%),
+  # (vitest v8 thresholds: lines≥90% stmts≥90% fns≥90% branches≥78%),
   # security (deploy-config.test — headers+CSP+cache), perf (bundle
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
   # (door-launch + door-tap + pointer-drive smokes), determinism

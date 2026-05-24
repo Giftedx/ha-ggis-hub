@@ -82,7 +82,7 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 ### Cryptographically signed gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 

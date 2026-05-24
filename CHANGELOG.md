@@ -2,6 +2,24 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 docs: fix three doc-drift issues across testing-strategy, CI workflow, and WRITEUP
+
+Three doc-drift issues corrected. No code changes.
+
+### Changed
+
+- **`docs/architecture/testing-strategy.md`** — pyramid code block still said `252 vitest`; corrected to `223`. The implementation-status paragraph was already correct at 223; only the pyramid block was missed in the previous fix sweep.
+- **`.github/workflows/ci.yml`** — `haggis-eval-all` job comment listed stale coverage thresholds (`lines≥80% stmts≥80% fns≥85% branches≥60%`); updated to current values (`lines≥90% stmts≥90% fns≥90% branches≥78%`) to match `vite.config.ts` and `tools/haggis-eval/README.md`.
+- **`WRITEUP.md`** — `haggis-eval all` gate list was missing `coverage`, `soak`, and `supply-chain`; the list now matches the 13 subcommands in `tools/haggis-eval/README.md`.
+
+### Gates green
+
+```
+pnpm verify    ~8s    223/223
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 refactor: delete deprecated Bayer-dither code (252→223 tests)
 
 Closed the `DESIGN.md` register-policy action item: "delete after the smooth-only commitment is verified end-to-end". The six Bayer-ordered-dither functions in `src/render/palette.ts` had no runtime callers — they were only exercised by their own dedicated tests. The smooth-only commitment is verified by the visual gate on every CI run. Removing them and their tests reduces the test count from 252 to 223 but improves the codebase by eliminating dead production code. Coverage stays healthy: 95.51% lines, 80.24% branches.
