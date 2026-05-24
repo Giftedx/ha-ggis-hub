@@ -2,6 +2,38 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 visual golden re-captured on Linux + recapture workflow
+
+Acting on today's prior reflection: the visual gate's 3-bit Linux-vs-Windows delta was a stable cross-platform rendering difference, not jitter. Re-capturing the golden on the OS the verifier runs on (ubuntu-latest, where GitHub Actions executes the release gate) closes the gap. Linux CI now reads 0/8 Hamming distance — clean signal, full 8-bit budget reserved for real drift.
+
+### Added
+
+- **`.github/workflows/visual-recapture.yml`** — one-shot `workflow_dispatch` job that runs `node scripts/run-visual-gate.mjs capture` on ubuntu-latest and uploads `tests/golden/` as the `tests-golden` artifact. Reusable infra for any future scene re-baseline: trigger via `gh workflow run visual-recapture.yml`, eyeball the artifact PNG against the locked visual brief, commit. Does NOT auto-commit — re-capturing a visual golden is a deliberate human act.
+
+### Changed
+
+- **`tests/golden/bothy-idle-seed-42.png`** — re-captured on ubuntu-latest via the new workflow (run 26351707774). Visually identical to the prior Windows-captured PNG to the eye; the 3-bit aHash delta was sub-pixel AA + font-hinting noise that doesn't affect what a viewer sees.
+- **`tests/golden/visual-budgets.json`** — `bothy-idle-seed-42.hash` updated to the Linux capture's value (`3c3cfc3ffc3f...740060000`, byte-identical to what every Linux CI run reported against the prior Windows golden). New `capturedOn` field names the workflow run that produced it. `toleranceSource` updated to reflect the OS pivot; tolerance retained at 8 bits as headroom for the mirror direction (Windows dev-machine captures will now read ~3 against the Linux golden — symmetric to today's prior state) plus any future real animation jitter.
+- **`tests/golden/visual-budgets.json` `_comment`** — rewritten to make the OS-of-capture policy explicit: goldens come from the CI OS, not the contributor's local OS.
+
+### Net effect
+
+| Site            | Distance before recapture | Distance after recapture |
+|-----------------|---------------------------|--------------------------|
+| Linux CI        | 3 / 8 (37%)               | 0 / 8 (0%)               |
+| Windows local   | 0 / 8 (0%)                | 3 / 8 (37%)              |
+
+Same symmetric 3-bit cross-platform delta — but on the side that matters less. CI gets the clean reading; Windows dev-machine retains comfortable headroom.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0xa45688bc977506b
+  visual/verify (Linux golden)            PASS  hamming 3/8 local Windows, 0/8 on Linux CI
+  all other 14 gates                      PASS  (unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 visual-gate tolerance calibration from CI evidence
 
 Same pattern as the earlier paint-budget calibration today: pull real CI evidence, tighten the gate's headroom from "bootstrap generous" to "evidence-based". The visual gate's Hamming-distance tolerance dropped from 18/256 (~7%) to 8/256 (~3%) without any change to the golden or the renderer.
