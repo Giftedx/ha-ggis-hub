@@ -52,6 +52,24 @@ if (errors.length === 0) {
     );
   }
 
+  // HTML structural checks — covers the Lighthouse "best practices"
+  // signals that aren't already caught by the security or a11y gates.
+  if (existsSync(join(dist, 'index.html'))) {
+    const html = readFileSync(join(dist, 'index.html'), 'utf8');
+    must(
+      /<!doctype html>/i.test(html),
+      'index.html missing <!doctype html> (browser quirks mode risk)'
+    );
+    must(
+      /<meta charset/i.test(html),
+      'index.html missing <meta charset> (encoding declaration required)'
+    );
+    must(
+      html.includes('<html lang='),
+      'index.html missing lang attribute on <html> (WCAG 3.1.1)'
+    );
+  }
+
   // Headers file sanity: must contain CSP directive + wasm-unsafe-eval.
   if (existsSync(join(dist, '_headers'))) {
     const headers = readFileSync(join(dist, '_headers'), 'utf8');

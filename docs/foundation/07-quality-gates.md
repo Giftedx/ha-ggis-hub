@@ -164,7 +164,7 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 - Total initial critical-path gzip: <= 750 KB.
 - Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate (`scripts/run-paint-gate.mjs`) reading the W3C Paint Timing API + a `hub:firstFrame` user-mark. Budgets in `perf-budgets.json paint.max_ms` calibrated against Linux CI medians.
 - Accessibility: asserted via the hand-rolled `haggis-eval a11y` gate (`scripts/run-a11y-gate.mjs` → `scripts/smoke-a11y.mjs`), 13 WCAG 2.2 AA spot-checks covering page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name (1.1.1), interactive element accessible name (4.1.2), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), and computed contrast ratio (1.4.3) on every declared text pair. No axe-core dep; the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic 80-rule engine.
-- Lighthouse best practices: >= 95 (still planned, separate from accessibility).
+- Lighthouse best practices: the signal this score provides is covered by existing gates without the Lighthouse dependency — security gate (CSP, HSTS, X-Frame-Options, COOP, CORP, Permissions-Policy), browser smoke (JS errors[] checked on every run), and `verify-dist.mjs` (doctype, charset, lang attribute, favicon, manifest). The bundle has no third-party JS libraries, so the "vulnerable library version" check is N/A. Not adding the Lighthouse dep per the hand-roll-over-library policy.
 - LCP: <= 2.5s.
 - CLS: <= 0.05.
 - INP: <= 200ms.
