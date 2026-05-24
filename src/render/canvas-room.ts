@@ -417,7 +417,6 @@ function drawTopWallWindow(
   surface: CanvasRoomSurface,
   phase: number
 ): void {
-  void phase;
   // Phase 3a: window now uses WHS drawWhsWindowBay — loch view +
   // distant mountains + dawn sun glow + cross mullion + wood sill +
   // heather curtains. Highland Dawn theme literal.
@@ -427,6 +426,14 @@ function drawTopWallWindow(
   const wy = Math.round((WALL_THICK_BACK - winH) / 2);
   const wx = cx - Math.round(winW / 2);
   drawWhsWindowBay(ctx, { x: wx, y: wy, w: winW, h: winH }, surface.width < 600);
+  // Sync the window pane brightness with the floor beam's 22-second pulse
+  // so the light source and its cast shadow feel like the same phenomenon.
+  const dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05;
+  ctx.save();
+  ctx.globalAlpha = 0.04 * dawnPulse;  // 0.038 – 0.042 range, barely perceptible
+  ctx.fillStyle = PALETTE.dawnPeach;
+  ctx.fillRect(wx, wy, winW, winH);
+  ctx.restore();
 }
 
 function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
