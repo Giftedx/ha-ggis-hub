@@ -59,6 +59,22 @@ body {
   image-rendering: auto;
 }
 
+.scene-brand {
+  position: fixed;
+  left: 1.2rem;
+  bottom: 0.85rem;
+  margin: 0;
+  color: var(--hub-cairn-stone);
+  font-family: inherit;
+  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 2;
+  user-select: none;
+}
+
 .scene-direct {
   position: fixed;
   right: 1.2rem;

@@ -338,6 +338,12 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
   sizeCanvasToViewport(canvas);
   window.addEventListener('resize', () => sizeCanvasToViewport(canvas), { passive: true });
 
+  // Domain wordmark — makes the ha + ggis = haggis pun visible on the
+  // page itself, not just in the browser tab or address bar.
+  const brand = document.createElement('h1');
+  brand.className = 'scene-brand';
+  brand.textContent = 'ha · ggis';
+
   const direct = document.createElement('a');
   direct.className = 'scene-direct';
   direct.href = model.directPlay.target;
@@ -357,7 +363,7 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
   hint.textContent = 'walk wi’ the arrows · chap a door tae go in';
   hint.setAttribute('aria-hidden', 'true');
 
-  scene.append(canvas, direct, hint, status);
+  scene.append(canvas, brand, direct, hint, status);
   return { scene, canvas, status, hint };
 }
 

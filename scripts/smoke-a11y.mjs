@@ -5,8 +5,8 @@
 // of asserts is more honest than wrapping a generic 80-rule engine.
 //
 // The checks below correspond to the WCAG success criteria the hub can
-// actually fail given its shape (canvas-first single-page app, one
-// link, no forms, no images apart from CSS-painted SVG icons):
+// actually fail given its shape (canvas-first SPA, h1 brand heading +
+// one link, no forms, no images apart from CSS-painted SVG icons):
 //
 //   1. WCAG 3.1.1 — Language of Page: <html lang> set + BCP-47 shape.
 //   2. WCAG 1.4.4 — Resize Text: viewport meta does not block zoom
@@ -142,7 +142,7 @@ const TEXT_PAIRS = [
     bg: '#1a0e08'
   },
   {
-    label: 'scene-direct link (resting cairn-stone) on backdrop',
+    label: 'cairn-stone text on ink-deep backdrop (scene-brand + scene-direct resting)',
     fg: '#b8a878',
     bg: '#1a0e08'
   },
