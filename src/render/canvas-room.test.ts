@@ -212,6 +212,64 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.length).toBeGreaterThan(20);
   });
 
+  it('renders a door near the top edge — exercises doorSide top branch', () => {
+    const topDoorRoom: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'wild-haggis-survivors',
+          status: 'launchable',
+          // Center x=500, center y=45 → on a 1200×800 canvas: cx=600, cy=36.
+          // distTop(36) < distLeft(600) → doorSide returns 'top'.
+          bounds: { minX: 350, minY: 10, maxX: 650, maxY: 80 }
+        }
+      ]
+    };
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, topDoorRoom).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('renders a door near the bottom edge — exercises doorSide bottom branch', () => {
+    const bottomDoorRoom: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'wild-haggis-survivors',
+          status: 'launchable',
+          // Center x=500, center y=955 → on a 1200×800 canvas: cx=600, cy=764.
+          // distBottom(36) < distLeft(600) → doorSide returns 'bottom'.
+          bounds: { minX: 350, minY: 920, maxX: 650, maxY: 990 }
+        }
+      ]
+    };
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, bottomDoorRoom).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('renders a door with an unregistered single-word ID — exercises prettifyKebab and doorShortLabel single-word return', () => {
+    const unknownDoorRoom: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'lighthouse',
+          status: 'launchable',
+          // 'lighthouse' is not in HUB_GAME_REGISTRY → doorTitleForId calls
+          // prettifyKebab('lighthouse') = 'Lighthouse' (1 word) →
+          // doorShortLabel returns the title as-is (single-word path).
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+        }
+      ]
+    };
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, unknownDoorRoom).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
   it('flips the haggis left when playerX decreases between renders', () => {
     const { surface, context: ctxDefault } = recordingSurface(1200, 800);
     const renderer = createCanvasRoomRenderer(surface, ROOM);
