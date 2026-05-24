@@ -78,7 +78,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
-	fmt.Fprintln(w, "  perf                       Bundle-size budgets (scripts/perf-budgets.mjs, perf-budgets.json)")
+	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
 	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")
 	fmt.Fprintln(w, "  determinism                Same seed + same input → same state hash (browser replay)")
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")

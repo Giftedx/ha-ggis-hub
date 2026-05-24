@@ -6,7 +6,7 @@ Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-cr
 
 ## Current repo status
 
-End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no Lighthouse runner, no multi-browser Playwright, no SCA scanners yet).
+End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is now wired without a Lighthouse dep, via the W3C Paint Timing API directly through chromium-headless.
 
 ## Gate tiers
 
@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.m
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 14 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 15 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -35,6 +35,7 @@ pnpm exec vitest run
 pnpm run build
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
+node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
 
 # Browser-driven (vite preview internally)
 node scripts/run-browser-smokes.mjs    # 3 chromium smokes
@@ -78,7 +79,6 @@ pnpm exec vitest run --coverage
 pnpm exec playwright test --project=firefox
 pnpm exec playwright test --project=webkit
 pnpm exec playwright test --grep @soak
-lhci autorun                                # Lighthouse paint-timing half
 pnpm exec size-limit                        # second per-asset budget runner
 
 # Supply-chain scanners
@@ -86,7 +86,7 @@ osv-scanner --recursive .
 gitleaks detect --source . -v
 ```
 
-Why they're deferred: each adds either a non-trivial dependency (Lighthouse runner, ESLint config, prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
+Why they're deferred: each adds either a non-trivial dependency (ESLint config, prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
 
 ## Technical bar
 

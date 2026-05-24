@@ -16,5 +16,14 @@
       "max_bytes": 48000,
       "note": "WASM kernel from crates/hub-wasm. Houses hub-core sim + boundary."
     }
-  ]
+  ],
+  "paint": {
+    "_comment": "Paint-timing budgets in milliseconds, asserted against the MEDIAN of N=3 samples to absorb single-run jitter. Measured by scripts/smoke-paint-timing.mjs against vite preview on localhost — these are LAB numbers, not field numbers. Headroom: real Cloudflare-served numbers on a fast connection are typically half these budgets, on a slow 3G connection 3-5x. The budgets here are tuned for chromium-headless on a GitHub-hosted runner (slowest reasonable environment in the gate set).",
+    "max_ms": {
+      "firstContentfulPaint": 1200,
+      "largestContentfulPaint": 2000,
+      "domContentLoaded": 1000,
+      "loadEvent": 2000
+    }
+  }
 }

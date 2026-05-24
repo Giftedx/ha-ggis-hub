@@ -22,7 +22,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
 | `browser`             | `node scripts/run-browser-smokes.mjs` — build → vite preview → door-launch (keyboard) + door-tap (touch) + pointer-drive (touch-drag) → teardown |
 | `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs |
-| `perf`                | `pnpm run build` + `node scripts/perf-budgets.mjs` — per-asset stem budgets from `perf-budgets.json` |
+| `perf`                | `pnpm run build` + `node scripts/perf-budgets.mjs` (per-asset stem budgets) + `node scripts/run-paint-gate.mjs` (W3C Paint Timing API: FCP/LCP via PerformanceObserver, DCL, load; median of 3 samples; budgets in `perf-budgets.json` `paint.max_ms`) |
 | `differential rng`    | `cargo test -p hub-hardlang --test differential_rng -- --include-ignored`   |
 | `differential hash`   | `cargo test -p hub-hardlang --test differential_hash`                       |
 | `all`                 | Every wired gate above, plus a signed JSON report                           |

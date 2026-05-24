@@ -2,6 +2,42 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 paint-timing perf gate
+
+Closed the last carry-forward stub on the slice 9 `perf` gate: the Lighthouse paint-timing half. Hand-rolled via the existing Playwright dep + the W3C Paint Timing API directly through chromium-headless — no Lighthouse npm dependency added (matches [Hand-roll over library](https://en.wikipedia.org/wiki/Engineering_principle): use the primitive, not the vendor wrapper). Release gate is now 15 wired gates (was 14), still ~3.5min warm. Signed `0x5a89f65353c1bedd`.
+
+### Added
+
+- **`scripts/smoke-paint-timing.mjs`** — chromium-headless loads `${URL_BASE}?seed=42`, instruments via `PerformanceObserver({ type: 'largest-contentful-paint', buffered: true })` injected pre-navigation, then reads the W3C Paint Timing API: first-paint, first-contentful-paint, largest-contentful-paint (last reported entry, renderTime preferred over startTime per spec), plus navigation-timing's `domContentLoadedEventEnd` and `loadEventEnd`. Takes 3 samples by default (`HAGGIS_PAINT_SAMPLES` overrides), aggregates by median (Lighthouse-style robust central tendency for shared CI runners), asserts each metric against the `paint.max_ms` block in `perf-budgets.json`. Exits non-zero with the offenders quoted; emits full per-sample JSON for the report.
+- **`scripts/run-paint-gate.mjs`** — build dist → `vite preview` on port 4176 → run smoke → tear down. Mirrors `run-visual-gate.mjs`'s detached-on-POSIX + process-group-kill pattern so no orphan node processes survive CI cleanup.
+- **`perf-budgets.json` `paint.max_ms`** — `firstContentfulPaint` ≤ 1200ms, `largestContentfulPaint` ≤ 2000ms, `domContentLoaded` ≤ 1000ms, `loadEvent` ≤ 2000ms. Tuned for chromium-headless on a GitHub-hosted runner (slowest reasonable environment in the gate set); on local Windows the median observed is 40ms FCP/LCP, ~15ms DCL/load — comfortably below budget. Headroom is ~30x because the budgets are lab numbers; real Cloudflare-served field numbers will be tighter, but the gate's job is to catch a regression, not benchmark.
+
+### Changed
+
+- **`tools/haggis-eval/internal/cmd/perf.go`** — `Perf()` now returns three results (build, bundle-budgets, paint-timing) instead of two. The Go orchestrator stays a thin shell-out wrapper; all gate logic lives in the `.mjs` scripts.
+- **`tools/haggis-eval/main.go`** — usage block: `perf` description now reads "Bundle-size budgets + paint-timing".
+- **`tools/haggis-eval/README.md`** — `perf` row now describes both halves and links to both scripts.
+- **`docs/foundation/07-quality-gates.md`** — gate count 14 → 15 in the release-gate matrix code block; added `node scripts/run-paint-gate.mjs` next to `node scripts/perf-budgets.mjs`; dropped `lhci autorun` from the still-planned strictness list since paint-timing is now wired without it; "no Lighthouse runner" line removed from the unwired-items disclaimer.
+- **`docs/plans/2026-05-22-implementation-sequence.md`** — Slice 9 `perf` bullet rewritten to describe both halves; gate count 14 → 15; "Lighthouse half" removed from outstanding stubs (only `slice <name>` remains).
+- **`CONTRIBUTING.md`** + **`README.md`** — gate count and gate enumeration updated.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0x5a89f65353c1bedd
+  rust/cargo-fmt + clippy + test         PASS  (~90s combined)
+  ts/tsc-noemit + vitest + vite-build    PASS  (~7s)
+  security/deploy-config                  PASS
+  perf/build + bundle-budgets             PASS  (44.7 KB JS, +0.0 KB)
+  perf/paint-timing (NEW)                 PASS  (fcp=40ms / 1200ms = 3%, lcp=40ms / 2000ms = 2%)
+  browser/smokes-all (3 smokes)           PASS  (~11s)
+  determinism/browser-replay-hash         PASS
+  visual/verify                            PASS  (hamming 0/256 vs golden)
+  differential/c-rust-hash                PASS  (~88s)
+  differential/wat-rust-rng (100k fuzz)   PASS
+```
+
 ## [Unreleased] — 2026-05-24 art reconciliation session
 
 Closed the three art gaps flagged in WRITEUP.md against the locked Highland Dawn Bothy spec ([ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md)): window, haggis silhouette, and floor. Visual golden rebaked, all 14 gates green, signed `0xada7e6f707ea9ded`.

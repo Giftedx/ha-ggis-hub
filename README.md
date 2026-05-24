@@ -30,7 +30,7 @@ If you only have time for the load-bearing five, read these in order:
 - Product: playable haggis game hub (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; click or walk + Enter).
-- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + 194 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + security + perf + browser smokes + determinism + visual + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
+- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + 194 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D (ported from the WHS croft drawers — see `src/render/whs-*.ts`).
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
@@ -92,6 +92,9 @@ node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same s
 # Visual gate (builds + previews + diffs against tests/golden/)
 node scripts/run-visual-gate.mjs verify   # perceptual aHash diff vs golden
 node scripts/run-visual-gate.mjs capture  # re-baseline after intentional art changes
+
+# Paint-timing gate (builds + previews + W3C Paint Timing API via chromium-headless)
+node scripts/run-paint-gate.mjs           # FCP/LCP/DCL/load median vs perf-budgets.json paint.max_ms
 ```
 
 CI (`.github/workflows/ci.yml`) is two-tier: `pnpm verify` is the fast PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main. Both gates currently green on the latest commit.

@@ -155,15 +155,14 @@ Wired:
 - `browser` — `node scripts/run-browser-smokes.mjs` (build → vite preview → smoke-door-launch keyboard + smoke-door-tap touch + smoke-pointer-drive touch-drag → teardown; shipped 2026-05-23).
 - `determinism` — `node scripts/run-determinism-smoke.mjs` (loads hub twice with fixed `?seed=N`, applies identical scripted input, asserts final state-hash matches between runs; shipped 2026-05-23 with `?seed=` URL param + `window.__stateHash()` dev hook).
 - `visual` — `node scripts/run-visual-gate.mjs verify` (build → vite preview → perceptual aHash diff vs `tests/golden/bothy-idle-seed-42.png` at Hamming distance ≤ 18/256; shipped 2026-05-23, golden bootstrapped same day on Windows, verified on Linux CI 2026-05-24 at 1-bit drift — comfortably inside tolerance).
-- `perf` — `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total). Bundle-size half of the original spec; Lighthouse paint-timing half still outstanding (needs chrome-headless + lighthouse npm dep).
+- `perf` — two halves: (a) `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total); (b) `node scripts/run-paint-gate.mjs` boots vite preview and asserts the median over 3 samples of W3C Paint Timing API metrics (first-contentful-paint, largest-contentful-paint via PerformanceObserver, domContentLoadedEventEnd, loadEventEnd) against `perf-budgets.json` `paint.max_ms`. Hand-rolled via existing Playwright + the W3C primitives directly — no Lighthouse npm dep. Shipped 2026-05-24.
 - `differential rng` — WAT vs Rust xoshiro128**.
 - `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
-- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 14 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold).
+- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold).
 
 Outstanding stubs (`exit 78`):
 
 - `slice <name>` — `slices.toml` gate-set config not yet present (spec design work; would let releasers pick "run gate-set X" for ad-hoc bundles).
-- `perf` Lighthouse half — see above.
 
 Acceptance:
 
