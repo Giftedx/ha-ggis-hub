@@ -153,9 +153,9 @@ node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across ru
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
 ```
 
-## What's NOT polished (yet)
+## Where the art now stands
 
-This writeup pitches the engineering. The art is honestly behind — the rendered haggis does not yet match the canonical wild-haggis silhouette (long oval, cream mane drape past body outline, black face skin, eyes hidden in mane), the dawn-pink window declared in [ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md) is still daylight in the live build, and the floor is grey tile rather than peat-stained oak plank. These are the next iterations; they are tracked in [`docs/`](docs/) and grounded against the locked technique spec in [`DESIGN.md`](DESIGN.md). The visual gate at [`tests/golden/`](tests/golden/) is now in place to catch unintended drift between art iterations. The canonical silhouette is also already shipped as the social card at [`public/og.svg`](public/og.svg) — that asset is the visual brief for the future sprite rebuild.
+The three art gaps called out in earlier iterations — daylight loch in the window, WHS-sprite stand-in for the haggis, and flagstone floor — have been closed against the [ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md) Highland Dawn Bothy spec. The window is a stacked dawn-pink + heather-purple sky with a soft sun glow and far Highland silhouette. The haggis is a fresh hand-rolled drawer at [`src/render/canon-haggis.ts`](src/render/canon-haggis.ts) keyed to the canonical silhouette in [`public/og.svg`](public/og.svg): low ginger-brown oval body, asymmetric cream mane draping over the face side, irregular strands cascading past the body outline, black face skin, snout protruding forward, eye half-hidden by the mane fringe. The floor is now peat-stained planks with grain lines and scattered knots, not flagstones. The visual gate at [`tests/golden/`](tests/golden/) was rebaked against the new render and verifies cleanly. The og.svg remains the locked visual brief; the in-game realisation matches it within the latitude of the dim bothy lighting.
 
 ## Why MIT
 

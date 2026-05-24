@@ -2,7 +2,7 @@ import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
 import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import { blitSprite } from './sprite';
-import { drawWhsHaggis } from './whs-haggis';
+import { drawCanonHaggis } from './canon-haggis';
 import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
 import {
   drawWhsBothyWalls, drawWhsBothyFloor, drawWhsWindowBay, drawWhsDoor,
@@ -625,25 +625,24 @@ function drawHaggis(
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // PIVOT: After 11 pixel-art iterations failing the user bar, we port
-  // WHS's drawHaggisBody() — same haggis the user told me I authored
-  // in a past session. It's not pixel art; it's procedural ellipse/
-  // circle/triangle ops at 56×56 baked once to a texture. Porting the
-  // shape logic directly to Canvas2D produces the same charm.
+  // Canonical wild-haggis silhouette (canon-haggis.ts). Keyed to the
+  // public/og.svg brief — the WHS sprite stand-in is retired. Low oval
+  // body + asymmetric mane drape + cascading strands past silhouette
+  // is the family-canon shape; this drawer is the in-game realisation.
   //
-  // Hub scale: native 56×56 → 2× = 112×112 footprint. The body anchor
-  // sits at the haggis's body-center (the eyes/snout cluster). Snapshot
-  // (cx,cy) is the player feet position, so offset the body up so the
-  // feet land on the floor.
-  const HAGGIS_SCALE = 2;
-  const FEET_OFFSET = 14 * HAGGIS_SCALE; // body center is ~14px above feet at native
+  // Hub scale: native ~56-wide → 2× = ~112-wide footprint. The body
+  // anchor sits at body-center; snapshot (cx,cy) is the player feet
+  // position, so offset upward so the feet land on the floor.
+  const HAGGIS_SCALE = 2.6;
+  const FEET_OFFSET = 16 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  // CONTACT SHADOW under feet. Body footprint width ~44 native → 88 scaled.
-  hardContactShadow(ctx, cx, cy + bob + 6, 44, 2);
+  hardContactShadow(ctx, cx, cy + bob + 6, 52, 2);
 
-  drawWhsHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, { breathY: Math.sin(phase * 1.4) * 0.4 });
+  drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
+    breathY: Math.sin(phase * 1.4) * 0.4
+  });
 }
 
 // Pure text-formatter for interaction prompts. Exposed so tests can

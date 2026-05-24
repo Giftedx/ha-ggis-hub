@@ -2,6 +2,42 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 art reconciliation session
+
+Closed the three art gaps flagged in WRITEUP.md against the locked Highland Dawn Bothy spec ([ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md)): window, haggis silhouette, and floor. Visual golden rebaked, all 14 gates green, signed `0xada7e6f707ea9ded`.
+
+### Added
+
+- **`src/render/canon-haggis.ts`** — new haggis drawer keyed to [`public/og.svg`](public/og.svg) canon: low ginger-brown oval body (~3.5:1 W:H, dominant mass), asymmetric cream mane mass over the face side, irregular strands cascading past the body outline (the canon's defining silhouette break), black face skin protruding past the body's face edge, snout protruding past the face, eye half-hidden by mane fringe, ear poking up through mane top, tail tuft on the back end, heather-purple ground shadow. Faces right by default (toward the WHS door); `facingLeft` mirrors. Body palette shifted slightly warmer than the OG card so the haggis reads in the dim bothy register where the OG sits on a bright neutral. Replaces `whs-haggis.ts` (deleted — the WHS classic sprite was a stand-in).
+
+### Changed
+
+- **`src/render/whs-bothy.ts` `drawWhsWindowBay`** — replaced daytime loch-view contents (LOCH + MIST + green mountain triangles + small sun glow) with the ADR-0006 dawn sky: heather-purple shoulder at top, dawn-pink + dawn-peach bands at the horizon where the sun breaks, layered warm sun glow, far Highland silhouette in two layered peat-purple ridges, a wee scatter of dawn-cloud streaks. Wood frame, cross mullion, sill, and heather curtains preserved. Brightest band sits at the mountain ridge line — the "dawn breaks here" moment.
+- **`src/render/whs-bothy.ts` `drawWhsBothyFloor`** — replaced flagstone substrate (vertical/horizontal mortar seams across stone blocks) with peat-stained plank floor per ADR-0006: alternating PEAT_MID + PEAT_DARK horizontal plank bands, INK + PEAT_SHADOW seams between, three faint grain lines per plank, hand-placed knots (deterministic, not random — preserves the visual-gate hash), foreshortening so planks grow taller toward the foreground. Warm hearth-glow wash overlay preserved.
+- **`src/render/canvas-room.ts`** — call site swaps `drawWhsHaggis` → `drawCanonHaggis`, bumps `HAGGIS_SCALE` from 2 to 2.6 so the canon silhouette reads at the bothy lighting level, widens the contact-shadow footprint from 44 → 52 to match the wider canon body.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`visual-budgets.json`** — golden rebaked after intentional art change. New aHash `7c3efc3ffc3f7c3e8039e039e03060318033c003e00760066006e00760060000` at tolerance 18/256. Captured on Windows; Linux CI verification still cleared via the same OS-portable downscale path that worked for the prior golden.
+- **`WRITEUP.md`** — "What's NOT polished (yet)" section rewritten as "Where the art now stands" to reflect closure of the three art gaps.
+
+### Removed
+
+- **`src/render/whs-haggis.ts`** — superseded by `canon-haggis.ts`. The WHS classic sprite (cute smiling face, white eyes, golden-brown procedural body) was a stand-in while the family canon was being clarified. ADR-0006 + [`reference_whs_haggis_drawer`](C:\Users\aggis\.claude\projects\C--Users-aggis-dev-active-ha-ggis-hub\memory\reference_whs_haggis_drawer.md) memory note (procedural-not-pixel-art) carried over into the new drawer; only the WHS-specific shape logic was dropped.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0xada7e6f707ea9ded
+  rust/cargo-fmt + clippy + test         PASS  (~90s combined)
+  ts/tsc-noemit + vitest + vite-build    PASS  (~7s)
+  security/deploy-config                  PASS
+  perf/build + bundle-budgets             PASS  (44.7 KB JS, +0.04 KB)
+  browser/smokes-all (3 smokes)           PASS  (~13s)
+  determinism/browser-replay-hash         PASS
+  visual/verify                            PASS  (hamming 0/256 vs rebaked golden)
+  differential/c-rust-hash                PASS  (~89s)
+  differential/wat-rust-rng (100k fuzz)   PASS
+```
+
 ## [Unreleased] — 2026-05-24 CI hardening session
 
 Closed all three carry-forward items from the 2026-05-23 bring-up. Final release gate ~3min, signed `0x8c802fa20b6996b4`, 14 gates green (was 13).

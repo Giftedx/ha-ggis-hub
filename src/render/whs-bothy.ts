@@ -26,10 +26,17 @@ const WOOD_MID = '#5a3218';
 const WOOD_LIGHT = '#8a5a2e';
 const WHISKY = '#c8a040';
 const WHISKY_LIGHT = '#ffc840';
-const LOCH = '#2a4a6a';
-const MIST = '#6a90b0';
 const HEATHER = '#8060a0';
 const HEATHER_LIGHT = '#b090d0';
+// Dawn-sky tokens — ADR-0006 Highland Dawn Bothy.
+// Cool purple shoulder at sky-top, warm pink wash at the horizon
+// where the sun is breaking.
+const DAWN_PINK = '#f4c8b8';
+const DAWN_PEACH = '#f4d8b8';
+const HEATHER_DARK = '#5a3878';
+const HEATHER_PURPLE = '#7a4a9c';
+const MOUNTAIN_FAR = '#5a4a78';
+const MOUNTAIN_NEAR = '#3a2c4a';
 
 export interface WhsBothyContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
@@ -89,7 +96,10 @@ export function drawWhsBothyWalls(
 }
 
 /**
- * Draw flagstone floor ONLY. Hub overlays its dawn beam on top.
+ * Draw peat-stained plank floor. ADR-0006: warm peat-stained boards,
+ * not flagstones. Planks run parallel to the back wall (horizontal
+ * bands), with darker seams between, light grain lines on each plank,
+ * and a scatter of knots. Hub overlays its dawn beam on top.
  */
 export function drawWhsBothyFloor(
   ctx: WhsBothyContext,
@@ -97,25 +107,64 @@ export function drawWhsBothyFloor(
 ): void {
   const { left, right, wallBottom, floorBottom, compact } = env;
   const w = right - left;
+  const floorH = floorBottom - wallBottom;
 
-  fillRectA(ctx, INK, 1, left, wallBottom, w, floorBottom - wallBottom);
-  fillRectA(ctx, PEAT_DARK, 1, left + 2, wallBottom + 2, w - 4, floorBottom - wallBottom - 4);
-  fillRectA(ctx, PEAT_MID, 1, left + 4, wallBottom + 4, w - 8, floorBottom - wallBottom - 8);
-  // Horizontal mortar-line wobble (flagstone courses).
-  for (let y = wallBottom + 16; y < floorBottom - 8; y += compact ? 26 : 31) {
-    strokeLine(ctx, PEAT_SHADOW, 0.75, 1,
-      left + 6, y, right - 6, y + (y % 2 === 0 ? 2 : -2));
+  // Underlayment + base body.
+  fillRectA(ctx, INK, 1, left, wallBottom, w, floorH);
+  fillRectA(ctx, PEAT_DARK, 1, left + 2, wallBottom + 2, w - 4, floorH - 4);
+
+  // Plank bands — alternating PEAT_MID + PEAT_DARK fills with thin
+  // PEAT_SHADOW seams between. Planks closer to the back wall are
+  // slimmer (perspective), getting taller toward the foreground.
+  const plankCount = compact ? 5 : 6;
+  let yCursor = wallBottom + 4;
+  for (let i = 0; i < plankCount; i++) {
+    const t = i / Math.max(1, plankCount - 1);
+    // Plank height grows with t (foreshortening — boards farther away
+    // look thinner). Range: 14% → 24% of floorH.
+    const plankH = Math.round(floorH * (0.14 + t * 0.10));
+    const bodyColor = i % 2 === 0 ? PEAT_MID : PEAT_DARK;
+    fillRectA(ctx, bodyColor, 1, left + 4, yCursor, w - 8, plankH);
+    // Top edge highlight (catches the dawn).
+    fillRectA(ctx, PLASTER_LIGHT, 0.12, left + 6, yCursor, w - 12, 1);
+    // Grain lines along the plank length — three faint streaks.
+    for (let g = 0; g < 3; g++) {
+      const gy = yCursor + Math.round(plankH * (0.22 + g * 0.26));
+      const alpha = 0.18 + (g % 2) * 0.10;
+      strokeLine(ctx, PEAT_SHADOW, alpha, 1,
+        left + 6, gy, right - 6, gy);
+    }
+    // Bottom seam — a darker line between this plank and the next.
+    const seamY = yCursor + plankH;
+    strokeLine(ctx, INK, 0.85, 1, left + 4, seamY, right - 4, seamY);
+    strokeLine(ctx, PEAT_SHADOW, 0.6, 1, left + 4, seamY + 1, right - 4, seamY + 1);
+    yCursor = seamY + 1;
   }
-  // Vertical-ish mortar lines (stone seams, slight lean for depth).
-  const stoneW = compact ? 42 : 56;
-  for (let i = 0; i < Math.ceil(w / stoneW); i++) {
-    const x = left + i * stoneW + (i % 2 === 0 ? 0 : stoneW * 0.35);
-    strokeLine(ctx, PEAT_SHADOW, 0.45, 1,
-      x, wallBottom + 5, x - stoneW * 0.22, floorBottom - 6);
+  // Fill any remainder so the floor reaches floorBottom.
+  if (yCursor < floorBottom - 1) {
+    fillRectA(ctx, PEAT_DARK, 1, left + 4, yCursor, w - 8, floorBottom - yCursor - 2);
   }
+
+  // Knots — small dark ellipses scattered across a few planks. Hand-
+  // placed (not random) so the visual gate hash stays deterministic.
+  const knots: readonly { x: number; y: number; rx: number; ry: number }[] = [
+    { x: 0.18, y: 0.22, rx: 5, ry: 3 },
+    { x: 0.62, y: 0.38, rx: 6, ry: 4 },
+    { x: 0.34, y: 0.58, rx: 7, ry: 5 },
+    { x: 0.82, y: 0.71, rx: 5, ry: 3 },
+    { x: 0.12, y: 0.84, rx: 8, ry: 5 }
+  ];
+  for (const k of knots) {
+    const kx = left + w * k.x;
+    const ky = wallBottom + floorH * k.y;
+    fillEllipseA(ctx, INK, 0.65, kx, ky, k.rx, k.ry);
+    fillEllipseA(ctx, PEAT_SHADOW, 0.85, kx, ky, k.rx - 1.6, k.ry - 1.2);
+    fillEllipseA(ctx, WOOD_LIGHT, 0.22, kx + 0.6, ky - 0.4, k.rx - 3, Math.max(1, k.ry - 2));
+  }
+
   // Warm wash across the centre floor (hearth-glow catch).
   fillEllipseA(ctx, WHISKY_LIGHT, 0.045,
-    left + w * 0.58, wallBottom + (floorBottom - wallBottom) * 0.34, w * 0.46, floorBottom - wallBottom);
+    left + w * 0.58, wallBottom + floorH * 0.34, w * 0.46, floorH);
 }
 
 /**
@@ -188,10 +237,12 @@ function drawBeam(
   }
 }
 
-// Render a smooth window bay (loch view + mountains + dawn sun glow +
-// cross mullion + wood sill + heather curtains either side). Region
-// is the inner pane rect — the function paints the wood frame outside
-// it. Port of WHS drawWindowBay (interior.ts).
+// Render the dawn-sky window bay. ADR-0006: dawn pink + heather
+// purple sky pouring through a small arched window — NOT a daytime
+// loch view, NOT moonlight. Sky reads cool-purple at the shoulder and
+// warm-pink at the horizon where the sun breaks. Distant Highland
+// silhouette anchors the land/sky line. Frame + mullion + sill +
+// curtains preserved from the earlier port.
 export function drawWhsWindowBay(
   ctx: WhsBothyContext,
   region: { x: number; y: number; w: number; h: number },
@@ -201,23 +252,56 @@ export function drawWhsWindowBay(
   // Outer wood frame (ink + dark wood backing).
   fillRectA(ctx, INK, 1, x - 7, y - 8, w + 14, h + 16);
   fillRectA(ctx, WOOD_DARK, 1, x - 5, y - 6, w + 10, h + 12);
-  // Loch background — calm deep loch water reading as the daytime sky.
-  fillRectA(ctx, LOCH, 1, x, y, w, h);
-  // Mist band — upper-half sky / morning haze.
-  fillRectA(ctx, MIST, 0.85, x + 2, y + 2, w - 4, h * 0.45);
-  // Distant mountains — two overlapping triangles, mid + dark green.
-  fillTriangleA(ctx, '#354c2c', 1,
-    x + 2, y + h - 4, x + w * 0.42, y + h * 0.4, x + w * 0.66, y + h - 4);
-  fillTriangleA(ctx, '#253820', 1,
-    x + w * 0.34, y + h - 4, x + w * 0.72, y + h * 0.34, x + w - 2, y + h - 4);
-  // Dawn sun glow ellipse.
-  fillEllipseA(ctx, '#d4b055', 0.16,
-    x + w * 0.72, y + h * 0.28, compact ? 12 : 18, compact ? 7 : 10);
-  // Water ripples — three soft ellipses on the lower water.
-  for (let i = 0; i < 3; i++) {
-    fillEllipseA(ctx, '#dde8e8', 0.32,
-      x + w * (0.26 + i * 0.2), y + h * (0.66 + i * 0.04), w * 0.34, 4);
-  }
+
+  // Sky — purple shoulder at top fading to warm pink/peach at the
+  // horizon where the sun breaks. Painted in stacked bands so the
+  // transition reads smooth without a real gradient. The brightest
+  // (peach) band sits where the mountain ridge meets the sky.
+  fillRectA(ctx, HEATHER_PURPLE, 1, x, y, w, h);
+  fillRectA(ctx, HEATHER_DARK, 0.55, x, y, w, h * 0.18);
+  fillRectA(ctx, DAWN_PINK, 0.78, x, y + h * 0.30, w, h * 0.20);
+  fillRectA(ctx, DAWN_PINK, 0.92, x, y + h * 0.42, w, h * 0.18);
+  fillRectA(ctx, DAWN_PEACH, 0.95, x, y + h * 0.52, w, h * 0.18);
+  fillRectA(ctx, '#ffd6b8', 0.85, x, y + h * 0.60, w, h * 0.10);
+
+  // Soft sun glow — broad warm halo behind where dawn breaks.
+  const sunCx = x + w * 0.68;
+  const sunCy = y + h * 0.55;
+  fillEllipseA(ctx, '#ffe0c0', 0.32,
+    sunCx, sunCy, w * 0.85, h * 0.30);
+  fillEllipseA(ctx, '#ffe8c8', 0.45,
+    sunCx, sunCy, compact ? 22 : 30, compact ? 10 : 14);
+  fillEllipseA(ctx, '#fff4d8', 0.65,
+    sunCx, sunCy, compact ? 10 : 14, compact ? 5 : 7);
+
+  // Distant Highland silhouette — two layered ridges in deep peat
+  // purple, anchoring the horizon. Far ridge softer, near ridge
+  // darker and lower.
+  fillTriangleA(ctx, MOUNTAIN_FAR, 0.85,
+    x, y + h * 0.78,
+    x + w * 0.38, y + h * 0.56,
+    x + w * 0.66, y + h * 0.80);
+  fillTriangleA(ctx, MOUNTAIN_FAR, 0.85,
+    x + w * 0.50, y + h * 0.82,
+    x + w * 0.78, y + h * 0.58,
+    x + w * 1.0,  y + h * 0.84);
+  fillTriangleA(ctx, MOUNTAIN_NEAR, 1,
+    x - 2,           y + h - 2,
+    x + w * 0.28,    y + h * 0.74,
+    x + w * 0.54,    y + h - 2);
+  fillTriangleA(ctx, MOUNTAIN_NEAR, 1,
+    x + w * 0.42,    y + h - 2,
+    x + w * 0.72,    y + h * 0.72,
+    x + w + 2,       y + h - 2);
+
+  // A wee scatter of dawn-cloud streaks across the warm band.
+  fillEllipseA(ctx, DAWN_PINK, 0.45,
+    x + w * 0.30, y + h * 0.42, w * 0.30, 2);
+  fillEllipseA(ctx, DAWN_PEACH, 0.45,
+    x + w * 0.55, y + h * 0.35, w * 0.22, 2);
+  fillEllipseA(ctx, DAWN_PINK, 0.40,
+    x + w * 0.15, y + h * 0.28, w * 0.18, 2);
+
   // Cross mullion.
   fillRectA(ctx, WOOD_DARK, 1, x + w * 0.5 - 2, y, 4, h);
   fillRectA(ctx, WOOD_DARK, 1, x, y + h * 0.48 - 2, w, 4);
