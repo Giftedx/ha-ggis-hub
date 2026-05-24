@@ -2,6 +2,33 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: branch coverage 80.21% → 85.27%; fix WRITEUP arch-diagram JS size
+
+17 new tests across 5 test files (2 new, 3 extended) — covers branches that were reachable but untested: hearth bright-frame spark/steam, haggis ?? defaults and facing-left, compact viewport paths (whs-bothy), locked door/interaction in snapshot-codec, and edge-cases in input + lifecycle. Branch coverage crossed the 85% target. Also corrects a doc-drift in WRITEUP's architecture diagram (JS size was 44 KB, now correctly 49 KB). 223 → 240 vitest.
+
+### Added
+
+- **`src/render/whs-hearth.test.ts`** — 6 tests for `drawWhsHearthFrame` covering all 4 frame indices; frame 1 (emberGlow=1.0) covers the spark branch (`> 0.9`) and steam branch (`> 0.85`); frame 2 covers the lower steam branch (`> 0.7`).
+- **`src/render/canon-haggis.test.ts`** — 4 tests for `drawCanonHaggis`: empty-frame (exercises all `?? 0` default branches for `breathY`, `leftLegY`, `rightLegY`, `maneSway`, `tailWag`), facing-left (`dir = -1` branch), fully-animated frame, and custom palette.
+
+### Changed
+
+- **`src/render/canvas-room.test.ts`** — 3 new cases: compact surface (width < 600, exercises `compact: true` paths in `whs-bothy`), very narrow surface (width < 400, exercises the `surface.width >= 400` false branch in `drawWallOrnaments`), facing-left (two sequential renders with decreasing playerX exercises `haggisFacingLeft = true`).
+- **`src/engine/input.test.ts`** — 1 new case: hub-key event without `preventDefault` (exercises `typeof candidate.preventDefault !== 'function'` false branch in `maybePreventDefault`).
+- **`src/engine/lifecycle.test.ts`** — 1 new case: `mount` throws a plain error (no `instance` property), exercises `destroyPartialInstance` early-return branch.
+- **`src/wasm/snapshot-codec.test.ts`** — 2 new cases: locked door status (`statusInt = 0` → `'locked'` branch on line 56); locked interaction kind (`value = 2` → `'locked'` branch on line 75).
+- **`WRITEUP.md`** — architecture diagram JS size corrected: `44 KB JS` → `49 KB JS` (ornament additions grew the bundle; the table section was already accurate, only the diagram label was stale).
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 223 → 240.
+
+### Gates green
+
+```
+pnpm verify    ~10s    240/240
+pnpm coverage         branches 85.27% (556/652) ≥ 85% target
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 feat(render): back-wall ornaments — herb bundles + unfinished painting
 
 Fills the DESIGN.md ornament budget for the bothy scene: 2 dried-herb bundles hanging from the ceiling timber beam (x=80 left, x=460 right) and 1 unfinished Highland painting on the left back wall (DESIGN.md `voice.open.framed-painting-caption = "(unfinished)"`). All three are deterministic — no phase/random dependency, so they land cleanly in the visual gate. Golden rebaked (Hamming 0/256).

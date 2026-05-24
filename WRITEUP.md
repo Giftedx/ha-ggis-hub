@@ -16,7 +16,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TypeScript / Vite host  (44 KB JS, strict mode)        │
+│  TypeScript / Vite host  (49 KB JS, strict mode)        │
 │  - Lifecycle, input sampling, fixed-step pump           │
 │  - Pointer-drive + keyboard, single launch entry point  │
 │  - Hand-rolled Canvas2D renderer (no engine, no library)│

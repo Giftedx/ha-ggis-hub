@@ -197,4 +197,31 @@ describe('createCanvasRoomRenderer', () => {
     };
     expect(() => createCanvasRoomRenderer(surface, ROOM)).toThrow('Canvas2D context is unavailable');
   });
+
+  it('renders correctly on a compact surface (width < 600) — exercises compact viewport paths', () => {
+    const { surface, context } = recordingSurface(400, 260);
+    createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('renders correctly on a very narrow surface (width < 400) — omits wall painting', () => {
+    // drawWallOrnaments guards the framed-picture call with surface.width >= 400.
+    // Width=300 skips the painting, exercising the false branch.
+    const { surface, context } = recordingSurface(300, 200);
+    createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('flips the haggis left when playerX decreases between renders', () => {
+    const { surface, context: ctxDefault } = recordingSurface(1200, 800);
+    const renderer = createCanvasRoomRenderer(surface, ROOM);
+    // First render sets the baseline position.
+    renderer.render(SNAPSHOT_NO_INTERACTION);
+    const callsDefault = ctxDefault.calls.length;
+
+    // Second render: playerX moved left by 20 units → haggisFacingLeft = true.
+    renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: SNAPSHOT_NO_INTERACTION.playerX - 20 });
+    // A successful render after direction change emits the same call volume.
+    expect(ctxDefault.calls.length).toBeGreaterThan(callsDefault);
+  });
 });

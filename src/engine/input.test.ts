@@ -137,4 +137,16 @@ describe('input sampling', () => {
     for (const listener of listeners.get('keydown') ?? []) { listener(bare); }
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
+
+  it('handles a hub-claimed key event that lacks preventDefault (feature-detect false branch)', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    // Dispatch ArrowLeft as a raw event WITHOUT preventDefault — exercises
+    // the `typeof candidate.preventDefault !== 'function'` false branch.
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    const noPD = { code: 'ArrowLeft' } as unknown as Event;
+    for (const listener of listeners.get('keydown') ?? []) { listener(noPD); }
+    expect(sampler.snapshot().x).toBe(-1);
+    sampler.destroy();
+  });
 });

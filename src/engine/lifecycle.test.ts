@@ -160,6 +160,23 @@ describe('game lifecycle host', () => {
     expect(host.current()).toBeNull();
   });
 
+  it('propagates a plain mount error (no instance) without crash — destroyPartialInstance early-return branch', async () => {
+    const host = createGameLifecycleHost({} as HTMLElement);
+    // mount throws a plain error without an `instance` property — exercises
+    // the `!isErrorWithPartialInstance` early-return branch in destroyPartialInstance.
+    await expect(
+      host.launch(
+        {
+          id: 'plain-fail',
+          title: 'Plain fail',
+          mount: () => Promise.reject(new Error('plain mount error'))
+        },
+        { launchSource: 'route', reducedMotion: false }
+      )
+    ).rejects.toThrow('plain mount error');
+    expect(host.current()).toBeNull();
+  });
+
   it('treats pause, resume, and repeated destroy as safe no-ops without an active instance', async () => {
     const host = createGameLifecycleHost({} as HTMLElement);
     const destroySpy = vi.fn();

@@ -46,4 +46,26 @@ describe('decodeSnapshot', () => {
       bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
     });
   });
+
+  it('decodes a locked door status (statusInt != 1 → locked branch)', () => {
+    const buf = emptyBuffer();
+    writeI32LE(buf, 12, 1000);
+    writeI32LE(buf, 16, 1000);
+    writeI32LE(buf, 28, 1); // 1 door
+    writeAsciiId(buf, 32, 'future-bothy');
+    writeI32LE(buf, 32 + 32 + 16, 0); // status=0 → locked
+
+    const decoded = decodeSnapshot(buf);
+    expect(decoded.doors[0]?.status).toBe('locked');
+  });
+
+  it('decodes interaction kind locked (value=2 → locked branch)', () => {
+    const buf = emptyBuffer();
+    writeI32LE(buf, 12, 1000);
+    writeI32LE(buf, 16, 1000);
+    writeI32LE(buf, 20, 2); // interaction kind = 2 = locked
+
+    const decoded = decodeSnapshot(buf);
+    expect(decoded.interactionKind).toBe('locked');
+  });
 });
