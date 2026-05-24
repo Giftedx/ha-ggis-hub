@@ -2,6 +2,30 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 refactor: delete deprecated Bayer-dither code (252→223 tests)
+
+Closed the `DESIGN.md` register-policy action item: "delete after the smooth-only commitment is verified end-to-end". The six Bayer-ordered-dither functions in `src/render/palette.ts` had no runtime callers — they were only exercised by their own dedicated tests. The smooth-only commitment is verified by the visual gate on every CI run. Removing them and their tests reduces the test count from 252 to 223 but improves the codebase by eliminating dead production code. Coverage stays healthy: 95.51% lines, 80.24% branches.
+
+### Removed
+
+- **`src/render/palette.ts`** — `ditheredBloom`, `ditheredBloomBiased`, `ditheredAlphaMask`, `radialEllipseAlpha`, `ditherZoneInternal`, `ditherBoundary`, `BAYER_4X4` constant. `HardPixelContext` interface and `hardContactShadow` are retained — they are still used by `canvas-room.ts`. Section comment updated to `HARD-PIXEL CONTEXT`.
+- **`src/render/palette.test.ts`** — 29 vitest cases for the six deleted functions, plus the `PaintCall` interface and `makeMockCtx` mock. The 7 remaining cases cover `makeBeamGeometry` and `lightZoneAt` (both still active).
+
+### Changed
+
+- **`DESIGN.md`** — `register-policy.bayer-dither-effects` status updated from "pending deletion" to "deleted 2026-05-24" with action done. `voice.locked.locked-prompt` corrected from the old static string `"LOCKED. ANOTHER BOTHY, ANOTHER DAY."` to the dynamic format `"{DOOR TITLE}\nCOMIN' SOON."` (the actual behaviour since the locked-prompt-title session).
+- **`README.md`**, **`WRITEUP.md`**, **`docs/architecture/testing-strategy.md`** — vitest count updated 252 → 223. Coverage threshold comments corrected from old values (lines≥80%, stmts≥80%, fns≥85%, branches≥60%) to current (lines≥90%, stmts≥90%, fns≥90%, branches≥78%).
+- **`docs/plans/2026-05-22-implementation-sequence.md`** — `all` gate description: 17 → 19 gates.
+
+### Gates green
+
+```
+pnpm verify           ~8s    223/223
+pnpm run coverage           lines 95.51%, branches 80.24%, stmts 95.26%, fns 95.31%
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 test: boundary + input edge-case coverage (249→252 tests)
 
 3 new boundary.test.ts cases: snapshot-buffer-length-mismatch error (HubBoundaryError tag -1), multi-door room definition with launchable status, and handle.free() via destroy(). 3 new input.test.ts cases: snapshot/consumeInteract after destroy return zero/false; double-destroy is idempotent; keyCodeFromEvent falls back to '' for bare events.

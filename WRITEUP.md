@@ -131,8 +131,8 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → vitest 246 cases → vite build → verify-dist
-pnpm run coverage    # vitest v8 coverage (lines≥80%, stmts≥80%, fns≥85%, branches≥60%)
+pnpm verify          # tsc --noEmit → vitest 223 cases → vite build → verify-dist
+pnpm run coverage    # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥78%)
 
 # Rust workspace
 cargo fmt --all -- --check

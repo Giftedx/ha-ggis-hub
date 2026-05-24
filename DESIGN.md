@@ -262,7 +262,7 @@ voice:
   # — Locked phrases (tested, do not modify without updating tests) —
   locked:
     launchable-prompt: "AWA' IN — {GAME TITLE}\nPRESS ENTER"
-    locked-prompt:     "LOCKED. ANOTHER BOTHY, ANOTHER DAY."
+    locked-prompt:     "{DOOR TITLE}\nCOMIN' SOON."  # dynamic — door title from registry; see formatPromptText in canvas-room.ts
     none-prompt:       ""
     direct-play-link:  "awa' in →"
     hint-banner:       "walk wi' the arrows · chap a door tae go in"
@@ -295,9 +295,9 @@ register-policy:
       where: "in-canvas signage (door signs, prompt, mantel inscription, lintel motto)"
       why: "reads as hand-painted lettering on wood; the only hard-edged register"
     bayer-dither-effects:
-      where: "DEPRECATED — palette.ts ditheredBloom / ditheredAlphaMask"
-      why: "remnants of a locked-but-incomplete migration; pending deletion"
-      action: "delete after the smooth-only commitment is verified end-to-end"
+      where: "DELETED 2026-05-24 — palette.ts ditheredBloom / ditheredBloomBiased / ditheredAlphaMask / radialEllipseAlpha / ditherZoneInternal / ditherBoundary"
+      why: "remnants of a locked-but-incomplete migration; smooth-only commitment verified end-to-end via visual gate"
+      action: "done — all six functions and their tests removed; HardPixelContext kept for hardContactShadow"
 
   forbidden:
     mixed-mode-walls: "do not author the same surface in both pixel and smooth"
