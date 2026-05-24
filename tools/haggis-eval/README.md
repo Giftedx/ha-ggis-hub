@@ -22,12 +22,12 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
 | `browser`             | `node scripts/run-browser-smokes.mjs` — build → vite preview → door-launch (keyboard) + door-tap (touch) + pointer-drive (touch-drag) → teardown |
 | `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs |
-| `perf`                | `pnpm run build` + `node scripts/perf-budgets.mjs` (per-asset stem budgets) + `node scripts/run-paint-gate.mjs` (W3C Paint Timing API: FCP/LCP via PerformanceObserver, DCL, load; median of 3 samples; budgets in `perf-budgets.json` `paint.max_ms`) |
+| `perf`                | `pnpm run build` + `node scripts/perf-budgets.mjs` (per-asset stem budgets) + `node scripts/run-paint-gate.mjs` (W3C Paint Timing API: FCP/LCP via PerformanceObserver, DCL/load, plus `hub:firstFrame` user-mark fired from `src/main.ts` after the first canvas render — the canvas-aware paint metric the bothy needs because chrome's LCP heuristic collapses to FCP on this canvas-first app; median of 3 samples; budgets in `perf-budgets.json` `paint.max_ms`) |
 | `differential rng`    | `cargo test -p hub-hardlang --test differential_rng -- --include-ignored`   |
 | `differential hash`   | `cargo test -p hub-hardlang --test differential_hash`                       |
 | `all`                 | Every wired gate above, plus a signed JSON report                           |
 | `visual [verify\|capture]` | `node scripts/run-visual-gate.mjs` — perceptual aHash diff vs `tests/golden/`. `verify` is the default and is what `all` runs; `capture` re-baselines after intentional art changes. |
-| `slice <name>`        | Stub — exit 78, awaits `slices.toml`                                        |
+| `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual), `release` (== `all` minus the signed-report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
 
 ## Invocation cwd
 

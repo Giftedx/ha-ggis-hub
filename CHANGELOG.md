@@ -2,6 +2,50 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 canvas-aware paint metric + slice subcommand
+
+Two carry-forward items closed in one session: (1) the canvas-aware paint metric flagged in the prior session's reflection, and (2) the `slice <name>` stub — the last unwired subcommand in `haggis-eval`. Slice 9 is now 9-of-9 wired, 0 stubs.
+
+### Added — `hub:firstFrame` user-mark paint metric
+
+- **`src/main.ts`** — after `room.render()` issues the first scene's draw commands, schedule `requestAnimationFrame(() => performance.mark('hub:firstFrame'))`. The mark fires inside the rAF callback so the compositor has posted the frame to the screen by then. This is the canvas-aware paint metric the bothy needed: chrome's built-in LCP heuristic doesn't score the canvas as a "contentful element" until something paints into it, but the canvas is blank until WASM boots + the first render call — so LCP collapses to FCP at whatever DOM text the page ships. `hub:firstFrame` measures the actual "you can see the bothy" moment a visitor experiences.
+- **`scripts/smoke-paint-timing.mjs`** — `measureOnce` now reads `performance.getEntriesByName('hub:firstFrame', 'mark')` alongside the W3C paint + navigation entries. Median across 3 samples asserted against `paint.max_ms.hubFirstFrame`.
+- **`perf-budgets.json` `paint.max_ms.hubFirstFrame`** — 2500ms (looser than LCP/load because it sits chronologically *after* WASM boot, which on slow CI runners can be ~1s). Local Windows median: 37–43ms (~2% of budget).
+
+### Added — `slice <name>` subcommand and bundle config
+
+- **`tools/haggis-eval/slices.json`** — schema-versioned bundle config. Three bundles shipped: `fast` (ts + perf, ~10s), `pre-merge` (ts + security + perf + browser + determinism + visual, ~40s), `release` (full release matrix minus the signed-report write). Filename note: spec called it `slices.toml`; pivoted to JSON because `haggis-eval` is stdlib-only Go and `encoding/json` is stdlib while TOML is not. Spec doc updated to reflect.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `Registry()` returns the gate-ID → `GateRunner` map so the slice dispatcher can look gates up by name. New wired gates must be added here AND under main.go's subcommand switch — the two surfaces have separate use cases (CLI argv vs slice bundle membership).
+- **`tools/haggis-eval/internal/cmd/slice.go`** — `LoadSlices`, `Slice`, `ListSlices`. Unknown slice name OR unknown gate ID inside a slice each produce a single `ERROR` result so the existing `printAndExit` PASS/FAIL handling carries through unchanged.
+- **`tools/haggis-eval/internal/cmd/slice_test.go`** — 8 unit tests covering load (valid + missing file + bad schema + empty slices), dispatch (unknown slice + unknown gate + ordering + empty), and a Registry guard against silent drift (every gate ID referenced by shipped slices.json must exist in `Registry()`).
+- **`tools/haggis-eval/main.go`** — `slice` case replaces the stub. `slice` with no name (or `slice list`) prints available bundles; `slice <name>` runs the bundle. `HAGGIS_SLICES_PATH` overrides the config path for tests / CI experiments.
+
+### Changed
+
+- **`tools/haggis-eval/main.go` usage block** — `Stubs` section deleted (none remain); `slice [name|list]` added to the wired-subcommands list.
+- **`tools/haggis-eval/README.md`** — `perf` row now mentions `hub:firstFrame`; `slice` row rewritten from stub to full description.
+- **`docs/plans/2026-05-22-implementation-sequence.md`** — Slice 9 heading: "8 real subcommands + 1 informational stub" → "9 real subcommands, 0 stubs"; outstanding stubs section reads "None" instead of listing `slice`; perf bullet describes the canvas-aware mark.
+- **`docs/superpowers/specs/2026-05-23-hub-determinism-kernel-design.md`** — slice config filename note: spec said `slices.toml`, project ships `slices.json` (stdlib reason).
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0x8dccfca1c3d04a28
+  rust/cargo-fmt + clippy + test         PASS
+  ts/tsc-noemit + vitest + vite-build    PASS
+  security/deploy-config                  PASS
+  perf/build + bundle-budgets             PASS  (44.7 KB JS)
+  perf/paint-timing                       PASS  (fcp 36ms, lcp 36ms, hubFirstFrame 37ms / 2500ms = 2%)
+  browser/smokes-all (3 smokes)           PASS
+  determinism/browser-replay-hash         PASS
+  visual/verify                           PASS  (hamming 0/256 vs golden)
+  differential/c-rust-hash                PASS
+  differential/wat-rust-rng (100k fuzz)   PASS
+```
+
+Go tests added: 8 in `tools/haggis-eval/internal/cmd/slice_test.go` (slice load + dispatch + registry-guard).
+
 ## [Unreleased] — 2026-05-24 paint-timing perf gate
 
 Closed the last carry-forward stub on the slice 9 `perf` gate: the Lighthouse paint-timing half. Hand-rolled via the existing Playwright dep + the W3C Paint Timing API directly through chromium-headless — no Lighthouse npm dependency added (matches [Hand-roll over library](https://en.wikipedia.org/wiki/Engineering_principle): use the primitive, not the vendor wrapper). Release gate is now 15 wired gates (was 14), still ~3.5min warm. Signed `0x5a89f65353c1bedd`.

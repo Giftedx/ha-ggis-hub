@@ -48,7 +48,24 @@ func main() {
 		}
 		os.Exit(printAndExit("visual", cmd.Visual(mode)))
 	case "slice":
-		os.Exit(cmd.Stub("slice", "slices.toml gate-set config not yet present"))
+		// Slices config lives next to this binary's source. Resolved
+		// relative to repo root (the same cwd assumption as every
+		// other script-path gate — see tools/haggis-eval/README.md
+		// "Invocation cwd"). Override via HAGGIS_SLICES_PATH.
+		cfgPath := os.Getenv("HAGGIS_SLICES_PATH")
+		if cfgPath == "" {
+			cfgPath = "tools/haggis-eval/slices.json"
+		}
+		cfg, err := cmd.LoadSlices(cfgPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "slice config: %v\n", err)
+			os.Exit(2)
+		}
+		if len(os.Args) < 3 || os.Args[2] == "list" {
+			cmd.ListSlices(cfg, os.Stdout)
+			os.Exit(0)
+		}
+		os.Exit(printAndExit("slice", cmd.Slice(cfg, cmd.Registry(), os.Args[2])))
 	case "all":
 		results := cmd.All()
 		now := time.Now()
@@ -84,10 +101,8 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")
 	fmt.Fprintln(w, "  visual [verify|capture]    Perceptual aHash diff vs tests/golden/ (default verify)")
+	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
 	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
-	fmt.Fprintln(w, "")
-	fmt.Fprintln(w, "Stubs (return exit 78 until implemented):")
-	fmt.Fprintln(w, "  slice")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Common flags:")
 	fmt.Fprintln(w, "  --version    Print version")

@@ -146,7 +146,7 @@ Single Go binary, single source tree. Subcommands:
 | `haggis-eval differential hash` | Rust vs C FNV-1a, published vectors + fuzz |
 | `haggis-eval perf` | `size-limit` budgets, Lighthouse against local preview |
 | `haggis-eval security` | Live preview response headers diffed against `public/_headers` |
-| `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.toml` |
+| `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.json` (TOML in original spec; pivoted to JSON because haggis-eval is stdlib-only Go) |
 | `haggis-eval all` | Every gate above; exit non-zero on any failure |
 
 Output: a human-readable report on stdout and a signed JSON report at `target/haggis-eval/<utc>.json`. Signature is the FNV-1a of the report payload — proves the eval bundle was not edited after the fact.

@@ -100,10 +100,21 @@ async function measureOnce(browser) {
       const last = lcpEntries[lcpEntries.length - 1];
       lcp = last.renderTime || last.startTime;
     }
+    // Canvas-aware paint mark — see src/main.ts. The bothy is canvas-
+    // first so chrome's LCP heuristic collapses LCP onto FCP because
+    // the canvas reads as a non-contentful element until WASM boots and
+    // the renderer issues its first draw. `hub:firstFrame` is a user
+    // mark scheduled inside a rAF after the first room.render() call,
+    // so its startTime tracks the actual "you can see the bothy" moment
+    // a visitor experiences. The gate asserts this against
+    // paint.max_ms.hubFirstFrame.
+    const hubFrameEntries = performance.getEntriesByName('hub:firstFrame', 'mark');
+    const hubFirstFrame = hubFrameEntries.length > 0 ? hubFrameEntries[0].startTime : null;
     return {
       firstPaint: fp ? fp.startTime : null,
       firstContentfulPaint: fcp ? fcp.startTime : null,
       largestContentfulPaint: lcp,
+      hubFirstFrame,
       domContentLoaded: nav ? nav.domContentLoadedEventEnd : null,
       loadEvent: nav ? nav.loadEventEnd : null,
       lcpEntryCount: lcpEntries.length
@@ -125,7 +136,7 @@ try {
   for (let i = 0; i < SAMPLES; i += 1) {
     log(`sample ${i + 1}/${SAMPLES}`);
     const m = await measureOnce(browser);
-    log(`  fp=${fmt(m.firstPaint)} fcp=${fmt(m.firstContentfulPaint)} lcp=${fmt(m.largestContentfulPaint)} dcl=${fmt(m.domContentLoaded)} load=${fmt(m.loadEvent)} lcpEntries=${m.lcpEntryCount}`);
+    log(`  fp=${fmt(m.firstPaint)} fcp=${fmt(m.firstContentfulPaint)} lcp=${fmt(m.largestContentfulPaint)} hubFrame=${fmt(m.hubFirstFrame)} dcl=${fmt(m.domContentLoaded)} load=${fmt(m.loadEvent)} lcpEntries=${m.lcpEntryCount}`);
     allSamples.push(m);
   }
 
@@ -133,7 +144,7 @@ try {
   // doesn't sink the gate. Median is the "robust" Lighthouse-style
   // central tendency for paint metrics on shared CI runners.
   const aggregated = aggregateMedian(allSamples);
-  log(`median: fcp=${fmt(aggregated.firstContentfulPaint)} lcp=${fmt(aggregated.largestContentfulPaint)} dcl=${fmt(aggregated.domContentLoaded)} load=${fmt(aggregated.loadEvent)}`);
+  log(`median: fcp=${fmt(aggregated.firstContentfulPaint)} lcp=${fmt(aggregated.largestContentfulPaint)} hubFrame=${fmt(aggregated.hubFirstFrame)} dcl=${fmt(aggregated.domContentLoaded)} load=${fmt(aggregated.loadEvent)}`);
 
   const breaches = [];
   for (const [metric, budget] of Object.entries(paintBudgets.max_ms ?? {})) {
@@ -172,7 +183,7 @@ function fmt(v) {
 }
 
 function aggregateMedian(samples) {
-  const keys = ['firstPaint', 'firstContentfulPaint', 'largestContentfulPaint', 'domContentLoaded', 'loadEvent'];
+  const keys = ['firstPaint', 'firstContentfulPaint', 'largestContentfulPaint', 'hubFirstFrame', 'domContentLoaded', 'loadEvent'];
   const out = {};
   for (const k of keys) {
     const vals = samples.map((s) => s[k]).filter((v) => v != null).sort((a, b) => a - b);

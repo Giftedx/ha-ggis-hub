@@ -143,7 +143,7 @@ Acceptance:
 - Differential test passes for 100 000+ outputs.
 - WAT file is readable + commented (single file, side-by-side comparable with the Rust impl).
 
-## Slice 9: `haggis-eval` CLI — fully wired (8 real subcommands + 1 informational stub)
+## Slice 9: `haggis-eval` CLI — fully wired (9 real subcommands, 0 stubs)
 
 Go orchestration tool with FNV-1a-signed JSON reports.
 
@@ -155,18 +155,19 @@ Wired:
 - `browser` — `node scripts/run-browser-smokes.mjs` (build → vite preview → smoke-door-launch keyboard + smoke-door-tap touch + smoke-pointer-drive touch-drag → teardown; shipped 2026-05-23).
 - `determinism` — `node scripts/run-determinism-smoke.mjs` (loads hub twice with fixed `?seed=N`, applies identical scripted input, asserts final state-hash matches between runs; shipped 2026-05-23 with `?seed=` URL param + `window.__stateHash()` dev hook).
 - `visual` — `node scripts/run-visual-gate.mjs verify` (build → vite preview → perceptual aHash diff vs `tests/golden/bothy-idle-seed-42.png` at Hamming distance ≤ 18/256; shipped 2026-05-23, golden bootstrapped same day on Windows, verified on Linux CI 2026-05-24 at 1-bit drift — comfortably inside tolerance).
-- `perf` — two halves: (a) `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total); (b) `node scripts/run-paint-gate.mjs` boots vite preview and asserts the median over 3 samples of W3C Paint Timing API metrics (first-contentful-paint, largest-contentful-paint via PerformanceObserver, domContentLoadedEventEnd, loadEventEnd) against `perf-budgets.json` `paint.max_ms`. Hand-rolled via existing Playwright + the W3C primitives directly — no Lighthouse npm dep. Shipped 2026-05-24.
+- `perf` — two halves: (a) `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total); (b) `node scripts/run-paint-gate.mjs` boots vite preview and asserts the median over 3 samples of W3C Paint Timing API metrics (first-contentful-paint, largest-contentful-paint via PerformanceObserver, domContentLoadedEventEnd, loadEventEnd) plus the `hub:firstFrame` User Timing mark fired from `src/main.ts` after the first canvas render (the canvas-aware paint metric — chrome's LCP heuristic collapses to FCP on this canvas-first app, so we mark the moment WASM has booted and the renderer has issued its first draw, scheduled inside a rAF so the compositor has posted). All five metrics asserted against `perf-budgets.json` `paint.max_ms`. Hand-rolled via existing Playwright + the W3C primitives directly — no Lighthouse npm dep. Shipped 2026-05-24.
 - `differential rng` — WAT vs Rust xoshiro128**.
 - `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
+- `slice <name>` — dispatches a named gate-set bundle from `tools/haggis-eval/slices.json` (pivoted from `slices.toml` in the original spec because haggis-eval is stdlib-only Go and `encoding/json` is stdlib while TOML is not). Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual), `release` (== `all` minus the signed-report write). `slice` with no argument (or `slice list`) prints available bundles. `HAGGIS_SLICES_PATH` overrides the config path. Shipped 2026-05-24.
 - `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold).
 
 Outstanding stubs (`exit 78`):
 
-- `slice <name>` — `slices.toml` gate-set config not yet present (spec design work; would let releasers pick "run gate-set X" for ad-hoc bundles).
+- None. Slice 9 fully wired as of 2026-05-24.
 
 Acceptance:
 
-- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all 8 wired categories (rust, ts, security, perf, browser, determinism, visual, differential).
+- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all 9 wired categories (rust, ts, security, perf, browser, determinism, visual, differential, slice).
 - Complete: exits non-zero on any failure.
 - Complete: orchestration logic unit-tested (`internal/gate/`, `internal/report/`, `internal/fnv/` test files).
 - Complete: referenced from the release gate (README "Current executable gates" section).

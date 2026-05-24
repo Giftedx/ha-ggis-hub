@@ -18,10 +18,11 @@
     }
   ],
   "paint": {
-    "_comment": "Paint-timing budgets in milliseconds, asserted against the MEDIAN of N=3 samples to absorb single-run jitter. Measured by scripts/smoke-paint-timing.mjs against vite preview on localhost — these are LAB numbers, not field numbers. Headroom: real Cloudflare-served numbers on a fast connection are typically half these budgets, on a slow 3G connection 3-5x. The budgets here are tuned for chromium-headless on a GitHub-hosted runner (slowest reasonable environment in the gate set).",
+    "_comment": "Paint-timing budgets in milliseconds, asserted against the MEDIAN of N=3 samples to absorb single-run jitter. Measured by scripts/smoke-paint-timing.mjs against vite preview on localhost — these are LAB numbers, not field numbers. Headroom: real Cloudflare-served numbers on a fast connection are typically half these budgets, on a slow 3G connection 3-5x. The budgets here are tuned for chromium-headless on a GitHub-hosted runner (slowest reasonable environment in the gate set). `hubFirstFrame` is a User Timing mark fired from src/main.ts inside the first rAF after room.render() issues — the canvas-aware paint metric the bothy needs because chrome's built-in LCP collapses to FCP on this canvas-first app (LCP heuristic doesn't score the canvas as a contentful element).",
     "max_ms": {
       "firstContentfulPaint": 1200,
       "largestContentfulPaint": 2000,
+      "hubFirstFrame": 2500,
       "domContentLoaded": 1000,
       "loadEvent": 2000
     }

@@ -153,6 +153,18 @@ async function start(root: HTMLElement): Promise<void> {
 
     const room = createHubRoomController({ boundary, renderer });
     room.render();
+    // Canvas-aware paint mark. The bothy is canvas-first so chrome's LCP
+    // heuristic doesn't score the (briefly blank) canvas as a contentful
+    // element — LCP ends up matching FCP at whatever DOM text the page
+    // ships, not the actual first-bothy-paint moment. We record our own
+    // W3C User Timing mark right after the renderer's first draw issues,
+    // scheduled inside a requestAnimationFrame so the compositor has
+    // posted the frame to the screen by the time the mark fires. The
+    // smoke-paint-timing.mjs gate asserts the mark's startTime against
+    // `paint.max_ms.hubFirstFrame` in perf-budgets.json.
+    requestAnimationFrame(() => {
+      performance.mark('hub:firstFrame');
+    });
     shell.status.textContent = '';
 
     // Dev / smoke-test hooks: expose snapshot + state hash via window so
