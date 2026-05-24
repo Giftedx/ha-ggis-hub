@@ -173,9 +173,9 @@ describe('createCanvasRoomRenderer', () => {
     );
   });
 
-  it('formats the locked prompt with the fixed Scots line', () => {
-    expect(formatPromptText('locked', 'Wild Haggis Survivors')).toBe(
-      `LOCKED. ANOTHER BOTHY, ANOTHER DAY.`
+  it('formats the locked prompt using the door title with a comin-soon suffix', () => {
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon")).toBe(
+      `COMIN' WI' THE NEXT MOON\nCOMIN' SOON.`
     );
   });
 

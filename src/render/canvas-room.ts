@@ -685,7 +685,7 @@ export function formatPromptText(
     return `AWA' IN — ${doorTitle.toUpperCase()}\nPRESS ENTER`;
   }
   if (interactionKind === 'locked') {
-    return `LOCKED. ANOTHER BOTHY, ANOTHER DAY.`;
+    return `${doorTitle.toUpperCase()}\nCOMIN' SOON.`;
   }
   return '';
 }
