@@ -453,7 +453,6 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
 // (Phase 2b) with WHS-quality smooth flagstones + simple translucent
 // beam ellipse. Keeps signature dawn-light-from-window flourish.
 function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number): void {
-  void phase;
   const env: BothyEnvelope = {
     left: WALL_THICK_SIDE,
     right: surface.width - WALL_THICK_SIDE,
@@ -464,14 +463,14 @@ function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: nu
   };
   drawWhsBothyFloor(ctx, env);
 
-  // Dawn beam — translucent warm trapezoid + subtle COOL loch-tint
-  // beneath. The window shows a loch view (blue water + green hills)
-  // so light through it picks up a hint of the loch's cool cast,
-  // like stained-glass tinting. Reads as "actual window-cast light".
+  // Dawn beam — translucent warm trapezoid + subtle COOL loch-tint.
+  // Gentle 22-second pulse (±5%) gives the early-morning light a
+  // barely-perceptible shifting quality, like clouds on the horizon.
   const beam = makeBeamGeometry(surface.width, surface.height, WALL_THICK_BACK);
-  fillTrapezoidAlpha(ctx, beam, '#6a90b0', 0.06);  // cool loch cast (very subtle)
-  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnPeach, 0.18);
-  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnGold, 0.10);
+  const dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05;
+  fillTrapezoidAlpha(ctx, beam, '#6a90b0', 0.06 * dawnPulse);  // cool loch cast
+  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnPeach, 0.18 * dawnPulse);
+  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnGold, 0.10 * dawnPulse);
 
   // Mullion shadows — two perpendicular dark stripes through the beam
   // marking the window's cross frame. The "actual sun-through-window"
@@ -666,13 +665,17 @@ function drawHaggis(
   // Mane sway at half stride frequency — one full pendulum swing per
   // complete stride cycle so the mane lags the body naturally.
   const maneSway = isMoving ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0;
+  // Tail wag at 2 Hz — slightly slower than the leg cycle, gives the
+  // tail its own rhythmic energy without slavishly matching each step.
+  const tailWag = isMoving ? Math.sin(phase * 4 * Math.PI) * 1.2 : 0;
 
   drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
     breathY: Math.sin(phase * 1.4) * 0.4,
     facingLeft,
     leftLegY,
     rightLegY,
-    maneSway
+    maneSway,
+    tailWag
   });
 }
 

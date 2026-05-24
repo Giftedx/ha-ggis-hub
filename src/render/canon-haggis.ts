@@ -78,6 +78,7 @@ export interface CanonHaggisFrame {
   rightLegY?: number;  // front-pair leg offset (design units, + = down)
   facingLeft?: boolean;
   maneSway?: number;   // lateral mane oscillation (design units, + = toward face)
+  tailWag?: number;    // tail vertical bob (design units, + = down)
 }
 
 // Draw the canonical wild-haggis. (cx, cy) is the body center in
@@ -104,14 +105,16 @@ export function drawCanonHaggis(
   // mane mass swings naturally during a trot without moving body/legs.
   const maneSwayX = (frame.maneSway ?? 0) * s * dir;
   const mmx = (dx: number): number => mx(dx) + maneSwayX;
+  // Tail vertical offset — tmt applies tailWag to tail tuft circles only.
+  const tailWagY = (frame.tailWag ?? 0) * s;
 
   // ── Ground heather-purple shadow ────────────────────────────────
   fillEllipse(ctx, palette.heatherShadow, 0.55, cx, cy + 24 * s, 60 * s, 6 * s);
 
   // ── Tail tuft (back end, opposite face) ─────────────────────────
-  fillCircle(ctx, palette.bodyMid, 1, mx(-27), my(-1), 5 * s);
-  fillCircle(ctx, palette.bodyDark, 0.85, mx(-30), my(-4), 3 * s);
-  fillCircle(ctx, palette.maneMid, 0.55, mx(-32), my(-6), 2.2 * s);
+  fillCircle(ctx, palette.bodyMid, 1, mx(-27), my(-1) + tailWagY, 5 * s);
+  fillCircle(ctx, palette.bodyDark, 0.85, mx(-30), my(-4) + tailWagY, 3 * s);
+  fillCircle(ctx, palette.maneMid, 0.55, mx(-32), my(-6) + tailWagY, 2.2 * s);
 
   // ── Leg stubs (4 corners) ───────────────────────────────────────
   const legY = 8 * s;
