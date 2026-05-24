@@ -78,7 +78,16 @@ body {
 .scene-direct:hover,
 .scene-direct:focus-visible {
   color: var(--hub-neeps-orange);
-  outline: none;
+}
+
+/* Keyboard focus indicator. Colour-shift alone isn't enough — WCAG
+   2.4.7 wants a visible non-colour signal too, so the outline is
+   explicit. Lantern-warm neeps-orange ring matches the hover/focus
+   text colour so the indicator reads as part of the bothy palette. */
+.scene-direct:focus-visible {
+  outline: 2px solid var(--hub-neeps-orange);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .scene-status {

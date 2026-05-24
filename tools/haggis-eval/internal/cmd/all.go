@@ -17,6 +17,7 @@ func All() []gate.Result {
 	out = append(out, Browser()...)
 	out = append(out, Determinism()...)
 	out = append(out, Visual("verify")...)
+	out = append(out, A11y()...)
 	out = append(out, Differential("hash")...)
 	out = append(out, Differential("rng")...)
 	return out
