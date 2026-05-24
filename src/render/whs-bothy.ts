@@ -371,7 +371,6 @@ export function drawWhsDoor(
 // Oval heather rug (PEAT_DARK + HEATHER + tartan stripes + cream
 // fringe). Port of WHS drawRug. Place under the haggis-hearth axis
 // for floor warmth + central anchor.
-const TARTAN_RED = '#c42828';
 const CREAM = '#d6b878';
 
 export function drawWhsRug(
@@ -398,7 +397,6 @@ export function drawWhsRug(
   fillRectA(ctx, '#9a3818', 0.7, x + w * 0.70, y + h * 0.24, stripeW, h * 0.50);
   fillRectA(ctx, WHISKY, 0.78, x + w * 0.10, y + h * 0.51, w * 0.8, Math.max(2, stripeH - 2));
   fillRectA(ctx, WHISKY, 0.78, x + w * 0.36, y + h * 0.28, Math.max(2, stripeW - 1), h * 0.44);
-  void TARTAN_RED;
 
   // Cream fringe along the front edge.
   for (let i = 0; i < 7; i++) {
