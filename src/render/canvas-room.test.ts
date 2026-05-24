@@ -11,6 +11,8 @@ class RecordingCanvasContext {
   font = '';
   textAlign: CanvasTextAlign = 'start';
   globalAlpha = 1;
+  // Present so createCanvasRoomRenderer exercises the imageSmoothingEnabled=false path.
+  imageSmoothingEnabled = true;
 
   fillRect(x: number, y: number, width: number, height: number): void {
     this.calls.push(`fillRect:${x},${y},${width},${height}`);
@@ -209,6 +211,16 @@ describe('createCanvasRoomRenderer', () => {
     // Width=300 skips the painting, exercising the false branch.
     const { surface, context } = recordingSurface(300, 200);
     createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('renders without crash when interactionDoorIndex is out of bounds — exercises drawPrompt early-return', () => {
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, ROOM).render({
+      ...SNAPSHOT_AT_LAUNCHABLE,
+      // Index 99 is beyond the two-door ROOM array → door === undefined → early return.
+      interactionDoorIndex: 99
+    });
     expect(context.calls.length).toBeGreaterThan(20);
   });
 

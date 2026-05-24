@@ -138,6 +138,25 @@ describe('input sampling', () => {
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
 
+  it('destroyed guard fires in keydown/keyup when handler is invoked directly after destroy', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    // Save handler refs BEFORE destroy removes them from the target.
+    const kdListeners = [...(listeners.get('keydown') ?? [])];
+    const kuListeners = [...(listeners.get('keyup') ?? [])];
+    target.dispatch('keydown', 'KeyD');
+    expect(sampler.snapshot()).toEqual({ x: 1, y: 0 });
+    sampler.destroy();
+    // After destroy the sampler is empty; directly invoking the saved handlers
+    // (bypassing removeEventListener) exercises the `if (destroyed) return`
+    // guard at lines 68 (keydown) and 79 (keyup) — both must be no-ops.
+    const fakeEvent = { code: 'KeyA' } as unknown as Event;
+    for (const fn of kdListeners) { fn(fakeEvent); }
+    for (const fn of kuListeners) { fn(fakeEvent); }
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+  });
+
   it('handles a hub-claimed key event that lacks preventDefault (feature-detect false branch)', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
