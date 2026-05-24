@@ -30,7 +30,7 @@ If you only have time for the load-bearing five, read these in order:
 - Product: playable haggis game hub (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; click or walk + Enter).
-- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI runs typecheck + 194 vitest cases + cargo workspace tests + build + dist verification on push/PR.
+- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + 194 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + security + perf + browser smokes + determinism + visual + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D (ported from the WHS croft drawers — see `src/render/whs-*.ts`).
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
@@ -45,14 +45,14 @@ The first public release is a **First Perfect Slice**, not an MVP. It should be 
 
 The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
 
-- **76 KB total client bundle** (44 KB JS + 28 KB WASM + 4 KB CSS) for a Rust+WASM playable hub with deterministic core and cryptographically signed eval reports.
+- **~78 KB total client** (44 KB JS + 28 KB WASM + 4 KB HTML + 2 KB CSS, ~30 KB gzipped) for a Rust+WASM playable hub with deterministic core and cryptographically signed eval reports.
 - **Three hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`). All three agree byte-for-byte on four published reference vectors. Diff-tested in CI.
 - **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
 - **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 - **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
 - **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
 - **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **194 vitest cases** + cargo workspace tests + two Playwright smokes (keyboard launch, touch tap) + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs).
+- **194 vitest cases** + cargo workspace tests + three Playwright smokes (keyboard launch, touch tap, pointer-drive touch-drag) + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed, Hamming-distance check against a recorded golden).
 - **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
 - **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
@@ -85,16 +85,16 @@ RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 pnpm install --frozen-lockfile
 pnpm verify   # typecheck → vitest → vite build → scripts/verify-dist.mjs
 
-# Browser smokes (require `pnpm dev` running)
-node scripts/smoke-door-launch.mjs   # keyboard: walk → Enter → launch
-node scripts/smoke-door-tap.mjs      # touch: tap door → launch
+# Browser smokes (each builds dist + starts vite preview internally)
+node scripts/run-browser-smokes.mjs   # door-launch (keyboard) + door-tap (touch) + pointer-drive (touch-drag)
+node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same state hash
 
 # Visual gate (builds + previews + diffs against tests/golden/)
 node scripts/run-visual-gate.mjs verify   # perceptual aHash diff vs golden
 node scripts/run-visual-gate.mjs capture  # re-baseline after intentional art changes
 ```
 
-CI (`.github/workflows/ci.yml`) runs `pnpm verify` and `cargo test --workspace --exclude hub-wasm` on every push and pull request.
+CI (`.github/workflows/ci.yml`) is two-tier: `pnpm verify` is the fast PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main. Both gates currently green on the latest commit.
 
 A Go-built orchestrator CLI bundles every gate above into one command with a signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 

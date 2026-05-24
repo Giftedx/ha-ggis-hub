@@ -30,6 +30,8 @@ We're catching **perceptual** drift (the bothy now looks visibly different), not
 - Different layout → bright clusters move between cells → bits flip in that region
 - Same scene, different particle positions → 0–5 bits flip → within tolerance
 
+Observed jitter for `bothy-idle-seed-42` at the 1200ms settle: **1 bit / 256** on both Windows and Linux chromium, stable across 5 consecutive verifies (2026-05-24 measurement). The 18-bit tolerance therefore has ~17× headroom over baseline noise — generous but justified by the future possibility of higher-variance scenes (animated transitions, particle bursts).
+
 This is dogfood-grade. If the project wants stronger guarantees later, swap aHash for `pHash` (DCT-based) or pixel-level `pixelmatch` — the script is one function-swap away.
 
 ## When to capture vs verify
@@ -65,4 +67,4 @@ Open the current screenshot side-by-side with the golden PNG in this directory. 
 - **Drift was intentional** (you changed the haggis sprite / palette / layout on purpose) → re-capture.
 - **Drift is regression** (you didn't mean to change anything visible) → investigate the code change that caused it.
 
-The signed JSON report from `haggis-eval all` (once `visual` is wired as a subcommand) will surface drift events for audit.
+The signed JSON report from `haggis-eval all` surfaces every visual-gate result (the `visual` subcommand is wired into `all` as of 2026-05-24); look in `target/haggis-eval/all-*.json` for the `visual` category entry.

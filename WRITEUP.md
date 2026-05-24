@@ -3,7 +3,7 @@
 > A 76 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
-**Repo:** <https://github.com/aggismc/ha-ggis-hub>
+**Repo:** private during development — public on first release.
 **Sister project:** [Wild Haggis Survivors](https://wild-haggis-survivors.pages.dev/) (linked from the hub)
 
 ---
@@ -82,7 +82,7 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 ### Cryptographically signed gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `visual`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
@@ -90,11 +90,11 @@ This is not strong cryptography — anyone can re-sign an edited report. It's a 
 
 | Asset | Size | Gzip |
 |---|---|---|
-| `dist/index.html` | 3.75 KB | 1.32 KB |
+| `dist/index.html` | 3.98 KB | 1.42 KB |
 | `dist/assets/index-*.js` | 44.35 KB | 15.20 KB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
 | `dist/assets/index-*.css` | 1.93 KB | 0.82 KB |
-| **Total** | **77.75 KB** | **29.98 KB** |
+| **Total** | **77.98 KB** | **30.08 KB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships less than 30 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, and a registry with launch planning.
 
@@ -117,7 +117,7 @@ These are not "set it and forget it" — `scripts/deploy-config.test.ts` asserts
 
 ### ADR discipline + autopilot rules
 
-Every architectural decision is a numbered, dated, status-tracked record in `docs/decisions/` with supersession links. Six ADRs cover renderer choice, language and craft philosophy, deployment shape, WHS integration boundary, and Canvas2D first-room renderer.
+Every architectural decision is a numbered, dated, status-tracked record in `docs/decisions/` with supersession links. Six ADRs cover renderer choice, language and craft philosophy, WHS integration boundary, the Canvas2D first-room renderer, and the Highland-dawn-bothy visual direction.
 
 The project is explicitly autopilot-friendly: `AGENTS.md` is the agent-side entry point, listing required reading order before any edit, the prime rule (do not implement from archived plans), and behavioural constraints (do not add dependencies without rationale, do not weaken gates, update docs when design changes). This is paired with a quality manifesto that states the bar: "perfect at the current stage, or actively being made perfect — doing nothing is not acceptable while the foundation is unfinished, cutting corners is not acceptable because the corner will become the architecture."
 
@@ -126,7 +126,7 @@ The autopilot rules also have known limits: agents handle the engineering layer 
 ## Reproduce locally
 
 ```bash
-git clone https://github.com/aggismc/ha-ggis-hub
+# Repo is private during development; replace with your fork / mirror.
 cd ha-ggis-hub
 
 # TypeScript + Vite host
@@ -145,11 +145,12 @@ cd tools/haggis-eval && go build .
 cat target/haggis-eval/all-*.json | jq .
 ```
 
-Browser smokes additionally require `pnpm dev` running:
+Browser smokes (each builds dist + spins up `vite preview` internally — no external server needed):
 
 ```bash
-node scripts/smoke-door-launch.mjs   # keyboard: walk → Enter → WHS launch
-node scripts/smoke-door-tap.mjs      # touch: tap door → WHS launch
+node scripts/run-browser-smokes.mjs    # 3 smokes: door-launch + door-tap + pointer-drive
+node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
+node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
 ```
 
 ## What's NOT polished (yet)

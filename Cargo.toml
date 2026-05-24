@@ -9,8 +9,8 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 rust-version = "1.94"
-license = "UNLICENSED"
-repository = "https://github.com/aggis/ha-ggis-hub"
+license = "MIT"
+repository = "https://github.com/Giftedx/ha-ggis-hub"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -19,6 +19,7 @@ When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 | [0003](0003-whs-integration-strategy.md) | Wild Haggis Survivors integration strategy | proposed (decision-pending) | 2026-05-22 | Documents Option A (external URL) vs Option B (`/wild-haggis-survivors/` mount); decision deferred until deployment is real. |
 | [0004](0004-language-and-craft-philosophy.md) | Language and craft philosophy | accepted | 2026-05-22 | Makes the systems-language taste and hand-roll-vs-library posture explicit policy. |
 | [0005](0005-canvas2d-first-room-renderer.md) | Canvas2D renderer for first room | accepted | 2026-05-23 | Selects a hand-rolled Canvas2D renderer for the First Perfect Slice room. |
+| [0006](0006-hub-visual-direction-highland-dawn-bothy.md) | Highland-dawn-bothy visual direction | accepted | 2026-05-23 | Locks the hub's visual register: peat-night palette, monospace, Scots voice, sister to WHS without sharing tokens. |
 
 ## Statuses
 
@@ -41,6 +42,7 @@ When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 Based on current planning (see [ADR-0001](0001-rust-wasm-core-typescript-host.md) follow-ups and the [implementation sequence](../plans/2026-05-22-implementation-sequence.md)):
 
 - renderer choice for the First Perfect Slice — closed by [ADR-0005](0005-canvas2d-first-room-renderer.md)
-- WHS route/mount strategy (closes ADR-0003)
-- CI/deployment architecture if Cloudflare Pages build limitations force GitHub Actions + Wrangler
+- visual direction for the bothy — closed by [ADR-0006](0006-hub-visual-direction-highland-dawn-bothy.md)
+- WHS route/mount strategy — informally settled (Option B `/wild-haggis-survivors/` mount); ADR-0003 still carries "decision-pending" until the deploy actually lands the mount.
+- CI/deployment architecture — native Cloudflare Pages build was chosen; the Wrangler/GitHub-Actions fallback proved unnecessary. No ADR needed unless that changes.
 - save schema and migration policy once persistence is needed

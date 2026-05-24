@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository now has an executable foundation skeleton: Rust workspace manifests, `hub-core`, `hub-wasm`, TypeScript/Vite host files, deterministic lockfiles, and a generated wasm-bindgen package consumed by the browser build. `hub-core` owns deterministic fixed-unit movement, player bounds, and door proximity primitives; `hub-wasm` exposes those primitives through a typed boundary; and the TypeScript host has lifecycle, keyboard input, registry mapping, direct-play launch seams, and the first Canvas2D room renderer. CI config, Playwright config, and Cloudflare config remain planned unless explicitly marked current.
+The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a procedural Canvas2D bothy renderer (WHS croft drawers ported + pixel sprites). Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR; the full `haggis-eval all` release gate on push to main, emitting a cryptographically signed JSON report. Deployment headers, manifest, OG card, and SPA redirects under `public/`.
 
 ## Recommended reading order
 
@@ -52,6 +52,10 @@ Decisions and plans:
 
 - [Documentation style guide](style-guide.md)
 - [Glossary](glossary.md)
+- [`../DESIGN.md`](../DESIGN.md) — hub design system (colour, type, grid, motion, voice; sister to WHS's DESIGN.md)
+- [`../WRITEUP.md`](../WRITEUP.md) — engineer-portfolio writeup of the layer underneath the bothy
+- [`../CHANGELOG.md`](../CHANGELOG.md) — date-ordered notable changes (newest first)
+- [`../LICENSE`](../LICENSE) — MIT
 
 ### Foundation
 
@@ -94,6 +98,7 @@ Archived foundation docs (provenance only — content distilled into the keepers
 - [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — proposed (decision-pending)
 - [ADR-0004: Language and craft philosophy](decisions/0004-language-and-craft-philosophy.md) — accepted
 - [ADR-0005: Canvas2D renderer for first room](decisions/0005-canvas2d-first-room-renderer.md) — accepted
+- [ADR-0006: Highland-dawn-bothy visual direction](decisions/0006-hub-visual-direction-highland-dawn-bothy.md) — accepted
 
 ### Plans
 
@@ -171,29 +176,13 @@ These files exist now and form the current executable foundation:
 - `crates/hub-wasm/Cargo.toml`
 - `crates/hub-wasm/src/lib.rs`
 
-## Missing implementation files by design
+## Still-missing implementation files
 
-These files are expected later but do not exist yet. The list is grouped by area so a contributor scanning for a specific concern can see what to expect.
+The list is short — most of the original "missing by design" set has shipped (CI workflow, `public/_headers`, `public/_redirects`, `LICENSE`, plus the render/sprites/whs-\* modules and the `public/` deploy assets).
 
-Tooling and config:
+- `eslint.config.js` — not chosen; `pnpm verify`'s `tsc --strict` + clippy on the Rust side cover the lint role for now.
+- `prettier.config.js` — not chosen; the codebase is small enough to hand-format consistently.
+- `playwright.config.ts` — not chosen; smoke scripts under `scripts/` use `chromium.launch()` directly without a config file.
+- `wrangler.toml` — only needed if GitHub Actions + Wrangler is chosen over native Cloudflare Pages build. Not chosen.
 
-- `eslint.config.js`
-- `prettier.config.js`
-- `playwright.config.ts`
-- `.github/workflows/ci.yml`
-
-TypeScript host planned directories from [Architecture overview](architecture/overview.md):
-
-- `src/ui/`
-
-Deployment:
-
-- `public/_headers`
-- `public/_redirects`
-- `wrangler.toml` (only if GitHub Actions + Wrangler is chosen over native Cloudflare Pages build)
-
-Repository metadata (decisions deferred to maintainer):
-
-- `LICENSE`
-
-The absence of these files is not drift yet. It becomes drift only after the foundation phase is marked complete and the corresponding implementation slice begins (see [`docs/plans/2026-05-22-implementation-sequence.md`](plans/2026-05-22-implementation-sequence.md)).
+The "current executable foundation files" list above is a 2026-05-23 snapshot and is not maintained per-commit — run `git ls-files` for the full tree.
