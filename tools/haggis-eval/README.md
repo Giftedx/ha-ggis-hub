@@ -26,7 +26,12 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `differential rng`    | `cargo test -p hub-hardlang --test differential_rng -- --include-ignored`   |
 | `differential hash`   | `cargo test -p hub-hardlang --test differential_hash`                       |
 | `all`                 | Every wired gate above, plus a signed JSON report                           |
+| `visual [verify\|capture]` | `node scripts/run-visual-gate.mjs` — perceptual aHash diff vs `tests/golden/`. `verify` is the default and is what `all` runs; `capture` re-baselines after intentional art changes. |
 | `slice <name>`        | Stub — exit 78, awaits `slices.toml`                                        |
+
+## Invocation cwd
+
+`haggis-eval` shells out to `pnpm run …`, `node scripts/…`, and `cargo …`, all of which expect the **repo root** as the working directory. Run it as `./tools/haggis-eval/haggis-eval all` from the repo root (the way CI does); running it from inside `tools/haggis-eval/` will fast-fail every script-path gate because `scripts/…` doesn't resolve there.
 
 ## Exit codes
 
