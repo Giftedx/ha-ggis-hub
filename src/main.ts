@@ -311,6 +311,17 @@ async function start(root: HTMLElement): Promise<void> {
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);
+
+    // Returning from a background tab leaves a huge delta in the accumulator
+    // (e.g. 5 min hidden = 17,997 uncapped ticks, only 8 pump but ~300s carry).
+    // Reset both the frame timer and accumulator so the first post-return
+    // frame sees delta ~0 and the sim does not burst at max ticks/frame.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        last = performance.now();
+        stepState = { tick: stepState.tick, accumulatorMs: 0 };
+      }
+    });
   } catch (error: unknown) {
     shell.status.textContent = 'the bothy wouldnae load — try the corner link';
     console.error(error);

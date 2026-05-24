@@ -1,6 +1,6 @@
 # Runtime Boundaries
 
-Status: partially current architecture
+Status: current architecture (routing lifecycle planned; all wired items current)
 Scope: lifecycle and data-flow boundaries between core, host, renderer, and game modules
 Related: [Architecture overview](overview.md), [Data and save boundaries](data-and-save-boundaries.md)
 
@@ -40,8 +40,8 @@ export interface GameInstance {
 - `destroy` releases RAF loops, listeners, renderer resources, object URLs, and WASM-owned handles.
 - Current: `src/engine/lifecycle.ts` owns one active `GameInstance`, preloads before mount, destroys replacement instances safely, and treats pause/resume/repeated destroy as safe no-ops when nothing is mounted.
 - Current: `src/engine/input.ts` maps Arrow/WASD key state into compact tick-aligned axes and removes listeners on sampler destruction.
+- Current: `document.visibilitychange` resets the fixed-step accumulator and the frame timer when the tab returns from hidden, preventing a burst of catch-up ticks (without the reset, 5 minutes hidden leaves ~300 seconds in the accumulator, causing ~37 seconds of 8-tick-per-frame burst).
 - Planned: route changes must call `destroy` once routing exists.
-- Planned: tab hidden events must call `pause` or stop advancing simulation once a frame loop exists.
 
 ## Frame loop model
 
