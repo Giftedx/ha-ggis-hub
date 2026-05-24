@@ -110,4 +110,31 @@ describe('input sampling', () => {
 
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
+
+  it('snapshot and consumeInteract return zero/false after destroy', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    target.dispatch('keydown', 'KeyD');
+    sampler.destroy();
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+    expect(sampler.consumeInteract()).toBe(false);
+  });
+
+  it('double-destroy is a no-op (idempotent)', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    sampler.destroy();
+    expect(() => sampler.destroy()).not.toThrow();
+  });
+
+  it('ignores events without a code property (keyCodeFromEvent fallback)', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    // Dispatch a bare event with no `code` property — the fallback returns ''
+    // which is not in any key set, so snapshot stays neutral.
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    const bare = {} as Event;
+    for (const listener of listeners.get('keydown') ?? []) { listener(bare); }
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+  });
 });
