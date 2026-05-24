@@ -1,6 +1,6 @@
 ﻿# ha.ggis Hub — engineering writeup
 
-> A ~79 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~81 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -131,7 +131,8 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → vitest 194 cases → vite build → verify-dist
+pnpm verify          # tsc --noEmit → vitest 210 cases → vite build → verify-dist
+pnpm run coverage    # vitest v8 coverage (lines≥80%, stmts≥80%, fns≥85%, branches≥60%)
 
 # Rust workspace
 cargo fmt --all -- --check
@@ -152,6 +153,8 @@ node scripts/run-browser-smokes.mjs    # 3 smokes: door-launch + door-tap + poin
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
 node scripts/run-a11y-gate.mjs          # 13 WCAG 2.2 AA spot-checks (hand-rolled)
+node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
+cargo deny check                        # license compliance + RustSec advisories
 ```
 
 ## Where the art now stands

@@ -72,7 +72,6 @@ The release-gate matrix above covers correctness, perf budgets, determinism, sec
 cargo audit                  # crate advisories (deny.toml covers advisories; audit adds deeper history)
 cargo machete                # unused-dep detection
 cargo llvm-cov ... --fail-under-lines 85   # Rust coverage threshold
-cargo llvm-cov ... --fail-under-lines 85   # coverage threshold
 cargo +nightly fuzz run <target> -- -max_total_time=1800
 cargo bench --workspace
 

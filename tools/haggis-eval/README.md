@@ -19,6 +19,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 |-----------------------|-----------------------------------------------------------------------------|
 | `rust`                | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`   |
 | `ts`                  | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`                    |
+| `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines≥80%, stmts≥80%, fns≥85%, branches≥60%). Excludes `src/main.ts` and generated wasm bindings. |
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
 | `browser`             | `node scripts/run-browser-smokes.mjs` — build → vite preview → door-launch (keyboard) + door-tap (touch) + pointer-drive (touch-drag) → teardown |
 | `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs |
@@ -27,6 +28,8 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `differential hash`   | `cargo test -p hub-hardlang --test differential_hash`                       |
 | `visual [verify\|capture]` | `node scripts/run-visual-gate.mjs` — perceptual aHash diff vs `tests/golden/`. `verify` is the default and is what `all` runs; `capture` re-baselines after intentional art changes. |
 | `a11y`                | `node scripts/run-a11y-gate.mjs` — hand-rolled WCAG 2.2 AA spot-checks via Playwright: page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name (1.1.1), interactive element accessible name (4.1.2), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), and computed contrast ratio (1.4.3) on every declared text pair. 13 asserts. No axe-core / pa11y dep. |
+| `soak`                | `node scripts/run-soak-gate.mjs` — memory-growth soak: loads hub on fixed seed, 15s RAF loop, CDP `HeapProfiler.collectGarbage` before/after, asserts heap growth < 5 MB. |
+| `supply-chain`        | `cargo deny check` — license compliance (allow list: MIT/Apache-2.0/BSD/ISC/Zlib/Unicode-3.0), RustSec advisory DB, duplicate version detection, source policy. Config: `deny.toml`. |
 | `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the signed-report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
 | `all`                 | Every wired gate above, plus a signed JSON report                           |
 
