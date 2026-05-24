@@ -2,6 +2,25 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 haggis walking animation + locked-door title prompt
+
+Two renderer quality-of-life improvements with no dependency additions, no gate regressions, and no visual-golden impact (idle state is unchanged).
+
+### Changed
+
+- **`src/render/canvas-room.ts`** — Haggis now faces the direction of last horizontal movement and animates a gentle trot leg cycle (back/front pairs alternating at 3 Hz, ±3.9 canvas-px at scale 2.6) whenever the player is moving. Facing direction is sticky: it holds at the last direction moved and defaults to right on first render. Implementation: `prevPlayerX`/`prevPlayerY` closure state + delta threshold (>2 world units) drives `facingLeft` and `haggisIsMoving`, both threaded through `renderRoom` → `drawHaggis` → `drawCanonHaggis`. The `CanonHaggisFrame` fields `facingLeft`, `leftLegY`, and `rightLegY` were already defined but never wired from the renderer — this change uses them.
+- **`src/render/canvas-room.ts`** — Locked-door interaction prompt now incorporates the door's title from the registry rather than a fixed generic line. Format: `"${doorTitle.toUpperCase()}\nCOMIN' SOON."`. Example: walking to the future-bothy door now shows `"COMIN' WI' THE NEXT MOON\nCOMIN' SOON."` instead of `"LOCKED. ANOTHER BOTHY, ANOTHER DAY."`. The `doorTitle` parameter in `formatPromptText` was already threaded through but unused for the locked branch.
+- **`src/render/canvas-room.test.ts`** — Locked-prompt test updated to assert the title-aware format.
+- **`src/render/canvas-room.ts`** — Fixed stale file-header comment that said the canvas buffer was `~320×180` with `image-rendering: pixelated`; actual values are `540×360` internal buffer with `image-rendering: auto` (correct for AA-smooth procedural art).
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~7s    194/194
+run-browser-smokes.mjs            PASS   door-launch + door-tap + pointer-drive
+run-visual-gate.mjs verify        PASS   hamming 3/8 (Windows vs Linux golden, unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 hand-rolled a11y gate shipped (gate matrix 15 → 16)
 
 Closed the long-standing "a11y still planned" item from `docs/foundation/07-quality-gates.md` without taking on an axe-core / pa11y dep. The hub's a11y surface is small and stable enough (canvas-first SPA, one link, no forms, no images apart from CSS-painted SVG icons) that a focused list of 13 WCAG 2.2 AA spot-checks is more honest than wrapping a generic 80-rule engine. Bring-up surfaced one real bug (a `.scene-direct:focus-visible { outline: none }` rule that traded WCAG 2.4.7 compliance for visual cleanliness) and the gate now defends against its return.
