@@ -2,6 +2,22 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: palette drawing-function tests; raise coverage thresholds
+
+36 new vitest cases for `src/render/palette.ts` covering the Bayer-ordered-dither drawing primitives (`ditheredBloom`, `ditheredBloomBiased`, `ditheredAlphaMask`, `radialEllipseAlpha`, `ditherZoneInternal`, `ditherBoundary`, `lightZoneAt`, `makeBeamGeometry`). Mock `HardPixelContext` — no real Canvas2D context needed. All branches of the dither logic (out-of-circle skip, inner-core vs outer-ring, cluster vs single pixel, threshold comparison) are now exercised. Branch coverage rises from 73% to 80.8%. Enforced thresholds raised to lines/stmts/fns ≥ 90%, branches ≥ 78%.
+
+### Added
+
+- **`src/render/palette.test.ts`** — 36 vitest cases for palette drawing primitives.
+
+### Changed
+
+- **`vite.config.ts`** — Coverage thresholds raised: lines 80→90%, stmts 80→90%, fns 85→90%, branches 60→78%.
+- **`docs/architecture/testing-strategy.md`** — vitest count 210 → 246.
+- **`README.md`** / **`WRITEUP.md`** — vitest count updated.
+
+---
+
 ## [Unreleased] — 2026-05-24 feat: vitest v8 coverage gate with thresholds (19th gate)
 
 Adds `@vitest/coverage-v8` and configures coverage thresholds in `vite.config.ts`. Excludes `src/main.ts` (browser-only entry point) and `src/wasm/generated-loader.ts` / `src/generated/**` (auto-generated wasm bindings) from the coverage scope. Thresholds: lines ≥ 80%, statements ≥ 80%, functions ≥ 85%, branches ≥ 60%. Measured baseline: lines 91%, statements 90%, functions 93%, branches 73%.
