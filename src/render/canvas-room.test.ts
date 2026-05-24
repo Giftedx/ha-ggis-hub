@@ -183,6 +183,12 @@ describe('createCanvasRoomRenderer', () => {
     expect(formatPromptText('none', 'anything')).toBe('');
   });
 
+  it('renders without error in reduced-motion mode (particles + flicker suppressed)', () => {
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, ROOM, { reducedMotion: true }).render(SNAPSHOT_AT_LAUNCHABLE);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
   it('fails loudly when Canvas2D is unavailable so the host can show fallback UI', () => {
     const surface: CanvasRoomSurface = {
       width: 1200,
