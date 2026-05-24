@@ -1,0 +1,44 @@
+name: visual-recapture
+
+# One-shot manual workflow for re-baselining the visual gate's perceptual
+# goldens on the OS that CI runs on. The release-gate verifier runs on
+# ubuntu-latest, so a Linux-captured golden eliminates the small cross-
+# platform rendering delta a Windows or macOS dev's local capture would
+# carry into CI. See tests/golden/visual-budgets.json _comment + the
+# 2026-05-24 calibration entry in CHANGELOG.md.
+#
+# Trigger:    `gh workflow run visual-recapture.yml` (or via GitHub UI →
+#             Actions → visual-recapture → Run workflow).
+# Output:     downloadable artifact `tests-golden` containing the freshly-
+#             captured visual-budgets.json + per-scene .png files.
+# Use:        `gh run download <id> --name tests-golden` → unpack into
+#             tests/golden/ locally, eyeball the .png, commit, push.
+#
+# This does NOT auto-commit. Re-capturing a visual golden is a deliberate
+# human act — the .png must be reviewed by eye against the locked visual
+# brief (ADR-0006 Highland Dawn Bothy) before landing in the repo.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  capture:
+    name: capture visual goldens on linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Run visual gate in capture mode
+        run: node scripts/run-visual-gate.mjs capture
+      - name: Upload captured goldens
+        uses: actions/upload-artifact@v7
+        with:
+          name: tests-golden
+          path: tests/golden/
+          if-no-files-found: error
