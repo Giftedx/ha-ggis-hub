@@ -49,6 +49,8 @@ func main() {
 		os.Exit(printAndExit("visual", cmd.Visual(mode)))
 	case "a11y":
 		os.Exit(printAndExit("a11y", cmd.A11y()))
+	case "soak":
+		os.Exit(printAndExit("soak", cmd.Soak()))
 	case "slice":
 		// Slices config lives next to this binary's source. Resolved
 		// relative to repo root (the same cwd assumption as every
@@ -104,6 +106,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")
 	fmt.Fprintln(w, "  visual [verify|capture]    Perceptual aHash diff vs tests/golden/ (default verify)")
 	fmt.Fprintln(w, "  a11y                       Hand-rolled WCAG 2.2 AA spot-checks (lang, contrast, focus, names)")
+	fmt.Fprintln(w, "  soak                       Memory-growth soak (15s RAF loop; GC before/after; heap budget 5 MB)")
 	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
 	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
 	fmt.Fprintln(w, "")

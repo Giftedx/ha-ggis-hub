@@ -2,6 +2,30 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat: memory-growth soak gate (haggis-eval soak, 17th gate)
+
+Closes the evaluation-strategy "soak/memory-growth still planned" item. Loads the hub on a fixed seed, waits for the RAF loop to be running, forces GC via CDP `HeapProfiler.collectGarbage`, soaks for 15 seconds, forces GC again, and asserts heap growth < 5 MB. Observed baseline: +0.13 MB on first run.
+
+### Added
+
+- **`scripts/smoke-soak.mjs`** — Playwright soak smoke. Reads heap via CDP `Performance.getMetrics` (not the removed `page.metrics()` API). Configurable duration and budget via `HAGGIS_SOAK_SECS` / `HAGGIS_SOAK_MAX_MB` env vars.
+- **`scripts/run-soak-gate.mjs`** — orchestrator: build → vite preview (:4177) → smoke → teardown. Pattern matches existing `run-*-gate.mjs` scripts.
+- **`tools/haggis-eval/internal/cmd/soak.go`** — haggis-eval `soak` subcommand.
+- **`tools/haggis-eval/main.go`** — `soak` case + usage line.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `"soak"` entry.
+- **`tools/haggis-eval/internal/cmd/all.go`** — `Soak()` call in `All()`.
+- **`tools/haggis-eval/slices.json`** — `"soak"` added to `release` bundle.
+
+### Changed
+
+- **`docs/architecture/evaluation-strategy.md`** — status updated; 16-gate → 17-gate; soak marked shipped.
+- **`docs/architecture/testing-strategy.md`** — status updated; pyramid "soak planned" → "soak ✓".
+- **`docs/foundation/07-quality-gates.md`** — 16 → 17 gates; `run-soak-gate.mjs` added to release gate listing.
+- **`docs/plans/2026-05-22-implementation-sequence.md`** — soak wired entry added; 16 → 17 gates.
+- **`CONTRIBUTING.md`** — 16-gate → 17-gate.
+
+---
+
 ## [Unreleased] — 2026-05-24 fix: HiDPI / Retina rendering (DPR scaling)
 
 Closes the DESIGN.md `devicePixelRatio: "future fix"` note. On Retina displays (and any display where `window.devicePixelRatio > 1`) the canvas was previously sized at 540×360 physical pixels and blurry-scaled by the browser to fill the viewport. Now `sizeCanvasToViewport` multiplies by `Math.round(window.devicePixelRatio || 1)`, and the renderer applies `ctx.setTransform(dpr, 0, 0, dpr, 0, 0)` at the start of each frame. A logical-size surface wrapper (`width=540, height=360`) keeps all rendering math in CSS-pixel coordinates.

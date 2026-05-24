@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.m
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 16 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 17 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -42,6 +42,7 @@ node scripts/run-browser-smokes.mjs    # 3 chromium smokes
 node scripts/run-determinism-smoke.mjs # state-hash equality
 node scripts/run-visual-gate.mjs verify # perceptual aHash
 node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
+node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
