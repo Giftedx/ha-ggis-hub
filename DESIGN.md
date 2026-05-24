@@ -184,7 +184,7 @@ spacing:
     sideWallThick: 24
     frontWallThick: 24
     smoothingEnabled: false     # ctx.imageSmoothingEnabled = false (pixel-honest)
-    devicePixelRatio: "scale internal by dpr on retina (future fix)"
+    devicePixelRatio: "canvas.width/height scaled by Math.round(devicePixelRatio); ctx.setTransform(dpr,0,0,dpr,0,0) each frame; surface exposes logical 540×360 (shipped 2026-05-24)"
 ```
 
 ## Elevation + ornament

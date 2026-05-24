@@ -104,7 +104,12 @@ async function start(root: HTMLElement): Promise<void> {
       ? BigInt(seedParam)
       : BigInt(Date.now());
     const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
-    const renderer = createCanvasRoomRenderer(shell.canvas, boundary.room, { reducedMotion });
+    const canvasSurface = {
+      get width() { return 540; },
+      get height() { return 360; },
+      getContext(kind: '2d') { return shell.canvas.getContext(kind); }
+    };
+    const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, { reducedMotion });
     const keyboard = createKeyboardInputSampler(window);
 
     const inputLog = new InputLogWriter({
@@ -383,8 +388,9 @@ function sizeCanvasToViewport(canvas: HTMLCanvasElement): void {
   // (object-fit:contain) instead of stretching the room sideways. The
   // previous code adapted internal width to viewport aspect which gave
   // a billiard-table feel on widescreens.
-  const w = 540;
-  const h = 360;
+  const dpr = Math.round(window.devicePixelRatio || 1);
+  const w = 540 * dpr;
+  const h = 360 * dpr;
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w;
     canvas.height = h;

@@ -2,6 +2,18 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 fix: HiDPI / Retina rendering (DPR scaling)
+
+Closes the DESIGN.md `devicePixelRatio: "future fix"` note. On Retina displays (and any display where `window.devicePixelRatio > 1`) the canvas was previously sized at 540×360 physical pixels and blurry-scaled by the browser to fill the viewport. Now `sizeCanvasToViewport` multiplies by `Math.round(window.devicePixelRatio || 1)`, and the renderer applies `ctx.setTransform(dpr, 0, 0, dpr, 0, 0)` at the start of each frame. A logical-size surface wrapper (`width=540, height=360`) keeps all rendering math in CSS-pixel coordinates.
+
+### Changed
+
+- **`src/main.ts`** — `sizeCanvasToViewport` scales canvas internal resolution by DPR. A `canvasSurface` wrapper exposes logical 540×360 regardless of physical canvas size, passed to `createCanvasRoomRenderer` in place of the raw `HTMLCanvasElement`.
+- **`src/render/canvas-room.ts`** — `render()` applies `ctx.setTransform(dpr, 0, 0, dpr, 0, 0)` each frame (optional cast — no-op on test recording context). DPR is read dynamically via `window.devicePixelRatio` to handle monitor changes between frames without requiring a page reload.
+- **`DESIGN.md`** — `devicePixelRatio` field updated from "future fix" to shipped description.
+
+---
+
 ## [Unreleased] — 2026-05-24 fix: reset fixed-step accumulator on tab return from hidden
 
 ### Fixed

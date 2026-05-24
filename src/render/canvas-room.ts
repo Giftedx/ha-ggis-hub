@@ -174,6 +174,8 @@ export function createCanvasRoomRenderer(
 
   return {
     render(snapshot: DecodedSnapshot): void {
+      const dpr = typeof window !== 'undefined' ? Math.round(window.devicePixelRatio || 1) : 1;
+      (context as unknown as { setTransform?(a: number, b: number, c: number, d: number, e: number, f: number): void }).setTransform?.(dpr, 0, 0, dpr, 0, 0);
       if (prevPlayerX !== null && prevPlayerY !== null) {
         const dx = snapshot.playerX - prevPlayerX;
         const dy = snapshot.playerY - prevPlayerY;

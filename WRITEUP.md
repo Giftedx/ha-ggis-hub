@@ -91,10 +91,10 @@ This is not strong cryptography — anyone can re-sign an edited report. It's a 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.49 KB | 1.23 KB |
-| `dist/assets/index-*.js` | 45.68 KB | 15.93 KB |
+| `dist/assets/index-*.js` | 45.92 KB | 16.01 KB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
 | `dist/assets/index-*.css` | 2.28 KB | 0.88 KB |
-| **Total** | **79.17 KB** | **30.68 KB** |
+| **Total** | **79.41 KB** | **30.76 KB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships less than 30 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, and a registry with launch planning.
 
