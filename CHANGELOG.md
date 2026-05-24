@@ -2,6 +2,38 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 fix: tap-detection aligned to painted door; createAppModel isolated in error boundary
+
+Three bugs fixed in a single session-driven audit:
+
+1. **Tap-zone / visual-door offset** — `pointerdown` previously hit-tested against raw sim world bounds (0–1000 scale). `snapDoorToWall` shifts the painted door ~10 px rightward into the wall mass; on mobile the ~10-pixel gap between where the door *looks* and where it *responds* was a real miss. Fixed by exporting `computeVisualDoorBounds` from `canvas-room.ts`, which applies `scaleDoorBounds → doorSide → snapDoorToWall` and returns visual pixel coordinates. `pointerdown` now converts the pointer event to logical canvas coords (DPR-corrected) and hit-tests against these visual bounds.
+
+2. **`createAppModel()` error isolation** — `createAppModel()` was called after `createShell()` / `root.replaceChildren()` inside a single try block, meaning a throw inside `createAppModel()` would hit the catch block before `shell` was valid (fallback status text would silently do nothing). Fixed by wrapping `createAppModel()` in its own early try-catch (returns on error), then assigning `const shell = createShell(model)` outside the main try — TypeScript's definite-assignment analysis is now satisfied and the error boundary is correct.
+
+3. **Stale Rust test assertions** (`d4a903b`) — `snapshot_view.rs` `header_fields_round_trip` expected the old default spawn of `(500, 500)`, but `Sim::new(0)` has spawned at `(340, 540)` since the art-direction commit. Updated to the correct values.
+
+### Added
+
+- **`src/render/canvas-room.ts`** — `SurfaceDimensions` interface (width + height only); `CanvasRoomSurface` now extends it. `computeVisualDoorBounds(surface, room)` exported — returns logical canvas pixel bounds post-`snapDoorToWall` for each door.
+- **`src/render/canvas-room.test.ts`** — 4 new `computeVisualDoorBounds` tests: entry count, right-wall snap alignment, left-wall snap alignment, and snap-effect confirmation.
+
+### Changed
+
+- **`src/main.ts`** — `pointerdown` tap detection replaced; `createAppModel()` isolated in separate early try-catch before `const shell` assignment.
+- **`src/render/canvas-room.ts`** — `scaleDoorBounds`, `doorSide`, `snapDoorToWall` parameter types narrowed from `CanvasRoomSurface` to `SurfaceDimensions` (backward-compatible; all callers already satisfied the narrower contract).
+- **`crates/hub-wasm/src/snapshot_view.rs`** — `header_fields_round_trip` spawn-coordinate assertions updated: `player_x 500 → 340`, `player_y 500 → 540`.
+
+### Gates green
+
+```
+pnpm verify    ~15s    135/135   (typecheck + lint + test + build)
+pnpm coverage          branches 94.78% (309/326) ≥ 85% configured
+               functions 100%
+cargo test     29 hub_core + 1 replay round-trip + 2 differential hash + 2 differential rng
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 refactor: make canLaunchGame a type guard; raise branch threshold 78%→85%
 
 `canLaunchGame` now returns a narrowing predicate (`game is HubGameDefinition & { launch: Exclude<HubGameLaunchTarget, { kind: 'none' }> }`), eliminating the logically unreachable `if (game.launch.kind === 'none')` dead branch in `createLaunchPlan`. Branch threshold aligned to the policy target (78% → 85%); actual coverage is 94.78% (309/326).

@@ -49,9 +49,13 @@ export interface CanvasRoomContext {
   clip(): void;
 }
 
-export interface CanvasRoomSurface {
+/** Minimum surface shape required by layout and hit-detection helpers (width + height only). */
+export interface SurfaceDimensions {
   readonly width: number;
   readonly height: number;
+}
+
+export interface CanvasRoomSurface extends SurfaceDimensions {
   getContext(kind: '2d'): CanvasRoomContext | null;
 }
 
@@ -153,6 +157,31 @@ interface DoorLayout {
   readonly side: 'left' | 'right' | 'top' | 'bottom';
 }
 
+/** Visual position of a door in logical canvas pixels (0–surfaceWidth × 0–surfaceHeight).
+ *  Reflects the `snapDoorToWall` adjustment so the tap-detection zone matches what's painted. */
+export interface VisualDoorBounds {
+  readonly id: string;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Return the snapped canvas-pixel bounds for every door in `room`.
+ *  Call once at startup (doors are static) and use for pointer tap detection so the
+ *  tap zone is always pixel-identical to the painted door, not the raw sim bounds. */
+export function computeVisualDoorBounds(
+  surface: Pick<CanvasRoomSurface, 'width' | 'height'>,
+  room: RoomDefinition
+): readonly VisualDoorBounds[] {
+  return room.doors.map((door) => {
+    const simRect = scaleDoorBounds(surface, room, door);
+    const side = doorSide(simRect, surface);
+    const snapped = snapDoorToWall(simRect, surface, side);
+    return { id: door.id, x: snapped.x, y: snapped.y, width: snapped.width, height: snapped.height };
+  });
+}
+
 export function createCanvasRoomRenderer(
   surface: CanvasRoomSurface,
   room: RoomDefinition,
@@ -215,7 +244,7 @@ export function createCanvasRoomRenderer(
 
 function snapDoorToWall(
   rect: ScaledRect,
-  surface: CanvasRoomSurface,
+  surface: SurfaceDimensions,
   side: 'left' | 'right' | 'top' | 'bottom'
 ): ScaledRect {
   // Door visually nestles its outer edge into the wall (-2 means the
@@ -933,7 +962,7 @@ function activeDoorId(snapshot: DecodedSnapshot): string | null {
 }
 
 function scaleDoorBounds(
-  surface: CanvasRoomSurface,
+  surface: SurfaceDimensions,
   room: RoomDefinition,
   door: RoomDoorDefinition
 ): ScaledRect {
@@ -949,7 +978,7 @@ function scaleDoorBounds(
 
 function doorSide(
   rect: ScaledRect,
-  surface: CanvasRoomSurface
+  surface: SurfaceDimensions
 ): 'left' | 'right' | 'top' | 'bottom' {
   const cx = rect.x + rect.width / 2;
   const cy = rect.y + rect.height / 2;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCanvasRoomRenderer, formatPromptText, type CanvasRoomSurface } from './canvas-room';
+import { createCanvasRoomRenderer, computeVisualDoorBounds, formatPromptText, type CanvasRoomSurface } from './canvas-room';
 import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
@@ -123,6 +123,45 @@ const SNAPSHOT_NO_INTERACTION: DecodedSnapshot = {
   playerX: 500,
   interactionKind: 'none'
 };
+
+describe('computeVisualDoorBounds', () => {
+  it('returns one entry per door', () => {
+    const surface = { width: 540, height: 360 };
+    const bounds = computeVisualDoorBounds(surface, ROOM);
+    expect(bounds).toHaveLength(2);
+    expect(bounds[0]?.id).toBe('wild-haggis-survivors');
+    expect(bounds[1]?.id).toBe('future-bothy');
+  });
+
+  it('snaps the right-wall door so its right edge aligns with the wall', () => {
+    // WHS door is near the right wall. snapDoorToWall shifts x so the door's
+    // right edge is at (surfaceWidth - WALL_THICK_SIDE + 2).
+    const surface = { width: 540, height: 360 };
+    const bounds = computeVisualDoorBounds(surface, ROOM);
+    const whs = bounds[0]!;
+    // Right edge must equal the wall-snapped position, not the raw sim-scaled x+w.
+    const WALL_THICK_SIDE = 24;
+    expect(whs.x + whs.width).toBe(surface.width - WALL_THICK_SIDE + 2);
+  });
+
+  it('snaps the left-wall door so its left edge aligns with the wall', () => {
+    const surface = { width: 540, height: 360 };
+    const bounds = computeVisualDoorBounds(surface, ROOM);
+    const future = bounds[1]!;
+    const WALL_THICK_SIDE = 24;
+    expect(future.x).toBe(WALL_THICK_SIDE - 2);
+  });
+
+  it('visual right-edge of the WHS door is right of its raw sim right-edge — confirms the snap effect', () => {
+    const surface = { width: 540, height: 360 };
+    const bounds = computeVisualDoorBounds(surface, ROOM);
+    const whs = bounds[0]!;
+    // Raw sim right edge in canvas coords: maxX/worldWidth * surfaceWidth
+    const rawRight = Math.round((ROOM.doors[0]!.bounds.maxX / ROOM.worldWidth) * surface.width);
+    // After snap the visual door extends further right than the raw sim coord.
+    expect(whs.x + whs.width).toBeGreaterThan(rawRight);
+  });
+});
 
 describe('createCanvasRoomRenderer', () => {
   it('constructs against a real surface and emits draw calls', () => {

@@ -4,7 +4,7 @@ import { createKeyboardInputSampler } from './engine/input';
 import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from './engine/fixed-step';
 import { InputLogWriter } from './engine/input-log';
 import { createHubRoomController } from './hub/room';
-import { createCanvasRoomRenderer } from './render/canvas-room';
+import { createCanvasRoomRenderer, computeVisualDoorBounds } from './render/canvas-room';
 import { createLaunchPlan, performLaunch, type LaunchNavigator } from './navigation/launch';
 import { HUB_GAME_REGISTRY, getGameById } from './games/registry';
 import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './render/sprites/pixel-font';
@@ -91,12 +91,19 @@ function renderPixelTextPreview(root: HTMLElement): void {
 }
 
 async function start(root: HTMLElement): Promise<void> {
-  const model = createAppModel();
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // createAppModel() may throw (e.g. missing registry entries in a broken build).
+  // Guard it separately so failures before shell exists still log loudly, then bail.
+  let model: ReturnType<typeof createAppModel>;
+  try {
+    model = createAppModel();
+  } catch (error: unknown) {
+    console.error(error);
+    return;
+  }
   const shell = createShell(model);
   root.replaceChildren(shell.scene);
-
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    try {
+  try {
     // Seed: defaults to Date.now() so each visit feels fresh, but a
     // `?seed=N` URL param overrides for determinism smoke tests + any
     // future replay/share-a-room features.
@@ -161,6 +168,12 @@ async function start(root: HTMLElement): Promise<void> {
     }
 
     const room = createHubRoomController({ boundary, renderer });
+    // Visual door bounds in logical canvas pixels (0–540 × 0–360) — computed once
+    // because doors never move. Used by the tap-launch path so the tap zone is
+    // pixel-identical to the painted door rather than the raw sim bounds (which differ
+    // by ~10 px after snapDoorToWall shifts the door into the wall mass).
+    const logicalSurface = { width: 540, height: 360 } as const;
+    const visualDoorBounds = computeVisualDoorBounds(logicalSurface, boundary.room);
     room.render();
     // Canvas-aware paint mark. The bothy is canvas-first so chrome's LCP
     // heuristic doesn't score the (briefly blank) canvas as a contentful
@@ -232,21 +245,29 @@ async function start(root: HTMLElement): Promise<void> {
     }
 
     // Touch / mouse pointerdown: two semantics.
-    //   1. If the press is INSIDE a launchable door's bounds → launch.
+    //   1. If the press is INSIDE a launchable door's visual bounds → launch.
+    //      Tap check uses logical canvas coords (0–540 × 0–360) matched against
+    //      computeVisualDoorBounds so the tap zone is pixel-identical to the
+    //      painted door, not the raw sim bounds (which differ after snapDoorToWall).
     //   2. Otherwise → begin pointer-drive walk: the haggis walks
     //      toward the pointer for as long as it's held down.
     shell.canvas.addEventListener('pointerdown', (event) => {
       dismissHint();
-      const { x: worldX, y: worldY } = pointerToWorld(event);
+      const rect = shell.canvas.getBoundingClientRect();
+      const dpr = Math.round(window.devicePixelRatio || 1);
+      const logicalX = ((event.clientX - rect.left) / rect.width) * (shell.canvas.width / dpr);
+      const logicalY = ((event.clientY - rect.top) / rect.height) * (shell.canvas.height / dpr);
       const snapshot = room.lastSnapshot();
-      for (const door of snapshot.doors) {
-        if (door.status !== 'launchable') continue;
-        const { minX, minY, maxX, maxY } = door.bounds;
-        if (worldX >= minX && worldX <= maxX && worldY >= minY && worldY <= maxY) {
-          launchDoorById(door.id);
+      for (const vb of visualDoorBounds) {
+        const doorSnap = snapshot.doors.find((d) => d.id === vb.id);
+        if (doorSnap?.status !== 'launchable') continue;
+        if (logicalX >= vb.x && logicalX <= vb.x + vb.width &&
+            logicalY >= vb.y && logicalY <= vb.y + vb.height) {
+          launchDoorById(vb.id);
           return;
         }
       }
+      const { x: worldX, y: worldY } = pointerToWorld(event);
       pointerActive = true;
       pointerWorldX = worldX;
       pointerWorldY = worldY;
