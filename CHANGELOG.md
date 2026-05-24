@@ -2,6 +2,27 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat(render): hearth lintel motto "Bide a while."
+
+Renders `DESIGN.md voice.open.hearth-lintel-motto` as pixel-font inscription on the stone lintel above the fire mouth. Scale 1, centred in the native y=10..20 stone band, `PX.stoneLight` (#b8a878 = art-cairn-stone). Reads as worn carved/painted text on warm hearthstone. Visual gate golden rebaked (Hamming drift = 4 bits at particle-animation variance — well within tolerance 8).
+
+### Added
+
+- **`src/render/canvas-room.ts`** — `drawHearthLintelMotto` function (17 lines); called in `renderRoom` after `drawWhsHearthFrame`.
+
+### Changed
+
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — golden rebaked to include the lintel inscription.
+
+### Gates green
+
+```
+pnpm verify    ~8s    223/223
+visual gate    Hamming 4/256 ≤ 8   OK
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 docs: fix three doc-drift issues across testing-strategy, CI workflow, and WRITEUP
 
 Three doc-drift issues corrected. No code changes.

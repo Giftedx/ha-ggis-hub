@@ -323,6 +323,7 @@ function renderRoom(
   hardContactShadow(ctx, fireCenter.x, fireCenter.y + Math.round(hearthSize / 2) + 2, 50, 3);
   const hearthFrameIdx = reducedMotion ? 0 : Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
   drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
+  drawHearthLintelMotto(ctx, fireCenter.x, hearthOriginY, HEARTH_SCALE);
 
   // 8. Wall decorations — WHS window in the back wall + mantelpiece.
   drawTopWallWindow(ctx, surface, phase, reducedMotion);
@@ -751,6 +752,25 @@ function drawPrompt(
     }
     renderPixelText(ctx, line, lx, ly, scale, PALETTE.bone);
   }
+}
+
+// "Bide a while." — hearth lintel motto (DESIGN.md voice.open.hearth-lintel-motto).
+// Carved into the stone band above the fire mouth: native y=10..20, warm
+// cairn-stone ink (DESIGN.md art-cairn-stone = PX.stoneLight).
+function drawHearthLintelMotto(
+  ctx: CanvasRoomContext,
+  fireCenterX: number,
+  hearthOriginY: number,
+  hearthScale: number
+): void {
+  const text = 'BIDE A WHILE.';
+  const scale = 1;
+  const textW = measurePixelText(text, scale);
+  // Centre of the stone band: native y midpoint of 10..20 = 15.
+  const bandCenterY = hearthOriginY + 15 * hearthScale;
+  const textX = Math.round(fireCenterX - textW / 2);
+  const textY = Math.round(bandCenterY - PIXEL_FONT_HEIGHT / 2);
+  renderPixelText(ctx, text, textX, textY, scale, PX.stoneLight);
 }
 
 function activeDoorId(snapshot: DecodedSnapshot): string | null {

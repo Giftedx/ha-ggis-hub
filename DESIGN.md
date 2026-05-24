@@ -271,8 +271,8 @@ voice:
 
   # — Open voice budget (free to author) —
   open:
-    mantel-inscription: "A wee place tae rest before ye ge'awa'."
-    hearth-lintel-motto: "Bide a while."
+    mantel-inscription: "A wee place tae rest before ye ge'awa'."  # deferred — too long for pixel-font on available shelf geometry
+    hearth-lintel-motto: "Bide a while."  # shipped 2026-05-24 — rendered in canvas-room.ts drawHearthLintelMotto
     coming-soon-door:   "Comin' wi' the next moon."
     framed-painting-caption: "(unfinished)"
 ```

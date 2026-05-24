@@ -3,12 +3,9 @@
   "schema": 1,
   "scenes": {
     "bothy-idle-seed-42": {
-      "hash": "3c3cfc3ffc3f7c3e8039e039e03060318033c003e00760066006e00740060000",
+      "hash": "7c3efc3ffc3f7c3e8039e039e03060308033c003c007e0076006e00740020100",
       "toleranceBits": 8,
-      "capturedAt": "2026-05-24T04:19:51.174Z",
-      "capturedOn": "ubuntu-latest via .github/workflows/visual-recapture.yml run 26351707774",
-      "toleranceCalibratedAt": "2026-05-24T03:55:00Z",
-      "toleranceSource": "Originally calibrated from 4 Linux CI runs (26350318616, 26350764592, 26351054004, 26351253798) which all reported distance=3 against the prior Windows-captured golden — that was a stable cross-platform rendering delta, not jitter. Re-capture on Linux closes that gap (Linux ↔ Linux verifier now reads 0). Tolerance retained at 8 bits as headroom against future Windows-dev contributor capture (3-bit Windows ↔ Linux delta in the mirror direction) + any future real animation jitter. Re-tighten with evidence; loosen ONLY for a verified true-positive."
+      "capturedAt": "2026-05-24T20:12:09.704Z"
     }
   }
 }
