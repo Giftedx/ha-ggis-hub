@@ -10,6 +10,7 @@ import { HUB_GAME_REGISTRY, getGameById } from './games/registry';
 import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './render/sprites/pixel-font';
 import { initializeHubBoundaryV2 } from './wasm/boundary';
 import { loadGeneratedHubWasm } from './wasm/generated-loader';
+import { createDebugOverlay, createFpsTracker } from './debug/overlay';
 
 const appRoot = document.querySelector<HTMLElement>('#app');
 
@@ -103,7 +104,9 @@ async function start(root: HTMLElement): Promise<void> {
     const seed = seedParam !== null && /^\d+$/.test(seedParam)
       ? BigInt(seedParam)
       : BigInt(Date.now());
+    const wasmInitStart = performance.now();
     const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
+    const wasmInitMs = performance.now() - wasmInitStart;
     const canvasSurface = {
       get width() { return 540; },
       get height() { return 360; },
@@ -291,6 +294,10 @@ async function start(root: HTMLElement): Promise<void> {
 
     if (reducedMotion) shell.status.textContent = 'reduced motion · the bothy bides quiet';
 
+    const debugMode = new URLSearchParams(window.location.search).has('debug');
+    const overlay = debugMode ? createDebugOverlay(shell.scene) : null;
+    const fpsTracker = debugMode ? createFpsTracker(30) : null;
+
     const config = { tickMs: 1000 / 60, maxTicksPerPump: 8 };
     let last = performance.now();
     const loop = (now: number): void => {
@@ -313,6 +320,21 @@ async function start(root: HTMLElement): Promise<void> {
         room.render();
       }
       stepState = pumped.state;
+      if (overlay !== null && fpsTracker !== null) {
+        const snapshot = room.lastSnapshot();
+        const { fps, frameMs } = fpsTracker.record(delta);
+        overlay.update({
+          fps, frameMs,
+          tick: stepState.tick,
+          playerX: snapshot.playerX,
+          playerY: snapshot.playerY,
+          interactionKind: snapshot.interactionKind,
+          interactionDoorId: snapshot.interactionKind !== 'none'
+            ? (snapshot.doors[snapshot.interactionDoorIndex]?.id ?? null)
+            : null,
+          wasmInitMs,
+        });
+      }
       window.requestAnimationFrame(loop);
     };
     window.requestAnimationFrame(loop);

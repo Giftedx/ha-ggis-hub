@@ -86,15 +86,15 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~79 KB total client bundle
+### ~81 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.49 KB | 1.23 KB |
-| `dist/assets/index-*.js` | 45.92 KB | 16.01 KB |
+| `dist/assets/index-*.js` | 47.11 KB | 16.42 KB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
-| `dist/assets/index-*.css` | 2.28 KB | 0.88 KB |
-| **Total** | **79.41 KB** | **30.76 KB** |
+| `dist/assets/index-*.css` | 2.65 KB | 0.99 KB |
+| **Total** | **80.97 KB** | **31.28 KB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships less than 30 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, and a registry with launch planning.
 

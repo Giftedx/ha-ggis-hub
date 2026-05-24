@@ -17,11 +17,11 @@ Foundation docs (`docs/foundation/`) state policy. ADRs (`docs/decisions/`) reco
 | [overview.md](overview.md) | implemented | Top-level system shape, ownership rules, repo layout. Read first. |
 | [runtime-boundaries.md](runtime-boundaries.md) | current; routing lifecycle planned | Game module / instance contracts, frame loop model, error handling. |
 | [data-and-save-boundaries.md](data-and-save-boundaries.md) | registry shipped; save deferred | Game registry shape, hub persistence keys, the Wild Haggis Survivors save boundary. |
-| [testing-strategy.md](testing-strategy.md) | mostly shipped | Where unit, property, WASM-boundary, browser, visual, and performance tests live. |
-| [evaluation-strategy.md](evaluation-strategy.md) | mostly shipped | Evals beyond tests — core simulation, browser UX, paint timing, a11y, visual drift. |
+| [testing-strategy.md](testing-strategy.md) | current | Where unit, property, WASM-boundary, browser, visual, performance, and soak tests live. |
+| [evaluation-strategy.md](evaluation-strategy.md) | current | Evals beyond tests — core sim, browser UX, paint timing, a11y, visual drift, soak. |
 | [autopilot-system.md](autopilot-system.md) | active | How autonomous agents plan, build, review, run gates, and improve the project over time. |
 | [security-model.md](security-model.md) | implemented | Threat model, static-app rules, WASM-boundary input handling, deployment hardening. |
-| [observability-debugging.md](observability-debugging.md) | planned | Dev-only diagnostics, production posture, debug invariants. |
+| [observability-debugging.md](observability-debugging.md) | implemented | Dev-mode overlay (?debug URL param), production fallback posture. |
 
 ## Reading order
 

@@ -152,3 +152,25 @@ body {
 .scene-hint--fading {
   opacity: 0;
 }
+
+/* Dev-mode diagnostics overlay — visible only when ?debug=1 is in the URL.
+   Monospace, top-right, pointer-events off so it never blocks interaction. */
+.debug-overlay {
+  position: fixed;
+  top: 0.7rem;
+  right: 0.8rem;
+  margin: 0;
+  padding: 0.45rem 0.7rem;
+  background: rgba(26, 14, 8, 0.88);
+  color: var(--hub-tatties-cream);
+  font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  z-index: 10;
+  border: 1px solid rgba(184, 168, 120, 0.2);
+  border-radius: 3px;
+  white-space: pre;
+  user-select: none;
+}

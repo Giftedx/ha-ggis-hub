@@ -2,6 +2,27 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat: dev-mode diagnostics overlay (?debug URL param)
+
+Closes `docs/architecture/observability-debugging.md` "planned" status — the only remaining planned architecture doc. Append `?debug` to any hub URL to show a `<pre class="debug-overlay">` panel (top-right, pointer-events off) with real-time FPS, frame time, tick count, player world coordinates, active door interaction, and WASM init time.
+
+### Added
+
+- **`src/debug/overlay.ts`** — `createDebugOverlay(container)`, `createFpsTracker(windowSize)`, `formatStats(stats)`. Hand-rolled, no deps. `createFpsTracker` keeps a sliding window of the last N frame deltas for stable FPS display.
+- **`src/debug/overlay.test.ts`** — 15 vitest cases covering overlay DOM lifecycle (via `vi.stubGlobal` — no jsdom dep), FPS tracker accuracy and window rotation, and all `formatStats` branches (none/launchable/locked, wasm init present/absent).
+- **`src/style.css`** — `.debug-overlay` rule: fixed top-right, monospace, semi-transparent ink-deep background, cairn-stone border tint, pointer-events none.
+
+### Changed
+
+- **`src/main.ts`** — `?debug` URL param activates overlay + FPS tracker. WASM init is timed (`performance.now()` before/after `initializeHubBoundaryV2`). Overlay updated every RAF frame with a fresh `room.lastSnapshot()`.
+- **`docs/architecture/observability-debugging.md`** — Status updated from "planned" to "implemented"; doc expanded with the overlay field table and production fallback posture.
+- **`docs/architecture/README.md`** — observability row: "planned" → "implemented"; testing + eval rows: "mostly shipped" → "current".
+- **`docs/architecture/testing-strategy.md`** — vitest count 195 → 210.
+- **`README.md`** — vitest count 195 → 210; bundle size ~79 KB → ~81 KB.
+- **`WRITEUP.md`** — bundle table updated; JS 45.92 → 47.11 KB (debug module), CSS 2.28 → 2.65 KB (overlay rule), total 79.41 → 80.97 KB.
+
+---
+
 ## [Unreleased] — 2026-05-24 feat: memory-growth soak gate (haggis-eval soak, 17th gate)
 
 Closes the evaluation-strategy "soak/memory-growth still planned" item. Loads the hub on a fixed seed, waits for the RAF loop to be running, forces GC via CDP `HeapProfiler.collectGarbage`, soaks for 15 seconds, forces GC again, and asserts heap growth < 5 MB. Observed baseline: +0.13 MB on first run.
