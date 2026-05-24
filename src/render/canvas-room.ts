@@ -165,9 +165,23 @@ export function createCanvasRoomRenderer(
 
   const titles = new Map(room.doors.map((d) => [d.id, doorTitleForId(d.id)]));
   const startedAt = nowMillis();
+  let prevPlayerX: number | null = null;
+  let prevPlayerY: number | null = null;
+  let haggisFacingLeft = false;
+  let haggisIsMoving = false;
 
   return {
     render(snapshot: DecodedSnapshot): void {
+      if (prevPlayerX !== null && prevPlayerY !== null) {
+        const dx = snapshot.playerX - prevPlayerX;
+        const dy = snapshot.playerY - prevPlayerY;
+        haggisIsMoving = Math.abs(dx) + Math.abs(dy) > 2;
+        if (Math.abs(dx) > 2) {
+          haggisFacingLeft = dx < 0;
+        }
+      }
+      prevPlayerX = snapshot.playerX;
+      prevPlayerY = snapshot.playerY;
       const doors: readonly DoorLayout[] = room.doors.map((door) => {
         const simRect = scaleDoorBounds(surface, room, door);
         const side = doorSide(simRect, surface);
@@ -184,7 +198,7 @@ export function createCanvasRoomRenderer(
         };
       });
       const phase = (nowMillis() - startedAt) / 1000;
-      renderRoom(context, surface, room, doors, snapshot, phase);
+      renderRoom(context, surface, room, doors, snapshot, phase, haggisFacingLeft, haggisIsMoving);
     }
   };
 }
@@ -222,7 +236,9 @@ function renderRoom(
   room: RoomDefinition,
   doors: readonly DoorLayout[],
   snapshot: DecodedSnapshot,
-  phase: number
+  phase: number,
+  haggisFacingLeft: boolean,
+  haggisIsMoving: boolean
 ): void {
   // 1. Void backdrop (frames the room)
   ctx.fillStyle = PX.void;
@@ -316,7 +332,7 @@ function renderRoom(
   drawWhsMantelpiece(ctx, { x: mantelX, y: mantelY, w: mantelW, h: mantelH });
 
   // 8. Haggis player
-  drawHaggis(ctx, surface, room, snapshot, phase);
+  drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving);
 
   // 8.5 Ambient particles — smoke wisps rising from the fire, and dust
   //     motes drifting in the cool moonlight under the window. Subtle
@@ -619,7 +635,9 @@ function drawHaggis(
   surface: CanvasRoomSurface,
   room: RoomDefinition,
   snapshot: DecodedSnapshot,
-  phase: number
+  phase: number,
+  facingLeft: boolean,
+  isMoving: boolean
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
@@ -640,8 +658,17 @@ function drawHaggis(
 
   hardContactShadow(ctx, cx, cy + bob + 6, 52, 2);
 
+  // Walking leg cycle: back and front pairs alternate at a gentle trot.
+  const walkCycle = phase * 6 * Math.PI;
+  const legAmp = 1.5;
+  const leftLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
+  const rightLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
+
   drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
-    breathY: Math.sin(phase * 1.4) * 0.4
+    breathY: Math.sin(phase * 1.4) * 0.4,
+    facingLeft,
+    leftLegY,
+    rightLegY
   });
 }
 
