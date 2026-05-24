@@ -1,6 +1,6 @@
 ﻿# ha.ggis Hub — engineering writeup
 
-> A ~81 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~83 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -86,17 +86,17 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~81 KB total client bundle
+### ~83 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.49 KB | 1.23 KB |
-| `dist/assets/index-*.js` | 47.11 KB | 16.42 KB |
+| `dist/assets/index-*.js` | 49.08 KB | 17.03 KB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
 | `dist/assets/index-*.css` | 2.65 KB | 0.99 KB |
-| **Total** | **80.97 KB** | **31.28 KB** |
+| **Total** | **82.94 KB** | **31.89 KB** |
 
-For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships less than 30 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, and a registry with launch planning.
+For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 32 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
 There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool, that's it.
 
