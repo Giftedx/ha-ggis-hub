@@ -94,7 +94,8 @@ async function start(root: HTMLElement): Promise<void> {
   const shell = createShell(model);
   root.replaceChildren(shell.scene);
 
-  try {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try {
     // Seed: defaults to Date.now() so each visit feels fresh, but a
     // `?seed=N` URL param overrides for determinism smoke tests + any
     // future replay/share-a-room features.
@@ -103,7 +104,7 @@ async function start(root: HTMLElement): Promise<void> {
       ? BigInt(seedParam)
       : BigInt(Date.now());
     const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
-    const renderer = createCanvasRoomRenderer(shell.canvas, boundary.room);
+    const renderer = createCanvasRoomRenderer(shell.canvas, boundary.room, { reducedMotion });
     const keyboard = createKeyboardInputSampler(window);
 
     const inputLog = new InputLogWriter({
@@ -283,10 +284,7 @@ async function start(root: HTMLElement): Promise<void> {
       (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
     });
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      shell.status.textContent = 'reduced motion · the bothy bides quiet';
-      return;
-    }
+    if (reducedMotion) shell.status.textContent = 'reduced motion · the bothy bides quiet';
 
     const config = { tickMs: 1000 / 60, maxTicksPerPump: 8 };
     let last = performance.now();

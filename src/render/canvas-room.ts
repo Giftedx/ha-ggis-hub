@@ -149,8 +149,10 @@ interface DoorLayout {
 
 export function createCanvasRoomRenderer(
   surface: CanvasRoomSurface,
-  room: RoomDefinition
+  room: RoomDefinition,
+  options?: { readonly reducedMotion?: boolean }
 ): CanvasRoomRenderer {
+  const reducedMotion = options?.reducedMotion ?? false;
   const context = surface.getContext('2d');
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
@@ -198,7 +200,7 @@ export function createCanvasRoomRenderer(
         };
       });
       const phase = (nowMillis() - startedAt) / 1000;
-      renderRoom(context, surface, room, doors, snapshot, phase, haggisFacingLeft, haggisIsMoving);
+      renderRoom(context, surface, room, doors, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
     }
   };
 }
@@ -238,14 +240,15 @@ function renderRoom(
   snapshot: DecodedSnapshot,
   phase: number,
   haggisFacingLeft: boolean,
-  haggisIsMoving: boolean
+  haggisIsMoving: boolean,
+  reducedMotion: boolean
 ): void {
   // 1. Void backdrop (frames the room)
   ctx.fillStyle = PX.void;
   ctx.fillRect(0, 0, surface.width, surface.height);
 
   // 2. Floor
-  drawFloor(ctx, surface, phase);
+  drawFloor(ctx, surface, phase, reducedMotion);
 
   // 3. Active interaction id (drives door + lantern + interior light)
   const interactingId = activeDoorId(snapshot);
@@ -295,7 +298,7 @@ function renderRoom(
   // Warm floor glow around hearth — smooth translucent ellipses,
   // pulsing with the flame flicker. Clipped to the floor area so it
   // doesn't spill onto the front wall.
-  const hearthFlicker = 0.75 + Math.sin(phase * 4.2) * 0.1;
+  const hearthFlicker = reducedMotion ? 1.0 : 0.75 + Math.sin(phase * 4.2) * 0.1;
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(WALL_THICK_SIDE, WALL_THICK_BACK);
@@ -316,12 +319,11 @@ function renderRoom(
   }
   ctx.restore();
   hardContactShadow(ctx, fireCenter.x, fireCenter.y + Math.round(hearthSize / 2) + 2, 50, 3);
-  // 4 frames; ~7 fps cycle.
-  const hearthFrameIdx = Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
+  const hearthFrameIdx = reducedMotion ? 0 : Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
   drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
 
   // 8. Wall decorations — WHS window in the back wall + mantelpiece.
-  drawTopWallWindow(ctx, surface, phase);
+  drawTopWallWindow(ctx, surface, phase, reducedMotion);
 
   // Mantelpiece on the back wall, centred above the hearth. Sits at
   // the lower back wall area so the candle flame catches firelight.
@@ -332,12 +334,12 @@ function renderRoom(
   drawWhsMantelpiece(ctx, { x: mantelX, y: mantelY, w: mantelW, h: mantelH });
 
   // 8. Haggis player
-  drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving);
+  drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
 
   // 8.5 Ambient particles — smoke wisps rising from the fire, and dust
   //     motes drifting in the cool moonlight under the window. Subtle
   //     motion that brings the room alive without distracting.
-  drawAmbientParticles(ctx, surface, fireCenter, phase);
+  if (!reducedMotion) drawAmbientParticles(ctx, surface, fireCenter, phase);
 
   // 9. Vignette — soft dark falloff at the corners to focus attention
   //    inward. Drawn just before the prompt so the prompt remains crisp.
@@ -415,7 +417,8 @@ function drawAmbientParticles(
 function drawTopWallWindow(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
-  phase: number
+  phase: number,
+  reducedMotion: boolean
 ): void {
   // Phase 3a: window now uses WHS drawWhsWindowBay — loch view +
   // distant mountains + dawn sun glow + cross mullion + wood sill +
@@ -428,7 +431,7 @@ function drawTopWallWindow(
   drawWhsWindowBay(ctx, { x: wx, y: wy, w: winW, h: winH }, surface.width < 600);
   // Sync the window pane brightness with the floor beam's 22-second pulse
   // so the light source and its cast shadow feel like the same phenomenon.
-  const dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05;
+  const dawnPulse = reducedMotion ? 1.0 : 0.95 + Math.sin(phase * 0.28) * 0.05;
   ctx.save();
   ctx.globalAlpha = 0.04 * dawnPulse;  // 0.038 – 0.042 range, barely perceptible
   ctx.fillStyle = PALETTE.dawnPeach;
@@ -459,7 +462,7 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
 // mullion shadows. Replaced 160+ lines of pixel-art per-zone dither
 // (Phase 2b) with WHS-quality smooth flagstones + simple translucent
 // beam ellipse. Keeps signature dawn-light-from-window flourish.
-function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number): void {
+function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number, reducedMotion: boolean): void {
   const env: BothyEnvelope = {
     left: WALL_THICK_SIDE,
     right: surface.width - WALL_THICK_SIDE,
@@ -474,7 +477,7 @@ function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: nu
   // Gentle 22-second pulse (±5%) gives the early-morning light a
   // barely-perceptible shifting quality, like clouds on the horizon.
   const beam = makeBeamGeometry(surface.width, surface.height, WALL_THICK_BACK);
-  const dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05;
+  const dawnPulse = reducedMotion ? 1.0 : 0.95 + Math.sin(phase * 0.28) * 0.05;
   fillTrapezoidAlpha(ctx, beam, '#6a90b0', 0.06 * dawnPulse);  // cool loch cast
   fillTrapezoidAlpha(ctx, beam, PALETTE.dawnPeach, 0.18 * dawnPulse);
   fillTrapezoidAlpha(ctx, beam, PALETTE.dawnGold, 0.10 * dawnPulse);
@@ -643,7 +646,8 @@ function drawHaggis(
   snapshot: DecodedSnapshot,
   phase: number,
   facingLeft: boolean,
-  isMoving: boolean
+  isMoving: boolean,
+  reducedMotion: boolean
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
@@ -669,12 +673,9 @@ function drawHaggis(
   const legAmp = 1.5;
   const leftLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
   const rightLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
-  // Mane sway at half stride frequency — one full pendulum swing per
-  // complete stride cycle so the mane lags the body naturally.
-  const maneSway = isMoving ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0;
-  // Tail wag at 2 Hz — slightly slower than the leg cycle, gives the
-  // tail its own rhythmic energy without slavishly matching each step.
-  const tailWag = isMoving ? Math.sin(phase * 4 * Math.PI) * 1.2 : 0;
+  // Mane sway and tail wag are suppressed in reduced-motion mode.
+  const maneSway = (!reducedMotion && isMoving) ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0;
+  const tailWag = (!reducedMotion && isMoving) ? Math.sin(phase * 4 * Math.PI) * 1.2 : 0;
 
   drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
     breathY: Math.sin(phase * 1.4) * 0.4,

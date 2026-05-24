@@ -1,4 +1,4 @@
-# ha.ggis Hub — Design System
+﻿# ha.ggis Hub — Design System
 
 Status: canonical design system
 Scope: hub-specific design tokens (colour, typography, grid, motion, elevation, sound, voice, ornament, register policy)
@@ -245,11 +245,7 @@ motion:
 
   # — A11y —
   reduced-motion:
-    current: "lock out — show status 'reduced motion · the bothy bides quiet', skip render loop"
-    planned: "dampen — disable particles + flicker, keep walk + door launch"
-    rationale: "Current behaviour locks out keyboard users from playing. Planned
-                behaviour respects the motion preference while preserving the
-                playable core. Tracked for a future change."
+    current: "dampen — particles + hearth flicker + dawn pulse suppressed; walk + door launch preserved; status 'reduced motion · the bothy bides quiet' shown (shipped 2026-05-24)"
 ```
 
 ## Voice + register
