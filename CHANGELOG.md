@@ -8,7 +8,8 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 - **`src/render/canon-haggis.ts`** — Added `maneSway?: number` and `tailWag?: number` to `CanonHaggisFrame`. `maneSway` translates the full mane mass (back-cap, crown, forehead fringe, fringe shadow, strands, cream highlights, ear) along the face axis via a new `mmx` helper; body, legs, face, eye, and snout are fixed. `tailWag` shifts all three tail-tuft circles vertically (the `my()` + `tailWagY` offset). Both fields default to zero at rest. Updated the stale comment on the interface that said "Reserved for future locomotion: leg cycle, mane sway" — all locomotion fields are now wired.
 - **`src/render/canvas-room.ts`** — `drawHaggis` now drives three animation channels beyond breath bob and leg cycle: `maneSway` (1.5 Hz), `tailWag` (2 Hz, amplitude 1.2 design units), and dawn beam pulse. `maneSway = isMoving ? Math.sin(phase * 3π) * 1.0 : 0`; `tailWag = isMoving ? Math.sin(phase * 4π) * 1.2 : 0`. At rest all three are zero or insignificant and the visual golden is unaffected.
-- **`src/render/canvas-room.ts`** — `drawFloor` removes `void phase` dead code and uses `phase` for a gentle dawn beam intensity pulse: `dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05` (22-second period, ±5% alpha variation). Permitted by rules.md: "The pulsing `* flickerPhase` multiplier is fine; it gives the lantern and embers life." The same applies to the dawn beam. At 16×16 aHash resolution the small alpha variation doesn't change hash bits.
+- **`src/render/canvas-room.ts`** — `drawFloor` removes `void phase` dead code and uses `phase` for a gentle dawn beam intensity pulse: `dawnPulse = 0.95 + Math.sin(phase * 0.28) * 0.05` (22-second period, ±5% alpha variation). Permitted by rules.md for natural light sources. At 16×16 aHash resolution the small alpha variation doesn't change hash bits.
+- **`src/render/canvas-room.ts`** — `drawTopWallWindow` removes `void phase` dead code. Adds a matching peach overlay (`0.04 * dawnPulse`) in sync with the floor beam's 22-second pulse so the light source and its cast agree — static source casting an animated shadow would have been uncanny. Two `void phase` dead-code suppressions are now both eliminated.
 - **`docs/decisions/0003-whs-integration-strategy.md`** — Status updated from `proposed (decision-pending)` to `accepted`. Decision recorded: Option A (external URL to `https://wild-haggis-survivors.pages.dev/`) chosen for first release; Option B (`/wild-haggis-survivors/` mount) documented as the intended end-state.
 - **`docs/decisions/README.md`** — ADR-0003 row updated to `accepted`; corrected the follow-up note that incorrectly described the settled choice as "Option B".
 - **`docs/architecture/overview.md`**, **`security-model.md`**, **`autopilot-system.md`**, **`data-and-save-boundaries.md`**, **`docs/deployment/cloudflare-pages.md`** — Five docs updated from "planned" to reflect shipped state (previous session's doc accuracy pass).
@@ -17,7 +18,10 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ```
 pnpm verify (fast PR gate)        ~7s    194/194
+run-browser-smokes.mjs            PASS   door-launch + door-tap + pointer-drive
 run-visual-gate.mjs verify        PASS   hamming 3/8 (unchanged)
+run-a11y-gate.mjs                 PASS   13/13
+run-determinism-smoke.mjs         PASS
 ```
 
 ## [Unreleased] — 2026-05-24 haggis walking animation + locked-door title prompt
