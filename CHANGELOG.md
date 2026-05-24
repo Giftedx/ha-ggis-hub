@@ -2,6 +2,35 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 CI hardening session
+
+Closed all three carry-forward items from the 2026-05-23 bring-up. Final release gate ~3min, signed `0x8c802fa20b6996b4`, 14 gates green (was 13).
+
+### Added
+
+- **`Visual("verify")` in `haggis-eval all`** — golden bootstrapped on Windows on 2026-05-23 verified cleanly on Linux CI (hamming distance 1/256, tolerance 18). aHash on a procedurally-rendered canvas + 16x16 grayscale downsample is OS-portable enough that the same golden works on both, as hoped.
+
+### Changed
+
+- **`.github/workflows/ci.yml`** — bumped Node-20-deprecated actions (`pnpm/action-setup` v4→v6, `actions/setup-go` v5→v6, `actions/upload-artifact` v4→v7). Removes the Node-24-forcing-deadline warning that GitHub flagged for 2026-06-02.
+- **`scripts/run-browser-smokes.mjs`** + **`run-determinism-smoke.mjs`** + **`run-visual-gate.mjs`** — `detached: true` on POSIX so the spawned `pnpm exec vite preview` (shell-wrapped) becomes its own process-group leader; tear-down sends `SIGTERM` to the whole group via `process.kill(-pid)` rather than just the shell wrapper. Eliminates the four `Terminate orphan process: pid (XXXX) (node)` lines that appeared at job cleanup of every previous green run. Windows path unchanged (`detached: isPosix` short-circuits).
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0x8c802fa20b6996b4
+  rust/cargo-fmt + clippy + test         PASS
+  ts/tsc-noemit + vitest + vite-build    PASS
+  security/deploy-config                  PASS
+  perf/build + bundle-budgets             PASS
+  browser/smokes-all (3 smokes)           PASS
+  determinism/browser-replay-hash         PASS
+  visual/verify (NEW)                     PASS (hamming 1/256, tolerance 18)
+  differential/c-rust-hash                PASS
+  differential/wat-rust-rng (100k fuzz)   PASS
+```
+
 ## [Unreleased] — 2026-05-23 CI bring-up session
 
 First public push of the repository (private mirror at github.com/Giftedx/ha-ggis-hub). Initial CI was red four times in a row; sequenced fixes from "won't start" through "release gate hangs invisibly" to a fully green run with signed report `0xd6e4bda3f111a7cf`.
