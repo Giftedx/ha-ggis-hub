@@ -2,6 +2,46 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 tooling: add ESLint (strictTypeChecked); correct inflated test/coverage counts caused by stale worktrees
+
+`eslint` + `typescript-eslint` wired as `pnpm lint` and added to `pnpm verify`. Five real code fixes surfaced. Stale `.claude/worktrees/` removed (1.9 GB); their presence was inflating vitest test counts and V8 coverage totals. Accurate post-cleanup counts documented.
+
+### Added
+
+- **`eslint.config.js`** — flat config using `typescript-eslint` `strictTypeChecked` preset. Disabled rules that conflict with the tsconfig (`no-non-null-assertion` ↔ `noUncheckedIndexedAccess`, `restrict-template-expressions` allowing numbers, `no-unused-vars` ↔ tsc). Test files relax `require-await`, `no-useless-constructor`, and the `no-unsafe-*` family to accommodate stub/mock patterns.
+- **`package.json`** — `lint` script (`eslint src/ vite.config.ts --max-warnings=0`); added to `verify` sequence (now: typecheck → lint → test → build:verified).
+
+### Changed
+
+- **`src/render/sprite.ts`** — `new Array(width * height)` → `new Array<string | null>(width * height)` (removes unsafe-assignment of untyped array).
+- **`src/wasm/generated-loader.ts`** — removed the `as unknown as GeneratedHubWasmModule` cast (ESLint confirmed it is unnecessary — tsc accepts the return without it; structural types are compatible). Stale cast comment removed.
+- **`src/main.ts`** — two `() => voidFn()` arrow shorthands wrapped in braces (`no-confusing-void-expression`).
+- **`src/engine/input.test.ts`** — same fix for `() => sampler.destroy()` in double-destroy test.
+- **`vite.config.ts`** — added `exclude: ['**/node_modules/**', '**/.claude/**']` to prevent worktrees under `.claude/` from contributing test files to vitest discovery.
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — corrected inflated test counts (260 → 131) and coverage numbers to reflect actual state without worktree duplication.
+
+### Correction: all prior test counts were inflated by stale worktrees
+
+Four stale worktrees under `.claude/worktrees/` (created by earlier autonomous sessions, never removed) were included in vitest's test-file discovery because vitest's default include glob `**/*.test.ts` matched `.claude/worktrees/*/src/**/*.test.ts`. The worktrees were at older commits so their test files had fewer tests per file — their presence added ~129 extra test cases and ~324 extra coverage branches to every run. The inflated CHANGELOG entries (223 → 240 → 251 → 258 → 260) are preserved as provenance but the actual test count was always ~50–100% lower. Post-cleanup accurate counts:
+
+```
+pnpm verify    131 tests passing (19 test files)
+pnpm coverage  branches 94.51% (310/328) — ≥78% configured, ≥85% target, ≥90% ideal
+               functions 100% (148/148)
+               statements 99.32% (1318/1327)
+               lines 99.52% (1256/1262)
+```
+
+### Gates green
+
+```
+pnpm verify    ~15s    131/131   (typecheck + lint + test + build)
+pnpm coverage          branches 94.51% ≥ 78% configured
+pnpm lint              0 errors, 0 warnings
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 test: branch coverage 89.11% → 89.41%; cover app error path and lifecycle ?? null branch
 
 2 new tests across 2 files (1 new, 1 extended) — closes the last two reachable branches. 258 → 260 vitest.

@@ -16,7 +16,7 @@ Runs on every PR via `.github/workflows/ci.yml`:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.mjs
+pnpm verify   # tsc --noEmit → eslint → vitest → vite build → scripts/verify-dist.mjs
 ```
 
 ### Current release gate (push to main)
@@ -77,7 +77,6 @@ cargo bench --workspace
 
 # TypeScript deepening
 pnpm exec prettier . --check
-pnpm exec eslint . --max-warnings=0
 
 # Multi-browser + lab-perf
 pnpm exec playwright test --project=firefox
@@ -89,7 +88,9 @@ osv-scanner --recursive .
 gitleaks detect --source . -v
 ```
 
-Why they're deferred: each adds either a non-trivial dependency (ESLint config, prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
+Why they're deferred: each adds either a non-trivial dependency (prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
+
+ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks.
 
 ## Technical bar
 

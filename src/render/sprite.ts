@@ -45,7 +45,7 @@ export function defineSprite(def: SpriteDefinition): Sprite {
       );
     }
   }
-  const pixelColours: Array<string | null> = new Array(width * height);
+  const pixelColours = new Array<string | null>(width * height);
   for (let y = 0; y < height; y += 1) {
     const row = def.pixels[y]!;
     for (let x = 0; x < width; x += 1) {

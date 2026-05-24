@@ -124,7 +124,7 @@ describe('input sampling', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
     sampler.destroy();
-    expect(() => sampler.destroy()).not.toThrow();
+    expect(() => { sampler.destroy(); }).not.toThrow();
   });
 
   it('ignores events without a code property (keyCodeFromEvent fallback)', () => {

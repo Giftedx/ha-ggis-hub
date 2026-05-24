@@ -281,7 +281,7 @@ async function start(root: HTMLElement): Promise<void> {
       if (hintDismissed) return;
       hintDismissed = true;
       shell.hint.classList.add('scene-hint--fading');
-      window.setTimeout(() => shell.hint.remove(), 800);
+      window.setTimeout(() => { shell.hint.remove(); }, 800);
     }
     window.addEventListener('keydown', dismissHint, { once: true });
     window.setTimeout(dismissHint, 6000);
@@ -372,7 +372,7 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
   canvas.setAttribute('aria-label', model.projectName);
   canvas.setAttribute('role', 'img');
   sizeCanvasToViewport(canvas);
-  window.addEventListener('resize', () => sizeCanvasToViewport(canvas), { passive: true });
+  window.addEventListener('resize', () => { sizeCanvasToViewport(canvas); }, { passive: true });
 
   // Domain wordmark — makes the ha + ggis = haggis pun visible on the
   // page itself, not just in the browser tab or address bar.

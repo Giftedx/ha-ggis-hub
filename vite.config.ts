@@ -8,6 +8,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
+    // Prevent Claude Code worktrees under .claude/ from contributing
+    // test files to vitest discovery.
+    exclude: ['**/node_modules/**', '**/.claude/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
