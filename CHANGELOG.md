@@ -2,9 +2,9 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-24 test: branch coverage 85.27% → 88.03%; cover door-side, rug, destroyed handlers
+## [Unreleased] — 2026-05-24 test: branch coverage 85.27% → 88.19%; cover door-side, rug, overlay, destroyed handlers
 
-12 new tests across 4 files (1 new, 3 extended) — covers branches that were reachable but untested. 240 → 248 vitest.
+13 new tests across 5 files (1 new, 4 extended) — covers branches that were reachable but untested. 240 → 249 vitest.
 
 ### Added
 
@@ -14,13 +14,18 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 - **`src/render/canvas-room.test.ts`** — `RecordingCanvasContext` now has `imageSmoothingEnabled=true` so every render exercises the `smoothable.imageSmoothingEnabled=false` path (canvas-room.ts line 171). Three new cases: `interactionDoorIndex=99` exercises the `door===undefined` early-return guard in `drawPrompt` (line 873); door centred near top (y=10–80) exercises `doorSide` 'top' return (line 966); door centred near bottom (y=920–990) exercises 'bottom' return (line 967); unregistered single-word ID `'lighthouse'` exercises `prettifyKebab` (lines 983–988) and `doorShortLabel`'s `return title` path (line 980).
 - **`src/engine/input.test.ts`** — new case: saves keydown/keyup listener refs before `destroy()`, invokes them directly after — exercises `if (destroyed) return` guards in both handlers (lines 68 and 79).
-- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 240 → 248.
+- **`src/debug/overlay.test.ts`** — new case: `interactionKind='launchable'` with `interactionDoorId=null` exercises the `interactionDoorId ? ... : ''` false branch (line 62).
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 240 → 249.
+
+### Also
+
+- **`src/render/whs-bothy.ts`** — removed stale `TARTAN_RED = '#c42828'` constant and `void TARTAN_RED` suppressor. The original tartan red was replaced with ember red (`#9a3818`) when the rug was adapted to the Dawn Bothy palette; the constant was never cleaned up.
 
 ### Gates green
 
 ```
-pnpm verify    ~10s    248/248
-pnpm coverage         branches 88.03% (574/652) ≥ 78% configured, well above 85% target
+pnpm verify    ~10s    249/249
+pnpm coverage         branches 88.19% (575/652) ≥ 78% configured, well above 85% target
 ```
 
 ---
