@@ -172,6 +172,16 @@ describe('formatStats', () => {
     expect(text).toContain('future-bothy');
   });
 
+  it('shows interaction kind without brackets when interactionDoorId is null — exercises empty-id branch', () => {
+    const text = formatStats({
+      ...BASE_STATS,
+      interactionKind: 'launchable',
+      interactionDoorId: null,
+    });
+    expect(text).toContain('launchable');
+    expect(text).not.toContain('[');
+  });
+
   it('includes wasm init time when wasmInitMs > 0', () => {
     expect(formatStats({ ...BASE_STATS, wasmInitMs: 312 })).toContain('wasm init 312ms');
   });
