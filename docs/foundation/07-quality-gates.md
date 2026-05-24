@@ -6,23 +6,44 @@ Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-cr
 
 ## Current repo status
 
-The executable foundation skeleton now exists. The skeleton gate below is current and must pass before further implementation slices are considered healthy. Broader PR/release/deep gates remain planned until their tools and targets are introduced.
+End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no Lighthouse runner, no multi-browser Playwright, no SCA scanners yet).
 
 ## Gate tiers
 
-### Current skeleton gate
+### Current PR gate (fast)
 
-Applies now:
+Runs on every PR via `.github/workflows/ci.yml`:
 
 ```bash
-cargo fmt --all -- --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 pnpm install --frozen-lockfile
+pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.mjs
+```
+
+### Current release gate (push to main)
+
+Runs via the Go-orchestrated `haggis-eval all`. 14 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+
+```bash
+# Rust workspace
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace --exclude hub-wasm
+
+# TypeScript host + deploy artifact gate
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build
+pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
+node scripts/perf-budgets.mjs                         # per-asset budgets
+
+# Browser-driven (vite preview internally)
+node scripts/run-browser-smokes.mjs    # 3 chromium smokes
+node scripts/run-determinism-smoke.mjs # state-hash equality
+node scripts/run-visual-gate.mjs verify # perceptual aHash
+
+# Hard-language differential tests
+cargo test -p hub-hardlang --test differential_hash
+cargo test -p hub-hardlang --test differential_rng -- --include-ignored
 ```
 
 ### Documentation foundation gate
@@ -35,47 +56,37 @@ Also applies now:
 - Commands in docs are labelled planned if not executable yet.
 - Docs do not claim code/config exists before it does.
 
-### Full PR gate, planned
+### Still-planned strictness on top of the current gates
+
+The release-gate matrix above covers correctness, perf budgets, determinism, security headers, visual drift, and the hard-language showcase. The following deeper checks are deliberately not yet wired and would each be a separate slice:
 
 ```bash
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo nextest run --workspace --all-features
-RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown --all-features
-cargo audit
-cargo deny check
+# Rust deepening
+cargo audit                  # crate advisories
+cargo deny check             # license + version policy
+cargo machete                # unused-dep detection
+cargo llvm-cov ... --fail-under-lines 85   # coverage threshold
+cargo +nightly fuzz run <target> -- -max_total_time=1800
+cargo bench --workspace
 
-pnpm install --frozen-lockfile
+# TypeScript deepening
 pnpm exec prettier . --check
 pnpm exec eslint . --max-warnings=0
-pnpm exec tsc --noEmit
 pnpm exec vitest run --coverage
-pnpm run build
-pnpm exec playwright test --project=chromium
-```
 
-### Release gate, planned
-
-```bash
-cargo llvm-cov nextest --workspace --all-features --fail-under-lines 85
-cargo machete
-pnpm exec size-limit
+# Multi-browser + lab-perf
 pnpm exec playwright test --project=firefox
 pnpm exec playwright test --project=webkit
-lhci autorun
+pnpm exec playwright test --grep @soak
+lhci autorun                                # Lighthouse paint-timing half
+pnpm exec size-limit                        # second per-asset budget runner
+
+# Supply-chain scanners
 osv-scanner --recursive .
 gitleaks detect --source . -v
 ```
 
-### Nightly/deep gate, planned
-
-```bash
-cargo +nightly fuzz run <target> -- -max_total_time=1800
-cargo bench --workspace
-pnpm exec playwright test --grep @soak
-pnpm outdated
-cargo outdated --workspace
-```
+Why they're deferred: each adds either a non-trivial dependency (Lighthouse runner, ESLint config, prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
 
 ## Technical bar
 

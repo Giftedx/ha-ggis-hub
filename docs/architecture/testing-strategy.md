@@ -1,17 +1,21 @@
 # Testing Strategy
 
-Status: planned architecture
+Status: current architecture (most layers shipped; soak + lab-perf still planned)
 Scope: what gets tested where and why
 Related: [Quality gates](../foundation/07-quality-gates.md), [Technical bar](../foundation/07-quality-gates.md#technical-bar)
+
+## Implementation status
+
+The pyramid below is realised end-to-end except for soak tests and Lighthouse-style lab perf. As of 2026-05-24: 194 vitest cases, cargo workspace tests, three chromium smokes (`scripts/smoke-door-launch.mjs`, `smoke-door-tap.mjs`, `smoke-pointer-drive.mjs`), a determinism smoke (`smoke-determinism.mjs`), a perceptual visual gate (`smoke-visual-gate.mjs` against `tests/golden/`), per-asset perf budgets (`scripts/perf-budgets.mjs`), and deploy-headers assertions (`scripts/deploy-config.test.ts`). All orchestrated by `tools/haggis-eval` and run in CI.
 
 ## Testing pyramid for this project
 
 ```text
-Many: Rust unit/property tests for deterministic core
-Many: TypeScript unit tests for pure host logic
-Some: WASM boundary tests
-Some: Playwright smoke/accessibility/console tests
-Few: visual/performance/soak tests, focused on critical flows
+Many: Rust unit/property tests for deterministic core              ✓ shipped
+Many: TypeScript unit tests for pure host logic                    ✓ shipped (194 vitest)
+Some: WASM boundary tests                                          ✓ shipped
+Some: Playwright smoke/accessibility/console tests                 ✓ shipped (3 smokes; accessibility still planned)
+Few:  visual/performance/soak tests, focused on critical flows     ◐ visual ✓ + perf-budgets ✓; soak planned
 ```
 
 ## Rust core tests
