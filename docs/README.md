@@ -95,7 +95,7 @@ Archived foundation docs (provenance only — content distilled into the keepers
 - [ADR template](decisions/adr-template.md)
 - [ADR-0001: Rust/WASM core, TypeScript host, replaceable renderer](decisions/0001-rust-wasm-core-typescript-host.md) — accepted
 - [ADR-0002: Renderer evaluation plan](decisions/0002-renderer-evaluation-plan.md) — superseded by ADR-0005
-- [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — proposed (decision-pending)
+- [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — accepted (Option A: external URL for first release)
 - [ADR-0004: Language and craft philosophy](decisions/0004-language-and-craft-philosophy.md) — accepted
 - [ADR-0005: Canvas2D renderer for first room](decisions/0005-canvas2d-first-room-renderer.md) — accepted
 - [ADR-0006: Highland-dawn-bothy visual direction](decisions/0006-hub-visual-direction-highland-dawn-bothy.md) — accepted

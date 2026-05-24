@@ -2,6 +2,16 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 doc accuracy sweep (architecture index + root README + docs index)
+
+### Changed
+
+- **`docs/architecture/README.md`** — Table updated from all "planned" to reflect actual status of each doc (implemented / partial / registry shipped / mostly shipped / active / planned). Removed "None of this is implemented yet — every document here is `planned architecture`" claim. Scope line no longer says "planned runtime architecture". Conventions bullet updated: "describes current behavior for shipped surfaces; describes target behavior for planned surfaces".
+- **`docs/README.md`** — ADR-0003 row corrected from "proposed (decision-pending)" to "accepted (Option A: external URL for first release)".
+- **`README.md`** — Removed "planned" from product description ("the planned playable front door" → "the playable front door"). Architecture section description updated to note mostly-shipped state.
+
+---
+
 ## [Unreleased] — 2026-05-24 tail wag + dawn beam pulse + mane sway + ADR-0003 closed
 
 ### Changed

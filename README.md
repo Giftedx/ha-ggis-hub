@@ -1,6 +1,6 @@
 # ha.ggis Hub
 
-`ha.ggis Hub` is the planned playable front door for haggis-themed games at `https://ha.ggis.xyz`.
+`ha.ggis Hub` is the playable front door for haggis-themed games at `https://ha.ggis.xyz`.
 
 The name is the joke and the product promise:
 
@@ -61,7 +61,7 @@ Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above 
 ## Repository documentation map
 
 - `docs/foundation/` — canonical project foundation and policies (numbered).
-- `docs/architecture/` — planned runtime architecture, boundaries, testing, security, observability.
+- `docs/architecture/` — runtime architecture, boundaries, testing, security, observability (mostly shipped; observability planned).
 - `docs/decisions/` — architecture decision records (ADRs).
 - `docs/plans/` — implementation plans and execution sequences.
 - `docs/deployment/` — deployment and hosting documentation.
