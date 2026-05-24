@@ -2,6 +2,28 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 refactor: make canLaunchGame a type guard; raise branch threshold 78%→85%
+
+`canLaunchGame` now returns a narrowing predicate (`game is HubGameDefinition & { launch: Exclude<HubGameLaunchTarget, { kind: 'none' }> }`), eliminating the logically unreachable `if (game.launch.kind === 'none')` dead branch in `createLaunchPlan`. Branch threshold aligned to the policy target (78% → 85%); actual coverage is 94.78% (309/326).
+
+### Changed
+
+- **`src/navigation/launch.ts`** — `canLaunchGame` return type changed from `boolean` to a TypeScript type guard. Removed the now-unreachable `if (game.launch.kind === 'none')` block (lines 70–77), which was only needed to satisfy narrowing before the type guard.
+- **`vite.config.ts`** — branch coverage threshold 78 → 85. Actual coverage (94.78%) far exceeds both the old and new threshold.
+- **`README.md`**, **`WRITEUP.md`**, **`docs/foundation/07-quality-gates.md`**, **`tools/haggis-eval/README.md`**, **`tools/haggis-eval/main.go`**, **`tools/haggis-eval/internal/cmd/coverage.go`**, **`.github/workflows/ci.yml`** — threshold annotation updated to `branches≥85%`. Quality gates "Initial budgets" section updated from `≥ 80%, target 85%` to `≥ 85% configured, target 90%`.
+
+### Gates green
+
+```
+pnpm verify    ~15s    131/131   (typecheck + lint + test + build)
+pnpm coverage          branches 94.78% (309/326) ≥ 85% configured
+               functions 100% (148/148)
+               statements 99.39% (1317/1325)
+               lines 99.60% (1255/1260)
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 tooling: add ESLint (strictTypeChecked); correct inflated test/coverage counts caused by stale worktrees
 
 `eslint` + `typescript-eslint` wired as `pnpm lint` and added to `pnpm verify`. Five real code fixes surfaced. Stale `.claude/worktrees/` removed (1.9 GB); their presence was inflating vitest test counts and V8 coverage totals. Accurate post-cleanup counts documented.

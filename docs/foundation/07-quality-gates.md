@@ -33,7 +33,7 @@ cargo test --workspace --exclude hub-wasm
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build
-pnpm run coverage                                     # v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥78%)
+pnpm run coverage                                     # v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
@@ -161,7 +161,7 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 
 - Rust core line coverage: >= 85%, target 90%.
 - TypeScript statement coverage: >= 85%, target 90%.
-- TypeScript branch coverage: >= 80%, target 85%.
+- TypeScript branch coverage: >= 85% configured, target 90%.
 - Initial JS gzip: <= 180 KB.
 - Initial CSS gzip: <= 40 KB.
 - Initial WASM gzip: <= 300 KB lean / <= 500 KB substantial.

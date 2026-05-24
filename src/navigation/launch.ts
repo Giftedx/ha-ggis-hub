@@ -29,7 +29,9 @@ export interface LaunchNavigator {
   navigate(target: string): void;
 }
 
-export function canLaunchGame(game: HubGameDefinition | undefined): boolean {
+export function canLaunchGame(
+  game: HubGameDefinition | undefined
+): game is HubGameDefinition & { launch: Exclude<HubGameLaunchTarget, { kind: 'none' }> } {
   return game?.status === 'playable' && game.launch.kind !== 'none';
 }
 
@@ -59,15 +61,6 @@ export function createLaunchPlan(game: HubGameDefinition): LaunchPlan {
   }
 
   if (!canLaunchGame(game)) {
-    return {
-      kind: 'unavailable',
-      gameId: game.id,
-      title: game.title,
-      reason: game.status
-    };
-  }
-
-  if (game.launch.kind === 'none') {
     return {
       kind: 'unavailable',
       gameId: game.id,

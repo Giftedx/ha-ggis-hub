@@ -28,7 +28,7 @@ export default defineConfig({
         lines: 90,
         statements: 90,
         functions: 90,
-        branches: 78,
+        branches: 85,
       },
       reporter: ['text', 'json'],
     }
