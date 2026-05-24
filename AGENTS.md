@@ -1,4 +1,4 @@
-# Agent Instructions for ha.ggis Hub
+﻿# Agent Instructions for ha.ggis Hub
 
 This file is the fast path for autonomous agents entering the repository. It summarizes the canonical docs; it does not replace them.
 
