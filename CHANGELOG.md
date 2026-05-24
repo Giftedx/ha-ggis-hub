@@ -2,6 +2,14 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 fix: reset fixed-step accumulator on tab return from hidden
+
+### Fixed
+
+- **`src/main.ts`** — Added `document.visibilitychange` handler that resets both `last` (frame timer) and `stepState.accumulatorMs` to zero when the tab returns from hidden. Without the reset, a 5-minute background tab left ~299,866 ms in the accumulator; on return, `pumpFixedStep` would drain it 8 ticks per frame for ~37 seconds at full speed, producing a catch-up burst. The `tick` counter is preserved so simulation state is consistent. Matches the rule now documented in `docs/architecture/runtime-boundaries.md`.
+
+---
+
 ## [Unreleased] — 2026-05-24 reduced-motion dampen mode
 
 Closes the DESIGN.md §A11y "planned" item. Previously `prefers-reduced-motion` locked out keyboard users entirely (render loop stopped). Now the renderer accepts `{ reducedMotion }` and suppresses decorative motion only — particles, hearth flicker, dawn beam pulse, mane sway, tail wag — while keeping the RAF loop, keyboard + pointer input, door proximity, and launch all working.
