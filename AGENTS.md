@@ -15,7 +15,7 @@ This file is the fast path for autonomous agents entering the repository. It sum
 
 ## Current phase
 
-Executable foundation phase. The initial Rust workspace, WASM boundary crate, and TypeScript/Vite host now exist. Gameplay, renderer selection, CI, Playwright, and Cloudflare config are still future slices. The next-phase roadmap is [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md).
+End-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`), WASM boundary, TypeScript/Vite host, procedural Canvas2D bothy renderer, Playwright smokes (door-launch, door-tap, pointer-drive), determinism + visual + security + perf + differential gates, signed JSON reports via `tools/haggis-eval`, two-tier CI in `.github/workflows/ci.yml`, deploy headers + manifest + OG card in `public/`. The plan slice history is in [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md); the running ledger of changes is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Prime rule
 
@@ -28,10 +28,10 @@ Do not implement from archived plans. `docs/archive/` is provenance only. The hi
 The accepted foundation direction is:
 
 ```text
-Rust hub-core -> WASM wrapper -> TypeScript/Vite host -> replaceable renderer
+Rust hub-core -> WASM wrapper -> TypeScript/Vite host -> Canvas2D renderer
 ```
 
-Renderer is not selected yet. Canvas2D and PixiJS are the leading first-slice candidates.
+Renderer is hand-rolled Canvas2D per [ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md); visual direction is locked by [ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md).
 
 ## Agent behavior
 

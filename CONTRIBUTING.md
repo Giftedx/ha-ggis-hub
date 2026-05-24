@@ -1,8 +1,8 @@
 # Contributing
 
-Status: canonical contributor guide (executable foundation phase)
+Status: canonical contributor guide
 
-ha.ggis Hub now has its first executable foundation skeleton. Contributions must keep implementation, documentation, and quality gates aligned while preserving the no-slop foundation.
+ha.ggis Hub is end-to-end functional with a 14-gate release matrix in `tools/haggis-eval` and signed JSON reports. Contributions must keep implementation, documentation, and quality gates aligned — the bar is "perfect at the current stage, or actively being made perfect."
 
 ## Before starting
 
@@ -20,24 +20,25 @@ If you are an autonomous agent, also read [`AGENTS.md`](AGENTS.md).
 
 ## Current contribution types
 
-Allowed now with a written plan and matching verification:
+Allowed with a written plan and matching verification:
 
 - documentation corrections
 - architecture research
 - ADR drafts
 - implementation plans
-- quality-gate design
-- Rust core and WASM boundary slices
-- strict TypeScript/Vite host slices
+- quality-gate design and new gate subcommands in `tools/haggis-eval`
+- Rust core and WASM boundary changes
+- strict TypeScript/Vite host changes
+- art / renderer / canvas-room changes against the locked technique spec in `DESIGN.md`
 - dependency additions that satisfy the dependency policy and are documented
 
-Still not allowed without a specific plan/ADR where appropriate:
+Not allowed without a specific plan/ADR where appropriate:
 
 - alternate app scaffold or scaffold reset
-- dependency installation
-- renderer selection
-- deployment setup
-- CI setup
+- dependency installation outside the policy
+- renderer replacement (would supersede ADR-0005)
+- deployment-pipeline change (would supersede the Cloudflare Pages spec)
+- weakening any CI gate
 - public route changes
 
 ## Documentation standard
@@ -68,4 +69,4 @@ Minimum:
 - docs do not claim missing files exist
 - archived material is clearly marked superseded
 
-Implementation gates are listed in `docs/foundation/07-quality-gates.md`. The current skeleton gate is active; future gates become active only when their tools and targets exist.
+Implementation gates are listed in `docs/foundation/07-quality-gates.md` and orchestrated by `tools/haggis-eval`. Run `./tools/haggis-eval/haggis-eval all` before opening a PR; `pnpm verify` is the fast subset. Both are enforced in CI (`.github/workflows/ci.yml`).
