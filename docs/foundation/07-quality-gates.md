@@ -6,7 +6,7 @@ Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-cr
 
 ## Current repo status
 
-End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is now wired without a Lighthouse dep, via the W3C Paint Timing API directly through chromium-headless.
+End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is wired without a Lighthouse dep via the W3C Paint Timing API through chromium-headless. The a11y gate is wired without an axe-core / pa11y dep — a hand-rolled WCAG 2.2 AA spot-check suite via Playwright.
 
 ## Gate tiers
 
@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.m
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 15 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 16 gates, ~3.5 min warm / ~5–6 min cold, emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -41,6 +41,7 @@ node scripts/run-paint-gate.mjs                       # paint-timing budgets (FC
 node scripts/run-browser-smokes.mjs    # 3 chromium smokes
 node scripts/run-determinism-smoke.mjs # state-hash equality
 node scripts/run-visual-gate.mjs verify # perceptual aHash
+node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
@@ -161,9 +162,9 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 - Initial CSS gzip: <= 40 KB.
 - Initial WASM gzip: <= 300 KB lean / <= 500 KB substantial.
 - Total initial critical-path gzip: <= 750 KB.
-- Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate (`scripts/run-paint-gate.mjs`) reading the W3C Paint Timing API + a `hub:firstFrame` user-mark. Budgets in `perf-budgets.json paint.max_ms` calibrated against Linux CI medians. A full Lighthouse audit for accessibility + best-practices scores is still planned.
-- Lighthouse accessibility: >= 95 (still planned, separate from paint timing).
-- Lighthouse best practices: >= 95 (still planned, separate from paint timing).
+- Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate (`scripts/run-paint-gate.mjs`) reading the W3C Paint Timing API + a `hub:firstFrame` user-mark. Budgets in `perf-budgets.json paint.max_ms` calibrated against Linux CI medians.
+- Accessibility: asserted via the hand-rolled `haggis-eval a11y` gate (`scripts/run-a11y-gate.mjs` → `scripts/smoke-a11y.mjs`), 13 WCAG 2.2 AA spot-checks covering page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name (1.1.1), interactive element accessible name (4.1.2), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), and computed contrast ratio (1.4.3) on every declared text pair. No axe-core dep; the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic 80-rule engine.
+- Lighthouse best practices: >= 95 (still planned, separate from accessibility).
 - LCP: <= 2.5s.
 - CLS: <= 0.05.
 - INP: <= 200ms.

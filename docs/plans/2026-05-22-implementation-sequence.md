@@ -159,7 +159,8 @@ Wired:
 - `differential rng` — WAT vs Rust xoshiro128**.
 - `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
 - `slice <name>` — dispatches a named gate-set bundle from `tools/haggis-eval/slices.json` (pivoted from `slices.toml` in the original spec because haggis-eval is stdlib-only Go and `encoding/json` is stdlib while TOML is not). Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual), `release` (== `all` minus the signed-report write). `slice` with no argument (or `slice list`) prints available bundles. `HAGGIS_SLICES_PATH` overrides the config path. Shipped 2026-05-24.
-- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold).
+- `a11y` — `node scripts/run-a11y-gate.mjs` (build → vite preview → 13 WCAG 2.2 AA spot-checks via Playwright covering page language, viewport zoom, page title, canvas + interactive element accessible names, keyboard reachability, focus indicator visibility, and computed contrast ratio on every declared text pair). No axe-core / pa11y dep — the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic rule engine. Shipped 2026-05-24, drove a `outline: none` fix on `.scene-direct:focus-visible` (WCAG 2.4.7) found during bring-up.
+- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 16 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold).
 
 Outstanding stubs (`exit 78`):
 

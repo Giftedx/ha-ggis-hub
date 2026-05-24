@@ -15,7 +15,7 @@ This file is the fast path for autonomous agents entering the repository. It sum
 
 ## Current phase
 
-End-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`), WASM boundary, TypeScript/Vite host, procedural Canvas2D bothy renderer, Playwright smokes (door-launch, door-tap, pointer-drive), determinism + visual + security + perf + differential gates, signed JSON reports via `tools/haggis-eval`, two-tier CI in `.github/workflows/ci.yml`, deploy headers + manifest + OG card in `public/`. The plan slice history is in [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md); the running ledger of changes is in [`CHANGELOG.md`](CHANGELOG.md).
+End-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`), WASM boundary, TypeScript/Vite host, procedural Canvas2D bothy renderer, Playwright smokes (door-launch, door-tap, pointer-drive), determinism + visual + a11y + security + perf + differential gates, signed JSON reports via `tools/haggis-eval`, two-tier CI in `.github/workflows/ci.yml`, deploy headers + manifest + OG card in `public/`. The plan slice history is in [`docs/plans/2026-05-22-implementation-sequence.md`](docs/plans/2026-05-22-implementation-sequence.md); the running ledger of changes is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Prime rule
 

@@ -2,6 +2,37 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 hand-rolled a11y gate shipped (gate matrix 15 → 16)
+
+Closed the long-standing "a11y still planned" item from `docs/foundation/07-quality-gates.md` without taking on an axe-core / pa11y dep. The hub's a11y surface is small and stable enough (canvas-first SPA, one link, no forms, no images apart from CSS-painted SVG icons) that a focused list of 13 WCAG 2.2 AA spot-checks is more honest than wrapping a generic 80-rule engine. Bring-up surfaced one real bug (a `.scene-direct:focus-visible { outline: none }` rule that traded WCAG 2.4.7 compliance for visual cleanliness) and the gate now defends against its return.
+
+### Added
+
+- **`scripts/smoke-a11y.mjs`** — 13 hand-rolled WCAG 2.2 AA assertions against the preview build, organised by success criterion: 3.1.1 page language, 1.4.4 viewport zoom, 2.4.2 page title, 1.1.1 canvas accessible name, 4.1.2 interactive element accessible name (each `<a>`/`<button>`/`<input>` walked), 2.1.1 keyboard reachability (Tab from body lands on the direct-play link), 2.4.7 focus indicator visible (computed `outline-style` + `outline-width` + `box-shadow` read), 1.4.3 computed contrast ratio on every declared text pair. Contrast pairs include the prompt text on the translucent prompt plate (composited over the void backdrop), the sign label on the door sign wood, the noscript paragraph + fallback link, and the direct-play link in both resting and focused states. Self-contained — no axe-core or pa11y dep. Linear sRGB → relative luminance per WCAG 2.x.
+- **`scripts/run-a11y-gate.mjs`** — harness that builds dist, starts vite preview on :4176, runs the smoke against it, tears down. Mirrors the run-visual-gate / run-paint-gate pattern so haggis-eval's `a11y` gate stays a thin shell-out wrapper.
+- **`tools/haggis-eval/internal/cmd/a11y.go`** + `main.go` switch arm + `registry.go` entry — the Go-side wiring that exposes the gate as `haggis-eval a11y` and pulls it into the `slice` bundle dispatcher.
+
+### Changed
+
+- **`tools/haggis-eval/internal/cmd/all.go`** — `A11y()` appended between `Visual` and `Differential` so `haggis-eval all` (and the signed JSON report) now covers it. Gate count 15 → 16.
+- **`tools/haggis-eval/slices.json`** — `pre-merge` and `release` bundles now include `a11y`. `fast` deliberately stays just `ts + perf` (fast = no browser tier).
+- **`src/style.css`** — `.scene-direct:focus-visible` no longer sets `outline: none`. Replaced with a 2px solid `--hub-neeps-orange` outline + 3px offset + 2px border-radius. Colour-shift alone fails WCAG 2.4.7 in current AA guidance; the lantern-warm outline reads as part of the bothy palette. The hover style keeps the colour change without touching outline. Found by the new gate during bring-up.
+- **`docs/foundation/07-quality-gates.md`** — current PR/release-gate section now lists 16 gates and the `node scripts/run-a11y-gate.mjs` line. Released the "Accessibility" item from "still planned" into the shipped budgets list; removed the "Lighthouse accessibility: still planned" bullet (the hand-rolled gate is the equivalent). Status header now names the no-axe-core dep policy.
+- **`docs/architecture/evaluation-strategy.md`** + **`docs/architecture/testing-strategy.md`** — status headers and implementation-status paragraphs updated for the a11y eval. Testing pyramid bullet "3 smokes; accessibility still planned" → "3 smokes + a11y gate".
+- **`docs/superpowers/specs/2026-05-23-hub-determinism-kernel-design.md`** — §2.7 subcommand table and §5 gate matrix both gain an `a11y` row recording the as-shipped hand-rolled implementation (no-dep rationale parallel to the perf/paint-timing entries).
+- **`docs/plans/2026-05-22-implementation-sequence.md`** Slice 9 — `a11y` listed alongside the other 15 wired subcommands; gate count 15 → 16. Records that bring-up drove the `outline: none` fix.
+- **`docs/foundation/12-craft-commitments.md`** Section B Go role — a11y bullet added to the orchestration list with the no-axe-core note.
+- **`README.md`**, **`WRITEUP.md`**, **`AGENTS.md`**, **`CONTRIBUTING.md`**, **`tools/haggis-eval/README.md`** — gate-count + subcommand-list references updated. README's "Current executable gates" section grew a `run-a11y-gate.mjs` line; the portfolio-summary bullet for vitest + smokes added the a11y gate; the orchestrator bullet's subcommand list grew `a11y`.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~7s
+haggis-eval all (release gate)   ~3min   signed=0x5fb5df020a5ce4e
+  a11y/wcag-aa-spot-checks                PASS  13/13 (2.7s)
+  all other 15 gates                       PASS  (unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 visual golden re-captured on Linux + recapture workflow
 
 Acting on today's prior reflection: the visual gate's 3-bit Linux-vs-Windows delta was a stable cross-platform rendering difference, not jitter. Re-capturing the golden on the OS the verifier runs on (ubuntu-latest, where GitHub Actions executes the release gate) closes the gap. Linux CI now reads 0/8 Hamming distance — clean signal, full 8-bit budget reserved for real drift.

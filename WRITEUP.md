@@ -82,7 +82,7 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 ### Cryptographically signed gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `visual`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `ts`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
@@ -151,6 +151,7 @@ Browser smokes (each builds dist + spins up `vite preview` internally — no ext
 node scripts/run-browser-smokes.mjs    # 3 smokes: door-launch + door-tap + pointer-drive
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
+node scripts/run-a11y-gate.mjs          # 13 WCAG 2.2 AA spot-checks (hand-rolled)
 ```
 
 ## Where the art now stands
