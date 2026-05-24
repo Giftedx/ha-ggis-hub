@@ -36,6 +36,8 @@ yarn-error.log*
 
 # Per-session worktrees created by Claude Code's EnterWorktree tool
 .claude/worktrees/
+# Review scratchpad created by game-review slash command
+.claude/review-notes.md
 
 # Serena MCP plugin local state (project cache, memories, machine config).
 .serena/

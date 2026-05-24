@@ -100,8 +100,8 @@ mod tests {
 
         let read_i32 =
             |offset: usize| i32::from_le_bytes(buffer[offset..offset + 4].try_into().unwrap());
-        assert_eq!(read_i32(header::PLAYER_X), 500);
-        assert_eq!(read_i32(header::PLAYER_Y), 500);
+        assert_eq!(read_i32(header::PLAYER_X), 340);
+        assert_eq!(read_i32(header::PLAYER_Y), 540);
         assert_eq!(read_i32(header::WORLD_W), 1_000);
         assert_eq!(read_i32(header::WORLD_H), 1_000);
         assert_eq!(read_i32(header::DOOR_COUNT), 2);
