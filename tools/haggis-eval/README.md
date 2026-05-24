@@ -19,7 +19,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 |-----------------------|-----------------------------------------------------------------------------|
 | `rust`                | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`   |
 | `ts`                  | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`                    |
-| `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines≥80%, stmts≥80%, fns≥85%, branches≥60%). Excludes `src/main.ts` and generated wasm bindings. |
+| `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines≥90%, stmts≥90%, fns≥90%, branches≥78%). Excludes `src/main.ts` and generated wasm bindings. |
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
 | `browser`             | `node scripts/run-browser-smokes.mjs` — build → vite preview → door-launch (keyboard) + door-tap (touch) + pointer-drive (touch-drag) → teardown |
 | `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs |

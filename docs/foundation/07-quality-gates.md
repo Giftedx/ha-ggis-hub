@@ -33,7 +33,7 @@ cargo test --workspace --exclude hub-wasm
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build
-pnpm run coverage                                     # v8 coverage (lines≥80%, stmts≥80%, fns≥85%, branches≥60%)
+pnpm run coverage                                     # v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥78%)
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)

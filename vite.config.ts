@@ -22,10 +22,10 @@ export default defineConfig({
         'src/wasm/generated-loader.ts',
       ],
       thresholds: {
-        lines: 80,
-        statements: 80,
-        functions: 85,
-        branches: 60,
+        lines: 90,
+        statements: 90,
+        functions: 90,
+        branches: 78,
       },
       reporter: ['text', 'json'],
     }
