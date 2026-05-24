@@ -79,7 +79,6 @@ pnpm exec vitest run --coverage
 pnpm exec playwright test --project=firefox
 pnpm exec playwright test --project=webkit
 pnpm exec playwright test --grep @soak
-pnpm exec size-limit                        # second per-asset budget runner
 
 # Supply-chain scanners
 osv-scanner --recursive .
@@ -162,9 +161,9 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 - Initial CSS gzip: <= 40 KB.
 - Initial WASM gzip: <= 300 KB lean / <= 500 KB substantial.
 - Total initial critical-path gzip: <= 750 KB.
-- Lighthouse performance: >= 90.
-- Lighthouse accessibility: >= 95.
-- Lighthouse best practices: >= 95.
+- Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate (`scripts/run-paint-gate.mjs`) reading the W3C Paint Timing API + a `hub:firstFrame` user-mark. Budgets in `perf-budgets.json paint.max_ms` calibrated against Linux CI medians. A full Lighthouse audit for accessibility + best-practices scores is still planned.
+- Lighthouse accessibility: >= 95 (still planned, separate from paint timing).
+- Lighthouse best practices: >= 95 (still planned, separate from paint timing).
 - LCP: <= 2.5s.
 - CLS: <= 0.05.
 - INP: <= 200ms.

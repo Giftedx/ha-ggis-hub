@@ -2,6 +2,25 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 doc-drift sweep (lower-traffic docs)
+
+Today's three earlier commits aligned the high-traffic docs (CHANGELOG, plan, READMEs, foundation/07-quality-gates, haggis-eval README, kernel-design spec) with the wiring changes. This sweep audits the lower-traffic docs against the same set of claims (gate count, stub status, `size-limit`/Lighthouse mentions, lab-perf-planned mentions) and fixes the stale ones. No code touched; no gates affected.
+
+### Changed
+
+- **`docs/architecture/evaluation-strategy.md`** — status header now reads "lab perf shipped 2026-05-24 via hand-rolled paint gate" instead of "lab perf still planned"; implementation-status paragraph: gate count 14 → 15, "Lighthouse paint-timing eval remains on the planned list" → "lab-perf is hand-rolled, no Lighthouse dep, the W3C primitives directly via chromium-headless"; perf-budgets description now mentions the W3C Paint Timing API metrics + `hub:firstFrame` user-mark.
+- **`docs/architecture/testing-strategy.md`** — status header now reads "lab-perf shipped 2026-05-24 hand-rolled via W3C Paint Timing API; soak still planned" instead of "soak + lab-perf still planned"; implementation-status paragraph names the new paint-timing smoke; pyramid bullet "visual ✓ + perf-budgets ✓" → "visual ✓ + bundle-budgets ✓ + paint-timing ✓".
+- **`docs/foundation/12-craft-commitments.md`** — Section B Go role description rewritten: "performance-budget checks (`size-limit`, Lighthouse)" → "hand-rolled perf gate (per-asset bundle budgets via `scripts/perf-budgets.mjs` + W3C Paint Timing API medians via `scripts/run-paint-gate.mjs` — no `size-limit` or Lighthouse npm deps)".
+- **`docs/foundation/07-quality-gates.md`** — first-public-release-requirements perf bullet: "Lighthouse performance: >= 90" → "Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate"; accessibility and best-practices bullets now annotated "(still planned, separate from paint timing)"; still-planned-strictness list: dropped `pnpm exec size-limit` (we don't need a second per-asset budget runner — bundle-budgets.mjs already covers this).
+- **`docs/superpowers/specs/2026-05-23-hub-determinism-kernel-design.md`** — perf rows in §2.7 subcommand table and §3 gate-matrix table: original "`size-limit` budgets, Lighthouse against local preview" annotated to record the as-shipped hand-rolled implementation and explicit drop rationale (deps the project doesn't need; W3C primitives suffice). Parallel to the slices.toml → slices.json note added in the prior commit.
+- **`docs/superpowers/plans/2026-05-23-kernel-haggis-eval-plan.md`** — added "Historical plan, preserved as provenance" header at the top. The plan landed in full by 2026-05-24; the stub descriptions inside describe state-at-plan-time, not current state. Header points to `tools/haggis-eval/README.md` (canonical current state) + Slice 9 in the implementation sequence (concise summary). Parallels the same provenance pattern on `docs/plans/2026-05-22-ha-ggis-hub-foundation.md`.
+
+### Not changed (intentional)
+
+- `CHANGELOG.md` past entries — historical record; "14 gates green" / "Lighthouse outstanding" claims in older entries are correct *at the time they were written*. Don't rewrite history.
+- `docs/plans/2026-05-22-ha-ggis-hub-foundation.md` — already marked archived; Lighthouse perf targets inside it are part of the historical foundation plan.
+- `docs/archive/*` — archived content stays as captured.
+
 ## [Unreleased] — 2026-05-24 paint-budget calibration from Linux CI evidence
 
 Calibrated the paint-timing budgets in `perf-budgets.json` from "guesses with 30x headroom" to "3-5x observed Linux CI median". A gate only catches regressions when budgets sit close enough to reality to fail when something gets meaningfully slower. Before: a 5x regression in FCP (44ms → 220ms) would have stayed green under the 1200ms budget. After: it fails the 200ms budget loudly.

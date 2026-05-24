@@ -144,7 +144,7 @@ Single Go binary, single source tree. Subcommands:
 | `haggis-eval determinism` | Replay every captured log natively, diff hashes |
 | `haggis-eval differential rng` | Rust vs WAT xoshiro128**, fixed seed, 1M draws |
 | `haggis-eval differential hash` | Rust vs C FNV-1a, published vectors + fuzz |
-| `haggis-eval perf` | `size-limit` budgets, Lighthouse against local preview |
+| `haggis-eval perf` | Per-asset bundle budgets + W3C Paint Timing API via chromium-headless against local preview (hand-rolled; `size-limit` and Lighthouse in original spec dropped — both are deps the project doesn't need, the W3C primitives suffice) |
 | `haggis-eval security` | Live preview response headers diffed against `public/_headers` |
 | `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.json` (TOML in original spec; pivoted to JSON because haggis-eval is stdlib-only Go) |
 | `haggis-eval all` | Every gate above; exit non-zero on any failure |
@@ -192,7 +192,7 @@ Drift modes this catches that the current test suite cannot:
 | Boundary | Vitest against a real WASM init — no mocks | `pnpm vitest` |
 | Browser smoke | Playwright load + input + capture log | `haggis-eval browser` |
 | Replay determinism | Browser-captured log replayed native, hash equal | `haggis-eval determinism` |
-| Perf budget | `size-limit` + Lighthouse | `haggis-eval perf` |
+| Perf budget | Hand-rolled per-asset bundle byte caps + W3C Paint Timing API medians via chromium-headless (no `size-limit` or Lighthouse dep) | `haggis-eval perf` |
 | Security headers | Live preview headers vs `public/_headers` | `haggis-eval security` |
 
 **No layer mocks another layer in the gating tests.** Mocks are permitted only in `hub-core` unit tests where the boundary itself is the system-under-test.

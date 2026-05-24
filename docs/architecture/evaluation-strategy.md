@@ -1,12 +1,12 @@
 # Evaluation Strategy
 
-Status: current architecture (core sim + browser UX evals shipped; lab perf still planned)
+Status: current architecture (core sim + browser UX evals shipped; lab perf shipped 2026-05-24 via hand-rolled paint gate; soak/memory still planned)
 Scope: evals that let humans and agents judge whether the project is improving
 Related: [Testing strategy](testing-strategy.md), [Autopilot rules](../foundation/11-quality-manifesto.md#autopilot-rules), [Quality manifesto](../foundation/11-quality-manifesto.md)
 
 ## Implementation status
 
-The "should eventually cover" lists below are largely realised. As of 2026-05-24, `tools/haggis-eval` orchestrates a 14-gate signed-report matrix that covers correctness (cargo + vitest), browser UX (3 chromium smokes), determinism (state-hash equality across same-seed replays), visual drift (perceptual aHash with per-scene tolerance), perf budgets (per-asset byte caps), and the hard-language differential showcase (C-vs-Rust hash + WAT-vs-Rust RNG fuzz). Each `haggis-eval all` run writes a signed JSON report to `target/haggis-eval/all-<utc>.json`; the signature is the FNV-1a 64 of the report payload, so post-hoc edits are detectable. The Lighthouse paint-timing eval and the soak/memory-growth eval remain on the planned list.
+The "should eventually cover" lists below are largely realised. As of 2026-05-24, `tools/haggis-eval` orchestrates a 15-gate signed-report matrix that covers correctness (cargo + vitest), browser UX (3 chromium smokes), determinism (state-hash equality across same-seed replays), visual drift (perceptual aHash with per-scene tolerance), perf budgets (per-asset byte caps + W3C Paint Timing API medians for FCP/LCP/DCL/load + a `hub:firstFrame` user-mark for the canvas-aware paint moment), and the hard-language differential showcase (C-vs-Rust hash + WAT-vs-Rust RNG fuzz). Each `haggis-eval all` run writes a signed JSON report to `target/haggis-eval/all-<utc>.json`; the signature is the FNV-1a 64 of the report payload, so post-hoc edits are detectable. The lab-perf eval is hand-rolled — no Lighthouse npm dep, the W3C primitives directly via chromium-headless. The soak/memory-growth eval remains on the planned list.
 
 ## Purpose
 
