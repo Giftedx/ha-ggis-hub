@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: branch coverage 85.27% → 88.03%; cover door-side, rug, destroyed handlers
+
+12 new tests across 4 files (1 new, 3 extended) — covers branches that were reachable but untested. 240 → 248 vitest.
+
+### Added
+
+- **`src/render/whs-bothy.test.ts`** (new) — 3 tests for `drawWhsBothyEnvelope` (exported convenience wrapper, never previously tested) and `drawWhsRug` with both `compact=false` (normal stripe sizes) and `compact=true` (reduced stripe sizes) — both ternary branches covered.
+
+### Changed
+
+- **`src/render/canvas-room.test.ts`** — `RecordingCanvasContext` now has `imageSmoothingEnabled=true` so every render exercises the `smoothable.imageSmoothingEnabled=false` path (canvas-room.ts line 171). Three new cases: `interactionDoorIndex=99` exercises the `door===undefined` early-return guard in `drawPrompt` (line 873); door centred near top (y=10–80) exercises `doorSide` 'top' return (line 966); door centred near bottom (y=920–990) exercises 'bottom' return (line 967); unregistered single-word ID `'lighthouse'` exercises `prettifyKebab` (lines 983–988) and `doorShortLabel`'s `return title` path (line 980).
+- **`src/engine/input.test.ts`** — new case: saves keydown/keyup listener refs before `destroy()`, invokes them directly after — exercises `if (destroyed) return` guards in both handlers (lines 68 and 79).
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 240 → 248.
+
+### Gates green
+
+```
+pnpm verify    ~10s    248/248
+pnpm coverage         branches 88.03% (574/652) ≥ 78% configured, well above 85% target
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 test: branch coverage 80.21% → 85.27%; fix WRITEUP arch-diagram JS size
 
 17 new tests across 5 test files (2 new, 3 extended) — covers branches that were reachable but untested: hearth bright-frame spark/steam, haggis ?? defaults and facing-left, compact viewport paths (whs-bothy), locked door/interaction in snapshot-codec, and edge-cases in input + lifecycle. Branch coverage crossed the 85% target. Also corrects a doc-drift in WRITEUP's architecture diagram (JS size was 44 KB, now correctly 49 KB). 223 → 240 vitest.
