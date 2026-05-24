@@ -1,6 +1,6 @@
 # Autopilot System
 
-Status: planned architecture
+Status: active — project is at Level 3 (eval-guided iteration)
 Scope: how AI agents should safely plan, implement, review, and improve the project over time
 Related: [Autopilot rules](../foundation/11-quality-manifesto.md#autopilot-rules), [Evaluation strategy](evaluation-strategy.md), [Quality manifesto](../foundation/11-quality-manifesto.md)
 
@@ -63,7 +63,7 @@ inspect docs/status
 
 ### Level 0: Docs only
 
-Current phase. Agents may strengthen docs and plans.
+Agents may strengthen docs and plans.
 
 ### Level 1: Skeleton
 

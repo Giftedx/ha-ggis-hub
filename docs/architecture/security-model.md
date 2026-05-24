@@ -1,6 +1,6 @@
 # Security Model
 
-Status: planned architecture
+Status: implemented — headers shipped and verified by deploy-config.test.ts
 Scope: static-app security posture, browser boundary risk, supply chain, deployment
 Related: [Dependency policy](../foundation/12-craft-commitments.md#dependency-policy), [Cloudflare Pages](../deployment/cloudflare-pages.md)
 

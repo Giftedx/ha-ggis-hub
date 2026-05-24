@@ -1,6 +1,6 @@
 # Data and Save Boundaries
 
-Status: planned architecture
+Status: registry shipped; hub persistence deferred (no save system exists yet)
 Scope: game registry, hub persistence, and Wild Haggis Survivors separation
 Related: [Runtime boundaries](runtime-boundaries.md), [Project charter — Product vision](../foundation/00-project-charter.md#product-vision)
 
@@ -8,18 +8,21 @@ Related: [Runtime boundaries](runtime-boundaries.md), [Project charter — Produ
 
 Doors and games are data. Scene code should not hard-code every launchable game.
 
-Planned registry fields:
+Shipped registry types (`src/games/registry.ts`):
 
 ```ts
-export type HubGameStatus = 'playable' | 'coming-soon' | 'external' | 'disabled';
+export type HubGameStatus = 'playable' | 'coming-soon' | 'disabled';
+
+export type HubGameLaunchTarget =
+  | { readonly kind: 'route'; readonly target: string }
+  | { readonly kind: 'external-url'; readonly target: string }
+  | { readonly kind: 'none' };
 
 export interface HubGameDefinition {
-  id: string;
-  title: string;
-  subtitle: string;
-  route: string | null;
-  status: HubGameStatus;
-  launchKind: 'internal-route' | 'external-url' | 'mounted-static-app' | 'none';
+  readonly id: string;
+  readonly title: string;
+  readonly status: HubGameStatus;
+  readonly launch: HubGameLaunchTarget;
 }
 ```
 
