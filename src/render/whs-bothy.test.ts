@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   drawWhsBothyEnvelope,
+  drawWhsDoor,
   drawWhsRug,
   type WhsBothyContext,
   type BothyEnvelope
@@ -37,6 +38,14 @@ const ENV: BothyEnvelope = {
   floorBottom: 500,
   compact: false
 };
+
+describe('drawWhsDoor', () => {
+  it('renders the available state — exercises WOOD_MID body branch (state !== open, !== locked)', () => {
+    const ctx = new RecordingBothyContext();
+    drawWhsDoor(ctx, { x: 10, y: 10, w: 40, h: 80 }, 'available');
+    expect(ctx.calls.length).toBeGreaterThan(5);
+  });
+});
 
 describe('drawWhsBothyEnvelope', () => {
   it('renders walls and floor without throwing', () => {

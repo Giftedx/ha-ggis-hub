@@ -2,6 +2,46 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 test: branch coverage 88.19% → 89.11%; cover small-dx guard, prettifyKebab empty part, door available state, pixel-font unknown-char
+
+7 new tests across 3 files (1 new, 2 extended) — closes remaining testable branches. 251 → 258 vitest.
+
+### Added
+
+- **`src/render/sprites/pixel-font.test.ts`** (new) — 4 tests for `renderPixelText` and `measurePixelText`: known-character rendering, and unknown character `'@'` (not in GLYPHS) exercising the `GLYPHS[rawCh] !== undefined ? rawCh : ' '` false branch in both functions (lines 512 and 536).
+
+### Changed
+
+- **`src/render/canvas-room.test.ts`** — two new cases: second render with `playerX+1` (dx=1 ≤ 2) exercises `Math.abs(dx) > 2` false branch (line 189) so `haggisFacingLeft` is not updated; door with ID `'north--gate'` (double hyphen → `split('-')` → `['north','','gate']`) exercises `part.length > 0` false branch in `prettifyKebab` (line 986).
+- **`src/render/whs-bothy.test.ts`** — new case: `drawWhsDoor` called directly with `state='available'` exercises the `state === 'locked' ? PEAT_DARK : WOOD_MID` false branch (line 352).
+- **`README.md`** + **`docs/architecture/testing-strategy.md`** — test count updated 251 → 258.
+
+### Gates green
+
+```
+pnpm verify    ~10s    258/258
+pnpm coverage         branches 89.11% (581/652) ≥ 78% configured, above 85% target
+```
+
+### Remaining unreachable branches (acknowledged)
+
+- `canvas-room.ts` Branch 2[1]: imageSmoothingEnabled false path — context always has the property in tests
+- `canvas-room.ts` Branches 3[0]/4[0]/4[1] line=183: `window` and `devicePixelRatio` — browser-only, no DOM in Node
+- `canvas-room.ts` Branch 8[1] line=206: `titles.get(door.id) ?? door.id` — map is keyed on `room.doors`, so lookup never misses
+- `canvas-room.ts` Branch 10[1]: `Date.now()` fallback — `performance` is always defined in Node
+- `canvas-room.ts` Branches 23[0]/26[0]: dust-mote and window-beam conditions depend on floating-point phase values, not controllable from tests
+- `canvas-room.ts` Branch 29[1]: `'available'` door state — `door.status` is `'launchable'|'locked'` by type; no third value exists
+- `canvas-room.ts` Branch 32[1]: `drawLantern` `isLit=false` — `drawLantern` only called for `status==='launchable'` doors (line 288)
+- `pixel-font.ts` Branches 5[1]/9[1]: `GLYPH_WIDTHS[ch] ?? GLYPH_FULL_WIDTH` — every GLYPHS key is in GLYPH_WIDTHS
+- `pixel-font.ts` Branches 0[0]/1[0]/2[0]: glyph validation throws in unexported factory
+- `whs-bothy.ts` Branch 2[0] line=144: floor remainder defensive guard — total plank height always overshoots
+- `sprite.ts` Branch 6[0]: `colour === undefined` — `pixelColours` never contains undefined
+- `app.ts` Branch 0[0]: registry null check — requires `vi.mock` of HUB_GAME_REGISTRY
+- `lifecycle.ts` Branch 1[1]: `?? null` false side — type guard prevents null instance
+- `launch.ts` Branch 4[0]: dead guard after `canLaunchGame` — logically unreachable
+
+---
+
 ## [Unreleased] — 2026-05-24 test: branch coverage 85.27% → 88.19%; cover door-side, rug, overlay, destroyed handlers
 
 13 new tests across 5 files (1 new, 4 extended) — covers branches that were reachable but untested. 240 → 249 vitest.

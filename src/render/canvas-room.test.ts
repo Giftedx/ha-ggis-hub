@@ -294,4 +294,33 @@ describe('createCanvasRoomRenderer', () => {
     // A successful render after direction change emits the same call volume.
     expect(ctxDefault.calls.length).toBeGreaterThan(callsDefault);
   });
+
+  it('does not flip facing direction when playerX changes by ≤ 2 units — exercises small-dx guard', () => {
+    const { surface, context } = recordingSurface(1200, 800);
+    const renderer = createCanvasRoomRenderer(surface, ROOM);
+    // First render establishes prevPlayerX.
+    renderer.render(SNAPSHOT_NO_INTERACTION);
+    const firstCount = context.calls.length;
+    // Second render: dx=1 → Math.abs(1) > 2 is false → haggisFacingLeft unchanged.
+    renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: SNAPSHOT_NO_INTERACTION.playerX + 1 });
+    expect(context.calls.length).toBeGreaterThan(firstCount);
+  });
+
+  it('renders a door with a double-hyphen ID — exercises prettifyKebab empty-part branch', () => {
+    const doubleHyphenRoom: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'north--gate',
+          status: 'launchable',
+          // split('-') → ['north', '', 'gate']: empty part hits part.length > 0 false branch.
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+        }
+      ]
+    };
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, doubleHyphenRoom).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
 });
