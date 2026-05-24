@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 ha.ggis wordmark + doc accuracy sweep
+
+### Added
+
+- **`src/main.ts`**, **`src/style.css`** — `h1.scene-brand` element showing `ha · ggis` fixed at the bottom-left of the scene. Makes the domain wordplay visible in the rendered product (not just the browser tab). Closes the "domain joke is visible" first-public-release requirement. Cairn-stone on ink-deep contrast pair was already declared in the a11y gate; no gate changes needed.
+- **`scripts/smoke-a11y.mjs`** — Updated cairn-stone contrast pair label to reflect that it covers both `scene-brand` and `scene-direct`; updated surface description comment.
+
+### Changed
+
+- **`docs/architecture/README.md`** — Table updated from all "planned" to reflect actual status of each doc (implemented / partial / registry shipped / mostly shipped / active / planned). Removed "None of this is implemented yet" claim.
+- **`docs/README.md`** — ADR-0003 row corrected to "accepted (Option A: external URL for first release)".
+- **`README.md`** — "the planned playable front door" → "the playable front door"; architecture section updated.
+
+---
+
 ## [Unreleased] — 2026-05-24 doc accuracy sweep (architecture index + root README + docs index)
 
 ### Changed
