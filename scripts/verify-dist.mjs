@@ -24,6 +24,8 @@ if (errors.length === 0) {
   must(existsSync(join(dist, '_headers')), 'dist/_headers missing (public/_headers not copied)');
   must(existsSync(join(dist, '_redirects')), 'dist/_redirects missing (public/_redirects not copied)');
   must(existsSync(join(dist, 'index.html')), 'dist/index.html missing');
+  must(existsSync(join(dist, 'favicon.svg')), 'dist/favicon.svg missing — icon broken in production');
+  must(existsSync(join(dist, 'manifest.webmanifest')), 'dist/manifest.webmanifest missing');
   must(existsSync(join(dist, 'assets')), 'dist/assets/ missing');
 
   const maps = walk(dist).filter((p) => p.endsWith('.map'));

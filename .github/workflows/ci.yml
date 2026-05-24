@@ -32,10 +32,16 @@ jobs:
       - run: pnpm verify
 
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
-  # subcommand which composes: cargo fmt+clippy+test, pnpm tsc+vitest+
-  # build, security (deploy-config.test), browser (build+preview+
-  # door-launch+door-tap), differential hash (100k case fuzz), and
-  # differential rng (WAT vs Rust). Emits signed JSON report to
+  # subcommand which composes all 10 gate groups sequentially:
+  # rust (cargo fmt+clippy+test), ts (tsc+vitest+build), security
+  # (deploy-config.test — headers+CSP+cache), perf (bundle budgets +
+  # W3C paint-timing FCP/LCP/DCL via Playwright), browser
+  # (door-launch + door-tap + pointer-drive smokes), determinism
+  # (same-seed state-hash equality across two runs), visual (aHash
+  # diff vs tests/golden/ with Hamming tolerance), a11y (13 WCAG 2.2
+  # AA spot-checks, hand-rolled, no axe-core dep), differential hash
+  # (C vs Rust FNV-1a, 100k+ cases), differential rng (WAT vs Rust
+  # xoshiro128**, 100k+ cases). Emits signed JSON report to
   # target/haggis-eval/all-*.json.
   haggis-eval-all:
     name: haggis-eval all (release gate)
