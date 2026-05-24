@@ -1,10 +1,13 @@
 {
+  "_comment": "Per-scene golden hashes + Hamming-distance tolerances for the visual gate. toleranceBits is calibrated from observed CI evidence — see scene metadata for sourcing. The original bootstrap tolerance was 18/256 (~7%, generous default). 2026-05-24 tightening pulled 4 consecutive Linux CI runs (26350318616, 26350764592, 26351054004, 26351253798) and found the Linux-vs-Windows-golden drift is a STABLE 3 bits every run (not jitter — a fixed OS-rendering-pipeline difference, same current hash all four runs). New tolerance sits at ~2.7x observed cross-platform drift, catches any real layout/palette shift (those drift 20-50+ bits), absorbs the small platform delta the Windows-captured golden has against Linux runners.",
   "schema": 1,
   "scenes": {
     "bothy-idle-seed-42": {
       "hash": "7c3efc3ffc3f7c3e8039e039e03060318033c003e00760066006e00760060000",
-      "toleranceBits": 18,
-      "capturedAt": "2026-05-24T02:38:34.917Z"
+      "toleranceBits": 8,
+      "capturedAt": "2026-05-24T02:38:34.917Z",
+      "toleranceCalibratedAt": "2026-05-24T03:55:00Z",
+      "toleranceSource": "4 Linux CI runs (26350318616, 26350764592, 26351054004, 26351253798) all reported distance=3 against the Windows-captured golden. New tolerance ~2.7x that stable drift. Re-tighten if Linux drift drops or stays at 3 across N>=10 runs; loosen ONLY with evidence of a legitimate true-positive that exceeded the budget."
     }
   }
 }

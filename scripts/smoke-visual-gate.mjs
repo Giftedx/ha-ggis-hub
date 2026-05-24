@@ -50,9 +50,12 @@ const SCENES = [
     // Wait for boundary boot + a couple of render frames to settle.
     settleMs: 1200,
     // Hamming-distance tolerance against the golden hash, out of 256
-    // bits. ~7% absorbs the small frame-to-frame variance from the
-    // hearth flicker + smoke particles + dust motes.
-    toleranceBits: 18
+    // bits. Used as the default at capture time; verify mode reads the
+    // per-scene tolerance from visual-budgets.json. Bootstrap default
+    // sits at 8 — see visual-budgets.json _comment for the 2026-05-24
+    // calibration that sourced this from 4 consecutive Linux CI runs
+    // (stable 3-bit drift against the Windows-captured golden).
+    toleranceBits: 8
   }
 ];
 

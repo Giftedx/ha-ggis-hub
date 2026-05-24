@@ -2,6 +2,34 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 visual-gate tolerance calibration from CI evidence
+
+Same pattern as the earlier paint-budget calibration today: pull real CI evidence, tighten the gate's headroom from "bootstrap generous" to "evidence-based". The visual gate's Hamming-distance tolerance dropped from 18/256 (~7%) to 8/256 (~3%) without any change to the golden or the renderer.
+
+### Investigation
+
+Pulled the visual/verify gate result from 4 consecutive Linux CI runs (26350318616, 26350764592, 26351054004, 26351253798) and found the Linux-rendered hash differs from the Windows-captured golden by **exactly 3 bits, every run, same delta**. Not jitter — a stable cross-platform rendering difference (font hinting + AA sub-pixel rounding on the procedural Canvas2D primitives). Same `current` hash all four runs: `3c3cfc3ffc3f7c3e8039e039e03060318033c003e00760066006e00740060000`.
+
+Calibration headroom rule applied: new tolerance ~2.7x observed cross-platform drift. Catches any real layout/palette shift (those produce 20-50+ bit drifts) while still absorbing potential future small platform deltas (e.g. a macOS runner) within budget.
+
+### Changed
+
+- **`tests/golden/visual-budgets.json`** — `bothy-idle-seed-42.toleranceBits` 18 → 8. Provenance recorded in new `toleranceCalibratedAt` + `toleranceSource` fields naming the four CI runs used. A new top-level `_comment` describes the calibration formula and the "re-tighten when CI evidence permits / loosen only with true-positive evidence" maintenance rule.
+- **`scripts/smoke-visual-gate.mjs`** — default `SCENES[0].toleranceBits` 18 → 8 so a fresh `capture` from a cold clone records the calibrated bootstrap default, not the original generous one. Comment points at `visual-budgets.json` for the calibration provenance.
+
+### Net effect
+
+A real layout shift in the bothy (a misplaced sprite, a palette change, a door bounds change) now fails the gate at a lower threshold than before. Yesterday a 6-bit drift slipped through silently because 6 < 18; today the same drift fails 6 > 8. The 3-bit cross-platform delta from running on Linux CI still passes (3 < 8) with 5 bits of cushion.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0x54976300c8eadc4
+  visual/verify (tightened)              PASS  hamming 0/8 on local Windows, 3/8 on Linux CI
+  all other 14 gates                     PASS  (unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 doc-drift sweep (lower-traffic docs)
 
 Today's three earlier commits aligned the high-traffic docs (CHANGELOG, plan, READMEs, foundation/07-quality-gates, haggis-eval README, kernel-design spec) with the wiring changes. This sweep audits the lower-traffic docs against the same set of claims (gate count, stub status, `size-limit`/Lighthouse mentions, lab-perf-planned mentions) and fixes the stale ones. No code touched; no gates affected.
