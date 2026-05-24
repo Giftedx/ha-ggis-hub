@@ -2,6 +2,18 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 reduced-motion dampen mode
+
+Closes the DESIGN.md §A11y "planned" item. Previously `prefers-reduced-motion` locked out keyboard users entirely (render loop stopped). Now the renderer accepts `{ reducedMotion }` and suppresses decorative motion only — particles, hearth flicker, dawn beam pulse, mane sway, tail wag — while keeping the RAF loop, keyboard + pointer input, door proximity, and launch all working.
+
+### Changed
+
+- **`src/render/canvas-room.ts`** — `createCanvasRoomRenderer` now accepts `options?: { reducedMotion?: boolean }`. Threads through to `renderRoom`, `drawFloor`, `drawTopWallWindow`, `drawHaggis`. Hearth flicker and frame index locked at rest values in reduced-motion mode. Particles skipped entirely.
+- **`src/main.ts`** — `reducedMotion` detected once at `start()` entry; passed to renderer; removed the early `return` that was blocking keyboard users from playing.
+- **`DESIGN.md`** — `reduced-motion.current` updated to reflect shipped dampen behaviour.
+
+---
+
 ## [Unreleased] — 2026-05-24 ha.ggis wordmark + doc accuracy sweep
 
 ### Added
