@@ -16,11 +16,8 @@ import (
 //
 // Capture is a deliberate human act — it overwrites the recorded
 // golden hash and PNG with the current scene state. Use only after
-// reviewing the captured PNG by eye. Verify is the CI mode.
-//
-// NOT yet included in All() — Visual needs an initial captured
-// golden before it can verify anything. Wire into All() after
-// running `haggis-eval visual capture` once.
+// reviewing the captured PNG by eye. Verify is the CI mode and is
+// what All() runs.
 func Visual(mode string) []gate.Result {
 	if mode == "" {
 		mode = "verify"
