@@ -126,7 +126,7 @@ When you add, remove, or change an entry above, update each of these that applie
 
 - [Dependency policy](#dependency-policy) — if a refused dependency moves classes, or if a new toolchain (e.g. `clang`, Go) needs to be sanctioned.
 - [Implementation sequence](../plans/2026-05-22-implementation-sequence.md) — if the change shifts what lands in which slice.
-- [Architecture overview](../architecture/overview.md) — if the new primitive needs a place in the planned top-level layout.
+- [Architecture overview](../architecture/overview.md) — if the new primitive needs a place in the top-level layout.
 - [ADR-0004](../decisions/0004-language-and-craft-philosophy.md) — if a new hard-language commitment is added, or if a hard-language entry is removed.
 - The [Quality manifesto](11-quality-manifesto.md) — only if the underlying value has changed (rare).
 - The [Glossary](../glossary.md) — if a new term is introduced.
