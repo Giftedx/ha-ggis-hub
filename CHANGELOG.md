@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat: supply-chain gate — cargo deny (18th gate)
+
+Wires `cargo deny check` as an 18th haggis-eval gate (`supply-chain`). Enforces the license allowlist from `docs/foundation/12-craft-commitments.md` (MIT, Apache-2.0, BSD-2/3, ISC, Zlib, Unicode-3.0), checks against the RustSec advisory database, flags duplicate crate versions, and restricts crate sources to crates.io and path crates.
+
+Current dependency tree is clean: MIT + Apache-2.0 (dual-licensed) across all deps, plus Unicode-3.0 for `unicode-ident`.
+
+### Added
+
+- **`deny.toml`** — `cargo deny` config at repo root. `[licenses]` allows the project policy set; `[advisories]` checks RustSec DB; `[bans]` warns on duplicate versions; `[sources]` denies unknown registries and git deps.
+- **`tools/haggis-eval/internal/cmd/supply_chain.go`** — `SupplyChain()` gate runner: `cargo deny check`.
+
+### Changed
+
+- **`tools/haggis-eval/internal/cmd/all.go`** — `SupplyChain()` added between `Soak()` and `Differential("hash")`.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `"supply-chain"` key wired to `SupplyChain`.
+- **`tools/haggis-eval/main.go`** — `case "supply-chain"` switch arm + usage line.
+- **`tools/haggis-eval/slices.json`** — `"supply-chain"` added to `release` slice.
+- **`docs/foundation/07-quality-gates.md`** — 17 → 18 gates; `cargo deny check` added to release gate listing; removed from "still-planned" section.
+- **`CONTRIBUTING.md`** — 17-gate → 18-gate.
+- **`README.md`** — gate listing and haggis-eval subcommand list updated.
+
+---
+
 ## [Unreleased] — 2026-05-24 feat: dev-mode diagnostics overlay (?debug URL param)
 
 Closes `docs/architecture/observability-debugging.md` "planned" status — the only remaining planned architecture doc. Append `?debug` to any hub URL to show a `<pre class="debug-overlay">` panel (top-right, pointer-events off) with real-time FPS, frame time, tick count, player world coordinates, active door interaction, and WASM init time.

@@ -19,6 +19,7 @@ func All() []gate.Result {
 	out = append(out, Visual("verify")...)
 	out = append(out, A11y()...)
 	out = append(out, Soak()...)
+	out = append(out, SupplyChain()...)
 	out = append(out, Differential("hash")...)
 	out = append(out, Differential("rng")...)
 	return out

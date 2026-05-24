@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.m
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 17 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 18 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -44,6 +44,9 @@ node scripts/run-visual-gate.mjs verify # perceptual aHash
 node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
 node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
 
+# Supply-chain
+cargo deny check                        # license compliance + RustSec advisories + source policy
+
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
 cargo test -p hub-hardlang --test differential_rng -- --include-ignored
@@ -65,8 +68,7 @@ The release-gate matrix above covers correctness, perf budgets, determinism, sec
 
 ```bash
 # Rust deepening
-cargo audit                  # crate advisories
-cargo deny check             # license + version policy
+cargo audit                  # crate advisories (deny.toml covers advisories; audit adds deeper history)
 cargo machete                # unused-dep detection
 cargo llvm-cov ... --fail-under-lines 85   # coverage threshold
 cargo +nightly fuzz run <target> -- -max_total_time=1800
