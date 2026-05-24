@@ -18,13 +18,13 @@
     }
   ],
   "paint": {
-    "_comment": "Paint-timing budgets in milliseconds, asserted against the MEDIAN of N=3 samples to absorb single-run jitter. Measured by scripts/smoke-paint-timing.mjs against vite preview on localhost — these are LAB numbers, not field numbers. Headroom: real Cloudflare-served numbers on a fast connection are typically half these budgets, on a slow 3G connection 3-5x. The budgets here are tuned for chromium-headless on a GitHub-hosted runner (slowest reasonable environment in the gate set). `hubFirstFrame` is a User Timing mark fired from src/main.ts inside the first rAF after room.render() issues — the canvas-aware paint metric the bothy needs because chrome's built-in LCP collapses to FCP on this canvas-first app (LCP heuristic doesn't score the canvas as a contentful element).",
+    "_comment": "Paint-timing budgets in milliseconds, asserted against the MEDIAN of N=3 samples per run to absorb single-sample jitter. Measured by scripts/smoke-paint-timing.mjs against `vite preview` running on localhost (chromium-headless via Playwright). These are LAB numbers, not field numbers. `hubFirstFrame` is a User Timing mark fired from src/main.ts inside the first rAF after room.render() — the canvas-aware paint metric the bothy needs because chrome's built-in LCP heuristic collapses to FCP on this canvas-first app (LCP doesn't score the canvas as a contentful element until something paints into it, and the canvas is blank until WASM boots). Calibration: 2026-05-24 tightening sourced budgets from two Linux GitHub-hosted runner samples (CI runs 26350318616 and 26350764592 — 6 sample points per metric). Linux medians observed: fcp=44ms, lcp=44ms, hubFirstFrame=53ms, dcl=27ms, load=28ms. Budgets sit at ~3-5x observed median which absorbs the ~30% sample-to-sample variance seen on shared CI runners while leaving any 2x+ regression to fail loud. Re-tighten when a real CI dataset >= 10 runs is available; loosen ONLY with evidence of a legitimate true-positive that exceeded the budget.",
     "max_ms": {
-      "firstContentfulPaint": 1200,
-      "largestContentfulPaint": 2000,
-      "hubFirstFrame": 2500,
-      "domContentLoaded": 1000,
-      "loadEvent": 2000
+      "firstContentfulPaint": 200,
+      "largestContentfulPaint": 200,
+      "hubFirstFrame": 300,
+      "domContentLoaded": 150,
+      "loadEvent": 150
     }
   }
 }

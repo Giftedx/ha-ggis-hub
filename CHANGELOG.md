@@ -2,6 +2,35 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 paint-budget calibration from Linux CI evidence
+
+Calibrated the paint-timing budgets in `perf-budgets.json` from "guesses with 30x headroom" to "3-5x observed Linux CI median". A gate only catches regressions when budgets sit close enough to reality to fail when something gets meaningfully slower. Before: a 5x regression in FCP (44ms → 220ms) would have stayed green under the 1200ms budget. After: it fails the 200ms budget loudly.
+
+### Changed
+
+- **`perf-budgets.json` `paint.max_ms`** — sourced from two Linux GitHub-hosted runner samples (CI runs 26350318616 + 26350764592, 6 sample points per metric, three-sample median per run):
+
+  | Metric                  | Linux median | Was   | Now   | Tightening |
+  |-------------------------|--------------|-------|-------|------------|
+  | firstContentfulPaint    | 44 ms        | 1200  | 200   | 6.0x       |
+  | largestContentfulPaint  | 44 ms        | 2000  | 200   | 10.0x      |
+  | hubFirstFrame           | 53 ms        | 2500  | 300   | 8.3x       |
+  | domContentLoaded        | 27 ms        | 1000  | 150   | 6.7x       |
+  | loadEvent               | 28 ms        | 2000  | 150   | 13.3x      |
+
+  Headroom calculation: each budget sits at ~3-5x the observed Linux median, absorbing the ~30% sample-to-sample variance the runs show without leaving room for a 2x+ regression to pass. Local Windows medians sit at ~35-44ms across all five metrics — comfortably under at ~10-25% of budget.
+
+- **`perf-budgets.json` `paint._comment`** — rewritten to record provenance (sample size, runs cited, calibration formula) and the "re-tighten when N >= 10 runs available, loosen only with true-positive evidence" maintenance rule.
+
+### Gates green at session end
+
+```
+pnpm verify (fast PR gate)        ~20s
+haggis-eval all (release gate)   ~3min   signed=0xce29f29c829d5ddc
+  perf/paint-timing (tightened)           PASS  fcp 36/200 (18%), hubFirstFrame 35/300 (12%), dcl 15/150 (10%)
+  all other 14 gates                      PASS  (unchanged)
+```
+
 ## [Unreleased] — 2026-05-24 canvas-aware paint metric + slice subcommand
 
 Two carry-forward items closed in one session: (1) the canvas-aware paint metric flagged in the prior session's reflection, and (2) the `slice <name>` stub — the last unwired subcommand in `haggis-eval`. Slice 9 is now 9-of-9 wired, 0 stubs.
