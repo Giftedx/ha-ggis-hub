@@ -118,7 +118,13 @@ const PX = {
   signTextShadow: '#2a1408',
   // Interaction prompt
   promptShadow: 'rgba(26, 14, 8, 0.92)',
-  promptText: '#f0e6c8'              // tatties-cream
+  promptText: '#f0e6c8',             // tatties-cream
+  // Wall ornaments
+  brackenGreen: '#5a7a5a',           // art-bracken-green — dried herbs
+  brackenStem: '#3a2418',            // art-peat-mid — dark dried stem
+  cordTwine: '#b8a878',              // art-cairn-stone — hanging cord
+  cordShadow: '#7a5018',             // art-whisky-deep — cord shadow line
+  stemFade: '#7a5230'                // art-oat-dark — alternate/faded stem
 } as const;
 
 // Wall thickness — 3/4 OBLIQUE PROJECTION (committed after reviewer
@@ -336,6 +342,11 @@ function renderRoom(
   const mantelY = WALL_THICK_BACK - mantelH - 6;
   drawWhsMantelpiece(ctx, { x: mantelX, y: mantelY, w: mantelW, h: mantelH });
 
+  // 8.25 Wall ornaments — 2 dried-herb bundles + 1 framed painting.
+  //      DESIGN.md ornament budget: framed-objects-max 3 (spending 1),
+  //      dried-herb-bundles-max 2 (spending 2). Static; no phase dep.
+  drawWallOrnaments(ctx, surface);
+
   // 8. Haggis player
   drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
 
@@ -350,6 +361,146 @@ function renderRoom(
 
   // 10. Prompt (only when at a door)
   drawPrompt(ctx, surface, doors, snapshot);
+}
+
+// ── Wall ornaments ─────────────────────────────────────────────────────────
+
+function drawWallOrnaments(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  // DESIGN.md ornament budget: 2 dried-herb bundles + 1 framed object.
+  // All positions are in logical 540×360 space — fully deterministic.
+
+  // Bundles hang from the ceiling timber beam (tieY=5 = beam bottom edge).
+  // Placed in the left and right open wall regions, well clear of the
+  // window outer frame (x≈235..312) and side posts (x≈24, x≈516).
+  drawHerbBundle(ctx, 80, 5);
+  drawHerbBundle(ctx, 460, 5);
+
+  // Framed painting — left back wall. DESIGN.md voice.open.framed-painting-
+  // caption = "(unfinished)": sky + mountains started, foreground blank.
+  // x=44, y=18 positions it in the left third of the back wall, clear of
+  // the window (outer frame starts at x≈235) and side wall (inner edge x=24).
+  if (surface.width >= 400) {
+    drawFramedPicture(ctx, 44, 18, 36, 28);
+  }
+}
+
+function drawHerbBundle(ctx: CanvasRoomContext, tieX: number, tieY: number): void {
+  // 5 stems fan out from the tie point and droop downward.
+  // Tips carry small ellipse buds (bracken green). Cord wrap at tieY.
+  type Stem = { readonly dx: number; readonly dy: number; readonly rot: number; readonly fade: boolean };
+  const stems: readonly Stem[] = [
+    { dx: -8, dy: 20, rot: -0.4, fade: false },
+    { dx: -4, dy: 23, rot: -0.15, fade: true  },
+    { dx:  0, dy: 24, rot:  0.0,  fade: false },
+    { dx:  4, dy: 23, rot:  0.15, fade: true  },
+    { dx:  8, dy: 20, rot:  0.4,  fade: false },
+  ] as const;
+
+  ctx.save();
+
+  // Stems
+  for (const s of stems) {
+    ctx.save();
+    ctx.strokeStyle = s.fade ? PX.stemFade : PX.brackenStem;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.82;
+    ctx.beginPath();
+    ctx.moveTo(tieX, tieY + 4);
+    ctx.lineTo(tieX + s.dx, tieY + s.dy);
+    ctx.stroke();
+    ctx.restore();
+
+    // Bud (small oval at stem tip, lit on the right — toward the window)
+    ctx.save();
+    ctx.globalAlpha = 0.88;
+    ctx.fillStyle = PX.brackenGreen;
+    ctx.beginPath();
+    ctx.ellipse(tieX + s.dx, tieY + s.dy + 1, 2, 3, s.rot, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Cord wrap — a 3px strip around the tie point, earthy twine colour
+  ctx.save();
+  ctx.fillStyle = PX.cordTwine;
+  ctx.globalAlpha = 0.90;
+  ctx.fillRect(tieX - 4, tieY, 8, 3);
+  ctx.fillStyle = PX.cordShadow;
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(tieX - 3, tieY + 1, 6, 1);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawFramedPicture(
+  ctx: CanvasRoomContext,
+  x: number, y: number, w: number, h: number
+): void {
+  // Amateur Highland landscape, unfinished. Sky + mountains painted;
+  // foreground left as bare cream canvas. Frame is warm wood.
+
+  // Outer shadow (deepest ink — shadow side of frame, correct for left-wall
+  // placement where the window source is to the right)
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(x - 2, y, 2, h + 2);     // left shadow
+  ctx.fillRect(x - 2, y + h, w + 4, 2); // bottom shadow
+
+  // Frame body — warm wood (PX.woodWarm tokens)
+  ctx.fillStyle = PX.woodWarmShade;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = PX.woodWarm;
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+
+  // Frame highlight — top + right edges (lit side, toward window)
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = PX.woodWarmHighlight;
+  ctx.fillRect(x + 1, y + 1, w - 2, 1); // top edge lit
+  ctx.fillRect(x + w - 2, y + 1, 1, h - 2); // right edge lit
+  ctx.restore();
+
+  // Inner canvas — cream ground (tatties-cream from PX.eyeWhite)
+  const bord = 3;
+  const cx = x + bord, cy = y + bord, cw = w - bord * 2, ch = h - bord * 2;
+  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillRect(cx, cy, cw, ch);
+
+  // Sky wash — upper 45% of canvas: heather-purple (painted first)
+  ctx.save();
+  ctx.globalAlpha = 0.52;
+  ctx.fillStyle = PX.haloCool;
+  ctx.fillRect(cx, cy, cw, Math.round(ch * 0.45));
+  // Dawn-pink horizon strip on top of heather (sun starting to break)
+  ctx.globalAlpha = 0.45;
+  ctx.fillStyle = PALETTE.edgePink;
+  ctx.fillRect(cx, cy + Math.round(ch * 0.28), cw, Math.round(ch * 0.22));
+  ctx.restore();
+
+  // Mountain silhouette — two overlapping triangular ridges
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = PX.brackenStem;
+  const mBase = cy + Math.round(ch * 0.62);
+  // Left ridge
+  ctx.beginPath();
+  ctx.moveTo(cx, mBase);
+  ctx.lineTo(cx + Math.round(cw * 0.36), cy + Math.round(ch * 0.36));
+  ctx.lineTo(cx + Math.round(cw * 0.58), mBase);
+  ctx.closePath();
+  ctx.fill();
+  // Right ridge (taller, overlaps left)
+  ctx.beginPath();
+  ctx.moveTo(cx + Math.round(cw * 0.44), mBase);
+  ctx.lineTo(cx + Math.round(cw * 0.72), cy + Math.round(ch * 0.30));
+  ctx.lineTo(cx + cw, mBase);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Lower canvas — bare cream (unfinished: foreground never painted)
+  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillRect(cx, mBase, cw, cy + ch - mBase);
 }
 
 function drawAmbientParticles(

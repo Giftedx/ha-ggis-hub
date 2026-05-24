@@ -221,7 +221,9 @@ ornament:
   # Ornament budget per scene: at most 3 framed objects, 2 dried-herb
   # bundles, 1 mantel inscription, 1 hearth lintel motto. Keep quiet zones.
   framed-objects-max: 3
+  framed-objects-spent: 1       # 1 unfinished Highland painting (left back wall) — shipped 2026-05-24
   dried-herb-bundles-max: 2
+  dried-herb-bundles-spent: 2   # 2 bundles from ceiling beam (x=80, x=460) — shipped 2026-05-24
   inscriptions-max: 2          # mantel + lintel
   quiet-zone-policy: "upper-left and lower-right of the floor stay empty"
 ```
@@ -274,7 +276,7 @@ voice:
     mantel-inscription: "A wee place tae rest before ye ge'awa'."  # deferred — too long for pixel-font on available shelf geometry
     hearth-lintel-motto: "Bide a while."  # shipped 2026-05-24 — rendered in canvas-room.ts drawHearthLintelMotto
     coming-soon-door:   "Comin' wi' the next moon."
-    framed-painting-caption: "(unfinished)"
+    framed-painting-caption: "(unfinished)"  # in-painting content shipped 2026-05-24; caption not rendered (pixel-font space too tight at this scale)
 ```
 
 ## Register policy — when smooth, when pixel-hard

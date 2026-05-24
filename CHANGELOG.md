@@ -2,6 +2,28 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat(render): back-wall ornaments — herb bundles + unfinished painting
+
+Fills the DESIGN.md ornament budget for the bothy scene: 2 dried-herb bundles hanging from the ceiling timber beam (x=80 left, x=460 right) and 1 unfinished Highland painting on the left back wall (DESIGN.md `voice.open.framed-painting-caption = "(unfinished)"`). All three are deterministic — no phase/random dependency, so they land cleanly in the visual gate. Golden rebaked (Hamming 0/256).
+
+### Added
+
+- **`src/render/canvas-room.ts`** — `drawWallOrnaments`, `drawHerbBundle`, `drawFramedPicture` functions; called from `renderRoom` at step 8.25 (after mantelpiece, before haggis). `PX` extended with `brackenGreen`, `brackenStem`, `cordTwine`, `cordShadow`, `stemFade`.
+
+### Changed
+
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — golden rebaked to include ornaments.
+- **`DESIGN.md`** — `ornament.framed-objects-spent` and `ornament.dried-herb-bundles-spent` added; `framed-painting-caption` annotated as shipped.
+
+### Gates green
+
+```
+pnpm verify    ~9s    223/223
+visual gate    Hamming 0/256 ≤ 8   OK
+```
+
+---
+
 ## [Unreleased] — 2026-05-24 feat(render): hearth lintel motto "Bide a while."
 
 Renders `DESIGN.md voice.open.hearth-lintel-motto` as pixel-font inscription on the stone lintel above the fire mouth. Scale 1, centred in the native y=10..20 stone band, `PX.stoneLight` (#b8a878 = art-cairn-stone). Reads as worn carved/painted text on warm hearthstone. Visual gate golden rebaked (Hamming drift = 4 bits at particle-animation variance — well within tolerance 8).
