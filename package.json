@@ -17,10 +17,12 @@
     "verify": "pnpm run typecheck && pnpm run test && pnpm run build:verified",
     "rasterize:og": "node scripts/rasterize-og.mjs",
     "visual:capture": "node scripts/run-visual-gate.mjs capture",
-    "visual:verify": "node scripts/run-visual-gate.mjs verify"
+    "visual:verify": "node scripts/run-visual-gate.mjs verify",
+    "coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",
+    "@vitest/coverage-v8": "^4.1.7",
     "playwright": "^1.60.0",
     "sharp": "^0.34.5",
     "typescript": "5.9.3",

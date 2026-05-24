@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-24 feat: vitest v8 coverage gate with thresholds (19th gate)
+
+Adds `@vitest/coverage-v8` and configures coverage thresholds in `vite.config.ts`. Excludes `src/main.ts` (browser-only entry point) and `src/wasm/generated-loader.ts` / `src/generated/**` (auto-generated wasm bindings) from the coverage scope. Thresholds: lines ≥ 80%, statements ≥ 80%, functions ≥ 85%, branches ≥ 60%. Measured baseline: lines 91%, statements 90%, functions 93%, branches 73%.
+
+### Added
+
+- **`@vitest/coverage-v8`** — official Vitest v8 coverage provider (devDependency; zero bundle impact).
+- **`vite.config.ts`** — `test.coverage` block: provider v8, include `src/**/*.ts`, exclude entry points + generated files, thresholds, text + json reporters.
+- **`package.json`** — `"coverage": "vitest run --coverage"` script.
+- **`tools/haggis-eval/internal/cmd/coverage.go`** — `Coverage()` gate runner: `pnpm run coverage`.
+
+### Changed
+
+- **`tools/haggis-eval/internal/cmd/all.go`** — `Coverage()` added after `Ts()`.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `"coverage"` key wired.
+- **`tools/haggis-eval/main.go`** — `case "coverage"` + usage line.
+- **`tools/haggis-eval/slices.json`** — `"coverage"` added to `release` slice after `ts`.
+- **`docs/foundation/07-quality-gates.md`** — 18 → 19 gates; `pnpm run coverage` added to release gate listing; removed from "still-planned" TypeScript deepening section.
+- **`CONTRIBUTING.md`** — 18-gate → 19-gate.
+- **`README.md`** — gate listing, haggis-eval subcommand list, current-state summary updated.
+
+---
+
 ## [Unreleased] — 2026-05-24 feat: supply-chain gate — cargo deny (18th gate)
 
 Wires `cargo deny check` as an 18th haggis-eval gate (`supply-chain`). Enforces the license allowlist from `docs/foundation/12-craft-commitments.md` (MIT, Apache-2.0, BSD-2/3, ISC, Zlib, Unicode-3.0), checks against the RustSec advisory database, flags duplicate crate versions, and restricts crate sources to crates.io and path crates.

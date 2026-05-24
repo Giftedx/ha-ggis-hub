@@ -12,6 +12,7 @@ func All() []gate.Result {
 	out := []gate.Result{}
 	out = append(out, Rust()...)
 	out = append(out, Ts()...)
+	out = append(out, Coverage()...)
 	out = append(out, Security()...)
 	out = append(out, Perf()...)
 	out = append(out, Browser()...)

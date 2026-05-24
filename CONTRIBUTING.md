@@ -2,7 +2,7 @@
 
 Status: canonical contributor guide
 
-ha.ggis Hub is end-to-end functional with a 18-gate release matrix in `tools/haggis-eval` and signed JSON reports. Contributions must keep implementation, documentation, and quality gates aligned — the bar is "perfect at the current stage, or actively being made perfect."
+ha.ggis Hub is end-to-end functional with a 19-gate release matrix in `tools/haggis-eval` and signed JSON reports. Contributions must keep implementation, documentation, and quality gates aligned — the bar is "perfect at the current stage, or actively being made perfect."
 
 ## Before starting
 

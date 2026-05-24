@@ -27,6 +27,8 @@ func main() {
 		os.Exit(printAndExit("rust", cmd.Rust()))
 	case "ts":
 		os.Exit(printAndExit("ts", cmd.Ts()))
+	case "coverage":
+		os.Exit(printAndExit("coverage", cmd.Coverage()))
 	case "differential":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "differential requires a target: rng | hash")
@@ -100,6 +102,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
+	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines≥80% stmts≥80% fns≥85% branches≥60%)")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
 	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
 	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")

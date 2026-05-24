@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → vitest → vite build → scripts/verify-dist.m
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 18 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 19 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -33,6 +33,7 @@ cargo test --workspace --exclude hub-wasm
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build
+pnpm run coverage                                     # v8 coverage (lines≥80%, stmts≥80%, fns≥85%, branches≥60%)
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
@@ -70,6 +71,7 @@ The release-gate matrix above covers correctness, perf budgets, determinism, sec
 # Rust deepening
 cargo audit                  # crate advisories (deny.toml covers advisories; audit adds deeper history)
 cargo machete                # unused-dep detection
+cargo llvm-cov ... --fail-under-lines 85   # Rust coverage threshold
 cargo llvm-cov ... --fail-under-lines 85   # coverage threshold
 cargo +nightly fuzz run <target> -- -max_total_time=1800
 cargo bench --workspace
@@ -77,7 +79,6 @@ cargo bench --workspace
 # TypeScript deepening
 pnpm exec prettier . --check
 pnpm exec eslint . --max-warnings=0
-pnpm exec vitest run --coverage
 
 # Multi-browser + lab-perf
 pnpm exec playwright test --project=firefox
