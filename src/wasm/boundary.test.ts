@@ -81,6 +81,14 @@ describe('initializeHubBoundaryV2', () => {
     expect(snapshot.worldWidth).toBe(1000);
   });
 
+  it('snapshot() returns the current state without advancing the simulation', async () => {
+    const { loader } = makeStubModule();
+    const boundary = await initializeHubBoundaryV2(loader, 0n);
+    const snapshotDirect = boundary.snapshot();
+    expect(snapshotDirect.playerX).toBe(500);
+    expect(snapshotDirect.worldWidth).toBe(1000);
+  });
+
   it('throws HubBoundaryError when tick returns a non-zero tag', async () => {
     const { loader } = makeStubModule();
     const boundary = await initializeHubBoundaryV2(loader, 0n);
@@ -141,6 +149,34 @@ describe('initializeHubBoundaryV2', () => {
     expect(boundary.room.doors[0]?.id).toBe('whs');
     expect(boundary.room.doors[0]?.status).toBe('launchable');
     expect(boundary.stateHash()).toBe(42n);
+  });
+
+  it('parses a locked door (status !== 1) from room_definition JSON', async () => {
+    const memory = new WebAssembly.Memory({ initial: 1 });
+    const view = new DataView(memory.buffer, 0, SNAPSHOT_BYTES);
+    view.setInt32(12, 1000, true); // worldWidth
+    view.setInt32(16, 1000, true); // worldHeight
+    view.setInt32(28, 0, true); // door count in snapshot (independent of room def)
+    const HubHandle = class {
+      constructor(_seed: bigint) {}
+      tick(): number { return 0; }
+      snapshot_ptr(): number { return 0; }
+      snapshot_len(): number { return SNAPSHOT_BYTES; }
+      state_hash(): bigint { return 0n; }
+      room_definition(): string {
+        return JSON.stringify({
+          worldWidth: 1000, worldHeight: 1000,
+          // status=0 → parseRoomDefinition maps to 'locked' (the d.status !== 1 branch)
+          doors: [{ id: 'locked-door', status: 0, boundsMinX: 0, boundsMinY: 0, boundsMaxX: 10, boundsMaxY: 10 }]
+        });
+      }
+      error_message_ptr(): number { return 0; }
+      error_message_len(): number { return 0; }
+      free(): void {}
+    };
+    const loader = async () => ({ default: async () => ({ memory }), HubHandle, hub_core_api_version: () => 1 });
+    const boundary = await initializeHubBoundaryV2(loader, 0n);
+    expect(boundary.room.doors[0]?.status).toBe('locked');
   });
 
   it('frees the handle on destroy', async () => {
