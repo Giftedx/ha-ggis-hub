@@ -15,13 +15,17 @@
 //   4. WCAG 1.1.1 — Non-text Content: <canvas> has accessible name.
 //   5. WCAG 1.1.1 / 2.1.1 — Persistent semantic fallback/help text
 //      describes canvas controls and exposes a direct game link.
-//   6. WCAG 4.1.2 — Name, Role, Value: every interactive element
+//   6. WCAG 4.1.3 — Status Messages: live door proximity is surfaced
+//      through the existing polite status region.
+//   7. WCAG 4.1.2 — Name, Role, Value: every interactive element
 //      (link, button, input) has an accessible name.
-//   7. WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
+//   8. WCAG 2.5.3 — Label in Name: aria-labelled controls include their
+//      visible text so speech-input users can target them.
+//   9. WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
 //      from the keyboard.
-//   8. WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
+//   10. WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
 //      `outline: none` without an alternate visible style).
-//   9. WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
+//   11. WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
 //      reads as a text+plate combination clears 4.5:1 for normal text.
 //      Pairs declared inline — keep this in sync with the palette in
 //      src/render/canvas-room.ts and the noscript style in index.html.
@@ -44,6 +48,10 @@ function record(criterion, label, ok, detail) {
   const line = `WCAG ${criterion} — ${label}${detail ? ` — ${detail}` : ''}`;
   if (ok) passes.push(line);
   else violations.push(line);
+}
+
+function normalizeAccessibleText(input) {
+  return input.toLowerCase().replace(/[\s’'→—–-]+/g, ' ').trim();
 }
 
 // sRGB → relative luminance per WCAG 2.x. Channels are 0..1 sRGB
@@ -264,7 +272,32 @@ try {
   record('2.1.1', 'persistent fallback direct game link', hasDirectFallback,
     `href=${JSON.stringify(fallbackHelp.linkHref)} name=${JSON.stringify(fallbackHelp.linkName)}`);
 
-  // 6. Every interactive element has an accessible name. Hub keeps the
+  // 6. Live status: the visual canvas prompt is mirrored in the polite
+  //    status region when the haggis reaches a door, so proximity is not
+  //    visual-only. Drive briefly right from the deterministic spawn into
+  //    the WHS door's overlap zone; do not press an interact key.
+  const liveDoorStatus = await page.evaluate(async () => {
+    const status = document.querySelector('.scene-status');
+    const before = status?.textContent?.trim() ?? '';
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
+    await new Promise((resolve) => window.setTimeout(resolve, 140));
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
+    await new Promise((resolve) => window.setTimeout(resolve, 60));
+    return {
+      found: status !== null,
+      role: status?.getAttribute('role') ?? '',
+      before,
+      after: status?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+    };
+  });
+  const announcesDoor = /Wild Haggis Survivors door/i.test(liveDoorStatus.after)
+    && /Enter, Space, or E/i.test(liveDoorStatus.after)
+    && /tap the door/i.test(liveDoorStatus.after);
+  record('4.1.3', 'live door status announcement',
+    liveDoorStatus.found && liveDoorStatus.role === 'status' && announcesDoor,
+    `before=${JSON.stringify(liveDoorStatus.before)} after=${JSON.stringify(liveDoorStatus.after)}`);
+
+  // 7. Every interactive element has an accessible name. Hub keeps the
   //    surface small (scene links plus the noscript anchor when JS is off).
   //    Done via the Playwright accessibility snapshot which folds the
   //    same rules a screen reader applies.
@@ -280,6 +313,8 @@ try {
       return {
         tag,
         accessibleName: typeof name === 'string' ? name.trim() : '',
+        visibleText: text,
+        ariaLabel: ariaLabel ?? '',
         hidden: el.hasAttribute('aria-hidden') && el.getAttribute('aria-hidden') === 'true'
       };
     });
@@ -288,9 +323,15 @@ try {
     if (el.hidden) continue;
     record('4.1.2', `${el.tag} accessible name`, el.accessibleName.length > 0,
       `accessibleName=${JSON.stringify(el.accessibleName)}`);
+    if (el.ariaLabel.length > 0 && el.visibleText.length > 0) {
+      const visible = normalizeAccessibleText(el.visibleText);
+      const accessible = normalizeAccessibleText(el.accessibleName);
+      record('2.5.3', `${el.tag} label in name`, accessible.includes(visible),
+        `visible=${JSON.stringify(el.visibleText)} accessibleName=${JSON.stringify(el.accessibleName)}`);
+    }
   }
 
-  // 7. Launch links keyboard reachable. Tab from body and verify the
+  // 9. Launch links keyboard reachable. Tab from body and verify the
   //    corner direct link receives focus first, then the semantic fallback
   //    link receives focus second.
   await page.evaluate(() => document.body.focus());
@@ -323,7 +364,7 @@ try {
   record('2.1.1', 'fallback direct link reachable via Tab', fallbackReachable,
     `focused=${JSON.stringify(secondFocusedTag)}`);
 
-  // 8. Focus visible — outline computed to something other than `none`
+  // 10. Focus visible — outline computed to something other than `none`
   //    (or a non-zero outline width). Check both visible launch links.
   const focusStyles = await page.evaluate(() => {
     const selectors = ['a.scene-direct', '.scene-fallback a'];
@@ -356,7 +397,7 @@ try {
       `; boxShadow=${focusStyle.boxShadow}`);
   }
 
-  // 9. Contrast ratio assertions on declared text pairs.
+  // 11. Contrast ratio assertions on declared text pairs.
   for (const pair of TEXT_PAIRS) {
     let ratio;
     if (pair.bgUnder) {
@@ -378,7 +419,7 @@ try {
     record('1.4.3', `contrast: ${pair.label}`, ok, `ratio=${ratio.toFixed(2)}:1 (need 4.5)`);
   }
 
-  // 9. Page errors during a11y walk → fail the gate. A console error
+  // 12. Page errors during a11y walk → fail the gate. A console error
   //    or unhandled exception during a screen-reader-style walk is
   //    itself a user-facing defect.
   if (pageErrors.length > 0) {

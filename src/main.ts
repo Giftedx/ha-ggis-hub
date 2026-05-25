@@ -1,5 +1,6 @@
 import './style.css';
 import { createAppModel } from './app/app';
+import { createDoorStatusAnnouncer } from './app/door-status';
 import { createShell } from './app/shell';
 import { createKeyboardInputSampler } from './engine/input';
 import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from './engine/fixed-step';
@@ -98,6 +99,11 @@ async function start(root: HTMLElement): Promise<void> {
     }
 
     const room = createHubRoomController({ boundary, renderer });
+    const announceDoorStatus = createDoorStatusAnnouncer({
+      status: shell.status,
+      registry: HUB_GAME_REGISTRY,
+      fallbackText: reducedMotion ? 'reduced motion · the bothy bides quiet' : ''
+    });
     // Visual door bounds in logical canvas pixels (0–540 × 0–360) — computed once
     // because doors never move. Used by the tap-launch path so the tap zone is
     // pixel-identical to the painted door rather than the raw sim bounds (which differ
@@ -105,6 +111,7 @@ async function start(root: HTMLElement): Promise<void> {
     const logicalSurface = { width: 540, height: 360 } as const;
     const visualDoorBounds = computeVisualDoorBounds(logicalSurface, boundary.room);
     room.render();
+    announceDoorStatus(room.lastSnapshot());
     // Canvas-aware paint mark. The bothy is canvas-first so chrome's LCP
     // heuristic doesn't score the (briefly blank) canvas as a contentful
     // element — LCP ends up matching FCP at whatever DOM text the page
@@ -117,7 +124,6 @@ async function start(root: HTMLElement): Promise<void> {
     requestAnimationFrame(() => {
       performance.mark('hub:firstFrame');
     });
-    shell.status.textContent = '';
 
     // Dev / smoke-test hooks: expose snapshot + state hash via window so
     // Playwright smokes can assert on simulation state (e.g. pointer-
@@ -243,8 +249,6 @@ async function start(root: HTMLElement): Promise<void> {
       (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
     });
 
-    if (reducedMotion) shell.status.textContent = 'reduced motion · the bothy bides quiet';
-
     const debugMode = new URLSearchParams(window.location.search).has('debug');
     const overlay = debugMode ? createDebugOverlay(shell.scene) : null;
     const fpsTracker = debugMode ? createFpsTracker(30) : null;
@@ -271,6 +275,7 @@ async function start(root: HTMLElement): Promise<void> {
         room.render();
       }
       stepState = pumped.state;
+      announceDoorStatus(room.lastSnapshot());
       if (overlay !== null && fpsTracker !== null) {
         const snapshot = room.lastSnapshot();
         const { fps, frameMs } = fpsTracker.record(delta);

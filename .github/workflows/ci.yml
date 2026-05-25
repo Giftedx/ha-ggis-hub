@@ -39,7 +39,7 @@ jobs:
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
   # (door-launch + door-tap + pointer-drive smokes), determinism
   # (same-seed state-hash equality across two runs), visual (aHash
-  # diff vs tests/golden/ with Hamming tolerance), a11y (13 WCAG 2.2
+  # diff vs tests/golden/ with Hamming tolerance), a11y (22 WCAG 2.2
   # AA spot-checks, hand-rolled, no axe-core dep), soak (15s RAF loop
   # heap-growth < 5 MB), supply-chain (cargo deny: licenses + RustSec
   # advisories + source policy), differential hash (C vs Rust FNV-1a,

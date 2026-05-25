@@ -32,7 +32,7 @@ export function createShell(model: AppModel): SceneElements {
   direct.href = model.directPlay.target;
   direct.textContent = 'awa’ in →';
   direct.rel = 'noopener noreferrer';
-  direct.setAttribute('aria-label', model.directPlay.label);
+  direct.setAttribute('aria-label', `awa’ in → — ${model.directPlay.label}`);
 
   const fallback = createFallbackHelp(model);
 
@@ -69,7 +69,6 @@ function createFallbackHelp(model: AppModel): HTMLElement {
   const link = document.createElement('a');
   link.href = model.directPlay.target;
   link.rel = 'noopener noreferrer';
-  link.setAttribute('aria-label', model.directPlay.label);
   link.textContent = `Play ${model.directPlay.title} direct`;
   directText.append('No canvas controls? ', link, '.');
 

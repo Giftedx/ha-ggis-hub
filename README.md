@@ -29,8 +29,8 @@ If you only have time for the load-bearing five, read these in order:
 
 - Product: playable haggis game hub (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
-- First linked game: Wild Haggis Survivors (launches from the right-wall door; click or walk + Enter).
-- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + lint + 131 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
+- First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
+- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + lint + 143 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D (ported from the WHS croft drawers — see `src/render/whs-*.ts`).
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
@@ -52,7 +52,7 @@ The hub is also a **portfolio artifact for the engineering layer underneath**. T
 - **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
 - **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
 - **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **131 vitest cases** + cargo workspace tests + three Playwright smokes (keyboard launch, touch tap, pointer-drive touch-drag) + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (13 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
+- **143 vitest cases** + cargo workspace tests + three Playwright smokes (keyboard launch, touch tap, pointer-drive touch-drag) + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (22 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
 - **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
 - **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
@@ -83,7 +83,7 @@ RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 
 # TypeScript host + deploy artifact gate
 pnpm install --frozen-lockfile
-pnpm verify        # typecheck → vitest → vite build → scripts/verify-dist.mjs
+pnpm verify        # typecheck → lint → vitest → vite build → scripts/verify-dist.mjs
 pnpm run coverage  # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
 # Browser smokes (each builds dist + starts vite preview internally)
@@ -98,7 +98,7 @@ node scripts/run-visual-gate.mjs capture  # re-baseline after intentional art ch
 node scripts/run-paint-gate.mjs           # FCP/LCP/DCL/load median vs perf-budgets.json paint.max_ms
 
 # Accessibility gate (builds + previews + hand-rolled WCAG 2.2 AA spot-checks via Playwright)
-node scripts/run-a11y-gate.mjs            # 13 asserts: lang, viewport, title, names, focus, contrast
+node scripts/run-a11y-gate.mjs            # 22 checks: lang, viewport, title, names, status, label-in-name, focus, contrast
 
 # Memory-growth soak (15s RAF loop; heap budget 5 MB)
 node scripts/run-soak-gate.mjs

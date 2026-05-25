@@ -145,7 +145,7 @@ Single Go binary, single source tree. Subcommands:
 | `haggis-eval differential rng` | Rust vs WAT xoshiro128**, fixed seed, 1M draws |
 | `haggis-eval differential hash` | Rust vs C FNV-1a, published vectors + fuzz |
 | `haggis-eval perf` | Per-asset bundle budgets + W3C Paint Timing API via chromium-headless against local preview (hand-rolled; `size-limit` and Lighthouse in original spec dropped — both are deps the project doesn't need, the W3C primitives suffice) |
-| `haggis-eval a11y` | Hand-rolled WCAG 2.2 AA spot-checks via Playwright (page language, viewport zoom, page title, canvas + interactive accessible names, keyboard reachability, focus indicator visibility, computed contrast ratio on every declared text pair). Shipped 2026-05-24 — no axe-core / pa11y dep (deps the project doesn't need at the current a11y surface size) |
+| `haggis-eval a11y` | Hand-rolled WCAG 2.2 AA spot-checks via Playwright (page language, viewport zoom, page title, canvas + interactive accessible names, persistent fallback help, live door status messages, label-in-name, keyboard reachability, focus indicator visibility, computed contrast ratio on every declared text pair). Shipped 2026-05-24 — no axe-core / pa11y dep (deps the project doesn't need at the current a11y surface size) |
 | `haggis-eval security` | Live preview response headers diffed against `public/_headers` |
 | `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.json` (TOML in original spec; pivoted to JSON because haggis-eval is stdlib-only Go) |
 | `haggis-eval all` | Every gate above; exit non-zero on any failure |
@@ -194,7 +194,7 @@ Drift modes this catches that the current test suite cannot:
 | Browser smoke | Playwright load + input + capture log | `haggis-eval browser` |
 | Replay determinism | Browser-captured log replayed native, hash equal | `haggis-eval determinism` |
 | Perf budget | Hand-rolled per-asset bundle byte caps + W3C Paint Timing API medians via chromium-headless (no `size-limit` or Lighthouse dep) | `haggis-eval perf` |
-| Accessibility | Hand-rolled WCAG 2.2 AA spot-checks via Playwright; 13 asserts across page language, viewport zoom, page title, accessible names, keyboard reachability, focus visibility, contrast ratio (no axe-core / pa11y dep) | `haggis-eval a11y` |
+| Accessibility | Hand-rolled WCAG 2.2 AA spot-checks via Playwright; 22 checks across page language, viewport zoom, page title, accessible names, fallback help, live status, label-in-name, keyboard reachability, focus visibility, contrast ratio (no axe-core / pa11y dep) | `haggis-eval a11y` |
 | Security headers | Live preview headers vs `public/_headers` | `haggis-eval security` |
 
 **No layer mocks another layer in the gating tests.** Mocks are permitted only in `hub-core` unit tests where the boundary itself is the system-under-test.

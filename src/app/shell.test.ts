@@ -107,7 +107,7 @@ describe('createShell', () => {
     expect(direct.href).toBe('https://wild-haggis-survivors.pages.dev/');
     expect(direct.rel).toBe('noopener noreferrer');
     expect(direct.textContent).toBe('awa’ in →');
-    expect(direct.getAttribute('aria-label')).toBe('Play Wild Haggis Survivors');
+    expect(direct.getAttribute('aria-label')).toBe('awa’ in → — Play Wild Haggis Survivors');
 
     expect(shell.status.getAttribute('role')).toBe('status');
     expect(shell.hint.getAttribute('aria-hidden')).toBe('true');
@@ -140,7 +140,7 @@ describe('createShell', () => {
     expect(link.href).toBe('https://wild-haggis-survivors.pages.dev/');
     expect(link.rel).toBe('noopener noreferrer');
     expect(link.textContent).toBe('Play Wild Haggis Survivors direct');
-    expect(link.getAttribute('aria-label')).toBe('Play Wild Haggis Survivors');
+    expect(link.getAttribute('aria-label')).toBeNull();
   });
 });
 

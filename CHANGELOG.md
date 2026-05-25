@@ -2,6 +2,31 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 accessibility: live door status and label-in-name guard
+
+The canvas prompt is no longer visual-only. When the haggis reaches a door, the existing polite status region now announces the matching door state: launchable WHS door copy includes Enter/Space/E and tap controls; the locked future door announces “comin’ soon” without implying launch. Direct-play links also now satisfy WCAG 2.5.3 label-in-name: the corner dialect link’s accessible name includes its visible text, and the fallback direct link uses its visible text as its accessible name.
+
+### Added
+
+- **`src/app/door-status.ts`** — formats door-status announcements from `DecodedSnapshot` + registry title data, and exposes a tiny announcer that only writes when the message changes.
+- **`src/app/door-status.test.ts`** — covers no-door fallback text, launchable-door copy, locked-door copy, invalid door-index fallback, and duplicate-announcement suppression.
+- **`scripts/smoke-a11y.mjs`** — new WCAG 4.1.3 live-status check drives the deterministic haggis spawn into the WHS door zone and asserts the status copy; new WCAG 2.5.3 label-in-name check guards aria-label/visible-text drift.
+
+### Changed
+
+- **`src/main.ts`** — wires door-status announcements after the first render and each RAF loop; reduced-motion copy remains the no-door fallback text.
+- **`src/app/shell.ts`** — corner direct link accessible name now includes the visible “awa’ in →” label; fallback direct link no longer overrides its visible text with a shorter aria-label.
+- **README / WRITEUP / docs** — present-tense test/a11y counts updated to `143` Vitest tests and `22` a11y checks; README interaction copy now names tap/click plus Enter/Space/E.
+
+### Gates green
+
+```
+pnpm verify                 143/143 tests (typecheck + lint + test + build)
+node scripts/run-a11y-gate.mjs 22/22 checks
+```
+
+---
+
 ## [Unreleased] — 2026-05-25 fix: tap-detection aligned to painted door; createAppModel isolated in error boundary
 
 Three bugs fixed in a single session-driven audit:
