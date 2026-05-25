@@ -4,7 +4,6 @@ export interface SceneElements {
   readonly scene: HTMLElement;
   readonly canvas: HTMLCanvasElement;
   readonly status: HTMLElement;
-  readonly hint: HTMLElement;
   readonly fallback: HTMLElement;
 }
 
@@ -40,16 +39,8 @@ export function createShell(model: AppModel): SceneElements {
   status.className = 'scene-status';
   status.setAttribute('role', 'status');
 
-  // First-time hint — main.ts dismisses it on first input or after a
-  // few seconds. Aria-hidden because the persistent fallback panel now
-  // owns the semantic control instructions for assistive tech.
-  const hint = document.createElement('p');
-  hint.className = 'scene-hint';
-  hint.textContent = 'walk wi’ arrows/WASD or drag · chap/tap a door';
-  hint.setAttribute('aria-hidden', 'true');
-
-  scene.append(canvas, brand, direct, fallback, hint, status);
-  return { scene, canvas, status, hint, fallback };
+  scene.append(canvas, brand, direct, fallback, status);
+  return { scene, canvas, status, fallback };
 }
 
 function createFallbackHelp(model: AppModel): HTMLElement {

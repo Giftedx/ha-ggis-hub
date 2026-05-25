@@ -35,9 +35,6 @@ class FakeElement {
 
 const MODEL: AppModel = {
   projectName: 'ha.ggis Hub',
-  publicUrl: 'https://ha.ggis.xyz',
-  stack: 'test stack',
-  phase: 'test phase',
   directPlay: {
     label: 'Play Wild Haggis Survivors',
     target: 'https://wild-haggis-survivors.pages.dev/',
@@ -90,7 +87,7 @@ describe('createShell', () => {
   it('creates the playable scene shell with a named canvas and direct-play link', () => {
     const { resizeListeners } = stubDom();
 
-    const shell = createShell(MODEL) as unknown as { scene: FakeElement; canvas: FakeElement; status: FakeElement; hint: FakeElement };
+    const shell = createShell(MODEL) as unknown as { scene: FakeElement; canvas: FakeElement; status: FakeElement };
 
     expect(shell.scene.tagName).toBe('section');
     expect(shell.scene.className).toBe('scene');
@@ -110,7 +107,6 @@ describe('createShell', () => {
     expect(direct.getAttribute('aria-label')).toBe('awa’ in → — Play Wild Haggis Survivors');
 
     expect(shell.status.getAttribute('role')).toBe('status');
-    expect(shell.hint.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('exposes persistent semantic fallback instructions and a direct game link', () => {

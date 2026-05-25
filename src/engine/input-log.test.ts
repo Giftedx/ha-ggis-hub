@@ -31,6 +31,19 @@ describe('InputLogWriter', () => {
     expect(bytes.byteLength).toBe(70);
   });
 
+  it('records interact presses as a distinct packed input', () => {
+    const writer = new InputLogWriter({
+      seed: 0n,
+      coreApiVersion: 1,
+      startedAtUtcMs: 0n,
+      initialStateHash: 0n
+    });
+    writer.recordIfChanged(0, 0b0001);
+    writer.recordIfChanged(1, 0b0001 | 0b1_0000);
+    const bytes = writer.finish(2, 0n);
+    expect(bytes.byteLength).toBe(70);
+  });
+
   it('treats idle as the initial state and does not record idle frames before any input', () => {
     const writer = new InputLogWriter({
       seed: 0n,

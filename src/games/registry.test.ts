@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   HUB_GAME_REGISTRY,
   getGameById,
-  validateGameRegistry
+  validateGameRegistry,
+  validateRoomRegistryCoherence
 } from './registry';
 
 describe('game registry', () => {
@@ -100,4 +101,31 @@ describe('game registry', () => {
     ]);
   });
 
+  it('accepts the canonical first-room door table', () => {
+    expect(
+      validateRoomRegistryCoherence(
+        [
+          { id: 'wild-haggis-survivors', status: 'launchable' },
+          { id: 'future-bothy', status: 'locked' }
+        ],
+        HUB_GAME_REGISTRY
+      )
+    ).toEqual([]);
+  });
+
+  it('rejects room doors missing from the registry or with mismatched launchability', () => {
+    expect(
+      validateRoomRegistryCoherence(
+        [{ id: 'missing-door', status: 'launchable' }],
+        HUB_GAME_REGISTRY
+      )
+    ).toEqual(['Room door "missing-door" has no registry entry']);
+
+    expect(
+      validateRoomRegistryCoherence(
+        [{ id: 'future-bothy', status: 'launchable' }],
+        HUB_GAME_REGISTRY
+      )
+    ).toEqual(['Launchable room door "future-bothy" maps to non-playable registry entry']);
+  });
 });

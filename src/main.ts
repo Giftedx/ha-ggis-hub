@@ -8,7 +8,7 @@ import { InputLogWriter } from './engine/input-log';
 import { createHubRoomController } from './hub/room';
 import { createCanvasRoomRenderer, computeVisualDoorBounds } from './render/canvas-room';
 import { createLaunchPlan, performLaunch, type LaunchNavigator } from './navigation/launch';
-import { HUB_GAME_REGISTRY, getGameById } from './games/registry';
+import { HUB_GAME_REGISTRY, getGameById, validateRoomRegistryCoherence } from './games/registry';
 import { initializeHubBoundaryV2 } from './wasm/boundary';
 import { loadGeneratedHubWasm } from './wasm/generated-loader';
 import { createDebugOverlay, createFpsTracker } from './debug/overlay';
@@ -44,6 +44,10 @@ async function start(root: HTMLElement): Promise<void> {
       : BigInt(Date.now());
     const wasmInitStart = performance.now();
     const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
+    const roomRegistryErrors = validateRoomRegistryCoherence(boundary.room.doors, HUB_GAME_REGISTRY);
+    if (roomRegistryErrors.length > 0) {
+      throw new Error(`Room/registry mismatch: ${roomRegistryErrors.join('; ')}`);
+    }
     const wasmInitMs = performance.now() - wasmInitStart;
     const canvasSurface = {
       get width() { return 540; },
@@ -159,15 +163,27 @@ async function start(root: HTMLElement): Promise<void> {
     // mobile) call this — keeps the launch contract in one place.
     function launchDoorById(doorId: string): void {
       const game = getGameById(HUB_GAME_REGISTRY, doorId);
-      if (game === undefined) return;
+      if (game === undefined) {
+        shell.status.textContent = 'that door leads nowhere yet';
+        return;
+      }
       const plan = createLaunchPlan(game);
+      if (plan.kind !== 'launchable') {
+        const title = plan.kind === 'unavailable' ? plan.title : game.title;
+        shell.status.textContent = `${title} door — comin’ soon.`;
+        return;
+      }
       performLaunch(plan, launchNavigator);
     }
 
+    /** Matches hub_core::sim::InputSnapshot interact bit (bit 4). */
+    const INTERACT_BIT = 0b1_0000;
+
     // Keyboard path: when the haggis is at a launchable door AND
     // Enter/Space/E is pressed (edge-triggered).
-    function maybeLaunchFromInteract(): void {
+    function maybeLaunchFromInteract(packedMovement: number, tick: number): void {
       if (!keyboard.consumeInteract()) return;
+      inputLog.recordIfChanged(tick, packedMovement | INTERACT_BIT);
       const snapshot = room.lastSnapshot();
       if (snapshot.interactionKind !== 'launchable') return;
       const door = snapshot.doors[snapshot.interactionDoorIndex];
@@ -195,7 +211,6 @@ async function start(root: HTMLElement): Promise<void> {
     //   2. Otherwise → begin pointer-drive walk: the haggis walks
     //      toward the pointer for as long as it's held down.
     shell.canvas.addEventListener('pointerdown', (event) => {
-      dismissHint();
       const rect = shell.canvas.getBoundingClientRect();
       const dpr = Math.round(window.devicePixelRatio || 1);
       const logicalX = ((event.clientX - rect.left) / rect.width) * (shell.canvas.width / dpr);
@@ -237,19 +252,6 @@ async function start(root: HTMLElement): Promise<void> {
     shell.canvas.addEventListener('pointerup', endPointer);
     shell.canvas.addEventListener('pointercancel', endPointer);
 
-    // First-time visitor hint: fade on first input OR after 6 seconds.
-    // CSS handles the fade transition; we just toggle the class and
-    // remove the element after the transition completes.
-    let hintDismissed = false;
-    function dismissHint(): void {
-      if (hintDismissed) return;
-      hintDismissed = true;
-      shell.hint.classList.add('scene-hint--fading');
-      window.setTimeout(() => { shell.hint.remove(); }, 800);
-    }
-    window.addEventListener('keydown', dismissHint, { once: true });
-    window.setTimeout(dismissHint, 6000);
-
     let stepState = INITIAL_FIXED_STEP_STATE;
     window.addEventListener('beforeunload', () => {
       const bytes = inputLog.finish(stepState.tick, boundary.stateHash());
@@ -275,7 +277,7 @@ async function start(root: HTMLElement): Promise<void> {
         // Check interact AFTER tick so the snapshot is fresh — the
         // haggis may have moved into the door's interaction zone this
         // tick, and we want the same-frame Enter press to launch.
-        maybeLaunchFromInteract();
+        maybeLaunchFromInteract(packed, stepState.tick);
       } else {
         // No tick advanced this frame but we still want animation (fire,
         // lanterns) to update — re-render the last snapshot.

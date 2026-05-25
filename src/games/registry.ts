@@ -41,6 +41,32 @@ export function getGameById(
   return registry.find((game) => game.id === id);
 }
 
+/** Room door ids and launchability must match the static game registry.
+ *  Catches drift when a new door lands in hub-core before the TS registry
+ *  is updated (or vice versa). */
+export function validateRoomRegistryCoherence(
+  roomDoors: ReadonlyArray<{ readonly id: string; readonly status: 'launchable' | 'locked' }>,
+  registry: readonly HubGameDefinition[]
+): string[] {
+  const errors: string[] = [];
+
+  for (const door of roomDoors) {
+    const game = getGameById(registry, door.id);
+    if (game === undefined) {
+      errors.push(`Room door "${door.id}" has no registry entry`);
+      continue;
+    }
+    if (door.status === 'launchable' && game.status !== 'playable') {
+      errors.push(`Launchable room door "${door.id}" maps to non-playable registry entry`);
+    }
+    if (door.status === 'locked' && game.status === 'playable') {
+      errors.push(`Locked room door "${door.id}" maps to playable registry entry`);
+    }
+  }
+
+  return errors;
+}
+
 export function validateGameRegistry(registry: readonly HubGameDefinition[]): string[] {
   const errors: string[] = [];
   const seenIds = new Set<string>();
