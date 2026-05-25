@@ -121,7 +121,7 @@ Every architectural decision is a numbered, dated, status-tracked record in `doc
 
 The project is explicitly autopilot-friendly: `AGENTS.md` is the agent-side entry point, listing required reading order before any edit, the prime rule (do not implement from archived plans), and behavioural constraints (do not add dependencies without rationale, do not weaken gates, update docs when design changes). This is paired with a quality manifesto that states the bar: "perfect at the current stage, or actively being made perfect — doing nothing is not acceptable while the foundation is unfinished, cutting corners is not acceptable because the corner will become the architecture."
 
-The autopilot rules also have known limits: agents handle the engineering layer well because gates are machine-checkable; they handle aesthetic less well because no machine oracle exists for "does this look right". The first iteration of a **visual gate** now ships at `scripts/smoke-visual-gate.mjs` — capture the playfield canvas at a deterministic seed, resize to 16×16 grayscale via `sharp`, compute a 256-bit average hash, compare against the recorded golden via Hamming distance with per-scene tolerance. Catches palette and layout drift; absorbs particle-animation variance. First iteration; the script is one function-swap away from pHash or pixel-level pixelmatch if stronger guarantees become useful. See `tests/golden/README.md`.
+The autopilot rules also have known limits: agents handle the engineering layer well because gates are machine-checkable; they handle aesthetic less well because no machine oracle exists for "does this look right". The first iteration of a **visual gate** now ships at `scripts/smoke-visual-gate.mjs` — capture the playfield canvas at a deterministic seed plus fixed animation phase, resize to 16×16 grayscale via `sharp`, compute a 256-bit average hash, compare against the recorded golden via Hamming distance with per-scene tolerance. Catches palette and layout drift while keeping animation timing from spending the Hamming budget. First iteration; the script is one function-swap away from pHash or pixel-level pixelmatch if stronger guarantees become useful. See `tests/golden/README.md`.
 
 ## Reproduce locally
 
@@ -131,7 +131,7 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → eslint → vitest 143 cases → vite build → verify-dist
+pnpm verify          # tsc --noEmit → eslint → vitest 144 cases → vite build → verify-dist
 pnpm run coverage    # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
 # Rust workspace

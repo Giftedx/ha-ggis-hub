@@ -42,7 +42,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 - `0` — every gate passed.
 - `1` — at least one gate failed.
 - `2` — invocation error (unknown subcommand, missing argument).
-- `78` (`EX_CONFIG`) — a stubbed subcommand was invoked; its prerequisites have not been wired yet.
+- `78` (`EX_CONFIG`) — reserved for configuration errors; no current subcommand intentionally returns this for a stubbed gate.
 
 ## Reports
 

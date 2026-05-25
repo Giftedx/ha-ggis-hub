@@ -1,11 +1,13 @@
 {
-  "_comment": "Per-scene golden hashes + Hamming-distance tolerances for the visual gate. Goldens are captured on the OS that CI runs on (currently ubuntu-latest) via the `.github/workflows/visual-recapture.yml` workflow_dispatch job — keeps the verifier (which also runs on ubuntu-latest) at 0 Hamming distance from the golden, leaving the toleranceBits budget purely as headroom against real drift instead of half-spent on a cross-platform OS-rendering delta. toleranceBits is calibrated from observed CI evidence; see scene metadata for sourcing.",
+  "_comment": "Per-scene golden hashes + Hamming-distance tolerances for the visual gate. Visual captures freeze renderer animation with visualGatePhase so the Hamming budget measures real palette/layout drift instead of frame-timing variance from hearth flicker, dust, breath, or particles. Re-capture is still deliberate and human-reviewable; verify should stay at 0 Hamming distance on a stable renderer, with toleranceBits reserved for browser/OS antialiasing noise and true-positive drift headroom.",
   "schema": 1,
   "scenes": {
     "bothy-idle-seed-42": {
-      "hash": "7c3efc3ffc3f7c3e8039e039e03060318033c003e007e0076006e00760060100",
+      "hash": "7c3efc3fc23fc03e8039c03bf0316031c033c003e007e0076006e00760060100",
       "toleranceBits": 8,
-      "capturedAt": "2026-05-24T20:25:41.481Z"
+      "phaseSeconds": 0,
+      "capturedAt": "2026-05-25T09:34:44.213Z",
+      "captureSource": "local visual gate capture after freezing animation phase"
     }
   }
 }

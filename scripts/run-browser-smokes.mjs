@@ -8,7 +8,14 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { request } from 'node:http';
 
+const PNPM = 'pnpm';
+const NODE = process.execPath;
+
 const PORT = process.env.HAGGIS_SMOKE_PORT ?? '4173';
+const portNumber = Number(PORT);
+if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNumber > 65535) {
+  throw new Error(`Invalid preview port: ${PORT}`);
+}
 const BASE = `http://localhost:${PORT}/`;
 const SMOKES = [
   'scripts/smoke-door-launch.mjs',
@@ -22,7 +29,7 @@ function log(...args) {
 
 function buildDist() {
   log('building dist…');
-  const r = spawnSync('pnpm', ['run', 'build'], { stdio: 'inherit', shell: true });
+  const r = spawnSync(`${PNPM} run build`, { stdio: 'inherit', shell: true });
   if (r.status !== 0) {
     log('build failed; aborting');
     process.exit(1);
@@ -53,11 +60,9 @@ buildDist();
 
 log(`starting preview on :${PORT}…`);
 // detached:true on POSIX so vite becomes its own process-group leader
-// and we can kill the whole group (shell wrapper + vite grandchild) via
-// `process.kill(-pid)` below. Without this, kill('SIGTERM') only takes
-// out the shell and CI logs end with "Terminate orphan process: node".
+// and we can kill the whole Vite process group via `process.kill(-pid)` below.
 const isPosix = process.platform !== 'win32';
-const preview = spawn('pnpm', ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
+const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
   detached: isPosix,
@@ -74,7 +79,7 @@ try {
 
   for (const smoke of SMOKES) {
     log(`running ${smoke}…`);
-    const r = spawnSync('node', [smoke], {
+    const r = spawnSync(NODE, [smoke], {
       stdio: 'inherit',
       env: { ...process.env, SCREENSHOT_URL: BASE },
     });
@@ -103,7 +108,7 @@ function killPreview() {
       // Negative pid = signal entire process group.
       process.kill(-preview.pid, 'SIGTERM');
     } else {
-      preview.kill('SIGTERM');
+      spawnSync('taskkill', ['/pid', String(preview.pid), '/T', '/F'], { stdio: 'ignore' });
     }
   } catch {
     // Already dead.
@@ -115,11 +120,5 @@ if (failures > 0) {
   process.exit(1);
 }
 log('all smokes passed');
-// Explicit exit. Without this, `pnpm exec vite preview` spawned with
-// shell:true leaves an orphan vite grandchild (SIGTERM goes to the
-// shell wrapper, not vite), keeping Node's event loop alive — the
-// script then hangs forever waiting for handles to close. CI saw a
-// 10-minute timeout here before this fix. Sister scripts
-// run-determinism-smoke.mjs and run-visual-gate.mjs already exit
-// explicitly for the same reason.
+// Explicit exit after preview teardown; all smoke scripts have completed.
 process.exit(0);

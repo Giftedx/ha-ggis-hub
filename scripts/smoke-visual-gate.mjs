@@ -3,13 +3,13 @@
 // determinism, security) verifies mechanism; this one verifies what
 // the visitor actually SEES.
 //
-// Approach: capture the playfield canvas at a deterministic seed,
-// resize to 16x16 grayscale via sharp, compute a 256-bit average-hash
-// (aHash) per scene, compare against the recorded golden hash in
-// tests/golden/visual-budgets.json via Hamming distance. Threshold is
-// per-scene; default 18 / 256 (~7%) absorbs the per-frame variance
-// from particle animation + flicker without missing real layout
-// drift.
+// Approach: capture the playfield canvas at a deterministic seed plus
+// fixed animation phase, resize to 16x16 grayscale via sharp, compute
+// a 256-bit average-hash (aHash) per scene, compare against the
+// recorded golden hash in tests/golden/visual-budgets.json via Hamming
+// distance. Threshold is per-scene; the current 8 / 256 budget is
+// reserved for browser/OS rendering noise and real layout/palette
+// drift, not animation timing.
 //
 // Modes:
 //   capture  — take screenshot, save golden PNG + hash. Use when
@@ -47,6 +47,10 @@ const SCENES = [
     name: 'bothy-idle-seed-42',
     seed: 42,
     viewport: { width: 960, height: 540 },
+    // Freeze renderer animation for the visual gate. Without this,
+    // frame timing can spend most of the 8-bit Hamming budget on
+    // hearth/particle/breath phase rather than real art drift.
+    phaseSeconds: 0,
     // Wait for boundary boot + a couple of render frames to settle.
     settleMs: 1200,
     // Hamming-distance tolerance against the golden hash, out of 256
@@ -130,7 +134,7 @@ function hammingDistanceHex(aHex, bHex) {
 
 async function captureScene(page, scene) {
   await page.setViewportSize(scene.viewport);
-  const url = `${URL_BASE}?seed=${scene.seed}`;
+  const url = `${URL_BASE}?seed=${scene.seed}&visualGatePhase=${scene.phaseSeconds}`;
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.waitForTimeout(scene.settleMs);
   // Capture the canvas element specifically, not the page chrome.

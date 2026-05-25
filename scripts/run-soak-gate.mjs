@@ -7,7 +7,14 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { request } from 'node:http';
 
+const PNPM = 'pnpm';
+const NODE = process.execPath;
+
 const PORT = process.env.HAGGIS_SOAK_PORT ?? '4177';
+const portNumber = Number(PORT);
+if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNumber > 65535) {
+  throw new Error(`Invalid preview port: ${PORT}`);
+}
 const BASE = `http://localhost:${PORT}/`;
 
 function log(...args) {
@@ -16,7 +23,7 @@ function log(...args) {
 
 function buildDist() {
   log('building dist…');
-  const r = spawnSync('pnpm', ['run', 'build'], { stdio: 'inherit', shell: true });
+  const r = spawnSync(`${PNPM} run build`, { stdio: 'inherit', shell: true });
   if (r.status !== 0) {
     log('build failed; aborting');
     process.exit(1);
@@ -48,8 +55,7 @@ buildDist();
 log(`starting preview on :${PORT}…`);
 const isPosix = process.platform !== 'win32';
 const preview = spawn(
-  'pnpm',
-  ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'],
+  `${PNPM} exec vite preview --port ${PORT} --strictPort`,
   {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
@@ -67,7 +73,7 @@ function killPreview() {
     if (isPosix) {
       process.kill(-preview.pid, 'SIGTERM');
     } else {
-      preview.kill('SIGTERM');
+      spawnSync('taskkill', ['/pid', String(preview.pid), '/T', '/F'], { stdio: 'ignore' });
     }
   } catch {
     // Already dead.
@@ -79,7 +85,7 @@ try {
   await waitForPort(BASE, 8000);
   log(`preview ready at ${BASE}`);
 
-  const r = spawnSync('node', ['scripts/smoke-soak.mjs'], {
+  const r = spawnSync(NODE, ['scripts/smoke-soak.mjs'], {
     stdio: 'inherit',
     env: { ...process.env, SCREENSHOT_URL: BASE },
   });

@@ -2,6 +2,31 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 fix: deterministic visual gate and current haggis-eval docs
+
+The pre-merge slice exposed two bits of engineering drift: the visual gate's 8-bit budget was being spent by normal animation timing (local verifies landed 10–12 bits from the golden), and several current docs still described old haggis-eval/stub/count assumptions. The visual gate now freezes renderer animation with `?visualGatePhase=0`, rebakes the golden for that fixed phase, and verifies at 0/256 across repeated local runs. Preview gate runners also avoid Node's DEP0190 warning by using shell command strings only for constant `pnpm` invocations and validating preview ports before interpolation.
+
+### Added
+
+- **`src/render/canvas-room.test.ts`** — guard that `fixedPhaseSeconds` produces stable draw calls for equal phases and different draw calls for different phases.
+
+### Changed
+
+- **`src/render/canvas-room.ts`** — renderer options now accept `fixedPhaseSeconds` for deterministic visual-gate captures; normal runtime leaves it unset.
+- **`src/main.ts`** — reads numeric `visualGatePhase` query param and passes it to the renderer.
+- **`scripts/smoke-visual-gate.mjs`** — captures/verifies with `?seed=42&visualGatePhase=0` so the aHash budget tracks art drift instead of animation timing.
+- **`scripts/run-{browser,determinism,visual,a11y,paint,soak}*.mjs`** — preview harnesses no longer pass argument arrays with `shell: true`, removing the Node DEP0190 warning from gate output.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — recaptured at fixed phase; tolerance remains 8 bits.
+- **`tests/golden/README.md`**, **`tools/haggis-eval/README.md`**, and **`docs/plans/2026-05-22-implementation-sequence.md`** — updated current haggis-eval/visual-gate documentation.
+
+### Gates green
+
+```
+node scripts/run-visual-gate.mjs verify  hamming 0/256 ≤ 8
+```
+
+---
+
 ## [Unreleased] — 2026-05-25 accessibility: live door status and label-in-name guard
 
 The canvas prompt is no longer visual-only. When the haggis reaches a door, the existing polite status region now announces the matching door state: launchable WHS door copy includes Enter/Space/E and tap controls; the locked future door announces “comin’ soon” without implying launch. Direct-play links also now satisfy WCAG 2.5.3 label-in-name: the corner dialect link’s accessible name includes its visible text, and the fallback direct link uses its visible text as its accessible name.
@@ -21,7 +46,7 @@ The canvas prompt is no longer visual-only. When the haggis reaches a door, the 
 ### Gates green
 
 ```
-pnpm verify                 143/143 tests (typecheck + lint + test + build)
+pnpm verify                 144/144 tests (typecheck + lint + test + build)
 node scripts/run-a11y-gate.mjs 22/22 checks
 ```
 

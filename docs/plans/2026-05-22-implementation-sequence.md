@@ -143,7 +143,7 @@ Acceptance:
 - Differential test passes for 100 000+ outputs.
 - WAT file is readable + commented (single file, side-by-side comparable with the Rust impl).
 
-## Slice 9: `haggis-eval` CLI — fully wired (9 real subcommands, 0 stubs)
+## Slice 9: `haggis-eval` CLI — fully wired (13 gate categories, 0 stubs)
 
 Go orchestration tool with FNV-1a-signed JSON reports.
 
@@ -154,13 +154,15 @@ Wired:
 - `security` — `pnpm vitest run scripts/deploy-config.test.ts` (public/_headers + _redirects assertions; shipped 2026-05-23).
 - `browser` — `node scripts/run-browser-smokes.mjs` (build → vite preview → smoke-door-launch keyboard + smoke-door-tap touch + smoke-pointer-drive touch-drag → teardown; shipped 2026-05-23).
 - `determinism` — `node scripts/run-determinism-smoke.mjs` (loads hub twice with fixed `?seed=N`, applies identical scripted input, asserts final state-hash matches between runs; shipped 2026-05-23 with `?seed=` URL param + `window.__stateHash()` dev hook).
-- `visual` — `node scripts/run-visual-gate.mjs verify` (build → vite preview → perceptual aHash diff vs `tests/golden/bothy-idle-seed-42.png` at Hamming distance ≤ 18/256; shipped 2026-05-23, golden bootstrapped same day on Windows, verified on Linux CI 2026-05-24 at 1-bit drift — comfortably inside tolerance).
+- `visual` — `node scripts/run-visual-gate.mjs verify` (build → vite preview → perceptual aHash diff vs `tests/golden/bothy-idle-seed-42.png` at Hamming distance ≤ 8/256; visual captures now freeze renderer animation with `?visualGatePhase=0` so the budget measures art drift, not frame timing. Shipped 2026-05-23; phase-frozen recapture shipped 2026-05-25 after local verifies showed timing noise could exceed the tight budget).
 - `perf` — two halves: (a) `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total); (b) `node scripts/run-paint-gate.mjs` boots vite preview and asserts the median over 3 samples of W3C Paint Timing API metrics (first-contentful-paint, largest-contentful-paint via PerformanceObserver, domContentLoadedEventEnd, loadEventEnd) plus the `hub:firstFrame` User Timing mark fired from `src/main.ts` after the first canvas render (the canvas-aware paint metric — chrome's LCP heuristic collapses to FCP on this canvas-first app, so we mark the moment WASM has booted and the renderer has issued its first draw, scheduled inside a rAF so the compositor has posted). All five metrics asserted against `perf-budgets.json` `paint.max_ms`. Hand-rolled via existing Playwright + the W3C primitives directly — no Lighthouse npm dep. Shipped 2026-05-24.
 - `differential rng` — WAT vs Rust xoshiro128**.
 - `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
 - `slice <name>` — dispatches a named gate-set bundle from `tools/haggis-eval/slices.json` (pivoted from `slices.toml` in the original spec because haggis-eval is stdlib-only Go and `encoding/json` is stdlib while TOML is not). Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the signed-report write). `slice` with no argument (or `slice list`) prints available bundles. `HAGGIS_SLICES_PATH` overrides the config path. Shipped 2026-05-24.
 - `a11y` — `node scripts/run-a11y-gate.mjs` (build → vite preview → 22 WCAG 2.2 AA spot-checks via Playwright covering page language, viewport zoom, page title, canvas + interactive element accessible names, persistent fallback help, live door status, label-in-name, keyboard reachability, focus indicator visibility, and computed contrast ratio on every declared text pair). No axe-core / pa11y dep — the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic rule engine. Shipped 2026-05-24, drove a `outline: none` fix on `.scene-direct:focus-visible` (WCAG 2.4.7) found during bring-up.
 - `soak` — `node scripts/run-soak-gate.mjs` (build → vite preview → 15-second RAF loop soak → CDP `HeapProfiler.collectGarbage` before/after → assert heap growth < 5 MB). Catches per-frame allocation leaks, RAF accumulator leaks, and event-listener stacking. No leak-detection lib dep. Shipped 2026-05-24.
+- `coverage` — `pnpm vitest --coverage` with V8 provider and package thresholds.
+- `supply-chain` — lightweight lockfile / dependency hygiene checks, wired into the release slice.
 - `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 19 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold; soak adds ~20s).
 
 Outstanding stubs (`exit 78`):
@@ -169,7 +171,7 @@ Outstanding stubs (`exit 78`):
 
 Acceptance:
 
-- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all 9 wired categories (rust, ts, security, perf, browser, determinism, visual, differential, slice).
+- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all wired gate categories: rust, ts, coverage, security, perf, browser, determinism, visual, a11y, soak, supply-chain, differential, and slice orchestration.
 - Complete: exits non-zero on any failure.
 - Complete: orchestration logic unit-tested (`internal/gate/`, `internal/report/`, `internal/fnv/` test files).
 - Complete: referenced from the release gate (README "Current executable gates" section).

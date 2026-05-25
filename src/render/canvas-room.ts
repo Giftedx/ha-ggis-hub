@@ -185,9 +185,14 @@ export function computeVisualDoorBounds(
 export function createCanvasRoomRenderer(
   surface: CanvasRoomSurface,
   room: RoomDefinition,
-  options?: { readonly reducedMotion?: boolean }
+  options?: {
+    readonly reducedMotion?: boolean;
+    /** Fixed animation phase for deterministic visual-gate captures. Runtime play leaves this unset. */
+    readonly fixedPhaseSeconds?: number | undefined;
+  }
 ): CanvasRoomRenderer {
   const reducedMotion = options?.reducedMotion ?? false;
+  const fixedPhaseSeconds = options?.fixedPhaseSeconds;
   const context = surface.getContext('2d');
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
@@ -236,7 +241,7 @@ export function createCanvasRoomRenderer(
           side
         };
       });
-      const phase = (nowMillis() - startedAt) / 1000;
+      const phase = fixedPhaseSeconds ?? (nowMillis() - startedAt) / 1000;
       renderRoom(context, surface, room, doors, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
     }
   };

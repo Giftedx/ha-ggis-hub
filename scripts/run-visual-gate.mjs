@@ -10,7 +10,14 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { request } from 'node:http';
 
+const PNPM = 'pnpm';
+const NODE = process.execPath;
+
 const PORT = process.env.HAGGIS_SMOKE_PORT ?? '4175';
+const portNumber = Number(PORT);
+if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNumber > 65535) {
+  throw new Error(`Invalid preview port: ${PORT}`);
+}
 const BASE = `http://localhost:${PORT}/`;
 const SMOKE = 'scripts/smoke-visual-gate.mjs';
 const MODE = (process.argv[2] ?? 'verify').toLowerCase();
@@ -21,7 +28,7 @@ function log(...args) {
 
 function buildDist() {
   log('building dist…');
-  const r = spawnSync('pnpm', ['run', 'build'], { stdio: 'inherit', shell: true });
+  const r = spawnSync(`${PNPM} run build`, { stdio: 'inherit', shell: true });
   if (r.status !== 0) {
     log('build failed; aborting');
     process.exit(1);
@@ -53,7 +60,7 @@ buildDist();
 log(`starting preview on :${PORT}…`);
 // See run-browser-smokes.mjs for why detached:true on POSIX.
 const isPosix = process.platform !== 'win32';
-const preview = spawn('pnpm', ['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
+const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
   detached: isPosix,
@@ -68,7 +75,7 @@ try {
   await waitForPort(BASE, 8000);
   log(`preview ready at ${BASE}`);
 
-  const result = spawnSync('node', [SMOKE, MODE], {
+  const result = spawnSync(NODE, [SMOKE, MODE], {
     stdio: 'inherit',
     env: { ...process.env, SCREENSHOT_URL: BASE }
   });
@@ -84,7 +91,9 @@ try {
   if (preview.pid && !preview.killed) {
     try {
       if (isPosix) process.kill(-preview.pid, 'SIGTERM');
-      else preview.kill('SIGTERM');
+      else {
+        spawnSync('taskkill', ['/pid', String(preview.pid), '/T', '/F'], { stdio: 'ignore' });
+      }
     } catch {
       // Already dead.
     }

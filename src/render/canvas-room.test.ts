@@ -230,6 +230,20 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.length).toBeGreaterThan(20);
   });
 
+  it('can freeze animation phase for deterministic visual-gate captures', () => {
+    const { surface: surfaceA, context: ctxA } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surfaceA, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+
+    const { surface: surfaceB, context: ctxB } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surfaceB, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+
+    const { surface: surfaceC, context: ctxC } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surfaceC, ROOM, { fixedPhaseSeconds: 1 }).render(SNAPSHOT_NO_INTERACTION);
+
+    expect(ctxB.calls).toEqual(ctxA.calls);
+    expect(ctxC.calls).not.toEqual(ctxA.calls);
+  });
+
   it('fails loudly when Canvas2D is unavailable so the host can show fallback UI', () => {
     const surface: CanvasRoomSurface = {
       width: 1200,

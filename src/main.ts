@@ -50,7 +50,15 @@ async function start(root: HTMLElement): Promise<void> {
       get height() { return 360; },
       getContext(kind: '2d') { return shell.canvas.getContext(kind); }
     };
-    const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, { reducedMotion });
+    const fixedVisualGatePhase = new URLSearchParams(window.location.search).get('visualGatePhase');
+    const parsedVisualGatePhase = fixedVisualGatePhase !== null && /^\d+(?:\.\d+)?$/.test(fixedVisualGatePhase)
+      ? Number(fixedVisualGatePhase)
+      : undefined;
+    const fixedPhaseSeconds = parsedVisualGatePhase !== undefined &&
+      Number.isFinite(parsedVisualGatePhase) && parsedVisualGatePhase >= 0 && parsedVisualGatePhase <= 86_400
+      ? parsedVisualGatePhase
+      : undefined;
+    const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, { reducedMotion, fixedPhaseSeconds });
     const keyboard = createKeyboardInputSampler(window);
 
     const inputLog = new InputLogWriter({

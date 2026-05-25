@@ -13,14 +13,14 @@ Every other gate verifies mechanism (typecheck, vitest, build, perf budgets, det
 
 ## How the gate works
 
-1. The gate script (`scripts/smoke-visual-gate.mjs`) opens the deployed hub at a deterministic seed (`?seed=42`).
+1. The gate script (`scripts/smoke-visual-gate.mjs`) opens the deployed hub at a deterministic seed and animation phase (`?seed=42&visualGatePhase=0`).
 2. Captures the playfield canvas as PNG bytes.
 3. Resizes to 16×16 grayscale via `sharp`.
 4. Computes a **256-bit average hash (aHash)**: each downsampled pixel is 1 if brighter than the frame mean, 0 otherwise.
 5. Compares against the recorded golden hash via **Hamming distance**.
-6. Passes if the distance is within the per-scene tolerance (default 18 / 256 ≈ 7%).
+6. Passes if the distance is within the per-scene tolerance (currently 8 / 256 ≈ 3%).
 
-The tolerance absorbs frame-to-frame variance from particle animation, hearth flicker, and dust motes without missing real layout or palette drift.
+The fixed animation phase keeps particles, hearth flicker, dust motes, dawn pulse, and haggis breath from spending the Hamming budget on timing noise. The tolerance is reserved for browser/OS antialiasing noise and real layout or palette drift.
 
 ## Why aHash
 
@@ -28,9 +28,9 @@ We're catching **perceptual** drift (the bothy now looks visibly different), not
 
 - Different palette → mean shifts → every bit flips → big Hamming distance
 - Different layout → bright clusters move between cells → bits flip in that region
-- Same scene, different particle positions → 0–5 bits flip → within tolerance
+- Same scene, sub-pixel browser/OS antialiasing noise → usually 0–8 bits flip → within tolerance
 
-Observed jitter for `bothy-idle-seed-42` at the 1200ms settle: **1 bit / 256** on both Windows and Linux chromium, stable across 5 consecutive verifies (2026-05-24 measurement). The 18-bit tolerance therefore has ~17× headroom over baseline noise — generous but justified by the future possibility of higher-variance scenes (animated transitions, particle bursts).
+After the 2026-05-25 determinism pass, `bothy-idle-seed-42` is captured with `visualGatePhase=0`; three consecutive local verifies returned **0 / 256** Hamming distance. Before that freeze, normal animation timing alone could push local verifies to 10–12 bits against the golden, which was noise rather than an art regression.
 
 This is dogfood-grade. If the project wants stronger guarantees later, swap aHash for `pHash` (DCT-based) or pixel-level `pixelmatch` — the script is one function-swap away.
 
