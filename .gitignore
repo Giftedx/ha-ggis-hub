@@ -39,6 +39,7 @@ yarn-error.log*
 # Review scratchpads created by game-review / purpose-audit slash commands
 .claude/review-notes.md
 .claude/purpose-audit.md
+.review-notes.md
 
 # Serena MCP plugin local state (project cache, memories, machine config).
 .serena/
