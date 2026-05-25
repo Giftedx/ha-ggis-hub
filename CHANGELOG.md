@@ -2,6 +2,16 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 feat: update favicon to the tied-pudding haggis
+
+`public/favicon.svg` previously shipped the old canonical mane-and-strands silhouette. Replaced with a simplified port of the tied-pudding canon: round peat-brown body, cream twine cap at the top (the iconic gag, load-bearing at small sizes), two forward eyes, fabric ears, asymmetric drift legs at the bottom. Verified visually at both 32×32 and 16×16 — the cream cord wrap reads even when no other feature is legible.
+
+### Changed
+
+- **`public/favicon.svg`** — tied-pudding silhouette scaled for browser tabs.
+
+---
+
 ## [Unreleased] — 2026-05-25 feat: redesign OG social card with the tied-pudding haggis
 
 `public/og.svg` previously shipped with the old canonical mane-and-strands haggis silhouette (the one the owner called "ugly as sin"). Replaced with a hand-port of the new `bothy-haggis.ts` shape language — tied-pudding sack, twine wraps, fabric ears, asymmetric drift legs, heather patch — at the OG card's 1200×630 scale (haggis rendered at ×6 native, ~270 wide). Now the social card actually showcases the canon protagonist instead of misrepresenting it.
