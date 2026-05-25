@@ -51,15 +51,15 @@ No nested shrinking ellipses with varying alpha for shadows (that is the prohibi
 - Use `PALETTE.ink` for the outline pixel. Never a full perimeter outline.
 - Rim-light on the lit side: 1px hard pixels in `PALETTE.dawnHighlight`.
 
-**Protagonist (canon haggis):**
-- The body mass uses a slightly-larger ink ellipse beneath the fill ellipse. This reads as the body-edge line in low-key dim bothy lighting and is correct — the haggis is the hero element and earns a full-perimeter ink ring at this scale (64-wide footprint at native res).
-- Mane and face features: no separate outline; the layering of ink-dark under lighter fills provides the depth.
+**Protagonist (bothy haggis):**
+- The sack body uses a slightly-larger `sackBase` quadratic path beneath the `sackMid` fill path. This reads as the body-edge line in low-key dim bothy lighting and is correct — the haggis is the hero element and earns a full-perimeter ink ring at this scale.
+- Tied neck (twine wraps, fabric ears), face (eyes, snout, smile), legs: no separate outline; the layering of ink-dark under lighter fills provides the depth.
 
 ## 5. Palette discipline — DESIGN.md tokens, not invented hex
 
 The `PALETTE` object in `palette.ts` exposes tokens for computational use (light-zone classification, beam geometry, shadow color). The `PX` constant in `canvas-room.ts` provides local bothy rendering tokens.
 
-**Rule:** every colour in every draw function must trace back to a named token in `DESIGN.md` (the source-of-truth palette). Inline hex is acceptable ONLY inside a named constant block (`PX`, `CANON_HAGGIS_PALETTE`, etc.) — never inside draw logic.
+**Rule:** every colour in every draw function must trace back to a named token in `DESIGN.md` (the source-of-truth palette). Inline hex is acceptable ONLY inside a named constant block (`PX`, `BOTHY_HAGGIS_PALETTE`, etc.) — never inside draw logic.
 
 If a new colour is genuinely needed, add it to `DESIGN.md` and then to the appropriate constant block. Do not invent off-palette hex inside function bodies.
 
