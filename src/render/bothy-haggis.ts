@@ -145,10 +145,13 @@ export function drawBothyHaggis(
   // Whole-haggis casing: outline, cooked mid-tone, then a smaller lit face.
   fillEllipseRaw(ctx, palette.outline, 1, cx, my(1), 25 * s, 15 * s);
   fillEllipseRaw(ctx, palette.casingMid, 1, cx, my(0), 22 * s, 12.5 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.55, mx(-5), my(-3.5), 15 * s, 7.5 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.68, mx(-5), my(-3.5), 15 * s, 7.5 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 0.5, mx(6), my(7), 15 * s, 4.2 * s);
-  fillEllipseRaw(ctx, palette.casingHighlight, 0.42, mx(-8), my(-8), 9 * s, 2.6 * s);
+  fillEllipseRaw(ctx, palette.casingHighlight, 0.58, mx(-8), my(-8), 9 * s, 2.6 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 0.55, cx, my(11.3), 20 * s, 2.2 * s);
+  fillEllipseRaw(ctx, palette.casingSeam, 0.42, mx(-20.8), my(1.8), 2.1 * s, 6.2 * s);
+  fillEllipseRaw(ctx, palette.casingSeam, 0.48, mx(21.2), my(1.6), 2.4 * s, 6.8 * s);
+  fillEllipseRaw(ctx, palette.casingHighlight, 0.36, mx(18.2), my(-6.3), 2.5 * s, 4.2 * s);
 
   // Asymmetric tied casing. One small pucker and trailing string reads
   // as food packaging; two large side blobs read as ears.
@@ -157,9 +160,12 @@ export function drawBothyHaggis(
   fillEllipseRaw(ctx, palette.casingDeep, 1, mx(22.5), my(4), 1.45 * s, 2.5 * s);
   fillRect(ctx, palette.twineShadow, 0.9, mx(20.2), my(-0.9), 1.15 * s, 8 * s);
   fillRect(ctx, palette.twine, 0.9, mx(22.6), my(0.2), 0.9 * s, 6.2 * s);
+  fillCircle(ctx, palette.twine, 0.95, mx(21.65), my(1.6), 1.15 * s);
+  fillCircle(ctx, palette.twineShadow, 0.85, mx(24.2), my(2.8), 1.15 * s);
+  fillCircle(ctx, palette.twine, 0.76, mx(24.2), my(2.8), 0.72 * s);
   fillCircle(ctx, palette.tartanRed, 0.95, mx(21.85), my(2.1), 0.52 * s);
   fillCircle(ctx, palette.tartanGreen, 0.95, mx(21.95), my(4.2), 0.48 * s);
-  strokeCurve(ctx, palette.twine, 0.85, 0.8 * s, mx(22.6), my(1.6), mx(25.5), my(1.2), mx(27.5), my(4.2));
+  strokeCurve(ctx, palette.twine, 0.8, 0.7 * s, mx(22.6), my(1.6), mx(24.4), my(1.1), mx(25.4), my(3.2));
 
   // Casing seams and cooked wrinkles.
   strokeCurve(ctx, palette.casingSeam, 0.55, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
@@ -192,12 +198,12 @@ export function drawBothyHaggis(
   fillCircle(ctx, palette.outline, 1, mx(8.3), my(-2.2), 4.2 * s);
   fillCircle(ctx, palette.eyeWhite, 1, mx(-7.2), my(-2.5), 3.4 * s);
   fillCircle(ctx, palette.eyeWhite, 1, mx(8.3), my(-2.5), 3.4 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(-5.6), my(-2.0), 1.5 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(9.9), my(-2.0), 1.5 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.9), my(-3.2), 0.6 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(9.7), my(-3.2), 0.6 * s);
-  strokeCurve(ctx, palette.outline, 0.45, 0.55 * s, mx(-10.3), my(-3.2), mx(-7.2), my(-4.2), mx(-3.6), my(-3.5));
-  strokeCurve(ctx, palette.outline, 0.45, 0.55 * s, mx(4.2), my(-3.2), mx(8.6), my(-4.2), mx(12), my(-3.5));
+  fillCircle(ctx, palette.eyePupil, 1, mx(-5.8), my(-2.6), 1.45 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(9.7), my(-2.6), 1.45 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-6.1), my(-3.7), 0.6 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(9.5), my(-3.7), 0.6 * s);
+  strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(-10.4), my(-4.4), mx(-7.3), my(-5), mx(-3.8), my(-4.7));
+  strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(4.1), my(-4.4), mx(8.4), my(-5), mx(11.9), my(-4.7));
 
   // Tiny content smile, low-contrast enough not to become a snout.
   strokeCurve(ctx, palette.mouth, 0.55, 0.8 * s, mx(-2.5), my(3.2), mx(0), my(4.8), mx(3.2), my(3.2));

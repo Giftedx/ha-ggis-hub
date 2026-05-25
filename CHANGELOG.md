@@ -2,6 +2,22 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-26 refine: sharpen Wee Chieftain food-mascot identity
+
+The V3 whole-haggis direction was right, but the first pass still risked reading as a generic brown bean at small sizes. V4 makes the food cue louder without adding animal anatomy: stronger casing compression at both ends, a readable right-side tied-end button-knot, warmer casing highlights so the mascot separates from the brown bothy, and softer alert eyes that stop reading suspicious.
+
+The favicon is now intentionally separate from the walking in-game pose. Instead of shrinking the full mascot with legs and ground clutter, it uses a close-cropped haggis icon: oval casing, cream eyes, oat patch, and tied knot only.
+
+### Changed
+
+- **`src/render/bothy-haggis.ts`** — added casing tension marks, stronger approved-token highlights, a readable twine button-knot, and softer alert eye geometry while preserving the public frame API.
+- **`src/render/bothy-haggis.test.ts`** — locked the V4 shape, knot, eye, and favicon readability constraints.
+- **`public/og.svg`** + **`public/og.png`** — ported the V4 mascot details to the social card.
+- **`public/favicon.svg`** — replaced the full-body mini mascot with a purpose-built close-cropped icon.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined after visual review.
+
+---
+
 ## [Unreleased] — 2026-05-25 refactor: strip haggis back to a committed folk silhouette
 
 After five additive iterations (tied pudding → fabric flaps → tartan band → thistle sprig → adjusted everything) the haggis had become a Christmas pudding in a Burberry cap — busy at every scale, "wearing its Scottishness instead of being it". Root cause from the roast cycle: every pass added a feature; subtraction was never the move. Reversed direction.

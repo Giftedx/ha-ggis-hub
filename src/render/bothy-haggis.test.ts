@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { drawBothyHaggis, BOTHY_HAGGIS_PALETTE } from './bothy-haggis';
 
@@ -66,6 +67,8 @@ describe('drawBothyHaggis', () => {
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).toContain('ellipse:100,101,25,15');
     expect(ctx.calls).toContain('ellipse:100,100,22,12.5');
+    expect(ctx.calls).toContain('ellipse:79.2,101.8,2.1,6.2');
+    expect(ctx.calls).toContain('ellipse:121.2,101.6,2.4,6.8');
   });
 
   it('uses food-mascot colours: casing, oat flecks, cream eyes, and restrained twine', () => {
@@ -97,17 +100,21 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).not.toContain('lineTo:121,109.5');
     expect(ctx.calls).toContain('fillRect:120.2,99.1,1.15,8');
     expect(ctx.calls).toContain('fillRect:122.6,100.2,0.9,6.2');
+    expect(ctx.calls).toContain('arc:121.65,101.6,1.15');
+    expect(ctx.calls).toContain('arc:124.2,102.8,1.15');
+    expect(ctx.calls).toContain('quadraticCurveTo:124.4,101.1,125.4,103.2');
+    expect(ctx.calls).not.toContain('quadraticCurveTo:125.5,101.2,127.5,104.2');
   });
 
-  it('gives the eyes a directed look instead of a vacant centred stare', () => {
+  it('gives the eyes an alert directed look instead of a vacant or sleepy stare', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).not.toContain('arc:93.9,98.1,1.55');
     expect(ctx.calls).not.toContain('arc:109.4,98.1,1.55');
-    expect(ctx.calls).toContain('arc:94.4,98,1.5');
-    expect(ctx.calls).toContain('arc:109.9,98,1.5');
-    expect(ctx.calls).toContain('quadraticCurveTo:92.8,95.8,96.4,96.5');
-    expect(ctx.calls).toContain('quadraticCurveTo:108.6,95.8,112,96.5');
+    expect(ctx.calls).toContain('arc:94.2,97.4,1.45');
+    expect(ctx.calls).toContain('arc:109.7,97.4,1.45');
+    expect(ctx.calls).toContain('quadraticCurveTo:92.7,95,96.2,95.3');
+    expect(ctx.calls).toContain('quadraticCurveTo:108.4,95,111.9,95.3');
   });
 
   it('rounds the tiny feet so the haggis does not stand on table legs', () => {
@@ -152,5 +159,19 @@ describe('drawBothyHaggis', () => {
     expect(left.calls).toContain('fillRect:112.65,111,2.7,5.5');
     expect(left.calls).not.toContain('fillRect:84.65,111,2.7,5.5');
     expect(left.calls.length).toBe(right.calls.length);
+  });
+});
+
+describe('favicon.svg', () => {
+  it('uses a close-cropped haggis icon instead of shrinking the full walking mascot', () => {
+    const svg = readFileSync(new URL('../../public/favicon.svg', import.meta.url), 'utf8');
+    expect(svg).toContain('close-cropped Wee Chieftain mark');
+    expect(svg).toContain('<ellipse cx="15.6" cy="17.2" rx="14" ry="9.8"');
+    expect(svg).toContain('<ellipse cx="8.1" cy="14.7"');
+    expect(svg).toContain('<circle cx="25.9" cy="17.8" r="0.66"');
+    expect(svg).toContain('fill="#f0e6c8"');
+    expect(svg).not.toContain('<rect x="9.2" y="24"');
+    expect(svg).not.toContain('<rect x="12.6" y="24"');
+    expect(svg).not.toContain('<ellipse cx="16" cy="27.2"');
   });
 });
