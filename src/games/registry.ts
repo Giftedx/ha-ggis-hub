@@ -1,14 +1,3 @@
-/**
- * Minimal interaction shape consumed by the registry lookup. The kernel's
- * full interaction lives inside `DecodedSnapshot`; the registry only needs
- * to know whether an interaction exists and which door id it targets, so
- * a local alias keeps the boundary surface lean.
- */
-export interface HubInteraction {
-  readonly kind: 'none' | 'launchable' | 'locked';
-  readonly id: string;
-}
-
 export type HubGameStatus = 'playable' | 'coming-soon' | 'disabled';
 
 export type HubGameLaunchTarget =
@@ -50,17 +39,6 @@ export function getGameById(
   id: string
 ): HubGameDefinition | undefined {
   return registry.find((game) => game.id === id);
-}
-
-export function interactionToRegistryEntry(
-  interaction: HubInteraction,
-  registry: readonly HubGameDefinition[]
-): HubGameDefinition | null {
-  if (interaction.kind === 'none' || interaction.id.length === 0) {
-    return null;
-  }
-
-  return getGameById(registry, interaction.id) ?? null;
 }
 
 export function validateGameRegistry(registry: readonly HubGameDefinition[]): string[] {

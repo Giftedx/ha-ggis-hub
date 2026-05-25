@@ -146,9 +146,8 @@ async function start(root: HTMLElement): Promise<void> {
     winHooks.__stateHash = () => boundary.stateHash();
     winHooks.__seed = seed;
 
-    // Real launch navigator — external-url → window.location.assign,
-    // route → same-origin pushState. Wraps window.location so tests can
-    // substitute a fake LaunchNavigator (tests don't talk to window).
+    // Launch navigator — always uses location.assign today. Route targets
+    // will need pushState + lifecycle host wiring when WHS mounts in-repo.
     const launchNavigator: LaunchNavigator = {
       navigate(target: string): void {
         window.location.assign(target);

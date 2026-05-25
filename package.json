@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.12.1",
-  "description": "Playable Rust/WASM haggis game hub for ha.ggis.xyz.",
+  "description": "Playable Rust/WASM haggis games lobby for ha.ggis.xyz.",
   "engines": {
     "node": ">=22 <26",
     "pnpm": ">=10 <11"

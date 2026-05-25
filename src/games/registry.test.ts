@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   HUB_GAME_REGISTRY,
   getGameById,
-  interactionToRegistryEntry,
-  validateGameRegistry,
-  type HubInteraction
+  validateGameRegistry
 } from './registry';
 
 describe('game registry', () => {
@@ -102,15 +100,4 @@ describe('game registry', () => {
     ]);
   });
 
-  it('maps WASM interactions to registry entries by id and fails closed for unknown or empty interactions', () => {
-    const launchable: HubInteraction = { kind: 'launchable', id: 'wild-haggis-survivors' };
-    const locked: HubInteraction = { kind: 'locked', id: 'future-bothy' };
-    const unknown: HubInteraction = { kind: 'launchable', id: 'missing-game' };
-    const empty: HubInteraction = { kind: 'none', id: '' };
-
-    expect(interactionToRegistryEntry(launchable, HUB_GAME_REGISTRY)?.title).toBe('Wild Haggis Survivors');
-    expect(interactionToRegistryEntry(locked, HUB_GAME_REGISTRY)?.launch.kind).toBe('none');
-    expect(interactionToRegistryEntry(unknown, HUB_GAME_REGISTRY)).toBeNull();
-    expect(interactionToRegistryEntry(empty, HUB_GAME_REGISTRY)).toBeNull();
-  });
 });

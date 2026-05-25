@@ -27,7 +27,7 @@ If you only have time for the load-bearing five, read these in order:
 
 ## Current state
 
-- Product: playable haggis game hub (single bothy room + door-to-game launch).
+- Product: playable haggis games lobby (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
 - Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + lint + 144 vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
