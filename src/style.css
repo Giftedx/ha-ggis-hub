@@ -106,6 +106,57 @@ body {
   border-radius: 2px;
 }
 
+.scene-fallback {
+  position: fixed;
+  top: 3.8rem;
+  left: 1.2rem;
+  max-width: min(21rem, calc(100vw - 2.4rem));
+  margin: 0;
+  padding: 0.55rem 0.7rem 0.6rem;
+  color: var(--hub-tatties-cream);
+  background: var(--hub-ink-deep);
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  z-index: 2;
+  border: 1px solid rgba(184, 168, 120, 0.28);
+  border-radius: 3px;
+  /* Keep the canvas playable under the persistent help plate. The link
+     opts back in below; empty panel space must not block pointer-drive. */
+  pointer-events: none;
+}
+
+.scene-fallback h2,
+.scene-fallback p {
+  margin: 0;
+}
+
+.scene-fallback h2 {
+  color: var(--hub-cairn-stone);
+  font-size: 0.82rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.scene-fallback p + p {
+  margin-top: 0.35rem;
+}
+
+.scene-fallback a {
+  color: var(--hub-neeps-orange);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  pointer-events: auto;
+}
+
+.scene-fallback a:focus-visible {
+  outline: 2px solid var(--hub-neeps-orange);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .scene-status {
   position: fixed;
   top: 0.9rem;
@@ -151,6 +202,29 @@ body {
 
 .scene-hint--fading {
   opacity: 0;
+}
+
+@media (max-width: 420px) {
+  .scene-hint {
+    top: 0.65rem;
+    max-width: calc(100vw - 1.4rem);
+    padding: 0.35rem 0.6rem;
+    font-size: 0.74rem;
+    text-align: center;
+  }
+
+  .scene-fallback {
+    top: 5.5rem;
+    left: 0.7rem;
+    max-width: calc(100vw - 1.4rem);
+    padding: 0.45rem 0.55rem;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .scene-fallback h2 {
+    font-size: 0.76rem;
+  }
 }
 
 /* Dev-mode diagnostics overlay — visible only when ?debug=1 is in the URL.

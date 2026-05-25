@@ -1,5 +1,6 @@
 import './style.css';
 import { createAppModel } from './app/app';
+import { createShell } from './app/shell';
 import { createKeyboardInputSampler } from './engine/input';
 import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from './engine/fixed-step';
 import { InputLogWriter } from './engine/input-log';
@@ -302,69 +303,5 @@ async function start(root: HTMLElement): Promise<void> {
   } catch (error: unknown) {
     shell.status.textContent = 'the bothy wouldnae load — try the corner link';
     console.error(error);
-  }
-}
-
-interface SceneElements {
-  readonly scene: HTMLElement;
-  readonly canvas: HTMLCanvasElement;
-  readonly status: HTMLElement;
-  readonly hint: HTMLElement;
-}
-
-function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
-  const scene = document.createElement('section');
-  scene.className = 'scene';
-  scene.setAttribute('aria-label', 'ha.ggis hub bothy');
-
-  const canvas = document.createElement('canvas');
-  canvas.className = 'scene-canvas';
-  canvas.setAttribute('aria-label', model.projectName);
-  canvas.setAttribute('role', 'img');
-  sizeCanvasToViewport(canvas);
-  window.addEventListener('resize', () => { sizeCanvasToViewport(canvas); }, { passive: true });
-
-  // Domain wordmark — makes the ha + ggis = haggis pun visible on the
-  // page itself, not just in the browser tab or address bar.
-  const brand = document.createElement('h1');
-  brand.className = 'scene-brand';
-  brand.textContent = 'ha · ggis';
-
-  const direct = document.createElement('a');
-  direct.className = 'scene-direct';
-  direct.href = model.directPlay.target;
-  direct.textContent = 'awa’ in →';
-  direct.rel = 'noopener noreferrer';
-  direct.setAttribute('aria-label', model.directPlay.label);
-
-  const status = document.createElement('p');
-  status.className = 'scene-status';
-  status.setAttribute('role', 'status');
-
-  // First-time hint — main.ts dismisses it on first input or after a
-  // few seconds. Aria-hidden because screen readers should read the
-  // `direct` link's aria-label instead, not this transient overlay.
-  const hint = document.createElement('p');
-  hint.className = 'scene-hint';
-  hint.textContent = 'walk wi’ arrows/WASD or drag · chap/tap a door';
-  hint.setAttribute('aria-hidden', 'true');
-
-  scene.append(canvas, brand, direct, hint, status);
-  return { scene, canvas, status, hint };
-}
-
-function sizeCanvasToViewport(canvas: HTMLCanvasElement): void {
-  // Internal canvas resolution. The hub is a small intimate Highland
-  // bothy, not a stadium — we lock the playfield to a 3:2 aspect ratio
-  // (540×360) so any viewport wider than 3:2 gets letterboxed via CSS
-  // (object-fit:contain) instead of stretching the room sideways. The
-  // previous code adapted internal width to viewport aspect which gave
-  // a billiard-table feel on widescreens.
-  const dpr = Math.round(window.devicePixelRatio || 1);
-  const w = 540 * dpr;
-  const h = 360 * dpr;
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
   }
 }

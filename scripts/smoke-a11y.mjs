@@ -13,13 +13,15 @@
 //      (no `user-scalable=no`, no `maximum-scale` below 2).
 //   3. WCAG 2.4.2 — Page Titled: non-empty <title>.
 //   4. WCAG 1.1.1 — Non-text Content: <canvas> has accessible name.
-//   5. WCAG 4.1.2 — Name, Role, Value: every interactive element
+//   5. WCAG 1.1.1 / 2.1.1 — Persistent semantic fallback/help text
+//      describes canvas controls and exposes a direct game link.
+//   6. WCAG 4.1.2 — Name, Role, Value: every interactive element
 //      (link, button, input) has an accessible name.
-//   6. WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
+//   7. WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
 //      from the keyboard.
-//   7. WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
+//   8. WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
 //      `outline: none` without an alternate visible style).
-//   8. WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
+//   9. WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
 //      reads as a text+plate combination clears 4.5:1 for normal text.
 //      Pairs declared inline — keep this in sync with the palette in
 //      src/render/canvas-room.ts and the noscript style in index.html.
@@ -150,6 +152,16 @@ const TEXT_PAIRS = [
     label: 'scene-direct link (focus neeps-orange) on backdrop',
     fg: '#e4a020',
     bg: '#1a0e08'
+  },
+  {
+    label: 'fallback panel text on ink-deep backdrop',
+    fg: '#f0e6c8',
+    bg: '#1a0e08'
+  },
+  {
+    label: 'fallback panel link on ink-deep backdrop',
+    fg: '#e4a020',
+    bg: '#1a0e08'
   }
 ];
 
@@ -213,11 +225,49 @@ try {
       `aria-label=${JSON.stringify(canvasName.label)}`);
   }
 
-  // 5. Every interactive element has an accessible name. Hub keeps the
-  //    surface small (one anchor in the scene shell; noscript anchor
-  //    only fires when JS is off — still asserted). Done via the
-  //    Playwright accessibility snapshot which folds the same rules
-  //    a screen reader applies.
+  // 5. Persistent semantic fallback/help. This is the JS-on counterpart
+  //    to the noscript fallback: readable controls plus a semantic direct
+  //    game link for visitors who cannot or do not want to use canvas controls.
+  const fallbackHelp = await page.evaluate(() => {
+    const panel = document.querySelector('.scene-fallback');
+    const canvas = document.querySelector('canvas.scene-canvas');
+    const describedBy = canvas?.getAttribute('aria-describedby') ?? '';
+    const describedText = describedBy
+      .split(/\s+/)
+      .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+      .filter((text) => text.length > 0)
+      .join(' ');
+    const link = panel?.querySelector('a[href]');
+    return {
+      found: panel !== null,
+      hidden: panel?.getAttribute('aria-hidden') === 'true',
+      labelledBy: panel?.getAttribute('aria-labelledby') ?? '',
+      text: panel?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+      describedBy,
+      describedText,
+      linkHref: link?.getAttribute('href') ?? '',
+      linkName: link?.getAttribute('aria-label') ?? link?.textContent?.trim() ?? ''
+    };
+  });
+  const helpText = `${fallbackHelp.text} ${fallbackHelp.describedText}`;
+  const mentionsControls = /arrows/i.test(helpText)
+    && /wasd/i.test(helpText)
+    && /enter/i.test(helpText)
+    && /space/i.test(helpText)
+    && /chap a door/i.test(helpText)
+    && /tap a door/i.test(helpText);
+  const hasDirectFallback = fallbackHelp.linkHref === 'https://wild-haggis-survivors.pages.dev/'
+    && /Wild Haggis Survivors/i.test(fallbackHelp.linkName);
+  record('1.1.1', 'persistent fallback/help instructions',
+    fallbackHelp.found && !fallbackHelp.hidden && fallbackHelp.labelledBy.length > 0 && mentionsControls,
+    `text=${JSON.stringify(fallbackHelp.text)} describedBy=${JSON.stringify(fallbackHelp.describedBy)}`);
+  record('2.1.1', 'persistent fallback direct game link', hasDirectFallback,
+    `href=${JSON.stringify(fallbackHelp.linkHref)} name=${JSON.stringify(fallbackHelp.linkName)}`);
+
+  // 6. Every interactive element has an accessible name. Hub keeps the
+  //    surface small (scene links plus the noscript anchor when JS is off).
+  //    Done via the Playwright accessibility snapshot which folds the
+  //    same rules a screen reader applies.
   const interactives = await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll('a, button, input, select, textarea'));
     return els.map((el) => {
@@ -240,9 +290,9 @@ try {
       `accessibleName=${JSON.stringify(el.accessibleName)}`);
   }
 
-  // 6. Direct-play link keyboard reachable. Tab from body and verify
-  //    the link receives focus — the scene anchor is the only
-  //    focusable element in the shell, so a single Tab lands on it.
+  // 7. Launch links keyboard reachable. Tab from body and verify the
+  //    corner direct link receives focus first, then the semantic fallback
+  //    link receives focus second.
   await page.evaluate(() => document.body.focus());
   await page.keyboard.press('Tab');
   const focusedTag = await page.evaluate(() => {
@@ -258,35 +308,55 @@ try {
     && /scene-direct/.test(focusedTag.className);
   record('2.1.1', 'direct-play link reachable via Tab', directReachable,
     `focused=${JSON.stringify(focusedTag)}`);
-
-  // 7. Focus visible — outline computed to something other than `none`
-  //    (or a non-zero outline width). With the direct-play link
-  //    focused from check 6, read its outline.
-  const focusStyle = await page.evaluate(() => {
-    const el = document.querySelector('a.scene-direct');
-    if (!el) return null;
-    el.focus();
-    const cs = window.getComputedStyle(el);
-    return {
-      outlineStyle: cs.outlineStyle,
-      outlineWidth: cs.outlineWidth,
-      outlineColor: cs.outlineColor,
-      boxShadow: cs.boxShadow
-    };
+  await page.keyboard.press('Tab');
+  const secondFocusedTag = await page.evaluate(() => {
+    const el = document.activeElement;
+    return el ? {
+      tag: el.tagName.toLowerCase(),
+      className: el.className ?? '',
+      accessibleName: el.getAttribute?.('aria-label') ?? el.textContent?.trim() ?? ''
+    } : null;
   });
-  if (focusStyle === null) {
-    record('2.4.7', 'focus indicator visible', false, 'no a.scene-direct in DOM');
-  } else {
+  const fallbackReachable = secondFocusedTag !== null
+    && secondFocusedTag.tag === 'a'
+    && /Wild Haggis Survivors/i.test(secondFocusedTag.accessibleName);
+  record('2.1.1', 'fallback direct link reachable via Tab', fallbackReachable,
+    `focused=${JSON.stringify(secondFocusedTag)}`);
+
+  // 8. Focus visible — outline computed to something other than `none`
+  //    (or a non-zero outline width). Check both visible launch links.
+  const focusStyles = await page.evaluate(() => {
+    const selectors = ['a.scene-direct', '.scene-fallback a'];
+    return selectors.map((selector) => {
+      const el = document.querySelector(selector);
+      if (!el) return { selector, found: false };
+      el.focus();
+      const cs = window.getComputedStyle(el);
+      return {
+        selector,
+        found: true,
+        outlineStyle: cs.outlineStyle,
+        outlineWidth: cs.outlineWidth,
+        outlineColor: cs.outlineColor,
+        boxShadow: cs.boxShadow
+      };
+    });
+  });
+  for (const focusStyle of focusStyles) {
+    if (!focusStyle.found) {
+      record('2.4.7', `${focusStyle.selector} focus indicator visible`, false, 'link missing from DOM');
+      continue;
+    }
     const widthPx = parseFloat(focusStyle.outlineWidth) || 0;
     const styled = focusStyle.outlineStyle && focusStyle.outlineStyle !== 'none' && widthPx > 0;
     const shadowed = focusStyle.boxShadow && focusStyle.boxShadow !== 'none';
     const visible = styled || shadowed;
-    record('2.4.7', 'focus indicator visible', !!visible,
+    record('2.4.7', `${focusStyle.selector} focus indicator visible`, !!visible,
       `outline=${focusStyle.outlineWidth} ${focusStyle.outlineStyle} ${focusStyle.outlineColor}` +
       `; boxShadow=${focusStyle.boxShadow}`);
   }
 
-  // 8. Contrast ratio assertions on declared text pairs.
+  // 9. Contrast ratio assertions on declared text pairs.
   for (const pair of TEXT_PAIRS) {
     let ratio;
     if (pair.bgUnder) {
