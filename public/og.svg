@@ -61,19 +61,20 @@
     <circle cx="-12" cy="20.5" r="1.2" fill="#7a4a9c" opacity="0.7"/>
     <circle cx="5"   cy="21"   r="1.0" fill="#7a4a9c" opacity="0.6"/>
 
-    <!-- Asymmetric drift legs — left pair LONG, right pair SHORT.
-         The canonical tourist haggis-circles-hills-one-way joke. -->
+    <!-- Asymmetric drift legs — left pair LONG (height 9), right pair
+         SHORT (height 3). The canonical tourist haggis-circles-hills-
+         one-way joke, exaggerated so it actually reads at this scale. -->
     <g fill="#1a0e08">
-      <rect x="-11.5" y="15" width="3.0" height="7"/>
-      <rect x="-5.5"  y="15" width="3.0" height="7"/>
-      <rect x="2.5"   y="15" width="3.0" height="4"/>
-      <rect x="8.5"   y="15" width="3.0" height="4"/>
+      <rect x="-11.5" y="15" width="3.0" height="9"/>
+      <rect x="-5.5"  y="15" width="3.0" height="9"/>
+      <rect x="2.5"   y="15" width="3.0" height="3"/>
+      <rect x="8.5"   y="15" width="3.0" height="3"/>
     </g>
     <g fill="#0a0604">
-      <rect x="-12" y="20.6" width="4.0" height="1.4"/>
-      <rect x="-6"  y="20.6" width="4.0" height="1.4"/>
-      <rect x="2"   y="17.6" width="4.0" height="1.4"/>
-      <rect x="8"   y="17.6" width="4.0" height="1.4"/>
+      <rect x="-12" y="22.6" width="4.0" height="1.4"/>
+      <rect x="-6"  y="22.6" width="4.0" height="1.4"/>
+      <rect x="2"   y="16.6" width="4.0" height="1.4"/>
+      <rect x="8"   y="16.6" width="4.0" height="1.4"/>
     </g>
 
     <!-- Sack body silhouette ring + main fill — pear-shaped, narrow
@@ -92,49 +93,87 @@
     <ellipse cx="-2" cy="-8" rx="7" ry="2.25" fill="#a06030" opacity="0.5"/>
     <ellipse cx="2"  cy="-6" rx="5" ry="1.5"  fill="#a06030" opacity="0.35"/>
 
-    <!-- Knobbly stuffing texture — short stitch strokes on the
-         lower-body curves where stuffing pushes against the cloth. -->
-    <g stroke="#1a0e08" stroke-width="0.75" stroke-linecap="round" opacity="0.85">
-      <line x1="-14" y1="5"  x2="-12" y2="7"/>
-      <line x1="-10" y1="9"  x2="-8"  y2="11"/>
-      <line x1="-5"  y1="11" x2="-3"  y2="13"/>
-      <line x1="3"   y1="11" x2="5"   y2="13"/>
-      <line x1="8"   y1="9"  x2="10"  y2="11"/>
-      <line x1="12"  y1="5"  x2="14"  y2="7"/>
-      <line x1="-14" y1="0"  x2="-13" y2="2"/>
-      <line x1="13"  y1="0"  x2="14"  y2="2"/>
-      <line x1="-10" y1="14" x2="-8"  y2="16"/>
-      <line x1="8"   y1="14" x2="10"  y2="16"/>
-      <line x1="-3"  y1="15" x2="-1"  y2="17"/>
-      <line x1="1"   y1="15" x2="3"   y2="17"/>
+    <!-- Knobbly stuffing texture — irregular stitch strokes on the
+         lower-body curves. Varied lengths + angles so the surface
+         feels hand-textured, not gridded. -->
+    <g stroke="#1a0e08" stroke-width="0.7" stroke-linecap="round" opacity="0.8">
+      <line x1="-13.5" y1="6"    x2="-11.8" y2="8.3"/>
+      <line x1="-10.2" y1="10"   x2="-9"    y2="11.5"/>
+      <line x1="-5"    y1="11.8" x2="-3.6"  y2="13"/>
+      <line x1="2.5"   y1="12"   x2="4.2"   y2="13.5"/>
+      <line x1="9"     y1="10.2" x2="10.5"  y2="11.6"/>
+      <line x1="13"    y1="6.5"  x2="14.2"  y2="8"/>
+      <line x1="-15"   y1="1.5"  x2="-13.7" y2="3"/>
+      <line x1="14"    y1="2"    x2="13"    y2="3.6"/>
+      <line x1="-9.5"  y1="14.5" x2="-7.7"  y2="16"/>
+      <line x1="9"     y1="14.2" x2="7.4"   y2="15.8"/>
+      <line x1="-2"    y1="15.5" x2="-0.5"  y2="17.2"/>
     </g>
 
     <!-- Belly shadow — soft darker patch on the lower half -->
     <ellipse cx="0" cy="10" rx="10" ry="2.5" fill="#2a1810" opacity="0.32"/>
 
-    <!-- Tied neck: fabric ears (gathered cloth) then twine wraps. -->
-    <!-- Left fabric ear flopping outward (visible side + underside shadow) -->
-    <path d="M -4.5,-15.5 Q -10,-19 -12,-17 Q -9,-15.5 -3,-15 Z" fill="#6a4528"/>
-    <path d="M -5,-15 Q -9,-16.5 -11,-15.5 Q -9,-14.7 -4.5,-14.5 Z" fill="#2a1810" opacity="0.55"/>
-    <!-- Right fabric ear -->
-    <path d="M 4.5,-15.5 Q 10,-19 12,-17 Q 9,-15.5 3,-15 Z" fill="#6a4528"/>
-    <path d="M 5,-15 Q 9,-16.5 11,-15.5 Q 9,-14.7 4.5,-14.5 Z" fill="#2a1810" opacity="0.55"/>
+    <!-- Tied neck: small drooping fabric flaps, then TARTAN cord wraps,
+         then a thistle sprig tucked at the cinch front. -->
+    <!-- Left fabric flap — tip droops down-and-out (no longer wings) -->
+    <path d="M -4,-15 Q -7,-16.5 -8.5,-15 Q -6,-14.5 -3,-14.5 Z" fill="#6a4528"/>
+    <path d="M -4,-14.7 Q -6,-15.4 -7.5,-14.7 Q -5,-14.3 -3.5,-14.3 Z" fill="#2a1810" opacity="0.6"/>
+    <!-- Right fabric flap -->
+    <path d="M 4,-15 Q 7,-16.5 8.5,-15 Q 6,-14.5 3,-14.5 Z" fill="#6a4528"/>
+    <path d="M 4,-14.7 Q 6,-15.4 7.5,-14.7 Q 5,-14.3 3.5,-14.3 Z" fill="#2a1810" opacity="0.6"/>
 
-    <!-- Three twine wraps across the cinch -->
-    <ellipse cx="0" cy="-13"    rx="11" ry="1.1" fill="#6a4a30"/>
-    <ellipse cx="0" cy="-13.5"  rx="11" ry="0.9" fill="#c4a878"/>
-    <ellipse cx="-2.75" cy="-13.75" rx="5.5" ry="0.4" fill="#f4d8a0" opacity="0.7"/>
-    <ellipse cx="0" cy="-11.7"  rx="12" ry="1.1" fill="#6a4a30"/>
-    <ellipse cx="0" cy="-12.2"  rx="12" ry="0.9" fill="#c4a878"/>
-    <ellipse cx="-3" cy="-12.45" rx="6" ry="0.4" fill="#f4d8a0" opacity="0.7"/>
-    <ellipse cx="0" cy="-10.3"  rx="13" ry="1.1" fill="#6a4a30"/>
-    <ellipse cx="0" cy="-10.8"  rx="13" ry="0.9" fill="#c4a878"/>
-    <ellipse cx="-3.25" cy="-11.05" rx="6.5" ry="0.4" fill="#f4d8a0" opacity="0.7"/>
+    <!-- TARTAN cord wraps — three banded cords (red+green+cream) at the
+         cinch. The visible Highland identity tell. Each wrap has a
+         shadow rim, a cream base, three darker stripes in its primary
+         tartan colour, and a thin cross-stripe of the secondary. -->
+    <!-- Wrap 1 (red-primary, highest) -->
+    <ellipse cx="0" cy="-12.3" rx="11" ry="1.1" fill="#3a1410"/>
+    <ellipse cx="0" cy="-12.8" rx="11" ry="0.9" fill="#f4d8a0"/>
+    <ellipse cx="-3.85" cy="-12.8" rx="1.98" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="0"     cy="-12.8" rx="1.98" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="3.85"  cy="-12.8" rx="1.98" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="-1.65" cy="-12.8" rx="0.66" ry="0.85" fill="#1f4628" opacity="0.55"/>
+    <ellipse cx="1.65"  cy="-12.8" rx="0.66" ry="0.85" fill="#1f4628" opacity="0.55"/>
+    <!-- Wrap 2 (green-primary, middle) -->
+    <ellipse cx="0" cy="-11"   rx="12" ry="1.1" fill="#3a1410"/>
+    <ellipse cx="0" cy="-11.5" rx="12" ry="0.9" fill="#f4d8a0"/>
+    <ellipse cx="-4.2" cy="-11.5" rx="2.16" ry="0.85" fill="#1f4628"/>
+    <ellipse cx="0"    cy="-11.5" rx="2.16" ry="0.85" fill="#1f4628"/>
+    <ellipse cx="4.2"  cy="-11.5" rx="2.16" ry="0.85" fill="#1f4628"/>
+    <ellipse cx="-1.8" cy="-11.5" rx="0.72" ry="0.85" fill="#9c2018" opacity="0.55"/>
+    <ellipse cx="1.8"  cy="-11.5" rx="0.72" ry="0.85" fill="#9c2018" opacity="0.55"/>
+    <!-- Wrap 3 (red-primary, lowest) -->
+    <ellipse cx="0" cy="-9.6"  rx="13" ry="1.1" fill="#3a1410"/>
+    <ellipse cx="0" cy="-10.1" rx="13" ry="0.9" fill="#f4d8a0"/>
+    <ellipse cx="-4.55" cy="-10.1" rx="2.34" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="0"     cy="-10.1" rx="2.34" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="4.55"  cy="-10.1" rx="2.34" ry="0.85" fill="#9c2018"/>
+    <ellipse cx="-1.95" cy="-10.1" rx="0.78" ry="0.85" fill="#1f4628" opacity="0.55"/>
+    <ellipse cx="1.95"  cy="-10.1" rx="0.78" ry="0.85" fill="#1f4628" opacity="0.55"/>
 
-    <!-- Twine tails curling out either side of the wraps -->
-    <g stroke="#6a4a30" stroke-width="0.7" stroke-linecap="round" fill="none">
-      <path d="M -7,-12.5 Q -9,-12 -10,-11"/>
-      <path d="M 7,-12.5 Q 9,-12 10,-11"/>
+    <!-- Cord tails — red, curling out either side of the wraps -->
+    <g stroke="#9c2018" stroke-width="0.7" stroke-linecap="round" fill="none">
+      <path d="M -7,-11 Q -9,-10.5 -10,-9.5"/>
+      <path d="M 7,-11 Q 9,-10.5 10,-9.5"/>
+    </g>
+
+    <!-- THISTLE sprig — the iconic Scottish flower, tucked at the
+         front-right of the cinch. Stem + bract + purple fluffy head
+         + bright purple hair-strokes. Rhymes visually with the
+         heather patch under the haggis. -->
+    <line x1="4" y1="-10" x2="5" y2="-12.5"
+          stroke="#3a5a30" stroke-width="0.7" stroke-linecap="round"/>
+    <ellipse cx="4.6" cy="-11.2" rx="0.9" ry="0.4" fill="#3a5a30"/>
+    <ellipse cx="4.2" cy="-10.5" rx="0.7" ry="0.35" fill="#3a5a30" opacity="0.85"/>
+    <path d="M 4.2,-13 L 5,-13.8 L 5.8,-13 L 5,-12.4 Z" fill="#3a5a30"/>
+    <circle cx="5"   cy="-14.2" r="1.1" fill="#7a4a9c"/>
+    <circle cx="4.4" cy="-14.4" r="0.8" fill="#7a4a9c"/>
+    <circle cx="5.6" cy="-14.4" r="0.8" fill="#7a4a9c"/>
+    <circle cx="4.8" cy="-14.7" r="0.5" fill="#c46abc" opacity="0.8"/>
+    <g stroke="#c46abc" stroke-width="0.4" stroke-linecap="round">
+      <line x1="5"   y1="-15.2" x2="5.2" y2="-15.8"/>
+      <line x1="4.4" y1="-15.0" x2="4.1" y2="-15.6"/>
+      <line x1="5.6" y1="-15.0" x2="5.9" y2="-15.6"/>
     </g>
 
     <!-- Face: muzzle bulge + dark nose + nostrils + smile -->
@@ -144,10 +183,14 @@
     <circle  cx="-0.9" cy="1.9" r="0.35" fill="#0a0604" opacity="0.85"/>
     <circle  cx="0.9"  cy="1.9" r="0.35" fill="#0a0604" opacity="0.85"/>
 
-    <!-- Smile -->
-    <path d="M -2.4,3.6 Q 0,4.8 2.4,3.6"
-          stroke="#0a0604" stroke-width="0.8" stroke-linecap="round"
-          fill="none" opacity="0.95"/>
+    <!-- Smile — wider + thicker than v1 so it actually reads at
+         thumbnail scale. Tiny warm shadow underneath. -->
+    <path d="M -3.4,3.3 Q 0,5.2 3.4,3.3"
+          stroke="#0a0604" stroke-width="1.1" stroke-linecap="round"
+          fill="none"/>
+    <path d="M -2.8,4.3 Q 0,5.6 2.8,4.3"
+          stroke="#5a3220" stroke-width="0.6" stroke-linecap="round"
+          fill="none" opacity="0.4"/>
 
     <!-- Eyes — wide apart, slight asymmetry (right eye larger,
          catchlights at offset angles so the face feels hand-drawn). -->

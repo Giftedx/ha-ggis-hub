@@ -75,10 +75,12 @@ describe('drawBothyHaggis', () => {
     expect(closed.calls.length).toBeLessThan(open.calls.length);
   });
 
-  it('exposes the tied-pudding palette tokens', () => {
+  it('exposes the tartan/thistle palette tokens (Scottish identity tells)', () => {
     expect(BOTHY_HAGGIS_PALETTE.sackMid).toBe('#6a4528');
-    expect(BOTHY_HAGGIS_PALETTE.twine).toBe('#c4a878');
-    expect(BOTHY_HAGGIS_PALETTE.sackRim).toBe('#fff0c8');
+    expect(BOTHY_HAGGIS_PALETTE.tartanRed).toBe('#9c2018');
+    expect(BOTHY_HAGGIS_PALETTE.tartanGreen).toBe('#1f4628');
+    expect(BOTHY_HAGGIS_PALETTE.tartanCream).toBe('#f4d8a0');
+    expect(BOTHY_HAGGIS_PALETTE.thistlePurple).toBe('#7a4a9c');
   });
 
   it('facingLeft mirrors only the asymmetric leg drift, not the sack', () => {

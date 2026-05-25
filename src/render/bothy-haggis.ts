@@ -53,9 +53,13 @@ export interface BothyHaggisPalette {
   readonly sackLit:     string;   // dawn-lit top-front body
   readonly sackRim:     string;   // dawn rim at the very top
   readonly stitchInk:   string;   // internal wrinkle/stitch strokes
-  readonly twine:       string;   // oat-tan cord wrap
-  readonly twineLit:    string;   // cord highlight catching dawn
-  readonly twineDark:   string;   // cord shadow lines
+  readonly tartanRed:   string;   // Stewart-ish red — primary tartan band
+  readonly tartanGreen: string;   // BlackWatch-ish dark moss green
+  readonly tartanCream: string;   // cream stripe between dark bands
+  readonly tartanShadow: string;  // tartan cord shadow ring
+  readonly thistlePurple: string; // thistle flower head
+  readonly thistleStem:   string; // thistle stem + leaves
+  readonly thistleHilite: string; // thistle bract highlight
   readonly snoutDark:   string;
   readonly snoutHint:   string;
   readonly mouthLine:   string;
@@ -73,23 +77,27 @@ export interface BothyHaggisPalette {
 // as a bright oat-cream against the body — the focal "this is a tied
 // pudding" cue.
 export const BOTHY_HAGGIS_PALETTE: BothyHaggisPalette = {
-  sackBase:    '#2a1810',
-  sackMid:     '#6a4528',
-  sackLit:     '#a06030',
-  sackRim:     '#fff0c8',
-  stitchInk:   '#1a0e08',
-  twine:       '#c4a878',
-  twineLit:    '#f4d8a0',
-  twineDark:   '#6a4a30',
-  snoutDark:   '#1a0e08',
-  snoutHint:   '#5a3220',
-  mouthLine:   '#0a0604',
-  eyeWhite:    '#f0e6c8',
-  eyePupil:    '#0a0604',
-  eyeCatch:    '#fff0c8',
-  legDark:     '#1a0e08',
-  heatherShadow: '#28182c',
-  heatherBloom:  '#7a4a9c'
+  sackBase:       '#2a1810',
+  sackMid:        '#6a4528',
+  sackLit:        '#a06030',
+  sackRim:        '#fff0c8',
+  stitchInk:      '#1a0e08',
+  tartanRed:      '#9c2018',
+  tartanGreen:    '#1f4628',
+  tartanCream:    '#f4d8a0',
+  tartanShadow:   '#3a1410',
+  thistlePurple:  '#7a4a9c',
+  thistleStem:    '#3a5a30',
+  thistleHilite:  '#c46abc',
+  snoutDark:      '#1a0e08',
+  snoutHint:      '#5a3220',
+  mouthLine:      '#0a0604',
+  eyeWhite:       '#f0e6c8',
+  eyePupil:       '#0a0604',
+  eyeCatch:       '#fff0c8',
+  legDark:        '#1a0e08',
+  heatherShadow:  '#28182c',
+  heatherBloom:   '#7a4a9c'
 };
 
 export interface BothyHaggisFrame {
@@ -137,14 +145,13 @@ export function drawBothyHaggis(
   fillCircle(ctx, palette.heatherBloom, 0.6, mx(5),   my(21),   1.0 * s);
 
   // ── ASYMMETRIC LEGS — the canonical drift gag.
-  //    Four stubs at the bottom of the sack. ONE SIDE is noticeably
-  //    shorter than the other (≈40% height difference) so the haggis
-  //    visibly leans to one side. The short side flips with facingLeft
-  //    so the "uphill" foot points the way the haggis is heading.
+  //    Four stubs at the bottom of the sack. ONE SIDE is dramatically
+  //    shorter than the other (~3x difference) so the drift gag is
+  //    actually visible at runtime scale, not a one-pixel offset.
   //    Drawn FIRST so the body sack covers the leg tops.
   const legW = 3.0 * s;
-  const longH = 7 * s;
-  const shortH = 4 * s;
+  const longH = 9 * s;
+  const shortH = 3 * s;
   const legBaseY = my(15);
   // dir = +1: short side is on the LEFT (ax<0); dir = -1: short side flips
   // to ax>0. ax already handles the mirror so we can index by design x.
@@ -177,29 +184,28 @@ export function drawBothyHaggis(
   fillEllipseRaw(ctx, palette.sackLit, 0.35, mx(2), my(-6), 10 * s, 3 * s);
 
   // ── Knobbly stuffing texture — short dark stitch strokes scattered
-  //    inside the body. Suggests the bulges of stuffing pushing
-  //    against the cloth. Anchored deterministically; visibility
-  //    bumped over v1 so the surface actually reads as stuffed.
+  //    inside the body. Earlier versions drew 12 strokes in symmetric
+  //    pairs — read as correction-tape. This pass uses fewer, more
+  //    irregular strokes with varied length and direction so the
+  //    surface feels hand-textured, not gridded.
   ctx.save();
-  ctx.globalAlpha = 0.85;
+  ctx.globalAlpha = 0.8;
   ctx.strokeStyle = palette.stitchInk;
-  ctx.lineWidth = Math.max(1, 0.75 * s);
+  ctx.lineWidth = Math.max(1, 0.7 * s);
   const stitches: readonly [number, number, number, number][] = [
-    // [x1, y1, x2, y2] — short ticks suggesting the cloth bulging.
-    // Placed on the lower-body curves where the stuffing would push
-    // most visibly against the sack. Top half kept clean for the face.
-    [-14,  5, -12,  7 ],
-    [-10,  9,  -8, 11 ],
-    [ -5, 11,  -3, 13 ],
-    [  3, 11,   5, 13 ],
-    [  8,  9,  10, 11 ],
-    [ 12,  5,  14,  7 ],
-    [-14,  0, -13,  2 ],
-    [ 13,  0,  14,  2 ],
-    [-10, 14,  -8, 16 ],
-    [  8, 14,  10, 16 ],
-    [ -3, 15,  -1, 17 ],
-    [  1, 15,   3, 17 ]
+    // Irregular small wrinkles — varied length, varied angle, scattered
+    // across the lower body. Top half kept clean for the face.
+    [-13.5,  6,  -11.8,  8.3 ],
+    [-10.2,  10, -9,    11.5 ],
+    [ -5,   11.8,-3.6, 13   ],
+    [  2.5, 12,   4.2, 13.5 ],
+    [  9,   10.2, 10.5, 11.6],
+    [ 13,   6.5, 14.2,  8   ],
+    [-15,   1.5,-13.7,  3   ],
+    [ 14,   2,   13,    3.6 ],
+    [ -9.5, 14.5,-7.7, 16   ],
+    [  9,   14.2, 7.4, 15.8 ],
+    [ -2,   15.5,-0.5, 17.2 ]
   ];
   for (const [x1, y1, x2, y2] of stitches) {
     ctx.beginPath();
@@ -233,15 +239,26 @@ export function drawBothyHaggis(
   fillCircle(ctx, palette.mouthLine, 0.85, mx(-0.9), my(1.9), 0.35 * s);
   fillCircle(ctx, palette.mouthLine, 0.85, mx(0.9), my(1.9), 0.35 * s);
 
-  // Smile — sits BELOW the nose but well above the lower jaw. A wide
-  // shallow upturn so it reads as a content half-smile at distance.
+  // Smile — wider, thicker, deeper than v1 so it actually reads at
+  // runtime scale instead of looking like a beard-line. A clear
+  // upturn arc with a small darker shadow below for warmth.
   ctx.save();
-  ctx.globalAlpha = 0.95;
+  ctx.globalAlpha = 1;
   ctx.strokeStyle = palette.mouthLine;
-  ctx.lineWidth = Math.max(1, 0.8 * s);
+  ctx.lineWidth = Math.max(1.2, 1.1 * s);
   ctx.beginPath();
-  ctx.moveTo(mx(-2.4), my(3.6));
-  ctx.quadraticCurveTo(mx(0), my(4.8), mx(2.4), my(3.6));
+  ctx.moveTo(mx(-3.4), my(3.3));
+  ctx.quadraticCurveTo(mx(0), my(5.2), mx(3.4), my(3.3));
+  ctx.stroke();
+  ctx.restore();
+  // Tiny mouth-line shadow underneath to give the smile some warmth
+  ctx.save();
+  ctx.globalAlpha = 0.4;
+  ctx.strokeStyle = palette.snoutHint;
+  ctx.lineWidth = Math.max(0.8, 0.6 * s);
+  ctx.beginPath();
+  ctx.moveTo(mx(-2.8), my(4.3));
+  ctx.quadraticCurveTo(mx(0), my(5.6), mx(2.8), my(4.3));
   ctx.stroke();
   ctx.restore();
 
@@ -339,82 +356,145 @@ function drawTiedNeck(
   s: number,
   tieWobble: number
 ): void {
-  // The "neck" pinch lives at design y ≈ -12 to -16. Above the tie we
-  // draw two upward gathered-fabric "ears" — that's the iconic gift-
-  // wrapped-pudding cue. The cord wraps three times around the cinch.
+  // The "neck" pinch lives at design y ≈ -11 to -15. Above the tie sit
+  // two small gathered-fabric flaps; the cinch itself is wrapped in
+  // TARTAN cord (red+green+cream banded) — the load-bearing Highland
+  // cultural tell. A tiny thistle is tucked at the front of the cinch.
 
-  // Two fabric "ears" — the gathered cloth above the cinch. They flop
-  // OUTWARD (not vertically — those read as rabbit ears) and droop
-  // slightly, like the bunched corners of a tied present. tieWobble
-  // sways the tips against the body's motion.
-  const wobble = tieWobble * 1.2;
-  // Left ear — root on the cinch, tip flops up-and-LEFT, drops back in
+  // Two fabric flaps — smaller and droopier than v1 (which read as
+  // Pikachu ears). Tips angle outward and DOWN like wilted corners of
+  // a tied cloth, not upward like animal ears.
+  const wobble = tieWobble * 1.0;
+  // Left flap — tip droops down-left
   ctx.save();
   ctx.fillStyle = palette.sackMid;
   ctx.beginPath();
-  ctx.moveTo(mx(-4.5), my(-15.5));
-  ctx.quadraticCurveTo(mx(-10 + wobble), my(-19), mx(-12 + wobble), my(-17));
-  ctx.quadraticCurveTo(mx(-9 + wobble * 0.5), my(-15.5), mx(-3), my(-15));
+  ctx.moveTo(mx(-4), my(-15));
+  ctx.quadraticCurveTo(mx(-7 + wobble), my(-16.5), mx(-8.5 + wobble), my(-15));
+  ctx.quadraticCurveTo(mx(-6 + wobble * 0.5), my(-14.5), mx(-3), my(-14.5));
   ctx.fill();
   ctx.restore();
-  // Left ear shadow underside
+  // Left flap shadow underside
   ctx.save();
   ctx.fillStyle = palette.sackBase;
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.6;
   ctx.beginPath();
-  ctx.moveTo(mx(-5), my(-15));
-  ctx.quadraticCurveTo(mx(-9 + wobble * 0.5), my(-16.5), mx(-11 + wobble), my(-15.5));
-  ctx.quadraticCurveTo(mx(-9 + wobble * 0.5), my(-14.7), mx(-4.5), my(-14.5));
+  ctx.moveTo(mx(-4), my(-14.7));
+  ctx.quadraticCurveTo(mx(-6 + wobble * 0.5), my(-15.4), mx(-7.5 + wobble), my(-14.7));
+  ctx.quadraticCurveTo(mx(-5 + wobble * 0.5), my(-14.3), mx(-3.5), my(-14.3));
   ctx.fill();
   ctx.restore();
-  // Right ear — flops up-and-RIGHT
+  // Right flap — tip droops down-right
   ctx.save();
   ctx.fillStyle = palette.sackMid;
   ctx.beginPath();
-  ctx.moveTo(mx(4.5), my(-15.5));
-  ctx.quadraticCurveTo(mx(10 + wobble), my(-19), mx(12 + wobble), my(-17));
-  ctx.quadraticCurveTo(mx(9 + wobble * 0.5), my(-15.5), mx(3), my(-15));
+  ctx.moveTo(mx(4), my(-15));
+  ctx.quadraticCurveTo(mx(7 + wobble), my(-16.5), mx(8.5 + wobble), my(-15));
+  ctx.quadraticCurveTo(mx(6 + wobble * 0.5), my(-14.5), mx(3), my(-14.5));
   ctx.fill();
   ctx.restore();
-  // Right ear shadow underside
+  // Right flap shadow underside
   ctx.save();
   ctx.fillStyle = palette.sackBase;
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.6;
   ctx.beginPath();
-  ctx.moveTo(mx(5), my(-15));
-  ctx.quadraticCurveTo(mx(9 + wobble * 0.5), my(-16.5), mx(11 + wobble), my(-15.5));
-  ctx.quadraticCurveTo(mx(9 + wobble * 0.5), my(-14.7), mx(4.5), my(-14.5));
+  ctx.moveTo(mx(4), my(-14.7));
+  ctx.quadraticCurveTo(mx(6 + wobble * 0.5), my(-15.4), mx(7.5 + wobble), my(-14.7));
+  ctx.quadraticCurveTo(mx(5 + wobble * 0.5), my(-14.3), mx(3.5), my(-14.3));
   ctx.fill();
   ctx.restore();
 
-  // Twine wraps — three horizontal cords across the cinch. The
-  // middle wrap is the widest (top of the bulge); the outer two
-  // narrow to suggest the cord meeting itself around the bunch.
-  // Drawn from back to front: dark shadow, cord body, lit highlight.
-  const wraps: readonly { y: number; w: number }[] = [
-    { y: -13.5, w: 11 },
-    { y: -12.2, w: 12 },
-    { y: -10.8, w: 13 }
+  // TARTAN cord wraps — three horizontal bands across the cinch.
+  // Each band is striped (cream → green → cream → red → cream → green
+  // → cream) suggesting a plaid pattern. Bands are drawn back-to-front
+  // so the lower wrap visually sits in front of the upper.
+  const wraps: readonly { y: number; w: number; primary: 'red' | 'green' }[] = [
+    { y: -12.8, w: 11, primary: 'red'   },
+    { y: -11.5, w: 12, primary: 'green' },
+    { y: -10.1, w: 13, primary: 'red'   }
   ];
   for (const wrap of wraps) {
-    // Cord shadow rim
-    fillEllipseRaw(ctx, palette.twineDark, 1, mx(0), my(wrap.y) + 0.5 * s, wrap.w * s, 1.1 * s);
-    // Cord body
-    fillEllipseRaw(ctx, palette.twine, 1, mx(0), my(wrap.y), wrap.w * s, 0.9 * s);
-    // Cord highlight
-    fillEllipseRaw(ctx, palette.twineLit, 0.7, mx(-wrap.w * 0.25), my(wrap.y) - 0.25 * s, wrap.w * 0.5 * s, 0.4 * s);
+    // Cord shadow ring (under the band, gives volume)
+    fillEllipseRaw(ctx, palette.tartanShadow, 1, mx(0), my(wrap.y) + 0.5 * s, wrap.w * s, 1.1 * s);
+    // Cord body — start with cream base, overlay tartan stripes
+    fillEllipseRaw(ctx, palette.tartanCream, 1, mx(0), my(wrap.y), wrap.w * s, 0.9 * s);
+    // Two darker stripes per band (red or green depending on band)
+    const stripeColor = wrap.primary === 'red' ? palette.tartanRed : palette.tartanGreen;
+    // Left stripe
+    fillEllipseRaw(ctx, stripeColor, 0.95,
+      mx(-wrap.w * 0.35), my(wrap.y), wrap.w * 0.18 * s, 0.85 * s);
+    // Center stripe
+    fillEllipseRaw(ctx, stripeColor, 0.95,
+      mx(0), my(wrap.y), wrap.w * 0.18 * s, 0.85 * s);
+    // Right stripe
+    fillEllipseRaw(ctx, stripeColor, 0.95,
+      mx(wrap.w * 0.35), my(wrap.y), wrap.w * 0.18 * s, 0.85 * s);
+    // Thin cross-stripe of the OTHER colour (the over-under of plaid)
+    const crossColor = wrap.primary === 'red' ? palette.tartanGreen : palette.tartanRed;
+    fillEllipseRaw(ctx, crossColor, 0.55,
+      mx(-wrap.w * 0.15), my(wrap.y), wrap.w * 0.06 * s, 0.85 * s);
+    fillEllipseRaw(ctx, crossColor, 0.55,
+      mx(wrap.w * 0.15), my(wrap.y), wrap.w * 0.06 * s, 0.85 * s);
   }
 
-  // A small knot/cinch detail in the middle — two crossed twine
-  // tails poking out either side of the wraps.
+  // A small knot/cinch detail in the middle — two crossed cord
+  // tails poking out either side of the wraps, in tartan red.
   ctx.save();
-  ctx.strokeStyle = palette.twineDark;
+  ctx.strokeStyle = palette.tartanRed;
   ctx.lineWidth = Math.max(1, 0.7 * s);
   ctx.beginPath();
-  ctx.moveTo(mx(-7), my(-12.5));
-  ctx.quadraticCurveTo(mx(-9), my(-12), mx(-10), my(-11));
-  ctx.moveTo(mx(7), my(-12.5));
-  ctx.quadraticCurveTo(mx(9), my(-12), mx(10), my(-11));
+  ctx.moveTo(mx(-7), my(-11.5));
+  ctx.quadraticCurveTo(mx(-9), my(-11), mx(-10), my(-10));
+  ctx.moveTo(mx(7), my(-11.5));
+  ctx.quadraticCurveTo(mx(9), my(-11), mx(10), my(-10));
+  ctx.stroke();
+  ctx.restore();
+
+  // ── THISTLE sprig — tucked at the front of the cinch. A small
+  //    purple bract topped with a pink fluffy crown + a green stem +
+  //    two leaf hints. The iconic Scottish flower; rhymes visually
+  //    with the heather patch under the haggis.
+  // Stem (drawn first, behind the flower)
+  ctx.save();
+  ctx.strokeStyle = palette.thistleStem;
+  ctx.lineWidth = Math.max(1, 0.7 * s);
+  ctx.beginPath();
+  ctx.moveTo(mx(4), my(-10));
+  ctx.lineTo(mx(5), my(-12.5));
+  ctx.stroke();
+  ctx.restore();
+  // Two tiny leaves on the stem
+  fillEllipseRaw(ctx, palette.thistleStem, 1, mx(4.6), my(-11.2), 0.9 * s, 0.4 * s);
+  fillEllipseRaw(ctx, palette.thistleStem, 0.85, mx(4.2), my(-10.5), 0.7 * s, 0.35 * s);
+  // Bract — the spiky green base of the flower head (drawn as a small
+  // diamond/triangle shape)
+  ctx.save();
+  ctx.fillStyle = palette.thistleStem;
+  ctx.beginPath();
+  ctx.moveTo(mx(4.2), my(-13));
+  ctx.lineTo(mx(5), my(-13.8));
+  ctx.lineTo(mx(5.8), my(-13));
+  ctx.lineTo(mx(5), my(-12.4));
+  ctx.fill();
+  ctx.restore();
+  // Flower head — purple fluffy crown above the bract. Drawn as a
+  // small cluster of 3 overlapping circles for a soft pom-pom effect.
+  fillCircle(ctx, palette.thistlePurple, 1, mx(5), my(-14.2), 1.1 * s);
+  fillCircle(ctx, palette.thistlePurple, 1, mx(4.4), my(-14.4), 0.8 * s);
+  fillCircle(ctx, palette.thistlePurple, 1, mx(5.6), my(-14.4), 0.8 * s);
+  // Highlight wisp on top
+  fillCircle(ctx, palette.thistleHilite, 0.8, mx(4.8), my(-14.7), 0.5 * s);
+  // A couple of fine hair-strokes radiating off the flower head
+  ctx.save();
+  ctx.strokeStyle = palette.thistleHilite;
+  ctx.lineWidth = Math.max(0.7, 0.4 * s);
+  ctx.beginPath();
+  ctx.moveTo(mx(5), my(-15.2));
+  ctx.lineTo(mx(5.2), my(-15.8));
+  ctx.moveTo(mx(4.4), my(-15.0));
+  ctx.lineTo(mx(4.1), my(-15.6));
+  ctx.moveTo(mx(5.6), my(-15.0));
+  ctx.lineTo(mx(5.9), my(-15.6));
   ctx.stroke();
   ctx.restore();
 }

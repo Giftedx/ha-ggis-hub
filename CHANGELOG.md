@@ -2,6 +2,23 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 feat: add tartan + thistle Scottish identity tell
+
+Roast verdict on the prior tied-pudding haggis: "nothing Scottish about it beyond the colour brown — could be any tied bag with eyes." The food-shape gag worked but the protagonist had zero cultural specificity. Fixed: cream twine wraps are now TARTAN-banded (cream base + red and dark-green primary stripes alternating, with thin cross-stripes of the secondary colour suggesting plaid weave), and a small purple THISTLE sprig is tucked at the front-right of the cinch — stem + spiky green bract + purple fluffy head + bright hair-strokes. Both cues port from bothy-haggis.ts through og.svg to the favicon so the Highland identity shows up at every scale, including 16×16 where the tartan stripe pattern is the only thing legible.
+
+Along the way, additional roast items addressed: smile widened (4.8→6.8 design units) and a tiny warm shadow added underneath so it stops reading as a thin scratch; stitching strokes irregularised (12→11, varied length/angle, scattered off the symmetric grid) so the surface stops looking like correction-tape; asymmetric drift legs exaggerated (4→9 long, 4→3 short — ~3× difference) so the canonical tourist gag is finally visible at runtime scale; fabric flaps shrunk and angled down-and-out so they read as drooping cloth, not Pikachu ears.
+
+### Changed
+
+- **`src/render/bothy-haggis.ts`** — palette grew `tartanRed`/`tartanGreen`/`tartanCream`/`tartanShadow`/`thistlePurple`/`thistleStem`/`thistleHilite` tokens; `drawTiedNeck` now paints tartan-striped wraps + thistle sprig + droopier flaps; smile is bigger + has a warm shadow line; stitching positions irregularised; leg-pair height delta widened.
+- **`src/render/bothy-haggis.test.ts`** — palette assertion updated for new tartan tokens.
+- **`public/og.svg`** — same tartan + thistle + drift + smile + stitching changes ported at OG scale (×6).
+- **`public/og.png`** — regenerated via `pnpm rasterize:og`.
+- **`public/favicon.svg`** — simplified tartan band (2 wraps) + tiny thistle + droopier flaps + wider smile + ~3× leg drift contrast + lit bottom rim for dark-mode silhouette safety.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined.
+
+---
+
 ## [Unreleased] — 2026-05-25 feat: update favicon to the tied-pudding haggis
 
 `public/favicon.svg` previously shipped the old canonical mane-and-strands silhouette. Replaced with a simplified port of the tied-pudding canon: round peat-brown body, cream twine cap at the top (the iconic gag, load-bearing at small sizes), two forward eyes, fabric ears, asymmetric drift legs at the bottom. Verified visually at both 32×32 and 16×16 — the cream cord wrap reads even when no other feature is legible.
