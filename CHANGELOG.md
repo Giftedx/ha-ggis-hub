@@ -2,6 +2,18 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 fix: body-centered door proximity and interact in input log
+
+Door overlap now uses an AABB centered on the painted body (42 world units above the feet anchor), not on the feet position. Interact keys are OR’d into every tick’s packed input while held so `.haggislog` sessions record chap attempts without a separate edge-only path.
+
+### Changed
+
+- **`crates/hub-core/src/sim.rs`** — `INTERACTION_CENTER_ABOVE_FEET`; new overlap tests.
+- **`src/engine/input.ts`** — `interactHeld()` / `interactHeldFromPressedKeys()`.
+- **`src/hub/bothy-module.ts`** — packed input includes interact while held.
+
+---
+
 ## [Unreleased] — 2026-05-25 polish: tighter door proximity and locked-door taps
 
 Door interaction now uses a smaller feet-anchored hitbox (`PLAYER_HALF` 80→56) so launchable doors read closer to the painted haggis. Tapping the locked future-bothy door announces “comin’ soon” instead of starting pointer-drive.

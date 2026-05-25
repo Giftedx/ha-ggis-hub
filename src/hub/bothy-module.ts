@@ -105,6 +105,9 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
             else if (dy < -POINTER_DEADZONE * 0.4) bits |= 0b10 << 2;
           }
         }
+        if (keyboard.interactHeld()) {
+          bits |= INTERACT_BIT;
+        }
         return bits;
       }
 
@@ -123,9 +126,8 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         performLaunch(plan, launchNavigator);
       }
 
-      function maybeLaunchFromInteract(packedMovement: number, tick: number): void {
+      function maybeLaunchFromInteract(): void {
         if (!keyboard.consumeInteract()) return;
-        inputLog.recordIfChanged(tick, packedMovement | INTERACT_BIT);
         const snapshot = room.lastSnapshot();
         if (snapshot.interactionKind !== 'launchable') return;
         const door = snapshot.doors[snapshot.interactionDoorIndex];
@@ -241,7 +243,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
             room.tick(packed);
           }
-          maybeLaunchFromInteract(packed, stepState.tick);
+          maybeLaunchFromInteract();
         } else {
           room.render();
         }

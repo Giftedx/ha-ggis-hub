@@ -210,6 +210,9 @@ const WORLD_H: i32 = 1_000;
 /// painted haggis footprint, not the full sprite silhouette — 80 read early
 /// at doors before the haggis looked “there”.
 const PLAYER_HALF: i32 = 56;
+/// Door proximity uses a center shifted up from the feet anchor so overlap
+/// matches the painted body (renderer FEET_OFFSET ≈ 16×2.6 px → ~42 world).
+const INTERACTION_CENTER_ABOVE_FEET: i32 = 42;
 const PLAYER_SPEED_PER_TICK: i32 = 100;
 const DIAGONAL_SCALE_PER_MILLE: i32 = 707;
 
@@ -296,10 +299,11 @@ impl Sim {
     }
 
     fn interaction_index(&self) -> Option<usize> {
+        let center_y = self.player_y.saturating_sub(INTERACTION_CENTER_ABOVE_FEET);
         let p_min_x = self.player_x.saturating_sub(PLAYER_HALF);
-        let p_min_y = self.player_y.saturating_sub(PLAYER_HALF);
+        let p_min_y = center_y.saturating_sub(PLAYER_HALF);
         let p_max_x = self.player_x.saturating_add(PLAYER_HALF);
-        let p_max_y = self.player_y.saturating_add(PLAYER_HALF);
+        let p_max_y = center_y.saturating_add(PLAYER_HALF);
         FIRST_ROOM_DOORS
             .iter()
             .position(|&(_, min_x, min_y, max_x, max_y, _)| {
@@ -471,6 +475,24 @@ mod tests {
         let snapshot = sim.tick(InputSnapshot::from_axes(1, -1, false));
         assert_eq!(snapshot.player_x, 410);
         assert_eq!(snapshot.player_y, 470);
+    }
+
+    #[test]
+    fn whs_door_is_launchable_when_body_center_overlaps() {
+        let mut sim = Sim::new(0);
+        sim.player_x = 880;
+        sim.player_y = 540;
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.interaction_kind, InteractionKind::Launchable as u8);
+    }
+
+    #[test]
+    fn feet_forward_without_body_in_door_band_is_not_launchable() {
+        let mut sim = Sim::new(0);
+        sim.player_x = 880;
+        sim.player_y = 400;
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.interaction_kind, InteractionKind::None as u8);
     }
 
     #[test]

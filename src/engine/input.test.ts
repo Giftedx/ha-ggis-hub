@@ -65,6 +65,16 @@ describe('input sampling', () => {
     expect(sampler.consumeInteract()).toBe(true);
   });
 
+  it('reports interactHeld while an interact key is down', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+    expect(sampler.interactHeld()).toBe(false);
+    target.dispatch('keydown', 'Enter');
+    expect(sampler.interactHeld()).toBe(true);
+    target.dispatch('keyup', 'Enter');
+    expect(sampler.interactHeld()).toBe(false);
+  });
+
   it('treats Space and KeyE as interact keys', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);

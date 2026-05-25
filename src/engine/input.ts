@@ -9,6 +9,8 @@ export interface HubInputVector {
 
 export interface KeyboardInputSampler {
   snapshot(): HubInputVector;
+  /** True while any interact key (Enter / Space / E) is held. */
+  interactHeld(): boolean;
   /**
    * Edge-triggered interact: returns true ONCE per fresh press of an
    * interact key (Enter / Space / E), even if the key is held. Returns
@@ -56,6 +58,10 @@ export function inputVectorFromPressedKeys(pressedKeys: ReadonlySet<string>): Hu
   };
 }
 
+export function interactHeldFromPressedKeys(pressedKeys: ReadonlySet<string>): boolean {
+  return hasAny(pressedKeys, INTERACT_KEYS);
+}
+
 export function createKeyboardInputSampler(target: KeyboardEventSource): KeyboardInputSampler {
   const pressedKeys = new Set<string>();
   // Interact keys that have been pressed AND already consumed by the
@@ -94,6 +100,12 @@ export function createKeyboardInputSampler(target: KeyboardEventSource): Keyboar
       }
 
       return inputVectorFromPressedKeys(pressedKeys);
+    },
+    interactHeld(): boolean {
+      if (destroyed) {
+        return false;
+      }
+      return interactHeldFromPressedKeys(pressedKeys);
     },
     consumeInteract(): boolean {
       if (destroyed) {

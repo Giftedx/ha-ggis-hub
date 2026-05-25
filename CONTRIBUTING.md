@@ -18,6 +18,8 @@ Read:
 
 If you are an autonomous agent, also read [`AGENTS.md`](AGENTS.md).
 
+If you change `crates/hub-core` or `crates/hub-wasm`, run `pnpm run build:wasm` (or `pnpm build`) before browser checks — `pnpm verify` rebuilds WASM automatically, but a dev-server session will not pick up sim changes otherwise.
+
 ## Current contribution types
 
 Allowed with a written plan and matching verification:
