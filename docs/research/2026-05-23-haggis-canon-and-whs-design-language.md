@@ -450,7 +450,7 @@ useful aesthetic reference if going storybook-cute.
 
 The hub is **a separate product** from any individual haggis-themed game.
 Its job is to be the cohesive **lobby** that lets a visitor walk the
-wild haggis up to whichever game they want. It has its own:
+hub's haggis mascot up to whichever game they want. It has its own:
 
 - visual language
 - typography
@@ -467,11 +467,12 @@ Highland setting) so visitors recognise it as "the haggis-games place".
 
 Across every haggis-themed game and the hub:
 
-- **The wild haggis is the protagonist.** Each project can render that
-  character in its own style (pixel-art cute cartoon, painterly
-  illustration, gritty taxidermy-realism, low-poly 3D, whatever the
-  game calls for), but the character is recognisably the same wild
-  haggis — small, furry, snouted, four-legged, Highland creature.
+- **The haggis joke is the protagonist family.** WHS uses a stylised
+  wild-haggis creature. The hub uses **The Wee Chieftain**, a living
+  whole-haggis food mascot. Future games can choose their own rendering
+  if they preserve the shared joke and readable haggis-family cues
+  (Highland context, uneven-leg gag when useful, oats/food/casing or
+  creature anatomy as appropriate).
 - **Setting is Scotland / the Highlands.** Heather, peat, stone,
   bothies, lochs, glens, mist, dawn/dusk, tartan, whisky, oats.
 - **Voice has a Scots register option.** Standard English is fine;
@@ -513,9 +514,9 @@ its own voice that's still canon-grounded:
   not WHS's `#1a1a2e` / `#d4a017`.
 - Pick a hub-specific typography (a humanist serif, a hand-drawn-feel
   sans, or a textured display face) — not WHS's monospace.
-- Keep the wild-haggis player visually recognisable as the canonical
-  creature, but in the hub's chosen art register, not WHS's pixel-game
-  cartoon.
+- Keep the hub player visually recognisable as a haggis-family mascot,
+  but let it be food-shaped first rather than a snouted creature. WHS
+  is the readability reference, not the required anatomy.
 - Voice can stay Scots-tinted but should not copy WHS's exact copy
   patterns.
 
@@ -523,19 +524,20 @@ its own voice that's still canon-grounded:
 
 **Highland dawn storybook bothy.** A small Scottish cottage interior at
 first light, painted-illustration register, warm dawn light through a
-small window. The wild haggis has just woken up beside the embers of
-last night's fire and is choosing which door (which game) to step out
-into today. Palette pulls from neeps orange + heather purple + tatties
-cream + peat brown + oat tan. Typography is a humanist serif with a
-modest hand-drawn feel for door signs. Voice is Scots-tinted but warmer
-and slower than WHS's combat banter.
+small window. The Wee Chieftain, the hub's living whole-haggis food
+mascot, has just woken up beside the embers of last night's fire and is
+choosing which door (which game) to step out into today. Palette pulls
+from neeps orange + heather purple + tatties cream + peat brown + oat
+tan, with a dedicated cooked-casing ramp for the mascot. Typography is
+a humanist serif with a modest hand-drawn feel for door signs. Voice is
+Scots-tinted but warmer and slower than WHS's combat banter.
 
 This direction:
 
 - Is **distinct** from WHS (which is dusk / pixel-art bullet hell /
   monospace / Scots-combat-banter).
-- Is **rooted in canon** (Highland bothy, heather, peat, the wild
-  haggis creature, Burns-plate palette).
+- Is **rooted in canon** (Highland bothy, heather, peat, the haggis
+  food joke, the uneven-leg gag, Burns-plate palette).
 - Reads as **a lobby** (calm, welcoming, intentional) rather than as
   another game.
 - Scales — additional games slot in as additional doors in the same
@@ -572,9 +574,11 @@ the door and the launch link.
 
 ### What the hub honours from WHS
 
-- **The character is the same wild haggis.** Visiting WHS should not
-  feel like leaving "the hub's haggis" behind. Where the renderings
-  differ, both must read as the same canon creature.
+- **The haggis-family read stays continuous.** Visiting WHS should feel
+  like moving from the hub's living food mascot into WHS's wild-haggis
+  creature interpretation, not like entering an unrelated brand.
+  Continuity comes from the joke, Highland setting, uneven-leg gag, and
+  readable eyes/silhouette, not from copying the same snout/fur anatomy.
 - **The voice is the same family voice.** Scots-tinted English in both,
   even if the registers differ (hub = welcoming, WHS = combat).
 - **Door-to-door consistency.** A visitor who walks through the WHS

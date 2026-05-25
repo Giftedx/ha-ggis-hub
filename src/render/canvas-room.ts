@@ -821,19 +821,18 @@ function drawHaggis(
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // bothy-haggis design units: body ~44 wide × ~34 tall (round-ish),
-  // plus ~8 design units of perimeter fur halo. Scale 3.0 → ~180 wide
-  // total presence, large enough to read against the lit hearth + window.
-  const HAGGIS_SCALE = 3.0;
+  // bothy-haggis design units: food body ~50 wide x ~30 tall,
+  // plus tiny legs and tied ends. Scale 2.7 keeps the hub mascot bold
+  // without swallowing the bothy doorway.
+  const HAGGIS_SCALE = 2.7;
   const FEET_OFFSET = 12 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  hardContactShadow(ctx, cx, cy + bob + 6, 60, 2);
+  hardContactShadow(ctx, cx, cy + bob + 6, 54, 2);
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
-  // The folk-silhouette haggis has dot-eyes and no flapping fabric, so
-  // there's no blink animation and no tie-wobble — breath + walk only.
+  // The Wee Chieftain stays front-facing; motion stays breath + legs.
   void reducedMotion;
   const walkCycle = phase * 6 * Math.PI;
   const legAmp = 1.5;

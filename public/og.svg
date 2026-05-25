@@ -4,15 +4,15 @@
   Size: 1200×630 (1.91:1, the platform-recommended OG aspect).
   Tokens: DESIGN.md (ink-deep, peat-brown, tatties-cream, oat-tan,
           neeps-orange, dawn-pink, heather-purple, whisky-amber).
-  Protagonist: the committed-folk-silhouette bothy haggis ported from
-  `src/render/bothy-haggis.ts`. If you change the in-room haggis,
+  Protagonist: The Wee Chieftain, the living whole-haggis mascot ported
+  from `src/render/bothy-haggis.ts`. If you change the in-room haggis,
   port the changes here too — there is no auto-sync.
 
   Regenerate the PNG via `pnpm rasterize:og` after editing.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="ha.ggis hub — ha + ggis = haggis. A wee front door for highland games.">
   <title>ha.ggis hub</title>
-  <desc>A peat-brown wild haggis with a tartan band and two dot eyes beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn.</desc>
+  <desc>A living whole-haggis mascot with glossy casing, cream eyes, oat flecks, and tiny legs beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn.</desc>
 
   <defs>
     <!-- Background: peat-brown with a soft dawn glow in upper-right -->
@@ -50,51 +50,81 @@
     <text x="80" y="590" font-size="20" font-weight="600" fill="#c8842a">ha.ggis.xyz</text>
   </g>
 
-  <!-- Haggis — committed folk silhouette, ported from bothy-haggis.ts.
-       One body, one tartan band, two dot eyes, asymmetric drift legs,
-       heather patch. No fabric flaps, no thistle, no stitching, no
-       eye-construction. -->
-  <g transform="translate(900 320) scale(6)">
+  <!-- The Wee Chieftain — living whole-haggis mascot, ported from
+       bothy-haggis.ts. Food-shaped first: glossy casing, asymmetric
+       tied end, oat patch, cream eyes, tiny uneven legs. -->
+  <g transform="translate(900 330) scale(6)">
 
     <!-- Heather-purple ground patch -->
-    <ellipse cx="0" cy="20" rx="32" ry="3.5" fill="#28182c" opacity="0.6"/>
-    <circle cx="-10" cy="20.5" r="1.0" fill="#7a4a9c" opacity="0.7"/>
-    <circle cx="8"   cy="21"   r="0.9" fill="#7a4a9c" opacity="0.55"/>
+    <ellipse cx="0" cy="19" rx="34" ry="3.7" fill="#28182c" opacity="0.58"/>
+    <circle cx="-12" cy="19.5" r="1.0" fill="#7a4a9c" opacity="0.72"/>
+    <circle cx="11"  cy="20"   r="0.9" fill="#7a4a9c" opacity="0.58"/>
 
-    <!-- Asymmetric drift legs — left pair LONG, right pair SHORT -->
+    <!-- Tiny asymmetric drift legs with rounded feet -->
     <g fill="#1a0e08">
-      <rect x="-11.5" y="15" width="3.0" height="7"/>
-      <rect x="-5.5"  y="15" width="3.0" height="7"/>
-      <rect x="2.5"   y="15" width="3.0" height="4"/>
-      <rect x="8.5"   y="15" width="3.0" height="4"/>
+      <rect x="-15.35" y="11" width="2.7" height="5.5"/>
+      <rect x="-7.35"  y="11" width="2.7" height="5.5"/>
+      <rect x="5.65"   y="11" width="2.7" height="3.8"/>
+      <rect x="13.65"  y="11" width="2.7" height="3.8"/>
+      <ellipse cx="-14" cy="18" rx="3.2" ry="1.1"/>
+      <ellipse cx="-6" cy="18" rx="3.2" ry="1.1"/>
+      <ellipse cx="7" cy="17.2" rx="2.7" ry="1"/>
+      <ellipse cx="15" cy="17.2" rx="2.7" ry="1"/>
     </g>
 
-    <!-- Body silhouette — outer ink ring + inner peat-brown fill.
-         One shape, one body, no layered highlights. -->
-    <path d="M -5,-11 Q -6,-13.5 -4,-14 Q 0,-14.5 4,-14 Q 6,-13.5 5,-11
-             Q 11,-8 15,-2 Q 21,7 18,14 Q 11,19 0,19
-             Q -11,19 -18,14 Q -21,7 -15,-2 Q -11,-8 -5,-11 Z"
-          fill="#1a0e08"/>
-    <path d="M -4,-10 Q -5,-12.5 -3,-13 Q 0,-13.5 3,-13 Q 5,-12.5 4,-10
-             Q 9.5,-7 13.5,-2 Q 19,7 16.5,13 Q 10,17.5 0,17.5
-             Q -10,17.5 -16.5,13 Q -19,7 -13.5,-2 Q -9.5,-7 -4,-10 Z"
-          fill="#5a3220"/>
+    <!-- Whole haggis casing -->
+    <ellipse cx="0" cy="1" rx="25" ry="15" fill="#1a0e08"/>
+    <ellipse cx="0" cy="0" rx="22" ry="12.5" fill="#7a3f24"/>
+    <ellipse cx="-5" cy="-3.5" rx="15" ry="7.5" fill="#9c5630" opacity="0.55"/>
+    <ellipse cx="6" cy="7" rx="15" ry="4.2" fill="#3a1e12" opacity="0.5"/>
+    <ellipse cx="-8" cy="-8" rx="9" ry="2.6" fill="#b46a38" opacity="0.42"/>
+    <ellipse cx="0" cy="11.3" rx="20" ry="2.2" fill="#3a1e12" opacity="0.55"/>
 
-    <!-- Tartan band — ONE wrap. Cream base + red+green stripes.
-         The one Scottish cue. -->
-    <ellipse cx="0" cy="-10.5" rx="10" ry="1.2" fill="#3a1410"/>
-    <ellipse cx="0" cy="-11"   rx="10" ry="1.0" fill="#f4d8a0"/>
-    <ellipse cx="-3.5" cy="-11" rx="1.6" ry="0.95" fill="#9c2018"/>
-    <ellipse cx="0"    cy="-11" rx="1.6" ry="0.95" fill="#1f4628"/>
-    <ellipse cx="3.5"  cy="-11" rx="1.6" ry="0.95" fill="#9c2018"/>
+    <!-- Asymmetric tied casing -->
+    <path d="M -21,-3 Q -19,1 -21,5" fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.52"/>
+    <ellipse cx="23" cy="4" rx="2.4" ry="3.5" fill="#1a0e08"/>
+    <ellipse cx="22.5" cy="4" rx="1.45" ry="2.5" fill="#3a1e12"/>
+    <rect x="20.2" y="-0.9" width="1.15" height="8" fill="#5a3a20" opacity="0.9"/>
+    <rect x="22.6" y="0.2" width="0.9" height="6.2" fill="#c4a878" opacity="0.9"/>
+    <circle cx="21.85" cy="2.1" r="0.52" fill="#9c2018" opacity="0.95"/>
+    <circle cx="21.95" cy="4.2" r="0.48" fill="#1f4628" opacity="0.95"/>
+    <path d="M 22.6,1.6 Q 25.5,1.2 27.5,4.2" fill="none" stroke="#c4a878" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
 
-    <!-- Two small ribbon-end twists above the band — bow tails -->
-    <path d="M -1.8,-12 Q -3.2,-14.5 -1,-14.5 L -1.3,-12 Z" fill="#9c2018"/>
-    <path d="M 1.3,-12 Q 3.2,-14.5 1,-14.5 L 1.8,-12 Z" fill="#1f4628"/>
+    <!-- Casing seams and glossy wrinkles -->
+    <path d="M -18,2 Q -7,9 7,8" fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/>
+    <path d="M -14,-8 Q 0,-11 15,-5" fill="none" stroke="#2a1408" stroke-width="0.7" stroke-linecap="round" opacity="0.35"/>
+    <path d="M -16,-5 Q -8,-8 2,-7" fill="none" stroke="#b46a38" stroke-width="0.8" stroke-linecap="round" opacity="0.38"/>
 
-    <!-- Eyes — TWO BLACK DOTS -->
-    <circle cx="-5.5" cy="-1" r="1.6" fill="#0a0604"/>
-    <circle cx="5.5"  cy="-1" r="1.6" fill="#0a0604"/>
+    <!-- Off-centre oat patch -->
+    <ellipse cx="-15" cy="-3.5" rx="4.3" ry="1.8" fill="#6a4a28" opacity="0.95"/>
+    <circle cx="-17.1" cy="-3.8" r="0.72" fill="#3a2a1a" opacity="0.62"/>
+    <circle cx="-13.4" cy="-3.2" r="0.58" fill="#3a2a1a" opacity="0.52"/>
+    <circle cx="-16.2" cy="-4.3" r="0.5" fill="#d8b46a" opacity="0.95"/>
+    <circle cx="-14.5" cy="-3.5" r="0.47" fill="#d8b46a" opacity="0.9"/>
+    <circle cx="-12.9" cy="-2.8" r="0.4" fill="#d8b46a" opacity="0.82"/>
+
+    <!-- Oat flecks in the casing -->
+    <g fill="#d8b46a" opacity="0.72">
+      <circle cx="-15" cy="-2" r="0.7"/>
+      <circle cx="-11" cy="5" r="0.55"/>
+      <circle cx="-4" cy="8" r="0.58"/>
+      <circle cx="10" cy="4" r="0.62"/>
+      <circle cx="15" cy="-3" r="0.52"/>
+      <circle cx="6" cy="-8" r="0.48"/>
+    </g>
+
+    <!-- Big readable mascot eyes -->
+    <circle cx="-7.2" cy="-2.2" r="4.2" fill="#1a0e08"/>
+    <circle cx="8.3" cy="-2.2" r="4.2" fill="#1a0e08"/>
+    <circle cx="-7.2" cy="-2.5" r="3.4" fill="#f0e6c8"/>
+    <circle cx="8.3" cy="-2.5" r="3.4" fill="#f0e6c8"/>
+    <circle cx="-5.6" cy="-2" r="1.5" fill="#0a0604"/>
+    <circle cx="9.9" cy="-2" r="1.5" fill="#0a0604"/>
+    <circle cx="-5.9" cy="-3.2" r="0.6" fill="#fff0c8" opacity="0.92"/>
+    <circle cx="9.7" cy="-3.2" r="0.6" fill="#fff0c8" opacity="0.92"/>
+    <path d="M -10.3,-3.2 Q -7.2,-4.2 -3.6,-3.5" fill="none" stroke="#1a0e08" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
+    <path d="M 4.2,-3.2 Q 8.6,-4.2 12,-3.5" fill="none" stroke="#1a0e08" stroke-width="0.55" stroke-linecap="round" opacity="0.45"/>
+    <path d="M -2.5,3.2 Q 0,4.8 3.2,3.2" fill="none" stroke="#2a1408" stroke-width="0.8" stroke-linecap="round" opacity="0.55"/>
   </g>
 
   <!-- Vignette over everything -->

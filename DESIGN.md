@@ -93,6 +93,27 @@ colors:
   art-ember-red: "#c44218"           # Active ember (small accent only)
   art-ember-hot: "#ffb028"           # Hottest ember tip
 
+  # — Mascot haggis family —
+  # The Wee Chieftain is the hub's food-shaped mascot. These stops are
+  # deliberately warmer and glossier than the bothy wood ramp so the
+  # character reads as cooked casing, not furniture.
+  art-haggis-ink: "#1a0e08"          # Body outline, legs, eye underlay
+  art-haggis-casing-deep: "#3a1e12"  # Lower casing shadow
+  art-haggis-casing-mid: "#7a3f24"   # Primary cooked casing
+  art-haggis-casing-light: "#9c5630" # Lit casing face
+  art-haggis-casing-highlight: "#b46a38"
+  art-haggis-seam: "#2a1408"         # Casing seams and low smile
+  art-haggis-crumb-dark: "#3a2a1a"   # Dark oat/stuffing speck
+  art-haggis-crumb-mid: "#6a4a28"    # Warm oat/stuffing patch
+  art-haggis-oat: "#d8b46a"          # Bright oat flecks
+  art-haggis-eye: "#f0e6c8"          # Cream eye whites
+  art-haggis-pupil: "#0a0604"
+  art-haggis-eye-glint: "#fff0c8"
+  art-haggis-twine: "#c4a878"        # Tied-end collar
+  art-haggis-twine-shadow: "#5a3a20"
+  art-haggis-tartan-red: "#9c2018"   # Tiny collar accent only
+  art-haggis-tartan-green: "#1f4628"
+
   # ── Text family (warm cream → ink, six stops) ───────────────
   text-bright: "#fff0c8"             # Flame-core — display-only emphasis
   text-primary: "#f0e6c8"            # Tatties-cream — default body

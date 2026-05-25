@@ -7,7 +7,7 @@ Related: [Project charter](../foundation/00-project-charter.md), [Haggis canon a
 
 ## Context
 
-The hub is the lobby for a planned family of haggis-themed games. Wild Haggis Survivors (WHS) is the first game in the family. An earlier iteration of this project treated WHS's published `DESIGN.md` as the family's design language and rebuilt the hub against the WHS palette (`#1a1a2e`, `#d4a017`), monospace typography, and Scots-combat voice. The owner pushed back: the hub is its own product with its own visual language, related to WHS only through shared **canon** (the wild-haggis protagonist, the Highland setting, the Scots-tinted voice family, the haggis joke). Three directions were sketched as alternatives:
+The hub is the lobby for a planned family of haggis-themed games. Wild Haggis Survivors (WHS) is the first game in the family. An earlier iteration of this project treated WHS's published `DESIGN.md` as the family's design language and rebuilt the hub against the WHS palette (`#1a1a2e`, `#d4a017`), monospace typography, and Scots-combat voice. The owner pushed back: the hub is its own product with its own visual language, related to WHS only through shared **canon** (the Highland setting, the Scots-tinted voice family, the haggis joke, and the uneven-leg gag). Three directions were sketched as alternatives:
 
 - **A. Highland Dawn Bothy** — painterly storybook bothy interior at first light. Warm dawn through a small window. Haggis just woken by the embers. Doors line the walls.
 - **B. Burns Night Hall** — top-down Burns-Supper table. Tartan tablecloth. Plated haggis + neeps + tatties + whisky glass. Doors as picture frames on the walls.
@@ -17,7 +17,7 @@ The owner picked direction A.
 
 ## Decision
 
-The hub's visual direction is **Highland Dawn Bothy** — a painterly storybook bothy interior at dawn. The wild haggis has just woken by the embers of last night's fire and is choosing which door (which game) to step out into today. The hub does **not** adopt WHS's `DESIGN.md` tokens. The hub picks its own palette, typography, register, and mood from the shared haggis canon.
+The hub's visual direction is **Highland Dawn Bothy** — a painterly storybook bothy interior at dawn. The Wee Chieftain, the hub's living whole-haggis mascot, has just woken by the embers of last night's fire and is choosing which door (which game) to step out into today. The hub does **not** adopt WHS's `DESIGN.md` tokens. The hub picks its own palette, typography, register, mood, and mascot design from the shared haggis canon.
 
 ### Palette (locked)
 
@@ -56,7 +56,7 @@ The hub's visual direction is **Highland Dawn Bothy** — a painterly storybook 
 - The four-wall bothy composition.
 - Doors set into the walls with stone arches and iron hinges.
 - A lantern + signpost above each launchable door.
-- The wild-haggis player rendered as a small Highland creature in the centre.
+- The player rendered as a small Highland haggis mascot in the centre.
 - The fire pit as a focal point.
 
 ### What changes
@@ -72,13 +72,14 @@ The hub's visual direction is **Highland Dawn Bothy** — a painterly storybook 
 ## Consequences
 
 - The hub stops looking like a WHS clone. Visitors see two related-but-distinct products in the family, which is the point.
-- The WHS sprite reference in `docs/research/refs/` remains useful for **character identity** (the protagonist is the same wild haggis) but not for **design tokens** (the hub picks its own).
+- The WHS sprite reference in `docs/research/refs/` remains useful for **readability lessons** (clear eyes, silhouette, uneven legs, charm) but not for **character anatomy or design tokens**. The hub mascot is food-shaped first and intentionally distinct from the WHS wild-haggis character.
 - The hub's `DESIGN.md`-equivalent design tokens live in this ADR until they're large enough to warrant their own document. If the hub adds a second visual surface (a settings screen, a credits scene), promote them.
 - Future haggis-themed games will follow the same principle: each picks its own visual direction grounded in shared canon. The hub does not impose its tokens on them either.
 
 ## Implementation notes
 
 - `src/style.css` — replace WHS CSS variables with `--hub-*` tokens from the palette table; replace monospace `font-family` with the humanist serif stack.
-- `src/render/canvas-room.ts` — replace the `PX` palette object with new token values; rewrite `drawTopWallWindow` to render dawn sky (not night sky); rewrite `drawWallHanging` to use domestic motifs (drop crossed claymores + tartan banner); swap rug colours in `drawFloorRug`; swap sign + prompt typography to serif.
+- `src/render/canvas-room.ts` — replace the `PX` palette object with new token values; rewrite `drawTopWallWindow` to render dawn sky (not night sky); rewrite `drawWallHanging` to use domestic motifs (drop crossed claymores + tartan banner); swap rug colours in `drawFloorRug`; swap sign + prompt typography to serif; keep the player scale readable without overpowering the bothy.
+- `src/render/bothy-haggis.ts` — render The Wee Chieftain as a glossy whole-haggis food mascot: squat oval casing, asymmetric tied end with tartan-twine collar, oat flecks, warm off-centre oat patch, big directed cream eyes, and tiny uneven legs.
 - `src/main.ts` — copy stays Scots-tinted; existing strings ("the bothy bides quiet", "the bothy wouldnae load", "awa' in →") match the new lobby register and stay.
 - Tests in `src/render/canvas-room.test.ts` assert text content and call order, not font value or colour values, so they should continue to pass.

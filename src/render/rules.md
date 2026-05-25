@@ -52,8 +52,8 @@ No nested shrinking ellipses with varying alpha for shadows (that is the prohibi
 - Rim-light on the lit side: 1px hard pixels in `PALETTE.dawnHighlight`.
 
 **Protagonist (bothy haggis):**
-- The sack body uses a slightly-larger `sackBase` quadratic path beneath the `sackMid` fill path. This reads as the body-edge line in low-key dim bothy lighting and is correct — the haggis is the hero element and earns a full-perimeter ink ring at this scale.
-- Tied neck (twine wraps, fabric ears), face (eyes, snout, smile), legs: no separate outline; the layering of ink-dark under lighter fills provides the depth.
+- The Wee Chieftain body uses a slightly-larger `outline` oval beneath the cooked-casing fill. This reads as the body-edge line in low-key dim bothy lighting and is correct — the haggis is the hero element and earns a full-perimeter ink ring at this scale.
+- Tied casing end, tartan-twine collar, oat patch, eyes, smile, and legs: no independent cartoon outline except where an ink underlayer is required for low-size readability. The layering of ink-dark under lighter fills provides the depth.
 
 ## 5. Palette discipline — DESIGN.md tokens, not invented hex
 

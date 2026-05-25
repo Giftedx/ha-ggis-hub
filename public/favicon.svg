@@ -1,40 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ha.ggis — a folk-silhouette wild haggis with a tartan band">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ha.ggis — The Wee Chieftain, a living whole-haggis mascot">
   <!--
-    ha.ggis favicon — 32×32 committed-folk-silhouette haggis. Matches
-    the canon protagonist in src/render/bothy-haggis.ts. One body,
-    one tartan band, two dot eyes, asymmetric legs. No fabric flaps,
-    no thistle, no Minions-style eye construction.
-
-    Background: deep peat-brown so the icon stands against light tabs.
-    A 1px lighter rim on the bottom of the body keeps the silhouette
-    visible against dark browser chrome.
+    ha.ggis favicon - 32x32 Wee Chieftain haggis. Matches the food
+    mascot in src/render/bothy-haggis.ts: whole casing, asymmetric
+    tied end, oat flecks, cream eyes, tiny uneven legs.
   -->
   <rect width="32" height="32" fill="#24170f"/>
 
-  <!-- Sack body — pear silhouette, one outline + one fill -->
-  <ellipse cx="16" cy="19" rx="11" ry="10" fill="#1a0e08"/>
-  <ellipse cx="16" cy="19" rx="10" ry="9"  fill="#5a3220"/>
-  <!-- Subtle lit rim on the lower body for dark-mode silhouette safety -->
-  <ellipse cx="16" cy="27.5" rx="9" ry="0.6" fill="#a06030" opacity="0.4"/>
+  <!-- Ground + tiny rounded legs -->
+  <ellipse cx="16" cy="27.2" rx="13" ry="1.8" fill="#28182c" opacity="0.65"/>
+  <rect x="9.2" y="24" width="1.5" height="3.3" fill="#1a0e08"/>
+  <rect x="12.6" y="24" width="1.5" height="3.3" fill="#1a0e08"/>
+  <rect x="18.2" y="24.7" width="1.5" height="2.3" fill="#1a0e08"/>
+  <rect x="21.6" y="24.7" width="1.5" height="2.3" fill="#1a0e08"/>
+  <ellipse cx="10" cy="27.5" rx="1.6" ry="0.55" fill="#1a0e08"/>
+  <ellipse cx="13.4" cy="27.5" rx="1.6" ry="0.55" fill="#1a0e08"/>
+  <ellipse cx="19" cy="27.2" rx="1.35" ry="0.5" fill="#1a0e08"/>
+  <ellipse cx="22.4" cy="27.2" rx="1.35" ry="0.5" fill="#1a0e08"/>
 
-  <!-- Tartan band — ONE wrap, cream base with red+green+red stripes -->
-  <ellipse cx="16" cy="9.6" rx="7" ry="1.4" fill="#3a1410"/>
-  <ellipse cx="16" cy="9.2" rx="7" ry="1.1" fill="#f4d8a0"/>
-  <ellipse cx="13.55" cy="9.2" rx="1.4" ry="1.0" fill="#9c2018"/>
-  <ellipse cx="16"    cy="9.2" rx="1.4" ry="1.0" fill="#1f4628"/>
-  <ellipse cx="18.45" cy="9.2" rx="1.4" ry="1.0" fill="#9c2018"/>
+  <!-- Whole haggis casing -->
+  <ellipse cx="16" cy="18" rx="13" ry="9" fill="#1a0e08"/>
+  <ellipse cx="16" cy="17.4" rx="11.4" ry="7.6" fill="#7a3f24"/>
+  <ellipse cx="13.2" cy="15.2" rx="7" ry="3.7" fill="#9c5630" opacity="0.55"/>
+  <ellipse cx="19" cy="21" rx="7" ry="2.6" fill="#3a1e12" opacity="0.42"/>
+  <ellipse cx="12.5" cy="12.8" rx="4.4" ry="1.1" fill="#b46a38" opacity="0.5"/>
+  <ellipse cx="16" cy="24" rx="10" ry="1.1" fill="#3a1e12" opacity="0.5"/>
 
-  <!-- Two tiny ribbon-end twists above the band — bow tails -->
-  <path d="M 14.5,8 Q 13,5.5 14.5,5.5 L 15,8 Z" fill="#9c2018"/>
-  <path d="M 17,8 Q 19,5.5 17.5,5.5 L 17.5,8 Z" fill="#1f4628"/>
+  <!-- Asymmetric tied casing -->
+  <path d="M 5.3,15.8 Q 6.2,17.6 5.4,19.8" fill="none" stroke="#2a1408" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
+  <ellipse cx="26.8" cy="20.4" rx="1.3" ry="1.9" fill="#1a0e08"/>
+  <ellipse cx="26.4" cy="20.4" rx="0.8" ry="1.3" fill="#3a1e12"/>
+  <rect x="25.1" y="18.7" width="0.48" height="3.8" fill="#5a3a20" opacity="0.9"/>
+  <rect x="26.1" y="19.2" width="0.38" height="3" fill="#c4a878" opacity="0.9"/>
+  <circle cx="25.75" cy="19.9" r="0.22" fill="#9c2018"/>
+  <circle cx="25.8" cy="20.85" r="0.2" fill="#1f4628"/>
+  <path d="M 26.5,18.8 Q 28.1,18.7 29.3,20.5" fill="none" stroke="#c4a878" stroke-width="0.45" stroke-linecap="round" opacity="0.8"/>
 
-  <!-- Eyes — TWO BLACK DOTS -->
-  <circle cx="12" cy="17" r="1.6" fill="#0a0604"/>
-  <circle cx="20" cy="17" r="1.6" fill="#0a0604"/>
+  <!-- Casing flecks -->
+  <circle cx="8.3" cy="14.6" r="0.42" fill="#d8b46a" opacity="0.72"/>
+  <circle cx="9" cy="16.3" r="0.45" fill="#d8b46a" opacity="0.75"/>
+  <circle cx="12" cy="22" r="0.38" fill="#d8b46a" opacity="0.7"/>
+  <circle cx="22.4" cy="16" r="0.42" fill="#d8b46a" opacity="0.72"/>
+  <circle cx="20" cy="22" r="0.36" fill="#d8b46a" opacity="0.65"/>
 
-  <!-- Asymmetric drift legs — LEFT pair long, RIGHT pair short -->
-  <rect x="10" y="27" width="1.6" height="3.5" fill="#1a0e08"/>
-  <rect x="13.4" y="27" width="1.6" height="3.5" fill="#1a0e08"/>
-  <rect x="17"   y="28.5" width="1.6" height="2" fill="#1a0e08"/>
-  <rect x="20.4" y="28.5" width="1.6" height="2" fill="#1a0e08"/>
+  <!-- Cream mascot eyes -->
+  <circle cx="12" cy="16.3" r="2.55" fill="#1a0e08"/>
+  <circle cx="20" cy="16.3" r="2.55" fill="#1a0e08"/>
+  <circle cx="12" cy="16.1" r="2.05" fill="#f0e6c8"/>
+  <circle cx="20" cy="16.1" r="2.05" fill="#f0e6c8"/>
+  <circle cx="12.7" cy="16.4" r="0.86" fill="#0a0604"/>
+  <circle cx="20.7" cy="16.4" r="0.86" fill="#0a0604"/>
+  <circle cx="12.55" cy="15.75" r="0.3" fill="#fff0c8"/>
+  <circle cx="20.55" cy="15.75" r="0.3" fill="#fff0c8"/>
+  <path d="M 9.7,15.4 Q 11.6,14.8 13.6,15.2" fill="none" stroke="#1a0e08" stroke-width="0.32" stroke-linecap="round" opacity="0.45"/>
+  <path d="M 17.7,15.4 Q 20,14.8 22,15.2" fill="none" stroke="#1a0e08" stroke-width="0.32" stroke-linecap="round" opacity="0.45"/>
 </svg>

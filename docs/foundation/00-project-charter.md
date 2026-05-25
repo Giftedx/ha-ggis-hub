@@ -15,9 +15,9 @@ ha + ggis = haggis
 ha.ggis.xyz = say it without the dot
 ```
 
-The hub should feel like a small playable place, not a generic landing page. The visitor controls the **wild haggis** (the recurring protagonist across the haggis-games family) and enters doors or portals that launch individual games.
+The hub should feel like a small playable place, not a generic landing page. The visitor controls **The Wee Chieftain**, the hub's living whole-haggis mascot, and enters doors or portals that launch individual games.
 
-Each future haggis-themed game lives at its own URL or path with its **own genre, art direction, gameplay, and tone**. The hub also has its **own** visual language, typography, voice register, and mood — it is a separate product, not a skin of any one game. What ties the hub and the games together is **canon**, not design tokens: the same wild-haggis protagonist, the same Highland setting, the same Scots-tinted family voice, the same haggis joke. Visitors should recognise the hub and any game as members of the same world while still seeing each as its own thing. See [Haggis canon and WHS design language](../research/2026-05-23-haggis-canon-and-whs-design-language.md) for the canonical references every project in the family must honour.
+Each future haggis-themed game lives at its own URL or path with its **own genre, art direction, gameplay, and tone**. The hub also has its **own** visual language, typography, voice register, and mood — it is a separate product, not a skin of any one game. What ties the hub and the games together is **canon**, not design tokens: the Highland setting, the Scots-tinted family voice, the haggis joke, and the uneven-leg gag. The hub mascot is intentionally food-shaped and distinct from the WHS wild-haggis character. Visitors should recognise the hub and any game as members of the same world while still seeing each as its own thing. See [Haggis canon and WHS design language](../research/2026-05-23-haggis-canon-and-whs-design-language.md) for the canonical references every project in the family must honour.
 
 ## Purpose
 
@@ -33,7 +33,7 @@ The project must not ship as a barely-working MVP shell. The first public releas
 
 Wild Haggis Survivors (WHS) is the **first** real game linked from the hub and the **brand anchor** for every other haggis-themed game that will follow. It remains a separate project (`C:\Users\aggis\dev\active\wild-haggis-survivors`, deployed at <https://wild-haggis-survivors.pages.dev/>) and must not be swallowed into this repository.
 
-WHS is a Highland-at-dusk, Scots-tinted bullet-heaven where the player is a wild haggis whose iconic uneven legs become the signature mechanic (every input drifts a few degrees clockwise). It has a published design system (`DESIGN.md` in the WHS repo) — a defined palette, monospace typography with stroked titles, square corners, 8 px grid, Scots-tinted English copy with optional Scots overlay. That is **WHS's** design language and belongs to WHS. **The hub does not adopt it wholesale.** The hub picks its own palette, typography, register, and mood from the same shared canon (Highland setting, Scots voice, wild-haggis protagonist) so the two feel related without the hub looking like a WHS clone.
+WHS is a Highland-at-dusk, Scots-tinted bullet-heaven where the player is a wild haggis whose iconic uneven legs become the signature mechanic (every input drifts a few degrees clockwise). It has a published design system (`DESIGN.md` in the WHS repo) — a defined palette, monospace typography with stroked titles, square corners, 8 px grid, Scots-tinted English copy with optional Scots overlay. That is **WHS's** design language and belongs to WHS. **The hub does not adopt it wholesale.** The hub picks its own palette, typography, register, mood, and mascot design from the same shared canon (Highland setting, Scots voice, haggis joke, uneven-leg gag) so the two feel related without the hub looking like a WHS clone.
 
 Boundary rules:
 
@@ -42,7 +42,7 @@ Boundary rules:
 - The hub does not own WHS gameplay state.
 - The hub does not mutate WHS save data.
 - If shared progress is ever displayed, it must use an explicit read-only contract or exported summary.
-- **The hub does not adopt any one game's design tokens.** The hub has its own palette, typography, register, and mood, drawn from the shared haggis canon — not from WHS's `DESIGN.md`. Family resemblance comes from canon (the same wild-haggis protagonist, the same Highland setting, the same Scots-tinted voice family), not from copied tokens. See the [research doc](../research/2026-05-23-haggis-canon-and-whs-design-language.md) for what is shared (canon) and what is not (visual language).
+- **The hub does not adopt any one game's design tokens.** The hub has its own palette, typography, register, mood, and food-mascot haggis design, drawn from the shared haggis canon — not from WHS's `DESIGN.md`. Family resemblance comes from canon (the haggis joke, Highland setting, Scots-tinted voice family, and uneven-leg gag), not from copied tokens or identical character anatomy. See the [research doc](../research/2026-05-23-haggis-canon-and-whs-design-language.md) for what is shared (canon) and what is not (visual language).
 
 ### Future games
 
@@ -89,10 +89,10 @@ ha.ggis Hub is a tiny playable haggis world that acts as the charming, technical
 A visitor should immediately understand:
 
 1. the domain joke
-2. there is a playable wild-haggis character
+2. there is a playable living-haggis mascot
 3. there are doors leading to haggis-themed games — one of which (WHS) is open
 4. the project is bespoke and carefully built
-5. this place visibly belongs to the same world as the games inside — recognised through the protagonist, setting, and voice, not by being a visual copy of any one game
+5. this place visibly belongs to the same world as the games inside — recognised through the haggis joke, setting, and voice, not by being a visual copy of any one game
 
 ### Tone
 
@@ -100,7 +100,7 @@ A visitor should immediately understand:
 - warm mischief
 - technical polish
 - no generic SaaS/portfolio template smell
-- **must read as a sibling of the haggis games** — same world, same protagonist, same voice family — **while still being its own distinct product** with its own visual language
+- **must read as a sibling of the haggis games** — same world, same haggis-family joke, same voice family — **while still being its own distinct product** with its own visual language
 
 Potential copy:
 
@@ -132,7 +132,7 @@ Why:
 Playable path:
 
 1. visitor lands at `ha.ggis.xyz`
-2. visitor sees the wild haggis in the lobby scene
+2. visitor sees The Wee Chieftain in the lobby scene
 3. visitor walks to the WHS door (no on-screen handholding — interaction is discoverable)
 4. visitor sees a Scots-tinted prompt naming the game
 5. visitor launches WHS
