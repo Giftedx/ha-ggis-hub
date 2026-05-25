@@ -2,7 +2,7 @@ import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
 import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import { blitSprite } from './sprite';
-import { drawCanonHaggis } from './canon-haggis';
+import { drawBothyHaggis } from './bothy-haggis';
 import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
 import {
   drawWhsBothyWalls, drawWhsBothyFloor, drawWhsWindowBay, drawWhsDoor,
@@ -11,7 +11,6 @@ import {
 import {
   PALETTE,
   makeBeamGeometry,
-  lightZoneAt,
   hardContactShadow
 } from './palette';
 import { DOOR_SIGN, LANTERN_LIT } from './sprites/door';
@@ -46,6 +45,7 @@ export interface CanvasRoomContext {
     x: number, y: number, radiusX: number, radiusY: number,
     rotation: number, startAngle: number, endAngle: number
   ): void;
+  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void;
   clip(): void;
 }
 
@@ -661,19 +661,41 @@ function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: nu
   };
   drawWhsBothyFloor(ctx, env);
 
-  // Dawn beam — translucent warm trapezoid + subtle COOL loch-tint.
-  // Gentle 22-second pulse (±5%) gives the early-morning light a
-  // barely-perceptible shifting quality, like clouds on the horizon.
+  // Dawn beam — layered warm trapezoids (ADR dawn-pink/gold), soft edges.
+  // No cool loch cast or floor mullion cross: those read as a harsh CGI
+  // wedge on top of the window art, which already carries the frame.
   const beam = makeBeamGeometry(surface.width, surface.height, WALL_THICK_BACK);
   const dawnPulse = reducedMotion ? 1.0 : 0.95 + Math.sin(phase * 0.28) * 0.05;
-  fillTrapezoidAlpha(ctx, beam, '#6a90b0', 0.06 * dawnPulse);  // cool loch cast
-  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnPeach, 0.18 * dawnPulse);
-  fillTrapezoidAlpha(ctx, beam, PALETTE.dawnGold, 0.10 * dawnPulse);
+  drawSoftDawnBeam(ctx, beam, dawnPulse);
 
-  // Mullion shadows — two perpendicular dark stripes through the beam
-  // marking the window's cross frame. The "actual sun-through-window"
-  // signature flourish.
-  drawMullionShadow(ctx, beam);
+  // Warm ambient lift on the whole floor so shadow planks are not mud.
+  ctx.save();
+  ctx.globalAlpha = 0.07;
+  ctx.fillStyle = PALETTE.edgePink;
+  ctx.fillRect(env.left, env.wallBottom, env.right - env.left, env.floorBottom - env.wallBottom);
+  ctx.restore();
+}
+
+// Three nested trapezoids — outer pink spill, mid peach, inner gold core.
+function drawSoftDawnBeam(
+  ctx: CanvasRoomContext,
+  beam: ReturnType<typeof makeBeamGeometry>,
+  dawnPulse: number
+): void {
+  const layers: readonly { expand: number; colour: string; alpha: number }[] = [
+    { expand: 32, colour: PALETTE.edgePink, alpha: 0.07 },
+    { expand: 16, colour: PALETTE.dawnPeach, alpha: 0.11 },
+    { expand: 0, colour: PALETTE.dawnGold, alpha: 0.13 }
+  ];
+  for (const layer of layers) {
+    fillTrapezoidAlpha(ctx, {
+      cx: beam.cx,
+      topY: beam.topY,
+      length: beam.length,
+      topHalfWidth: beam.topHalfWidth + layer.expand,
+      bottomHalfWidth: beam.bottomHalfWidth + layer.expand
+    }, layer.colour, layer.alpha * dawnPulse);
+  }
 }
 
 // Paint a beam trapezoid with a flat translucent colour (no dither).
@@ -693,45 +715,6 @@ function fillTrapezoidAlpha(
   ctx.lineTo(beam.cx - beam.bottomHalfWidth, beam.topY + beam.length);
   ctx.closePath();
   ctx.fill();
-  ctx.restore();
-}
-
-// Fill a beam zone (pool or edge) as a single trapezoid covering all
-// pixels that classify into that zone.
-// One-row Bayer transition between two colours — used for the window
-// sky band transitions. Walks a single horizontal row and picks one of
-// the two colours per pixel based on the Bayer 4×4 cell.
-// Dither the beam zone boundaries — walk down both diagonal edges of
-// the pool + edge trapezoids and paint hard-pixel speckle of the
-// adjacent zone's colour just inside/outside the edge. Removes the
-// razor diagonal that reads as "two floor textures, not light".
-// Paint cross-mullion shadow lines through the dawn pool — a vertical
-// line down the centre, a horizontal line across the upper-middle.
-// Mullion is dithered so it's hard-pixel but reads as a soft shadow.
-// This converts the dawn-pool from a generic light wedge into a
-// readable "window-cast" light.
-function drawMullionShadow(
-  ctx: CanvasRoomContext,
-  beam: ReturnType<typeof makeBeamGeometry>
-): void {
-  // Smooth mullion cross — vertical + horizontal stripes through the
-  // beam trapezoid as solid translucent dark fills (no dither). The
-  // shadow is constrained to the beam zones (pool + edge), so it ends
-  // at the trapezoid boundaries naturally.
-  ctx.save();
-  ctx.globalAlpha = 0.35;
-  ctx.fillStyle = PALETTE.shadowDeep;
-  // Vertical mullion: 3px wide central stripe down the beam.
-  for (let yy = beam.topY; yy < beam.topY + beam.length; yy += 1) {
-    if (lightZoneAt(beam.cx, yy, beam) === 'shadow') continue;
-    ctx.fillRect(beam.cx - 1, yy, 3, 1);
-  }
-  // Horizontal mullion: 3px tall stripe across the beam at ~32%.
-  const horizMullionY = beam.topY + Math.round(beam.length * 0.32);
-  for (let xx = beam.cx - beam.bottomHalfWidth - 8; xx <= beam.cx + beam.bottomHalfWidth + 8; xx += 1) {
-    if (lightZoneAt(xx, horizMullionY, beam) === 'shadow') continue;
-    ctx.fillRect(xx, horizMullionY - 1, 1, 3);
-  }
   ctx.restore();
 }
 
@@ -782,10 +765,10 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
     // Phase 3c: smooth translucent halo (dithered version read as
     // noise against the WHS substrate). Two layered ellipses fading
     // outward, multiplied by pulse for the lantern flicker.
-    for (let i = 4; i >= 1; i--) {
-      const r = 80 * (i / 4);
+    for (let i = 3; i >= 1; i--) {
+      const r = 42 * (i / 3);
       ctx.save();
-      ctx.globalAlpha = 0.05 * i * pulse;
+      ctx.globalAlpha = 0.04 * i * pulse;
       ctx.fillStyle = PALETTE.dawnGold;
       ctx.beginPath();
       ctx.ellipse(cx, lanternCy, r, r * 0.85, 0, 0, Math.PI * 2);
@@ -815,18 +798,15 @@ function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void
   // anti-aliased browser fillText that read as a UI sticker.
   // ASCII-only: convert label to uppercase since the pixel font is
   // single-case. Strip non-supported chars rendered as space.
-  const upper = label.toUpperCase();
-  const scale = 2;
+  const upper = label.toUpperCase().slice(0, 6);
+  const scale = 1;
   const textW = measurePixelText(upper, scale);
   const textH = PIXEL_FONT_HEIGHT * scale;
-  renderPixelText(ctx, upper, cx - Math.round(textW / 2), signCy - Math.round(textH / 2) + 2, scale, PALETTE.bone);
+  renderPixelText(ctx, upper, cx - Math.round(textW / 2), signCy - Math.round(textH / 2) + 1, scale, PALETTE.bone);
 }
 
-// Wild haggis — now rendered via hand-painted pixel-art sprite.
-// See src/render/sprites/haggis.ts for the char-grid definition.
-// Iteration history: v1 toad-box, v2 sunglass-bar, v3 horizontal-pillow
-// with eye-gleam pop, v4 hamster face, v5 = current (split gleams,
-// proper pink-snout bump, darker body fur).
+// Bothy haggis — the lobby inhabitant. Hub-original drawer in
+// bothy-haggis.ts; NOT a port of WHS, NOT keyed to og.svg.
 function drawHaggis(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -841,37 +821,41 @@ function drawHaggis(
   const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // Canonical wild-haggis silhouette (canon-haggis.ts). Keyed to the
-  // public/og.svg brief — the WHS sprite stand-in is retired. Low oval
-  // body + asymmetric mane drape + cascading strands past silhouette
-  // is the family-canon shape; this drawer is the in-game realisation.
-  //
-  // Hub scale: native ~56-wide → 2× = ~112-wide footprint. The body
-  // anchor sits at body-center; snapshot (cx,cy) is the player feet
-  // position, so offset upward so the feet land on the floor.
-  const HAGGIS_SCALE = 2.6;
-  const FEET_OFFSET = 16 * HAGGIS_SCALE;
+  // bothy-haggis design units: body ~44 wide × ~34 tall (round-ish),
+  // plus ~8 design units of perimeter fur halo. Scale 3.0 → ~180 wide
+  // total presence, large enough to read against the lit hearth + window.
+  const HAGGIS_SCALE = 3.0;
+  const FEET_OFFSET = 12 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  hardContactShadow(ctx, cx, cy + bob + 6, 52, 2);
+  hardContactShadow(ctx, cx, cy + bob + 6, 60, 2);
 
-  // Walking leg cycle: back and front pairs alternate at a gentle trot.
+  // Walking leg cycle: front + back pairs alternate at a gentle trot.
   const walkCycle = phase * 6 * Math.PI;
   const legAmp = 1.5;
-  const leftLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
-  const rightLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
-  // Mane sway and tail wag are suppressed in reduced-motion mode.
-  const maneSway = (!reducedMotion && isMoving) ? Math.sin(phase * 3 * Math.PI) * 1.0 : 0;
-  const tailWag = (!reducedMotion && isMoving) ? Math.sin(phase * 4 * Math.PI) * 1.2 : 0;
+  const frontLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
+  const backLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
+  // Tie wobble is suppressed in reduced-motion — the "fabric ears"
+  // above the tied neck bob slightly when the haggis moves.
+  const tieWobble = (!reducedMotion && isMoving) ? Math.sin(phase * 3 * Math.PI) * 0.6 : 0;
 
-  drawCanonHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
+  // Slow blink — closes for ~150ms in the middle of each 6-s cycle.
+  // Eyes are OPEN at phase=0 so the visual-gate capture isn't a
+  // mid-blink black-hole face.
+  const blinkPhase = (phase % 6) / 6;          // 0..1 across each 6-s cycle
+  const blink = blinkPhase < 0.5  ? 1
+              : blinkPhase < 0.515 ? 1 - (blinkPhase - 0.5) / 0.015
+              : blinkPhase < 0.53  ? (blinkPhase - 0.515) / 0.015
+              : 1;
+
+  drawBothyHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
     breathY: Math.sin(phase * 1.4) * 0.4,
     facingLeft,
-    leftLegY,
-    rightLegY,
-    maneSway,
-    tailWag
+    frontLegY,
+    backLegY,
+    tieWobble,
+    blink
   });
 }
 
@@ -1006,12 +990,14 @@ function doorTitleForId(id: string): string {
 }
 
 function doorShortLabel(title: string): string {
-  // Sign space is tight — use initials for multi-word titles
-  const words = title.split(/\s+/).filter((w) => w.length > 0);
+  // Sign board fits ~6 glyphs at pixel scale 1.
+  if (title === 'Wild Haggis Survivors') return 'WILD';
+  if (title.includes('Next Moon')) return 'SOON';
+  const words = title.split(/\s+/).filter((w) => /[a-zA-Z]/.test(w));
   if (words.length >= 2) {
-    return words.map((w) => w[0]!.toUpperCase()).join('');
+    return words[0]!.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6);
   }
-  return title;
+  return title.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6);
 }
 
 function prettifyKebab(id: string): string {

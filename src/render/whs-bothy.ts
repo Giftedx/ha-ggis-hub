@@ -15,12 +15,12 @@
 // Warm peat/plaster palette (kept from WHS croft — reads right for a
 // Highland bothy interior regardless of light register on top).
 const INK = '#0a0604';
-const PEAT_SHADOW = '#2a1808';
-const PEAT_DARK = '#3a2818';
-const PEAT_MID = '#5a3e20';
-const PLASTER_DARK = '#4a3020';
-const PLASTER_MID = '#6a4828';
-const PLASTER_LIGHT = '#9a7440';
+const PEAT_SHADOW = '#322018';
+const PEAT_DARK = '#4a3020';
+const PEAT_MID = '#6a4a28';
+const PLASTER_DARK = '#5a3828';
+const PLASTER_MID = '#7a5630';
+const PLASTER_LIGHT = '#b08850';
 const WOOD_DARK = '#2a1608';
 const WOOD_MID = '#5a3218';
 const WOOD_LIGHT = '#8a5a2e';
@@ -85,7 +85,7 @@ export function drawWhsBothyWalls(
   const w = right - left;
 
   // Soft drop-shadow behind the whole envelope (subtle depth).
-  fillRectA(ctx, INK, 0.38, left + 5, top + 6, w, floorBottom - top);
+  fillRectA(ctx, INK, 0.28, left + 5, top + 6, w, floorBottom - top);
 
   drawBackWall(ctx, left, right, top, wallBottom, compact);
   drawTimberFrame(ctx, left, right, top, wallBottom, compact);

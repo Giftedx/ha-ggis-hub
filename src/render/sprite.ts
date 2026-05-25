@@ -18,7 +18,7 @@
 //     ]
 //   });
 //
-// Then blit via blitSprite(ctx, HAGGIS_SPRITE, cx, cy, scale).
+// Then blit via blitSprite(ctx, MY_SPRITE, cx, cy, scale).
 
 export interface SpriteDefinition {
   readonly palette: Readonly<Record<string, string | null>>;

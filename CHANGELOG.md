@@ -2,6 +2,35 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 feat: bothy haggis as tied-pudding-with-eyes (`bothy-haggis.ts`)
+
+Six earlier haggis attempts in the same working tree failed the bar — procedural drawer keyed to `public/og.svg` ("lumpy / icicle-maned"), hand-painted pixel sprite at scale 3 ("brown loaf"), port of the WHS in-game drawer (rejected as a cross-game copy), 3/4-russet "Highland mammal" ("corn dog with a bib"), radial fur spikes ("sea urchin"), and scalloped fluff ("Furby in cosplay"). All six designed AROUND the haggis. The breakthrough: the wild haggis is a folk gag about the FOOD coming alive — so the creature's shape language has to *be* the dish (a stuffed sack tied with twine at the top), with eyes, legs, and the canonical asymmetric-leg drift.
+
+This drawer commits to that: pear/teardrop sack body in peat-tan, a cinched neck with three cream-oat twine wraps at the top, two outward-flopping "fabric ears" of gathered cloth above the tie, two forward eyes + small dark muzzle + smile on the upper-front of the sack, four leg stubs at the bottom with ONE SIDE noticeably shorter than the other (the tourist-canon drift), knobbly stitching strokes inside, dawn rim highlight along the upper curve. Native ≈ 50 wide × 50 tall; runtime scale 3 → ~150-wide presence.
+
+### Added
+
+- **`src/render/bothy-haggis.ts`** — hub-original drawer (`drawBothyHaggis`).
+- **`src/render/bothy-haggis.test.ts`** — coverage for frame params, blink path, palette tokens.
+
+### Changed
+
+- **`src/render/canvas-room.ts`** — `drawHaggis` calls `drawBothyHaggis` at scale 3; blink animation phased so eyes are OPEN at the fixed-phase visual gate; contact shadow widened to match new footprint.
+- **`src/render/whs-bothy.ts`** — lifted peat/plaster values (carried over from prior dawn-beam work).
+- **`src/render/canvas-room.ts`** — `drawSoftDawnBeam` for the floor; ambient warm floor wash; tighter lantern halo (carried over from prior dawn-beam work).
+- **`src/style.css`** — muted scene brand/direct links (carried over from prior dawn-beam work).
+
+### Removed
+
+- **`src/render/canon-haggis.ts`** + test — og.svg-keyed silhouette port. `feedback_og_svg_not_canon` records why this reference is off-limits.
+- **`src/render/sprites/haggis.ts`** + test — pixel sprite attempt that read as a brown loaf at the bothy's render scale.
+
+### Visual gate
+
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined.
+
+---
+
 ## [Unreleased] — 2026-05-25 fix: body-centered door proximity and interact in input log
 
 Door overlap now uses an AABB centered on the painted body (42 world units above the feet anchor), not on the feet position. Interact keys are OR’d into every tick’s packed input while held so `.haggislog` sessions record chap attempts without a separate edge-only path.

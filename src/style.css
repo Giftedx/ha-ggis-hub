@@ -64,12 +64,14 @@ body {
   left: 1.2rem;
   bottom: 0.85rem;
   margin: 0;
-  color: var(--hub-cairn-stone);
+  color: var(--hub-tatties-cream);
   font-family: inherit;
   font-style: italic;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+  text-shadow: 0 1px 8px var(--hub-ink-deep);
   pointer-events: none;
   z-index: 2;
   user-select: none;
@@ -79,21 +81,24 @@ body {
   position: fixed;
   right: 1.2rem;
   bottom: 0.85rem;
-  color: var(--hub-cairn-stone);
+  color: var(--hub-tatties-cream);
   font-family: inherit;
   font-style: italic;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 500;
   text-decoration: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  text-shadow: 0 1px 8px var(--hub-ink-deep);
   pointer-events: auto;
-  transition: color 200ms ease;
+  transition: color 200ms ease, opacity 200ms ease;
   z-index: 2;
 }
 
 .scene-direct:hover,
 .scene-direct:focus-visible {
   color: var(--hub-neeps-orange);
+  opacity: 0.92;
 }
 
 /* Keyboard focus indicator. Colour-shift alone isn't enough — WCAG

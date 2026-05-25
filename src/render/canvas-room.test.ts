@@ -56,6 +56,9 @@ class RecordingCanvasContext {
   ): void {
     this.calls.push(`ellipse:${cx},${cy},${rx},${ry}`);
   }
+  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void {
+    this.calls.push(`quadraticCurveTo:${cpx},${cpy},${x},${y}`);
+  }
   clip(): void {
     this.calls.push('clip');
   }
