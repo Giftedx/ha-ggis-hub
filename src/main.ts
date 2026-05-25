@@ -417,7 +417,7 @@ function createShell(model: ReturnType<typeof createAppModel>): SceneElements {
   // `direct` link's aria-label instead, not this transient overlay.
   const hint = document.createElement('p');
   hint.className = 'scene-hint';
-  hint.textContent = 'walk wi’ the arrows · chap a door tae go in';
+  hint.textContent = 'walk wi’ arrows/WASD or drag · chap/tap a door';
   hint.setAttribute('aria-hidden', 'true');
 
   scene.append(canvas, brand, direct, hint, status);

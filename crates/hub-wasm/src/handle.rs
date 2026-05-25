@@ -56,13 +56,23 @@ impl HubHandle {
     /// snapshot buffer in place. Returns `HubErrorTag::Ok` on success.
     pub fn tick(&mut self, input_packed: u32) -> HubErrorTag {
         // Lower 16 bits are the InputSnapshot raw; anything above that
-        // indicates a reserved bit was set. `u16::try_from` doubles as the
-        // bounds check and the lossless conversion.
+        // or outside the current InputSnapshot mask is reserved. Reject
+        // reserved bits here rather than silently letting the core mask them,
+        // so boundary callers get a stable error for malformed packed input.
         let Ok(raw) = u16::try_from(input_packed) else {
             self.last_error = format!("input_packed has reserved high bits: {input_packed:#010x}");
             return HubErrorTag::InvalidInput;
         };
         let input = InputSnapshot::from_raw(raw);
+        if input.raw() != raw {
+            self.last_error = format!("input_packed has reserved bits: {input_packed:#010x}");
+            return HubErrorTag::InvalidInput;
+        }
+        if raw & 0b0011 == 0b0011 || raw & 0b1100 == 0b1100 {
+            self.last_error =
+                format!("input_packed has reserved axis encoding: {input_packed:#010x}");
+            return HubErrorTag::InvalidInput;
+        }
         let snapshot = self.sim.tick(input);
         write_snapshot(&mut self.snapshot_buffer, &snapshot);
 
@@ -175,6 +185,23 @@ mod tests {
         let tag = handle.tick(0xFFFF_0001);
         assert_eq!(tag, HubErrorTag::InvalidInput);
         assert!(handle.error_message_len() > 0);
+    }
+
+    #[test]
+    fn tick_with_low_reserved_bits_returns_invalid_input_and_sets_message() {
+        let mut handle = HubHandle::new(0);
+        let tag = handle.tick(0b0010_0000);
+        assert_eq!(tag, HubErrorTag::InvalidInput);
+        assert!(handle.error_message_len() > 0);
+    }
+
+    #[test]
+    fn tick_with_reserved_axis_encoding_returns_invalid_input() {
+        let mut handle = HubHandle::new(0);
+        assert_eq!(handle.tick(0b0011), HubErrorTag::InvalidInput);
+
+        let mut handle = HubHandle::new(0);
+        assert_eq!(handle.tick(0b1100), HubErrorTag::InvalidInput);
     }
 
     #[test]

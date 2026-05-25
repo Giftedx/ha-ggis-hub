@@ -878,9 +878,9 @@ export function formatPromptText(
   doorTitle: string
 ): string {
   if (interactionKind === 'launchable') {
-    // Two-line prompt: title on top, "press enter" hint below. Joined
+    // Two-line prompt: title on top, interact/tap hint below. Joined
     // with newline; drawPrompt splits and renders both lines.
-    return `AWA' IN — ${doorTitle.toUpperCase()}\nPRESS ENTER`;
+    return `AWA' IN — ${doorTitle.toUpperCase()}\nENTER SPACE E TAP`;
   }
   if (interactionKind === 'locked') {
     return `${doorTitle.toUpperCase()}\nCOMIN' SOON.`;
@@ -909,7 +909,7 @@ function drawPrompt(
   const scale = 2;
   const lineH = PIXEL_FONT_HEIGHT * scale;
   const lineGap = 2;
-  // Split on \n for multi-line prompts (e.g. "AWA' IN — TITLE\nPRESS ENTER").
+  // Split on \n for multi-line prompts (e.g. "AWA' IN — TITLE\nENTER SPACE E TAP").
   const lines = text.split('\n');
   const widths = lines.map((line) => measurePixelText(line, scale));
   const plateW = Math.max(...widths) + 8;

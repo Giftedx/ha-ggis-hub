@@ -208,9 +208,9 @@ describe('createCanvasRoomRenderer', () => {
     expect(ctxB.calls.length).toBeGreaterThan(noInteractionCallCount);
   });
 
-  it('formats the launchable prompt with the registry-resolved title plus a PRESS ENTER hint', () => {
+  it('formats the launchable prompt with the registry-resolved title plus keyboard and tap hints', () => {
     expect(formatPromptText('launchable', 'Wild Haggis Survivors')).toBe(
-      `AWA' IN — WILD HAGGIS SURVIVORS\nPRESS ENTER`
+      `AWA' IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
     );
   });
 
