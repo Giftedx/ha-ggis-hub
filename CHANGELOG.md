@@ -2,6 +2,26 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 refactor: strip haggis back to a committed folk silhouette
+
+After five additive iterations (tied pudding → fabric flaps → tartan band → thistle sprig → adjusted everything) the haggis had become a Christmas pudding in a Burberry cap — busy at every scale, "wearing its Scottishness instead of being it". Root cause from the roast cycle: every pass added a feature; subtraction was never the move. Reversed direction.
+
+Kept: one pear silhouette (single fill, no layered shading), one tartan band at the cinch, two tiny ribbon-end twists above the band, two black DOT eyes, four asymmetric drift legs, the heather patch. Cut: thistle sprig, fabric flaps, knobbly stitching, dawn-lit crown, belly shadow, snout/muzzle/nose/nostrils/smile, eye whites/pupils/catchlights, brow tufts, all the multi-layer body shading. Frame interface collapsed from `{breathY, facingLeft, frontLegY, backLegY, tieWobble, blink}` to `{breathY, facingLeft, frontLegY, backLegY}`. Palette down from 18 tokens to 10.
+
+The folk-art register every previous iteration claimed but didn't deliver: confident silhouette, minimal features, no Pixar/Minions eye construction. At favicon scale this is the cleanest iteration of the day — at 16×16 the cream stripe and brown body read without any decorative noise to lose.
+
+### Changed
+
+- **`src/render/bothy-haggis.ts`** — full rewrite, ~half the LoC. Frame interface simplified; palette minimised; single-band tartan replaces the three-band cinch; dot-eyes replace the layered eye construction; cuts ~9 feature blocks.
+- **`src/render/bothy-haggis.test.ts`** — palette assertions updated to the minimal token set.
+- **`src/render/canvas-room.ts`** — `drawHaggis` no longer computes blink or tieWobble (no longer in frame interface).
+- **`public/og.svg`** — ported the simplified design at OG scale; removed thistle, stitching, multi-band tartan, fabric flaps, smile, snout, eye whites.
+- **`public/og.png`** — regenerated.
+- **`public/favicon.svg`** — same simplified design at favicon scale; tartan band + dot eyes only; lit bottom rim retained for dark-mode silhouette safety.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined.
+
+---
+
 ## [Unreleased] — 2026-05-25 feat: add tartan + thistle Scottish identity tell
 
 Roast verdict on the prior tied-pudding haggis: "nothing Scottish about it beyond the colour brown — could be any tied bag with eyes." The food-shape gag worked but the protagonist had zero cultural specificity. Fixed: cream twine wraps are now TARTAN-banded (cream base + red and dark-green primary stripes alternating, with thin cross-stripes of the secondary colour suggesting plaid weave), and a small purple THISTLE sprig is tucked at the front-right of the cinch — stem + spiky green bract + purple fluffy head + bright hair-strokes. Both cues port from bothy-haggis.ts through og.svg to the favicon so the Highland identity shows up at every scale, including 16×16 where the tartan stripe pattern is the only thing legible.

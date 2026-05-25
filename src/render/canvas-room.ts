@@ -832,30 +832,19 @@ function drawHaggis(
   hardContactShadow(ctx, cx, cy + bob + 6, 60, 2);
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
+  // The folk-silhouette haggis has dot-eyes and no flapping fabric, so
+  // there's no blink animation and no tie-wobble — breath + walk only.
+  void reducedMotion;
   const walkCycle = phase * 6 * Math.PI;
   const legAmp = 1.5;
   const frontLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
   const backLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
-  // Tie wobble is suppressed in reduced-motion — the "fabric ears"
-  // above the tied neck bob slightly when the haggis moves.
-  const tieWobble = (!reducedMotion && isMoving) ? Math.sin(phase * 3 * Math.PI) * 0.6 : 0;
-
-  // Slow blink — closes for ~150ms in the middle of each 6-s cycle.
-  // Eyes are OPEN at phase=0 so the visual-gate capture isn't a
-  // mid-blink black-hole face.
-  const blinkPhase = (phase % 6) / 6;          // 0..1 across each 6-s cycle
-  const blink = blinkPhase < 0.5  ? 1
-              : blinkPhase < 0.515 ? 1 - (blinkPhase - 0.5) / 0.015
-              : blinkPhase < 0.53  ? (blinkPhase - 0.515) / 0.015
-              : 1;
 
   drawBothyHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
     breathY: Math.sin(phase * 1.4) * 0.4,
     facingLeft,
     frontLegY,
-    backLegY,
-    tieWobble,
-    blink
+    backLegY
   });
 }
 

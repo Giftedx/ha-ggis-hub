@@ -44,50 +44,35 @@ class RecordingHaggisContext {
 }
 
 describe('drawBothyHaggis', () => {
-  it('renders the full tied-pudding haggis without throwing on empty frame', () => {
+  it('renders the minimal folk haggis without throwing on empty frame', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    // Sack body + tied neck + fabric ears + twine wraps + eyes + snout +
-    // smile + legs + heather — well over 80 primitives.
-    expect(ctx.calls.length).toBeGreaterThan(80);
+    // Body silhouette (2 fills) + tartan band (5 ellipses) + ribbon
+    // twists (2 paths) + 4 legs + 2 eye dots + heather (1 ellipse + 2 dots).
+    // Should comfortably exceed 30 primitives.
+    expect(ctx.calls.length).toBeGreaterThan(30);
   });
 
-  it('applies every animation frame parameter', () => {
+  it('applies every supported frame parameter', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 2, {
       breathY: 0.4,
       facingLeft: true,
       frontLegY: 1.5,
-      backLegY: -1.5,
-      tieWobble: 0.6,
-      blink: 0.5
+      backLegY: -1.5
     });
-    expect(ctx.calls.length).toBeGreaterThan(80);
+    expect(ctx.calls.length).toBeGreaterThan(30);
   });
 
-  it('blink=0 collapses each eye into a slit (no pupil/catchlight)', () => {
-    const open = new RecordingHaggisContext();
-    drawBothyHaggis(open, 100, 100, 1, { blink: 1 });
-    const closed = new RecordingHaggisContext();
-    drawBothyHaggis(closed, 100, 100, 1, { blink: 0 });
-    // Closed-eye path skips pupil + catchlight per eye, so it issues
-    // fewer primitive operations than the fully-open render.
-    expect(closed.calls.length).toBeLessThan(open.calls.length);
-  });
-
-  it('exposes the tartan/thistle palette tokens (Scottish identity tells)', () => {
-    expect(BOTHY_HAGGIS_PALETTE.sackMid).toBe('#6a4528');
+  it('exposes the minimal committed-silhouette palette', () => {
+    expect(BOTHY_HAGGIS_PALETTE.body).toBe('#5a3220');
     expect(BOTHY_HAGGIS_PALETTE.tartanRed).toBe('#9c2018');
     expect(BOTHY_HAGGIS_PALETTE.tartanGreen).toBe('#1f4628');
     expect(BOTHY_HAGGIS_PALETTE.tartanCream).toBe('#f4d8a0');
-    expect(BOTHY_HAGGIS_PALETTE.thistlePurple).toBe('#7a4a9c');
+    expect(BOTHY_HAGGIS_PALETTE.eye).toBe('#0a0604');
   });
 
-  it('facingLeft mirrors only the asymmetric leg drift, not the sack', () => {
-    // Body silhouette is symmetric so the sack draws the same; only the
-    // leg positions differ between facing-right and facing-left. We
-    // assert that the call count is identical (same number of legs,
-    // same primitives) — only positions shift.
+  it('facingLeft mirrors leg drift only — same call count', () => {
     const right = new RecordingHaggisContext();
     drawBothyHaggis(right, 100, 100, 1, { facingLeft: false });
     const left = new RecordingHaggisContext();
