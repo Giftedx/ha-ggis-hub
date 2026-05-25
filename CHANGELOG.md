@@ -2,6 +2,20 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 polish: tighter door proximity and locked-door taps
+
+Door interaction now uses a smaller feet-anchored hitbox (`PLAYER_HALF` 80→56) so launchable doors read closer to the painted haggis. Tapping the locked future-bothy door announces “comin’ soon” instead of starting pointer-drive.
+
+### Changed
+
+- **`crates/hub-core/src/sim.rs`** — `PLAYER_HALF` 56; comment documents feet-anchored box.
+- **`src/hub/bothy-module.ts`** — pointer-down on any door hitbox respects locked vs launchable.
+- **`package.json`** — `build:wasm` runs `wasm-pack` into `src/generated/hub-wasm/` before `vite build` so sim changes reach the browser artifact.
+- **`src/generated/hub-wasm/`** — regenerated after `PLAYER_HALF` change.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined (contact shadow reads the new half-extent).
+
+---
+
 ## [Unreleased] — 2026-05-25 fix: deterministic visual gate and current haggis-eval docs
 
 The pre-merge slice exposed two bits of engineering drift: the visual gate's 8-bit budget was being spent by normal animation timing (local verifies landed 10–12 bits from the golden), and several current docs still described old haggis-eval/stub/count assumptions. The visual gate now freezes renderer animation with `?visualGatePhase=0`, rebakes the golden for that fixed phase, and verifies at 0/256 across repeated local runs. Preview gate runners also avoid Node's DEP0190 warning by using shell command strings only for constant `pnpm` invocations and validating preview ports before interpolation.

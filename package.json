@@ -10,8 +10,9 @@
     "pnpm": ">=10 <11"
   },
   "scripts": {
-    "build": "vite build",
-    "build:verified": "vite build && node scripts/verify-dist.mjs",
+    "build:wasm": "wasm-pack build crates/hub-wasm --target web --out-dir ../../src/generated/hub-wasm --release",
+    "build": "pnpm run build:wasm && vite build",
+    "build:verified": "pnpm run build && node scripts/verify-dist.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ vite.config.ts --max-warnings=0",

@@ -83,7 +83,7 @@ RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 
 # TypeScript host + deploy artifact gate
 pnpm install --frozen-lockfile
-pnpm verify        # typecheck → lint → vitest → vite build → scripts/verify-dist.mjs
+pnpm verify        # typecheck → lint → vitest → build:wasm + vite build → scripts/verify-dist.mjs
 pnpm run coverage  # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
 # Browser smokes (each builds dist + starts vite preview internally)

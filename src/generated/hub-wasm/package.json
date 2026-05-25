@@ -2,10 +2,10 @@
   "name": "hub-wasm",
   "type": "module",
   "version": "0.1.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aggis/ha-ggis-hub"
+    "url": "https://github.com/Giftedx/ha-ggis-hub"
   },
   "files": [
     "hub_wasm_bg.wasm",

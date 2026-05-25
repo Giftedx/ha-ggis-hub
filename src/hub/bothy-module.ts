@@ -152,10 +152,16 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         const snapshot = room.lastSnapshot();
         for (const vb of visualDoorBounds) {
           const doorSnap = snapshot.doors.find((d) => d.id === vb.id);
-          if (doorSnap?.status !== 'launchable') continue;
+          if (doorSnap === undefined) continue;
           if (logicalX >= vb.x && logicalX <= vb.x + vb.width &&
               logicalY >= vb.y && logicalY <= vb.y + vb.height) {
-            launchDoorById(vb.id);
+            if (doorSnap.status === 'launchable') {
+              launchDoorById(vb.id);
+            } else {
+              const game = getGameById(HUB_GAME_REGISTRY, vb.id);
+              const title = game?.title ?? vb.id;
+              shell.status.textContent = `${title} door — comin’ soon.`;
+            }
             return;
           }
         }

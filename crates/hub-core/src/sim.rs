@@ -206,7 +206,10 @@ use crate::rng::Rng;
 
 const WORLD_W: i32 = 1_000;
 const WORLD_H: i32 = 1_000;
-const PLAYER_HALF: i32 = 80;
+/// Feet-anchored interaction box half-extent (world units). Sized to the
+/// painted haggis footprint, not the full sprite silhouette — 80 read early
+/// at doors before the haggis looked “there”.
+const PLAYER_HALF: i32 = 56;
 const PLAYER_SPEED_PER_TICK: i32 = 100;
 const DIAGONAL_SCALE_PER_MILLE: i32 = 707;
 

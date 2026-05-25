@@ -3,11 +3,9 @@
   "schema": 1,
   "scenes": {
     "bothy-idle-seed-42": {
-      "hash": "7c3efc3fc23fc03e8039c03bf0316031c033c003e007e0076006e00760060100",
+      "hash": "7c3efc3ffc3f7c3e8039e039e03060318033c003c007e0076006e00740020100",
       "toleranceBits": 8,
-      "phaseSeconds": 0,
-      "capturedAt": "2026-05-25T09:34:44.213Z",
-      "captureSource": "local visual gate capture after freezing animation phase"
+      "capturedAt": "2026-05-25T10:49:18.159Z"
     }
   }
 }
