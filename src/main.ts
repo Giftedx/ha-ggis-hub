@@ -7,7 +7,6 @@ import { createHubRoomController } from './hub/room';
 import { createCanvasRoomRenderer, computeVisualDoorBounds } from './render/canvas-room';
 import { createLaunchPlan, performLaunch, type LaunchNavigator } from './navigation/launch';
 import { HUB_GAME_REGISTRY, getGameById } from './games/registry';
-import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './render/sprites/pixel-font';
 import { initializeHubBoundaryV2 } from './wasm/boundary';
 import { loadGeneratedHubWasm } from './wasm/generated-loader';
 import { createDebugOverlay, createFpsTracker } from './debug/overlay';
@@ -18,77 +17,7 @@ if (appRoot === null) {
   throw new Error('Expected #app root element to exist.');
 }
 
-const previewParam = new URLSearchParams(window.location.search).get('preview');
-if (previewParam === 'pixel-text') {
-  renderPixelTextPreview(appRoot);
-} else {
-  void start(appRoot);
-}
-
-// Dev-only: render a sample sentence in the hand-painted pixel font so I
-// can verify the glyphs read at viewport-relevant scales.
-// Usage: http://localhost:5173/?preview=pixel-text
-function renderPixelTextPreview(root: HTMLElement): void {
-  const sample = "AWA' IN — WHS";
-  const scale = 4;
-  const padding = 40;
-  const textWidth = measurePixelText(sample, scale);
-  const textHeight = PIXEL_FONT_HEIGHT * scale;
-  const canvas = document.createElement('canvas');
-  canvas.width = textWidth + padding * 2;
-  canvas.height = textHeight + padding * 2;
-  canvas.style.display = 'block';
-  canvas.style.imageRendering = 'pixelated';
-  canvas.style.margin = '40px auto';
-  canvas.style.background = '#2a1810';
-  canvas.style.border = '2px solid #c4a878';
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    root.textContent = 'no canvas context';
-    return;
-  }
-  ctx.imageSmoothingEnabled = false;
-  // Contrast background INSIDE the canvas (deep peat under cream text)
-  ctx.fillStyle = '#2a1810';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // Paint the sample line in tatties-cream (PALETTE.bone)
-  const x = padding;
-  const y = padding;
-  renderPixelText(ctx, sample, x, y, scale, '#f0e6c8');
-
-  // Render a second line below at scale 2 so I can verify the glyphs
-  // still read at the smaller scale the in-scene prompts will use.
-  const smallScale = 2;
-  const smallY = y + textHeight + 24;
-  // Resize canvas to fit the second line
-  const smallWidth = measurePixelText(sample, smallScale);
-  if (smallWidth + padding * 2 > canvas.width) {
-    canvas.width = smallWidth + padding * 2;
-    // Repaint background since resizing clears the canvas
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = '#2a1810';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    renderPixelText(ctx, sample, x, y, scale, '#f0e6c8');
-  }
-  canvas.height = smallY + PIXEL_FONT_HEIGHT * smallScale + padding;
-  // Resizing height also clears the canvas — repaint everything
-  ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#2a1810';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  renderPixelText(ctx, sample, x, y, scale, '#f0e6c8');
-  renderPixelText(ctx, sample, x, smallY, smallScale, '#f0e6c8');
-
-  const label = document.createElement('p');
-  label.textContent = `pixel-font preview: "${sample}" at scale ${scale}× (top) and ${smallScale}× (bottom)`;
-  label.style.textAlign = 'center';
-  label.style.color = '#c4a878';
-  label.style.fontFamily = 'Georgia, serif';
-  label.style.fontStyle = 'italic';
-  label.style.margin = '20px';
-  root.style.overflow = 'auto';
-  root.style.height = '100vh';
-  root.replaceChildren(label, canvas);
-}
+void start(appRoot);
 
 async function start(root: HTMLElement): Promise<void> {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

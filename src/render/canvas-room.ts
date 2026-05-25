@@ -380,7 +380,7 @@ function renderRoom(
   drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
 
   // 8.5 Ambient particles — smoke wisps rising from the fire, and dust
-  //     motes drifting in the cool moonlight under the window. Subtle
+  //     motes drifting in the cool dawn light under the window. Subtle
   //     motion that brings the room alive without distracting.
   if (!reducedMotion) drawAmbientParticles(ctx, surface, fireCenter, phase);
 
@@ -603,7 +603,7 @@ function drawTopWallWindow(
   phase: number,
   reducedMotion: boolean
 ): void {
-  // Phase 3a: window now uses WHS drawWhsWindowBay — loch view +
+  // Phase 3a: window now uses WHS drawWhsWindowBay — Highland dawn view +
   // distant mountains + dawn sun glow + cross mullion + wood sill +
   // heather curtains. Highland Dawn theme literal.
   const cx = Math.round(surface.width / 2);
