@@ -2,6 +2,19 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-25 feat: redesign OG social card with the tied-pudding haggis
+
+`public/og.svg` previously shipped with the old canonical mane-and-strands haggis silhouette (the one the owner called "ugly as sin"). Replaced with a hand-port of the new `bothy-haggis.ts` shape language — tied-pudding sack, twine wraps, fabric ears, asymmetric drift legs, heather patch — at the OG card's 1200×630 scale (haggis rendered at ×6 native, ~270 wide). Now the social card actually showcases the canon protagonist instead of misrepresenting it.
+
+Typography block + dawn radial + vignette + frame are unchanged. Removed the unused `#haggisBody` / `#mane` / `#rim` gradient defs (they were only referenced by the retired haggis paths).
+
+### Changed
+
+- **`public/og.svg`** — new tied-pudding haggis group at `translate(900 320) scale(6)`; removed unused gradient defs; updated comment to point at `bothy-haggis.ts` as the canon source.
+- **`public/og.png`** — regenerated via `pnpm rasterize:og`.
+
+---
+
 ## [Unreleased] — 2026-05-25 feat: bothy haggis as tied-pudding-with-eyes (`bothy-haggis.ts`)
 
 Six earlier haggis attempts in the same working tree failed the bar — procedural drawer keyed to `public/og.svg` ("lumpy / icicle-maned"), hand-painted pixel sprite at scale 3 ("brown loaf"), port of the WHS in-game drawer (rejected as a cross-game copy), 3/4-russet "Highland mammal" ("corn dog with a bib"), radial fur spikes ("sea urchin"), and scalloped fluff ("Furby in cosplay"). All six designed AROUND the haggis. The breakthrough: the wild haggis is a folk gag about the FOOD coming alive — so the creature's shape language has to *be* the dish (a stuffed sack tied with twine at the top), with eyes, legs, and the canonical asymmetric-leg drift.
