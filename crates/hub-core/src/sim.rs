@@ -149,9 +149,9 @@ impl DoorSlot {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RenderSnapshot {
-    /// Player center x in fixed world units.
+    /// Player feet anchor x in fixed world units (matches renderer placement).
     pub player_x: i32,
-    /// Player center y in fixed world units.
+    /// Player feet anchor y in fixed world units (matches renderer placement).
     pub player_y: i32,
     /// Player half-extent used for bounds and door proximity.
     pub player_half_extent: i32,

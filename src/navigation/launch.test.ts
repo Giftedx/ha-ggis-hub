@@ -80,6 +80,23 @@ describe('launch planning', () => {
     performLaunch({ kind: 'missing-game', gameId: 'missing', reason: 'missing' }, { navigate });
 
     expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith('https://wild-haggis-survivors.pages.dev/');
+    expect(navigate).toHaveBeenCalledWith(
+      'https://wild-haggis-survivors.pages.dev/',
+      'external-url'
+    );
+  });
+
+  it('passes route target kind through to the navigator', () => {
+    const navigate = vi.fn();
+    performLaunch(
+      createLaunchPlan({
+        id: 'mounted-game',
+        title: 'Mounted Game',
+        status: 'playable',
+        launch: { kind: 'route', target: '/wild-haggis-survivors/' }
+      }),
+      { navigate }
+    );
+    expect(navigate).toHaveBeenCalledWith('/wild-haggis-survivors/', 'route');
   });
 });

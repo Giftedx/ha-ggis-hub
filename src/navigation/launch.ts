@@ -26,7 +26,10 @@ export type LaunchPlan =
     };
 
 export interface LaunchNavigator {
-  navigate(target: string): void;
+  navigate(
+    target: string,
+    targetKind: Exclude<HubGameLaunchTarget['kind'], 'none'>
+  ): void;
 }
 
 export function canLaunchGame(
@@ -83,5 +86,5 @@ export function performLaunch(plan: LaunchPlan, navigator: LaunchNavigator): voi
     return;
   }
 
-  navigator.navigate(plan.target);
+  navigator.navigate(plan.target, plan.targetKind);
 }
