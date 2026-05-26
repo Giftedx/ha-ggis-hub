@@ -101,13 +101,15 @@
     <path d="M -14,-8 Q 0,-11 15,-5" fill="none" stroke="#2a1408" stroke-width="0.7" stroke-linecap="round" opacity="0.35"/>
     <path d="M -16,-5 Q -8,-8 2,-7" fill="none" stroke="#b46a38" stroke-width="0.8" stroke-linecap="round" opacity="0.38"/>
 
-    <!-- Off-centre oat patch -->
-    <ellipse cx="-15" cy="-3.5" rx="4.3" ry="1.8" fill="#6a4a28" opacity="0.95"/>
-    <circle cx="-17.1" cy="-3.8" r="0.72" fill="#3a2a1a" opacity="0.62"/>
-    <circle cx="-13.4" cy="-3.2" r="0.58" fill="#3a2a1a" opacity="0.52"/>
-    <circle cx="-16.2" cy="-4.3" r="0.5" fill="#d8b46a" opacity="0.95"/>
-    <circle cx="-14.5" cy="-3.5" r="0.47" fill="#d8b46a" opacity="0.9"/>
-    <circle cx="-12.9" cy="-2.8" r="0.4" fill="#d8b46a" opacity="0.82"/>
+    <!-- Pale oat cutaway -->
+    <path d="M -22.2,-5 Q -18.9,-8.4 -12.2,-6 Q -10.8,-3.2 -12.6,-0.6 Q -15.2,2.2 -20.7,1.2 Q -23.4,-1.4 -22.2,-5" fill="#2a1408" opacity="0.64"/>
+    <path d="M -21.4,-4.55 Q -18.1,-7.95 -11.4,-5.55 Q -10,-2.75 -11.8,-0.15 Q -14.4,2.65 -19.9,1.65 Q -22.6,-0.95 -21.4,-4.55" fill="#f4d8a0"/>
+    <path d="M -22.2,-5 Q -18.9,-8.4 -12.2,-6" fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.72"/>
+    <path d="M -20.7,1.2 Q -15.8,2 -12.6,-0.6" fill="none" stroke="#b46a38" stroke-width="0.7" stroke-linecap="round" opacity="0.42"/>
+    <circle cx="-18.8" cy="-4.4" r="0.95" fill="#d8b46a" opacity="0.95"/>
+    <circle cx="-15.8" cy="-2.2" r="1.05" fill="#d8b46a" opacity="0.9"/>
+    <circle cx="-12.8" cy="-5.1" r="0.85" fill="#d8b46a" opacity="0.82"/>
+    <circle cx="-15.1" cy="-1" r="0.5" fill="#3a2a1a" opacity="0.45"/>
 
     <!-- Oat flecks in the casing -->
     <g fill="#d8b46a" opacity="0.72">

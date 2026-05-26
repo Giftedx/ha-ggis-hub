@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-26 refine: make the Wee Chieftain read as haggis before bean
+
+The V4 mascot fixed the worst problems but still leaned on tiny secondary cues: the body could read as a brown bean, the oat patch was too timid, and the favicon was still mostly a face. V5 makes one food cue do the heavy lifting: a larger pale oat/stuffing cutaway with a dark casing lip. The tied end stays, but the cutaway now carries the immediate "haggis pudding" read.
+
+### Changed
+
+- **`src/render/bothy-haggis.ts`** — replaced the small oat patch with a brighter exposed-oat cutaway and casing lip; added `crumbLight` to the mascot palette.
+- **`src/render/bothy-haggis.test.ts`** — locked the larger cutaway geometry and the favicon's matching small-size cue.
+- **`public/og.svg`** + **`public/og.png`** — ported the V5 cutaway to the social card.
+- **`public/favicon.svg`** — enlarged the pale oat cutaway so the icon is no longer just a brown face at 32 px.
+- **`DESIGN.md`** — documented the new exposed-oat token.
+- **`tests/golden/bothy-idle-seed-42.png`** + **`tests/golden/visual-budgets.json`** — rebaselined after visual review.
+
+---
+
 ## [Unreleased] — 2026-05-26 refine: sharpen Wee Chieftain food-mascot identity
 
 The V3 whole-haggis direction was right, but the first pass still risked reading as a generic brown bean at small sizes. V4 makes the food cue louder without adding animal anatomy: stronger casing compression at both ends, a readable right-side tied-end button-knot, warmer casing highlights so the mascot separates from the brown bothy, and softer alert eyes that stop reading suspicious.

@@ -7,7 +7,7 @@
 // Read cues:
 //   - squat whole-haggis oval, wider than tall
 //   - glossy cooked casing with seams and tied ends
-//   - warm crumb/oat patch as a food tell
+//   - pale oat cutaway with casing lip as the dominant food tell
 //   - big cream eyes for WHS-level readability
 //   - compact tartan-twine collar for Scottish flavour, not a hat
 //   - tiny uneven legs for the haggis-family drift gag
@@ -44,6 +44,7 @@ export interface BothyHaggisPalette {
   readonly casingLight: string;
   readonly casingHighlight: string;
   readonly casingSeam: string;
+  readonly crumbLight: string;
   readonly crumbDark: string;
   readonly crumbMid: string;
   readonly oatFleck: string;
@@ -67,6 +68,7 @@ export const BOTHY_HAGGIS_PALETTE: BothyHaggisPalette = {
   casingLight: '#9c5630',
   casingHighlight: '#b46a38',
   casingSeam: '#2a1408',
+  crumbLight: '#f4d8a0',
   crumbDark: '#3a2a1a',
   crumbMid: '#6a4a28',
   oatFleck: '#d8b46a',
@@ -172,18 +174,19 @@ export function drawBothyHaggis(
   strokeCurve(ctx, palette.casingSeam, 0.35, 0.7 * s, mx(-14), my(-8), mx(0), my(-11), mx(15), my(-5));
   strokeCurve(ctx, palette.casingHighlight, 0.38, 0.8 * s, mx(-16), my(-5), mx(-8), my(-8), mx(2), my(-7));
 
-  // Off-centre oat patch: a light food cue, not a dark wound or snout.
-  fillEllipseRaw(ctx, palette.crumbMid, 0.95, mx(-15), my(-3.5), 4.3 * s, 1.8 * s);
-  fillCircle(ctx, palette.crumbDark, 0.62, mx(-17.1), my(-3.8), 0.72 * s);
-  fillCircle(ctx, palette.crumbDark, 0.52, mx(-13.4), my(-3.2), 0.58 * s);
-  fillCircle(ctx, palette.oatFleck, 0.95, mx(-16.2), my(-4.3), 0.5 * s);
-  fillCircle(ctx, palette.oatFleck, 0.9, mx(-14.5), my(-3.5), 0.47 * s);
-  fillCircle(ctx, palette.oatFleck, 0.82, mx(-12.9), my(-2.8), 0.4 * s);
+  // Pale oat cutaway: one loud food cue, not a wound, snout, or freckles.
+  fillTornCutaway(ctx, palette.casingSeam, 0.64, mx, my, 0, 0);
+  fillTornCutaway(ctx, palette.crumbLight, 1, mx, my, 0.8, 0.45);
+  strokeCurve(ctx, palette.casingSeam, 0.72, 0.9 * s, mx(-22.2), my(-5), mx(-18.9), my(-8.4), mx(-12.2), my(-6));
+  strokeCurve(ctx, palette.casingHighlight, 0.42, 0.7 * s, mx(-20.7), my(1.2), mx(-15.8), my(2), mx(-12.6), my(-0.6));
+  fillCircle(ctx, palette.crumbDark, 0.45, mx(-19.2), my(-4.7), 0.5 * s);
+  fillCircle(ctx, palette.oatFleck, 0.95, mx(-18.8), my(-4.4), 0.95 * s);
+  fillCircle(ctx, palette.oatFleck, 0.9, mx(-15.8), my(-2.2), 1.05 * s);
+  fillCircle(ctx, palette.oatFleck, 0.82, mx(-12.8), my(-5.1), 0.85 * s);
+  fillCircle(ctx, palette.crumbDark, 0.45, mx(-15.1), my(-1.0), 0.5 * s);
 
   // Oat flecks embedded in the casing.
   const flecks: readonly [number, number, number][] = [
-    [-15, -2, 0.7],
-    [-11, 5, 0.55],
     [-4, 8, 0.58],
     [10, 4, 0.62],
     [15, -3, 0.52],
@@ -210,6 +213,28 @@ export function drawBothyHaggis(
 }
 
 // ── Canvas2D helpers ───────────────────────────────────────────────
+
+function fillTornCutaway(
+  ctx: BothyHaggisContext,
+  color: string,
+  alpha: number,
+  mx: (dx: number) => number,
+  my: (dy: number) => number,
+  offsetX: number,
+  offsetY: number
+): void {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(mx(-22.2 + offsetX), my(-5 + offsetY));
+  ctx.quadraticCurveTo(mx(-18.9 + offsetX), my(-8.4 + offsetY), mx(-12.2 + offsetX), my(-6 + offsetY));
+  ctx.quadraticCurveTo(mx(-10.8 + offsetX), my(-3.2 + offsetY), mx(-12.6 + offsetX), my(-0.6 + offsetY));
+  ctx.quadraticCurveTo(mx(-15.2 + offsetX), my(2.2 + offsetY), mx(-20.7 + offsetX), my(1.2 + offsetY));
+  ctx.quadraticCurveTo(mx(-23.4 + offsetX), my(-1.4 + offsetY), mx(-22.2 + offsetX), my(-5 + offsetY));
+  ctx.fill();
+  ctx.restore();
+}
 
 function fillCircle(
   ctx: BothyHaggisContext, color: string, alpha: number,

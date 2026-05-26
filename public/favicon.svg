@@ -2,7 +2,7 @@
   <!--
     ha.ggis favicon - close-cropped Wee Chieftain mark. This is not the
     full in-game mascot: at 32px the food cue wins through the oval
-    casing, cream eyes, oat patch, and tied-end knot.
+    casing, cream eyes, pale oat cutaway, and tied-end knot.
   -->
   <rect width="32" height="32" fill="#24170f"/>
 
@@ -26,11 +26,12 @@
   <circle cx="28.0" cy="18.9" r="0.42" fill="#c4a878" opacity="0.78"/>
   <path d="M 26.6,17.8 Q 27.8,17.2 28.8,19.2" fill="none" stroke="#c4a878" stroke-width="0.5" stroke-linecap="round" opacity="0.82"/>
 
-  <!-- Oat patch and a few casing flecks -->
-  <ellipse cx="8.1" cy="14.7" rx="2.35" ry="1.05" fill="#6a4a28" opacity="0.96"/>
-  <circle cx="7.2" cy="14.4" r="0.42" fill="#3a2a1a" opacity="0.62"/>
-  <circle cx="8.6" cy="14.3" r="0.36" fill="#d8b46a" opacity="0.95"/>
-  <circle cx="9.6" cy="15" r="0.34" fill="#d8b46a" opacity="0.82"/>
+  <!-- Pale oat cutaway and a few casing flecks -->
+  <path d="M 3.9,13.7 Q 5.8,12.2 9.7,13.4 Q 11.0,15.1 10.0,16.8 Q 7.8,18.0 4.9,16.9 Q 3.1,15.5 3.9,13.7" fill="#2a1408" opacity="0.62"/>
+  <path d="M 4.4,14.1 Q 7.0,12.9 9.6,14.1 Q 10.0,15.8 8.9,16.6 Q 6.9,17.3 4.8,16.2 Q 3.8,15.0 4.4,14.1" fill="#f4d8a0"/>
+  <circle cx="5.8" cy="14.1" r="0.52" fill="#3a2a1a" opacity="0.62"/>
+  <circle cx="8.0" cy="15.4" r="0.62" fill="#d8b46a" opacity="0.95"/>
+  <circle cx="9.0" cy="14.5" r="0.48" fill="#d8b46a" opacity="0.82"/>
   <circle cx="10.5" cy="21.4" r="0.45" fill="#d8b46a" opacity="0.72"/>
   <circle cx="21.6" cy="15" r="0.45" fill="#d8b46a" opacity="0.76"/>
   <circle cx="20.4" cy="22.3" r="0.38" fill="#d8b46a" opacity="0.68"/>

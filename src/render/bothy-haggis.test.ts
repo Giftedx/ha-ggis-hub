@@ -88,10 +88,23 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('ellipse:123,104,2.4,3.5');
   });
 
-  it('uses an off-centre oat patch and twine collar instead of hair, a mouth-strip, or a price tag', () => {
+  it('uses a dominant pale oat cutaway and twine collar instead of timid flecks or animal anatomy', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).toContain('ellipse:85,96.5,4.3,1.8');
+    expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
+    expect(ctx.calls).toContain('moveTo:77.8,95');
+    expect(ctx.calls).toContain('quadraticCurveTo:81.1,91.6,87.8,94');
+    expect(ctx.calls).toContain('quadraticCurveTo:89.2,96.8,87.4,99.4');
+    expect(ctx.calls).toContain('quadraticCurveTo:84.8,102.2,79.3,101.2');
+    expect(ctx.calls).toContain('arc:81.2,95.6,0.95');
+    expect(ctx.calls).toContain('arc:84.2,97.8,1.05');
+    expect(ctx.calls).toContain('arc:87.2,94.9,0.85');
+    expect(ctx.calls.indexOf('moveTo:77.8,95')).toBeLessThan(
+      ctx.calls.indexOf('arc:92.8,97.5,3.4')
+    );
+    expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
+    expect(ctx.calls).not.toContain('ellipse:85.2,97.1,6.4,2.7');
+    expect(ctx.calls).not.toContain('ellipse:85,96.5,4.3,1.8');
     expect(ctx.calls).not.toContain('ellipse:82,100.5,5.1,2.3');
     expect(ctx.calls).not.toContain('ellipse:84,96,5.4,2.4');
     expect(ctx.calls).not.toContain('ellipse:100,108.2,17,1.4');
@@ -141,6 +154,7 @@ describe('drawBothyHaggis', () => {
   it('exposes the Wee Chieftain food-mascot palette', () => {
     expect(BOTHY_HAGGIS_PALETTE.casingMid).toBe('#7a3f24');
     expect(BOTHY_HAGGIS_PALETTE.casingHighlight).toBe('#b46a38');
+    expect(BOTHY_HAGGIS_PALETTE.crumbLight).toBe('#f4d8a0');
     expect(BOTHY_HAGGIS_PALETTE.crumbDark).toBe('#3a2a1a');
     expect(BOTHY_HAGGIS_PALETTE.oatFleck).toBe('#d8b46a');
     expect(BOTHY_HAGGIS_PALETTE.eyeWhite).toBe('#f0e6c8');
@@ -167,7 +181,12 @@ describe('favicon.svg', () => {
     const svg = readFileSync(new URL('../../public/favicon.svg', import.meta.url), 'utf8');
     expect(svg).toContain('close-cropped Wee Chieftain mark');
     expect(svg).toContain('<ellipse cx="15.6" cy="17.2" rx="14" ry="9.8"');
-    expect(svg).toContain('<ellipse cx="8.1" cy="14.7"');
+    expect(svg).toContain('M 3.9,13.7 Q 5.8,12.2 9.7,13.4');
+    expect(svg).toContain('Q 7.0,12.9 9.6,14.1');
+    expect(svg).toContain('<circle cx="5.8" cy="14.1" r="0.52"');
+    expect(svg).not.toContain('Q 7.9,12.9 12.0,14.1');
+    expect(svg).not.toContain('Q 7.2,12.9 10.8,14.1');
+    expect(svg).not.toContain('<ellipse cx="8.1" cy="14.7" rx="2.35"');
     expect(svg).toContain('<circle cx="25.9" cy="17.8" r="0.66"');
     expect(svg).toContain('fill="#f0e6c8"');
     expect(svg).not.toContain('<rect x="9.2" y="24"');

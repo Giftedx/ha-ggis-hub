@@ -103,6 +103,7 @@ colors:
   art-haggis-casing-light: "#9c5630" # Lit casing face
   art-haggis-casing-highlight: "#b46a38"
   art-haggis-seam: "#2a1408"         # Casing seams and low smile
+  art-haggis-crumb-light: "#f4d8a0"  # Pale exposed oat/stuffing cutaway
   art-haggis-crumb-dark: "#3a2a1a"   # Dark oat/stuffing speck
   art-haggis-crumb-mid: "#6a4a28"    # Warm oat/stuffing patch
   art-haggis-oat: "#d8b46a"          # Bright oat flecks
