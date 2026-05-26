@@ -20,6 +20,11 @@ export default defineConfig({
         // Browser-only entry point: imports DOM + WASM at module level,
         // cannot be exercised in a node vitest env.
         'src/main.ts',
+        // Browser mount orchestration only: WASM init, RAF loop, real
+        // DOM/canvas integration. Authored input, URL, coordinate, pointer
+        // lifecycle, and launch helpers live in bothy-runtime.ts; Playwright
+        // smokes cover user-visible launch and pointer flows.
+        'src/hub/bothy-module.ts',
         // Auto-generated wasm bindings + thin loader shim (no authored logic).
         'src/generated/**',
         'src/wasm/generated-loader.ts',

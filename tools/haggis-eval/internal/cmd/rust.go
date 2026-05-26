@@ -17,3 +17,12 @@ func Rust() []gate.Result {
 		gate.Run("rust", "cargo-test", "cargo", "test", "--workspace", "--exclude", "hub-wasm"),
 	}
 }
+
+// RustLint runs the cargo style/static-analysis subset used by pre-merge.
+// The full `rust` gate keeps the slower native workspace test for release.
+func RustLint() []gate.Result {
+	return []gate.Result{
+		gate.Run("rust-lint", "cargo-fmt", "cargo", "fmt", "--all", "--", "--check"),
+		gate.Run("rust-lint", "cargo-clippy", "cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"),
+	}
+}

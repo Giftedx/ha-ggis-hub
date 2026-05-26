@@ -138,8 +138,9 @@ func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 	// test runs against fixed names so it doesn't need the file.
 	reg := Registry()
 	for _, want := range []string{
-		"rust", "ts", "security", "perf", "browser", "determinism",
-		"visual", "differential-hash", "differential-rng",
+		"rust", "rust-lint", "docs", "ts", "coverage", "security", "perf", "browser",
+		"determinism", "visual", "a11y", "soak", "supply-chain",
+		"differential-hash", "differential-rng",
 	} {
 		if _, ok := reg[want]; !ok {
 			t.Errorf("Registry() missing %q — slices that reference it will fail dispatch", want)

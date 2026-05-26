@@ -6,8 +6,10 @@
 // (or via the inspect-shots playwright pattern).
 
 import { chromium } from 'playwright';
+import { smokeDoorLaunchExitCode, smokeDoorLaunchFailures } from './smoke-outcome.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:5173/';
+const EXPECTED_NAVIGATION_URL = 'https://wild-haggis-survivors.pages.dev/';
 
 const browser = await chromium.launch();
 try {
@@ -30,7 +32,7 @@ try {
   });
   await page.route('**/*', (route) => {
     const reqUrl = route.request().url();
-    if (reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')) {
+    if (reqUrl.startsWith(EXPECTED_NAVIGATION_URL)) {
       navigations.push(reqUrl);
       route.abort();
     } else {
@@ -60,14 +62,15 @@ try {
   console.log('navigations:', navigations);
   console.log('errors:', errors);
   void consoleLog;
-  if (errors.length > 0) {
-    process.exitCode = 1;
-    console.error('page errors during smoke');
-  }
-  if (navigations.length === 0) {
-    console.warn('no navigation fired — haggis may not have reached a launchable door');
+  const outcome = { errors, navigations, expectedNavigationUrl: EXPECTED_NAVIGATION_URL };
+  process.exitCode = smokeDoorLaunchExitCode(outcome);
+  const failures = smokeDoorLaunchFailures(outcome);
+  if (failures.length > 0) {
+    for (const failure of failures) {
+      console.error(failure);
+    }
   } else {
-    console.log(`smoke OK — ${navigations.length} navigation(s) fired`);
+    console.log(`smoke OK — expected navigation fired (${EXPECTED_NAVIGATION_URL})`);
   }
 } finally {
   await browser.close();

@@ -2,6 +2,61 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 hardening: gate docs and eval claim drift
+
+The trust-recovery slice still relied on human discipline to keep `slices.json`, CI comments, and current docs aligned. This hardening slice adds a real docs-claim gate that derives pre-merge gate text from `tools/haggis-eval/slices.json`, rejects stale report/test-count/signing claims, and runs through `haggis-eval docs`, `slice pre-merge`, `slice release`, and `all`.
+
+### Changed
+
+- **`scripts/check-doc-claims.mjs`** + **`scripts/check-doc-claims.test.ts`** — new executable current-surface drift scanner for stale report evidence, old test counts, generic signing language, duplicate PR-gate claims, and slice-derived pre-merge gate lists.
+- **`tools/haggis-eval`** + **`tools/haggis-eval/slices.json`** — added the `docs` gate; `fast`, `pre-merge`, `release`, and `all` now run it before the TypeScript/browser tiers.
+- **`.github/workflows/ci.yml`**, **`README.md`**, **`WRITEUP.md`**, **`docs/README.md`**, **`docs/foundation/07-quality-gates.md`**, **`docs/foundation/12-craft-commitments.md`**, **`docs/architecture/evaluation-strategy.md`**, **`tools/haggis-eval/README.md`** — updated gate lists/counts to include docs-claim scanning and added the machine-checkable pre-merge gate marker.
+- **`docs/audit/2026-05-26-quality-realignment.md`** — moved stale-claim gating out of future work and into restored eval truth.
+
+### Verification
+
+```text
+node scripts/check-doc-claims.mjs                           PASS
+pnpm verify                                                 25 test files, 180 tests, build/dist verification passed
+pnpm run coverage                                           statements 99.05%, branches 93.40%, functions 98.30%, lines 99.29%
+go test ./... && go build . (tools/haggis-eval)             PASS
+haggis-eval docs                                            PASS
+haggis-eval slice pre-merge                                 PASS, 17 gate results including docs/claim-drift
+haggis-eval all                                             PASS, report target/haggis-eval/all-20260526T235030Z.json, signature 0x4f6d1312836c0d6c
+haggis-eval verify-report target/haggis-eval/all-20260526T235030Z.json PASS
+```
+
+---
+
+## [Unreleased] — 2026-05-26 fix: restore quality-gate truth across runtime, eval, and docs
+
+The quality contract had drifted in three places: Rust lint was red on a doc-markdown warning, TypeScript coverage was counting a browser orchestration module with no Node-testable surface, and the keyboard launch smoke could warn on zero navigation without failing. This slice restores trust by extracting the authored bothy runtime decisions into a pure tested module, fixing movement+interact bit packing, making the door-launch smoke require the actual WHS URL instead of any navigation, and strengthening the PR eval slice instead of lowering thresholds.
+
+### Changed
+
+- **`src/hub/bothy-runtime.ts`** + **`src/hub/bothy-runtime.test.ts`** — new pure seam for seed parsing, visual-gate phase parsing, pointer movement intent, client/world coordinate mapping, packed input assembly, event-listener wrapping, listener cleanup, pointer-capture teardown, and door launch decisions.
+- **`src/hub/bothy-module.ts`** — now delegates authored runtime decisions to the pure seam while keeping DOM/WASM/browser mount orchestration in the browser gate tier.
+- **`scripts/smoke-door-launch.mjs`** + **`scripts/smoke-outcome.mjs`** — keyboard launch smoke exits non-zero on zero navigations, wrong navigations, Chrome error-page-only navigations, or page errors.
+- **`tools/haggis-eval`** + **`.github/workflows/ci.yml`** — added `rust-lint`; `ts` now includes ESLint and `verify-dist`; `pre-merge` now runs rust lint, TS, coverage, security, perf, browser, determinism, visual, and a11y on PRs; `verify-report` recomputes report signatures; full `all` stays push-to-main.
+- **`vite.config.ts`** — excludes only browser mount orchestration from V8 coverage; authored input, URL, coordinate, pointer lifecycle, and launch helpers are covered through `bothy-runtime.ts`.
+- **`README.md`**, **`WRITEUP.md`**, **`docs/README.md`**, **`docs/foundation/07-quality-gates.md`**, **`docs/foundation/12-craft-commitments.md`**, **`docs/architecture/testing-strategy.md`**, **`docs/architecture/evaluation-strategy.md`**, **`tools/haggis-eval/README.md`** — replaced cryptographic-signing overclaims with FNV-signed tamper-evident language, fixed the repo-root `haggis-eval all` invocation, and updated test/coverage/gate descriptions.
+- **`docs/audit/2026-05-26-quality-realignment.md`** — records what was restored and the remaining hardening roadmap.
+
+### Verification
+
+```text
+pnpm verify        24 test files, 175 tests, build/dist verification passed
+pnpm run coverage  statements 99.05%, branches 93.40%, functions 98.30%, lines 99.29%
+cargo fmt --all -- --check                                   PASS
+cargo clippy --workspace --all-targets -- -D warnings        PASS
+node scripts/run-browser-smokes.mjs                          PASS
+haggis-eval slice pre-merge                                  PASS
+haggis-eval all                                              PASS, report target/haggis-eval/all-20260526T035736Z.json, signature 0x22923d84024cf670
+haggis-eval verify-report target/haggis-eval/all-20260526T035736Z.json PASS
+```
+
+---
+
 ## [Unreleased] — 2026-05-26 refine: make the Wee Chieftain read as haggis before bean
 
 The V4 mascot fixed the worst problems but still leaned on tiny secondary cues: the body could read as a brown bean, the oat patch was too timid, and the favicon was still mostly a face. V5 makes one food cue do the heavy lifting: a larger pale oat/stuffing cutaway with a dark casing lip. The tied end stays, but the cutaway now carries the immediate "haggis pudding" read.
@@ -737,7 +792,7 @@ Closed the long-standing "a11y still planned" item from `docs/foundation/07-qual
 
 ### Changed
 
-- **`tools/haggis-eval/internal/cmd/all.go`** — `A11y()` appended between `Visual` and `Differential` so `haggis-eval all` (and the signed JSON report) now covers it. Gate count 15 → 16.
+- **`tools/haggis-eval/internal/cmd/all.go`** — `A11y()` appended between `Visual` and `Differential` so `haggis-eval all` (and the FNV-signed tamper-evident JSON report) now covers it. Gate count 15 → 16.
 - **`tools/haggis-eval/slices.json`** — `pre-merge` and `release` bundles now include `a11y`. `fast` deliberately stays just `ts + perf` (fast = no browser tier).
 - **`src/style.css`** — `.scene-direct:focus-visible` no longer sets `outline: none`. Replaced with a 2px solid `--hub-neeps-orange` outline + 3px offset + 2px border-radius. Colour-shift alone fails WCAG 2.4.7 in current AA guidance; the lantern-warm outline reads as part of the bothy palette. The hover style keeps the colour change without touching outline. Found by the new gate during bring-up.
 - **`docs/foundation/07-quality-gates.md`** — current PR/release-gate section now lists 16 gates and the `node scripts/run-a11y-gate.mjs` line. Released the "Accessibility" item from "still planned" into the shipped budgets list; removed the "Lighthouse accessibility: still planned" bullet (the hand-rolled gate is the equivalent). Status header now names the no-axe-core dep policy.
@@ -876,7 +931,7 @@ Two carry-forward items closed in one session: (1) the canvas-aware paint metric
 
 ### Added — `slice <name>` subcommand and bundle config
 
-- **`tools/haggis-eval/slices.json`** — schema-versioned bundle config. Three bundles shipped: `fast` (ts + perf, ~10s), `pre-merge` (ts + security + perf + browser + determinism + visual, ~40s), `release` (full release matrix minus the signed-report write). Filename note: spec called it `slices.toml`; pivoted to JSON because `haggis-eval` is stdlib-only Go and `encoding/json` is stdlib while TOML is not. Spec doc updated to reflect.
+- **`tools/haggis-eval/slices.json`** — schema-versioned bundle config. Three bundles shipped: `fast` (ts + perf, ~10s), `pre-merge` (ts + security + perf + browser + determinism + visual, ~40s), `release` (full release matrix minus the FNV-signed report write). Filename note: spec called it `slices.toml`; pivoted to JSON because `haggis-eval` is stdlib-only Go and `encoding/json` is stdlib while TOML is not. Spec doc updated to reflect.
 - **`tools/haggis-eval/internal/cmd/registry.go`** — `Registry()` returns the gate-ID → `GateRunner` map so the slice dispatcher can look gates up by name. New wired gates must be added here AND under main.go's subcommand switch — the two surfaces have separate use cases (CLI argv vs slice bundle membership).
 - **`tools/haggis-eval/internal/cmd/slice.go`** — `LoadSlices`, `Slice`, `ListSlices`. Unknown slice name OR unknown gate ID inside a slice each produce a single `ERROR` result so the existing `printAndExit` PASS/FAIL handling carries through unchanged.
 - **`tools/haggis-eval/internal/cmd/slice_test.go`** — 8 unit tests covering load (valid + missing file + bad schema + empty slices), dispatch (unknown slice + unknown gate + ordering + empty), and a Registry guard against silent drift (every gate ID referenced by shipped slices.json must exist in `Registry()`).
@@ -1015,7 +1070,7 @@ First public push of the repository (private mirror at github.com/Giftedx/ha-ggi
 
 ### Added
 
-- **`LICENSE`** + **`.github/workflows/ci.yml`** — MIT, plus two-tier CI: `pnpm verify` as the sub-30s PR gate and `haggis-eval all` (cargo workspace + ts + security + perf + browser + determinism + differential hash/rng + signed JSON report) as the release gate on push-to-main. Concurrency: cancel-in-progress on the same ref.
+- **`LICENSE`** + **`.github/workflows/ci.yml`** — MIT, plus two-tier CI: `pnpm verify` as the sub-30s PR gate and `haggis-eval all` (cargo workspace + ts + security + perf + browser + determinism + differential hash/rng + FNV-signed tamper-evident JSON report) as the release gate on push-to-main. Concurrency: cancel-in-progress on the same ref.
 - **`tests/golden/bothy-idle-seed-42.png`** + **`visual-budgets.json`** — first capture of the perceptual visual-gate golden so `pnpm visual:verify` works from a cold clone. aHash `7c3cfc3ffc3f7c3e80398039e03bf033e033c003e00760066006e00740020000` at tolerance 18/256. Captured on Windows chromium; a Linux re-capture may be needed before wiring `visual` into `haggis-eval all`.
 - **`@types/node@22`** devDependency — required for clean `tsc --noEmit` on a frozen-lockfile install (the local node_modules had it hoisted; CI didn't).
 - **`gate.RunWithTimeout`** + per-gate `[gate]` streaming progress lines in `tools/haggis-eval/internal/gate/gate.go` — previous gate runs buffered all stdout/stderr and had no timeout, so a hung browser smoke was invisible until the whole CI job hit GitHub's 6-hour limit. Default budget 10min; 20min for `differential/wat-rust-rng` (100k-case proptest fuzz).

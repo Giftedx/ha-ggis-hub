@@ -1,6 +1,6 @@
 # 2026-05-23 Slice 4 TypeScript host lifecycle report
 
-> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` FNV-signed tamper-evident JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
 
 Status: current implementation report
 Scope: Slice 4 TypeScript host game-module contract, lifecycle host, keyboard input sampling, registry mapping, direct-play launch planning, and minimal app-shell direct play surface

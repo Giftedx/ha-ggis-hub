@@ -6,22 +6,31 @@ Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-cr
 
 ## Current repo status
 
-End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is wired without a Lighthouse dep via the W3C Paint Timing API through chromium-headless. The a11y gate is wired without an axe-core / pa11y dep — a hand-rolled WCAG 2.2 AA spot-check suite via Playwright.
+End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; PRs run the stronger `haggis-eval slice pre-merge` gate. `pnpm verify` remains the local fast feedback command. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is wired without a Lighthouse dep via the W3C Paint Timing API through chromium-headless. The a11y gate is wired without an axe-core / pa11y dep — a hand-rolled WCAG 2.2 AA spot-check suite via Playwright.
 
 ## Gate tiers
 
-### Current PR gate (fast)
+### Current PR Gate
 
 Runs on every PR via `.github/workflows/ci.yml`:
 
 ```bash
-pnpm install --frozen-lockfile
+cd tools/haggis-eval && go build .
+cd ../..
+./tools/haggis-eval/haggis-eval slice pre-merge
+```
+
+The pre-merge slice runs `rust-lint`, `docs`, `ts`, `coverage`, `security`, `perf`, `browser`, `determinism`, `visual`, `a11y`. It deliberately skips release-only workspace tests, soak, supply-chain, and differential fuzz gates.
+
+Local fast feedback before opening a PR:
+
+```bash
 pnpm verify   # tsc --noEmit → eslint → vitest → vite build → scripts/verify-dist.mjs
 ```
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 19 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 22 gate results, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json` and verifies it with `haggis-eval verify-report`:
 
 ```bash
 # Rust workspace
@@ -30,9 +39,12 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace --exclude hub-wasm
 
 # TypeScript host + deploy artifact gate
+node scripts/check-doc-claims.mjs                       # current docs/eval claim drift
 pnpm exec tsc --noEmit
+pnpm exec eslint src/ vite.config.ts --max-warnings=0
 pnpm exec vitest run
 pnpm run build
+node scripts/verify-dist.mjs
 pnpm run coverage                                     # v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
@@ -160,7 +172,7 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 ## Initial budgets
 
 - Rust core line coverage: >= 85%, target 90%.
-- TypeScript statement coverage: >= 85%, target 90%.
+- TypeScript line/statement/function coverage: >= 90% configured.
 - TypeScript branch coverage: >= 85% configured, target 90%.
 - Initial JS gzip: <= 180 KB.
 - Initial CSS gzip: <= 40 KB.

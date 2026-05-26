@@ -4,31 +4,34 @@ import { createKeyboardInputSampler } from '../engine/input';
 import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from '../engine/fixed-step';
 import type { GameInstance, GameModule, GameMountOptions } from '../engine/game-module';
 import { InputLogWriter } from '../engine/input-log';
-import { HUB_GAME_REGISTRY, getGameById, validateRoomRegistryCoherence } from '../games/registry';
+import { HUB_GAME_REGISTRY, validateRoomRegistryCoherence } from '../games/registry';
 import { createHubRoomController } from './room';
-import { createLaunchPlan, performLaunch } from '../navigation/launch';
+import { performLaunch } from '../navigation/launch';
 import { createBrowserLaunchNavigator } from '../navigation/browser-navigator';
 import { createCanvasRoomRenderer, computeVisualDoorBounds } from '../render/canvas-room';
 import { initializeHubBoundaryV2 } from '../wasm/boundary';
 import { loadGeneratedHubWasm } from '../wasm/generated-loader';
 import { createDebugOverlay, createFpsTracker } from '../debug/overlay';
+import {
+  asEventListener,
+  createDomListenerBag,
+  finishPointerCapture,
+  launchStatusForDoor,
+  logicalCanvasPoint,
+  packInputForTick,
+  parseFixedVisualGatePhase,
+  parseSeedFromSearch,
+  worldPointFromClient
+} from './bothy-runtime';
 
 export const HUB_BOTHY_GAME_ID = 'hub-bothy';
-
-/** Matches hub_core::sim::InputSnapshot interact bit (bit 4). */
-const INTERACT_BIT = 0b1_0000;
-
-const POINTER_DEADZONE = 18;
 
 export function createBothyGameModule(shell: SceneElements): GameModule {
   return {
     id: HUB_BOTHY_GAME_ID,
     title: 'ha.ggis Hub',
     async mount(_target: HTMLElement, options: GameMountOptions): Promise<GameInstance> {
-      const seedParam = new URLSearchParams(window.location.search).get('seed');
-      const seed = seedParam !== null && /^\d+$/.test(seedParam)
-        ? BigInt(seedParam)
-        : BigInt(Date.now());
+      const seed = parseSeedFromSearch(window.location.search, Date.now());
 
       const wasmInitStart = performance.now();
       const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
@@ -45,14 +48,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         getContext(kind: '2d') { return shell.canvas.getContext(kind); }
       };
 
-      const fixedVisualGatePhase = new URLSearchParams(window.location.search).get('visualGatePhase');
-      const parsedVisualGatePhase = fixedVisualGatePhase !== null && /^\d+(?:\.\d+)?$/.test(fixedVisualGatePhase)
-        ? Number(fixedVisualGatePhase)
-        : undefined;
-      const fixedPhaseSeconds = parsedVisualGatePhase !== undefined &&
-        Number.isFinite(parsedVisualGatePhase) && parsedVisualGatePhase >= 0 && parsedVisualGatePhase <= 86_400
-        ? parsedVisualGatePhase
-        : undefined;
+      const fixedPhaseSeconds = parseFixedVisualGatePhase(window.location.search);
 
       const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, {
         reducedMotion: options.reducedMotion,
@@ -72,6 +68,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       let paused = false;
       let rafId = 0;
       let destroyed = false;
+      const listenerBag = createDomListenerBag();
 
       const room = createHubRoomController({ boundary, renderer });
       const announceDoorStatus = createDoorStatusAnnouncer({
@@ -85,45 +82,27 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const launchNavigator = createBrowserLaunchNavigator();
 
       function samplePackedInput(): number {
-        const v = keyboard.snapshot();
-        let bits = 0;
-        if (v.x !== 0 || v.y !== 0) {
-          if (v.x > 0) bits |= 0b01;
-          else if (v.x < 0) bits |= 0b10;
-          if (v.y > 0) bits |= 0b01 << 2;
-          else if (v.y < 0) bits |= 0b10 << 2;
-          return bits;
-        }
-        if (pointerActive) {
-          const snapshot = room.lastSnapshot();
-          const dx = pointerWorldX - snapshot.playerX;
-          const dy = pointerWorldY - snapshot.playerY;
-          if (Math.hypot(dx, dy) > POINTER_DEADZONE) {
-            if (dx > POINTER_DEADZONE * 0.4) bits |= 0b01;
-            else if (dx < -POINTER_DEADZONE * 0.4) bits |= 0b10;
-            if (dy > POINTER_DEADZONE * 0.4) bits |= 0b01 << 2;
-            else if (dy < -POINTER_DEADZONE * 0.4) bits |= 0b10 << 2;
+        const snapshot = room.lastSnapshot();
+        return packInputForTick({
+          keyboardVector: keyboard.snapshot(),
+          keyboardInteractHeld: keyboard.interactHeld(),
+          pointer: {
+            active: pointerActive,
+            targetX: pointerWorldX,
+            targetY: pointerWorldY,
+            playerX: snapshot.playerX,
+            playerY: snapshot.playerY
           }
-        }
-        if (keyboard.interactHeld()) {
-          bits |= INTERACT_BIT;
-        }
-        return bits;
+        });
       }
 
       function launchDoorById(doorId: string): void {
-        const game = getGameById(HUB_GAME_REGISTRY, doorId);
-        if (game === undefined) {
-          shell.status.textContent = 'that door leads nowhere yet';
+        const launchStatus = launchStatusForDoor(doorId, HUB_GAME_REGISTRY);
+        if (launchStatus.kind !== 'launchable') {
+          shell.status.textContent = launchStatus.statusText;
           return;
         }
-        const plan = createLaunchPlan(game);
-        if (plan.kind !== 'launchable') {
-          const title = plan.kind === 'unavailable' ? plan.title : game.title;
-          shell.status.textContent = `${title} door — comin’ soon.`;
-          return;
-        }
-        performLaunch(plan, launchNavigator);
+        performLaunch(launchStatus.plan, launchNavigator);
       }
 
       function maybeLaunchFromInteract(): void {
@@ -138,19 +117,27 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       function pointerToWorld(event: PointerEvent): { x: number; y: number } {
         const snapshot = room.lastSnapshot();
         const rect = shell.canvas.getBoundingClientRect();
-        const canvasX = ((event.clientX - rect.left) / rect.width) * shell.canvas.width;
-        const canvasY = ((event.clientY - rect.top) / rect.height) * shell.canvas.height;
-        return {
-          x: (canvasX / shell.canvas.width) * snapshot.worldWidth,
-          y: (canvasY / shell.canvas.height) * snapshot.worldHeight
-        };
+        return worldPointFromClient({
+          clientX: event.clientX,
+          clientY: event.clientY,
+          rect,
+          canvasWidth: shell.canvas.width,
+          canvasHeight: shell.canvas.height,
+          worldWidth: snapshot.worldWidth,
+          worldHeight: snapshot.worldHeight
+        });
       }
 
-      const onPointerDown = (event: PointerEvent): void => {
+      const onPointerDown = (pointerEvent: PointerEvent): void => {
         const rect = shell.canvas.getBoundingClientRect();
-        const dpr = Math.round(window.devicePixelRatio || 1);
-        const logicalX = ((event.clientX - rect.left) / rect.width) * (shell.canvas.width / dpr);
-        const logicalY = ((event.clientY - rect.top) / rect.height) * (shell.canvas.height / dpr);
+        const { x: logicalX, y: logicalY } = logicalCanvasPoint({
+          clientX: pointerEvent.clientX,
+          clientY: pointerEvent.clientY,
+          rect,
+          canvasWidth: shell.canvas.width,
+          canvasHeight: shell.canvas.height,
+          devicePixelRatio: window.devicePixelRatio
+        });
         const snapshot = room.lastSnapshot();
         for (const vb of visualDoorBounds) {
           const doorSnap = snapshot.doors.find((d) => d.id === vb.id);
@@ -160,18 +147,19 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
             if (doorSnap.status === 'launchable') {
               launchDoorById(vb.id);
             } else {
-              const game = getGameById(HUB_GAME_REGISTRY, vb.id);
-              const title = game?.title ?? vb.id;
-              shell.status.textContent = `${title} door — comin’ soon.`;
+              const launchStatus = launchStatusForDoor(vb.id, HUB_GAME_REGISTRY);
+              shell.status.textContent = launchStatus.kind === 'launchable'
+                ? `${launchStatus.plan.title} door \u2014 comin\u2019 soon.`
+                : launchStatus.statusText;
             }
             return;
           }
         }
-        const { x: worldX, y: worldY } = pointerToWorld(event);
+        const { x: worldX, y: worldY } = pointerToWorld(pointerEvent);
         pointerActive = true;
         pointerWorldX = worldX;
         pointerWorldY = worldY;
-        shell.canvas.setPointerCapture(event.pointerId);
+        shell.canvas.setPointerCapture(pointerEvent.pointerId);
       };
 
       const onPointerMove = (event: PointerEvent): void => {
@@ -182,11 +170,11 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       };
 
       const endPointer = (event: PointerEvent): void => {
-        if (!pointerActive) return;
-        pointerActive = false;
-        if (shell.canvas.hasPointerCapture(event.pointerId)) {
-          shell.canvas.releasePointerCapture(event.pointerId);
-        }
+        pointerActive = finishPointerCapture({
+          pointerActive,
+          pointerId: event.pointerId,
+          target: shell.canvas
+        });
       };
 
       const onBeforeUnload = (): void => {
@@ -194,11 +182,19 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         (window as unknown as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog = bytes;
       };
 
-      shell.canvas.addEventListener('pointerdown', onPointerDown);
-      shell.canvas.addEventListener('pointermove', onPointerMove);
-      shell.canvas.addEventListener('pointerup', endPointer);
-      shell.canvas.addEventListener('pointercancel', endPointer);
-      window.addEventListener('beforeunload', onBeforeUnload);
+      listenerBag.add(shell.canvas, 'pointerdown', asEventListener((event) => {
+        onPointerDown(event as PointerEvent);
+      }));
+      listenerBag.add(shell.canvas, 'pointermove', asEventListener((event) => {
+        onPointerMove(event as PointerEvent);
+      }));
+      listenerBag.add(shell.canvas, 'pointerup', asEventListener((event) => {
+        endPointer(event as PointerEvent);
+      }));
+      listenerBag.add(shell.canvas, 'pointercancel', asEventListener((event) => {
+        endPointer(event as PointerEvent);
+      }));
+      listenerBag.add(window, 'beforeunload', onBeforeUnload);
 
       room.render();
       announceDoorStatus(room.lastSnapshot());
@@ -229,7 +225,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           stepState = { tick: stepState.tick, accumulatorMs: 0 };
         }
       };
-      document.addEventListener('visibilitychange', onVisibilityChange);
+      listenerBag.add(document, 'visibilitychange', onVisibilityChange);
 
       const loop = (now: number): void => {
         if (destroyed) return;
@@ -279,12 +275,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           if (destroyed) return;
           destroyed = true;
           window.cancelAnimationFrame(rafId);
-          shell.canvas.removeEventListener('pointerdown', onPointerDown);
-          shell.canvas.removeEventListener('pointermove', onPointerMove);
-          shell.canvas.removeEventListener('pointerup', endPointer);
-          shell.canvas.removeEventListener('pointercancel', endPointer);
-          document.removeEventListener('visibilitychange', onVisibilityChange);
-          window.removeEventListener('beforeunload', onBeforeUnload);
+          listenerBag.removeAll();
           keyboard.destroy();
           room.destroy();
           delete winHooks.__roomSnapshot;

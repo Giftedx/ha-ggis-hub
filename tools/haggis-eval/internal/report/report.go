@@ -1,7 +1,7 @@
-// Package report builds the signed JSON report that `haggis-eval all`
-// emits. The signature is the FNV-1a 64-bit digest of the report payload
-// (every field except the signature itself) so tampering with the report
-// after writing is detectable.
+// Package report builds the FNV-signed tamper-evident JSON report that
+// `haggis-eval all` emits. The signature is the FNV-1a 64-bit digest of
+// the report payload (every field except the signature itself), rendered as
+// fixed-width hex so JSON consumers do not lose uint64 precision.
 package report
 
 import (
@@ -21,10 +21,10 @@ type Report struct {
 	GeneratedAt   time.Time     `json:"generated_at"`   //
 	OverallStatus gate.Status   `json:"overall_status"` //
 	Gates         []gate.Result `json:"gates"`          //
-	Signature     uint64        `json:"signature"`      // FNV-1a 64-bit of (Run, GeneratedAt, OverallStatus, Gates)
+	Signature     string        `json:"signature"`      // FNV-1a 64-bit hex of (Run, GeneratedAt, OverallStatus, Gates)
 }
 
-// payloadShape mirrors Report minus the Signature field so the signed
+// payloadShape mirrors Report minus the Signature field so the FNV-signed
 // bytes are deterministic regardless of struct evolution.
 type payloadShape struct {
 	Run           string        `json:"run"`
@@ -33,7 +33,7 @@ type payloadShape struct {
 	Gates         []gate.Result `json:"gates"`
 }
 
-// Build assembles a Report from a list of gate results and signs it.
+// Build assembles a Report from a list of gate results and FNV-signs it.
 func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 	overall := gate.StatusPass
 	for _, g := range gates {
@@ -48,14 +48,33 @@ func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 		OverallStatus: overall,
 		Gates:         gates,
 	}
-	body, err := json.Marshal(payload(r))
+	body, err := PayloadBytes(r)
 	if err != nil {
 		// json.Marshal of a fixed-shape struct never fails for these
 		// types — panic surfaces a logic bug rather than masking it.
 		panic(fmt.Sprintf("internal: report payload marshal failed: %v", err))
 	}
-	r.Signature = fnv.Fnv1a64(body)
+	r.Signature = FormatSignature(fnv.Fnv1a64(body))
 	return r
+}
+
+// FormatSignature renders an FNV-1a 64-bit digest as JSON-safe fixed-width hex.
+func FormatSignature(value uint64) string {
+	return fmt.Sprintf("0x%016x", value)
+}
+
+// PayloadBytes returns the deterministic JSON bytes covered by the signature.
+func PayloadBytes(r Report) ([]byte, error) {
+	return json.Marshal(payload(r))
+}
+
+// ExpectedSignature recomputes the report signature from its payload fields.
+func ExpectedSignature(r Report) (string, error) {
+	body, err := PayloadBytes(r)
+	if err != nil {
+		return "", err
+	}
+	return FormatSignature(fnv.Fnv1a64(body)), nil
 }
 
 // payload extracts the signable payload from a Report.

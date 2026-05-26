@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~83 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~89 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, FNV-signed tamper-evident eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -16,7 +16,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TypeScript / Vite host  (49 KB JS, strict mode)        │
+│  TypeScript / Vite host  (54 KB JS, strict mode)        │
 │  - Lifecycle, input sampling, fixed-step pump           │
 │  - Pointer-drive + keyboard, single launch entry point  │
 │  - Hand-rolled Canvas2D renderer (no engine, no library)│
@@ -44,8 +44,8 @@
 
 ┌─── Orchestration ──────────────────────────────────────┐
 │  haggis-eval  (Go, stdlib only)                        │
-│  - Wraps every project gate behind one CLI             │
-│  - Emits cryptographically signed JSON reports         │
+│  - Wraps PR + release gate bundles behind one CLI      │
+│  - Emits FNV-signed tamper-evident JSON reports        │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ The FNV-1a 64 hash is implemented three times, on purpose, in three languages, a
 |---|---|---|
 | Rust | `crates/hub-core/src/hash.rs` | Runtime state hash on every snapshot, used by the determinism smoke test |
 | C    | `c/fnv1a.c` (linked into `crates/hub-hardlang` via `cc` build-script) | Differential test target; demonstrates the Rust FFI seam |
-| Go   | `tools/haggis-eval/internal/fnv/` | Signs the orchestrator's JSON reports |
+| Go   | `tools/haggis-eval/internal/fnv/` | FNV-signs the orchestrator's JSON reports |
 
 Reference vectors (agreed by all three impls):
 
@@ -80,23 +80,23 @@ The C kernel exists in a single Rust crate (`hub-hardlang`) which is also the *o
 
 The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production build graph. The runtime hub uses only the Rust implementation; the WAT lives to prove the bytecode-level kernel agrees.
 
-### Cryptographically signed gate reports
+### FNV-signed tamper-evident gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `docs`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field containing a JSON-safe fixed-width FNV-1a 64 hex string over the report payload (every other field). `haggis-eval verify-report <path>` re-hashes the payload and fails if the stored signature diverges.
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~83 KB total client bundle
+### ~89 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.49 KB | 1.23 KB |
-| `dist/assets/index-*.js` | 49.08 KB | 17.03 KB |
-| `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
-| `dist/assets/index-*.css` | 2.65 KB | 0.99 KB |
-| **Total** | **82.94 KB** | **31.89 KB** |
+| `dist/assets/index-*.js` | 53.94 KB | 18.58 KB |
+| `dist/assets/hub_wasm_bg-*.wasm` | 28.05 KB | 12.71 KB |
+| `dist/assets/index-*.css` | 3.70 KB | 1.23 KB |
+| **Total** | **89.18 KB** | **33.75 KB** |
 
-For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 32 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
+For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 34 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
 There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool, that's it.
 
@@ -131,7 +131,7 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → eslint → vitest 144 cases → vite build → verify-dist
+pnpm verify          # tsc --noEmit → eslint → vitest 175 cases → vite build → verify-dist
 pnpm run coverage    # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
 # Rust workspace
@@ -140,9 +140,11 @@ cargo test --workspace --exclude hub-wasm
 cargo clippy --workspace --all-targets -- -D warnings
 RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 
-# Single-binary orchestrator (runs everything above + signs a JSON report)
+# Single-binary orchestrator (runs everything above + FNV-signs a JSON report)
 cd tools/haggis-eval && go build .
-./haggis-eval all
+cd ../..
+./tools/haggis-eval/haggis-eval all
+./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/all-<utc>.json
 cat target/haggis-eval/all-*.json | jq .
 ```
 
@@ -163,7 +165,7 @@ The three art gaps called out in earlier iterations — daylight loch in the win
 
 ## Why MIT
 
-[The license](LICENSE). The engineering primitives — the C FNV-1a, the WAT xoshiro128\*\*, the signed-report orchestrator, the hand-rolled Canvas2D renderer scaffolding — are intended to be reused. If any of them helps you build your own thing, take them. The lobby brand belongs to ha.ggis.xyz; the techniques are yours.
+[The license](LICENSE). The engineering primitives — the C FNV-1a, the WAT xoshiro128\*\*, the FNV-signed report orchestrator, the hand-rolled Canvas2D renderer scaffolding — are intended to be reused. If any of them helps you build your own thing, take them. The lobby brand belongs to ha.ggis.xyz; the techniques are yours.
 
 ---
 

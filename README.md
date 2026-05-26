@@ -30,7 +30,7 @@ If you only have time for the load-bearing five, read these in order:
 - Product: playable haggis games lobby (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
-- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + lint + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
+- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is staged: PRs run `haggis-eval slice pre-merge`; push to main runs the full `haggis-eval all` release gate (cargo workspace tests + docs-claim drift scan + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) and emits an FNV-signed tamper-evident JSON report.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D: hub-original haggis in `src/render/bothy-haggis.ts`, with WHS croft-derived room fixtures in `src/render/whs-*.ts`.
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
@@ -45,10 +45,10 @@ The first public release is a **First Perfect Slice**, not an MVP. It should be 
 
 The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
 
-- **~83 KB total client** (49 KB JS + 28 KB WASM + 3.5 KB HTML + 2.7 KB CSS, ~32 KB gzipped) for a Rust+WASM playable hub with deterministic core and cryptographically signed eval reports.
+- **~89 KB total client** (54 KB JS + 28 KB WASM + 3.5 KB HTML + 3.7 KB CSS, ~34 KB gzipped) for a Rust+WASM playable hub with deterministic core and FNV-signed tamper-evident eval reports.
 - **Three hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`). All three agree byte-for-byte on four published reference vectors. Diff-tested in CI.
 - **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
-- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that exposes granular gates (`rust`, `rust-lint`, `docs`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) plus `slice`, `verify-report`, and `all` commands, and emits an **FNV-signed tamper-evident JSON report** from `all`. The report's `signature` field is a JSON-safe fixed-width FNV-1a 64 hex string over its own payload, so any post-hoc edit is detectable by `haggis-eval verify-report`. This is tamper evidence, not cryptographic authenticity. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 - **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
 - **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
 - **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
@@ -56,7 +56,7 @@ The hub is also a **portfolio artifact for the engineering layer underneath**. T
 - **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
 - **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
-Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the signed report locally.
+Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build .`, then `cd ../.. && ./tools/haggis-eval/haggis-eval all` from the repo root produces the FNV-signed report locally.
 
 ## Repository documentation map
 
@@ -83,6 +83,7 @@ RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 
 # TypeScript host + deploy artifact gate
 pnpm install --frozen-lockfile
+node scripts/check-doc-claims.mjs
 pnpm verify        # typecheck → lint → vitest → build:wasm + vite build → scripts/verify-dist.mjs
 pnpm run coverage  # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
@@ -105,11 +106,18 @@ node scripts/run-soak-gate.mjs
 
 # Supply-chain (license compliance + RustSec advisories + source policy)
 cargo deny check
+
+# haggis-eval bundles
+cd tools/haggis-eval && go build .
+cd ../..
+./tools/haggis-eval/haggis-eval slice pre-merge
+./tools/haggis-eval/haggis-eval all
+./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/all-<utc>.json
 ```
 
-CI (`.github/workflows/ci.yml`) is two-tier: `pnpm verify` is the fast PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main.
+CI (`.github/workflows/ci.yml`) is staged: `pnpm verify` is the local fast feedback gate; `haggis-eval slice pre-merge` is the PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main.
 
-A Go-built orchestrator CLI bundles every gate above into one command with a signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+A Go-built orchestrator CLI bundles every gate above into one command with an FNV-signed tamper-evident JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 
 ## Before writing implementation code
 

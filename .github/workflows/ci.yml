@@ -14,26 +14,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Fast PR gate — runs the TS verify chain alone. Keeps PR feedback
-  # under 30s on typical changes.
-  ts-verify:
-    name: pnpm verify (fast PR gate)
+  # Strong PR gate via haggis-eval's pre-merge slice. This is the
+  # trust-recovery contract: rust lint, docs-claim drift, TS verify,
+  # coverage, security, perf, browser smokes, determinism, visual, and a11y all run before
+  # merge without paying the full release-only differential/soak cost.
+  # haggis-eval pre-merge gates: rust-lint + docs + ts + coverage + security + perf + browser + determinism + visual + a11y
+  haggis-eval-pre-merge:
+    name: haggis-eval pre-merge (PR gate)
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      # Version pin lives in package.json's "packageManager" field
-      # (pnpm@10.12.1). action-setup reads it automatically.
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.22'
+          cache: false
       - run: pnpm install --frozen-lockfile
-      - run: pnpm verify
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build haggis-eval
+        working-directory: tools/haggis-eval
+        run: go build .
+      - name: Run pre-merge gate
+        run: ./tools/haggis-eval/haggis-eval slice pre-merge
 
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
-  # subcommand which composes 19 gate groups sequentially:
-  # rust (cargo fmt+clippy+test), ts (tsc+vitest+build), coverage
+  # subcommand which composes 22 gate results sequentially:
+  # rust (cargo fmt+clippy+test), docs (current docs/eval claim drift), ts (tsc+eslint+vitest+build+verify-dist), coverage
   # (vitest v8 thresholds: lines≥90% stmts≥90% fns≥90% branches≥85%),
   # security (deploy-config.test — headers+CSP+cache), perf (bundle
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
@@ -44,9 +57,11 @@ jobs:
   # heap-growth < 5 MB), supply-chain (cargo deny: licenses + RustSec
   # advisories + source policy), differential hash (C vs Rust FNV-1a,
   # 100k+ cases), differential rng (WAT vs Rust xoshiro128**, 100k+
-  # cases). Emits signed JSON report to target/haggis-eval/all-*.json.
+  # cases). Emits an FNV-signed tamper-evident JSON report to
+  # target/haggis-eval/all-*.json.
   haggis-eval-all:
     name: haggis-eval all (release gate)
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -72,7 +87,7 @@ jobs:
         run: go build .
       - name: Run release gate
         run: ./tools/haggis-eval/haggis-eval all
-      - name: Upload signed report
+      - name: Upload FNV-signed report
         if: always()
         uses: actions/upload-artifact@v7
         with:

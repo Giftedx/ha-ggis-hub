@@ -25,10 +25,14 @@ func main() {
 		usage(os.Stdout)
 	case "rust":
 		os.Exit(printAndExit("rust", cmd.Rust()))
+	case "rust-lint":
+		os.Exit(printAndExit("rust-lint", cmd.RustLint()))
 	case "ts":
 		os.Exit(printAndExit("ts", cmd.Ts()))
 	case "coverage":
 		os.Exit(printAndExit("coverage", cmd.Coverage()))
+	case "docs":
+		os.Exit(printAndExit("docs", cmd.Docs()))
 	case "differential":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "differential requires a target: rng | hash")
@@ -55,6 +59,12 @@ func main() {
 		os.Exit(printAndExit("soak", cmd.Soak()))
 	case "supply-chain":
 		os.Exit(printAndExit("supply-chain", cmd.SupplyChain()))
+	case "verify-report":
+		if len(os.Args) != 3 {
+			fmt.Fprintln(os.Stderr, "usage: haggis-eval verify-report <report.json>")
+			os.Exit(2)
+		}
+		os.Exit(printAndExit("verify-report", []gate.Result{cmd.VerifyReport(os.Args[2])}))
 	case "slice":
 		// Slices config lives next to this binary's source. Resolved
 		// relative to repo root (the same cwd assumption as every
@@ -85,7 +95,7 @@ func main() {
 		}
 		exit := printAndExit("all", results)
 		fmt.Printf("\nreport: %s\n", path)
-		fmt.Printf("overall=%s signature=%#x\n", r.OverallStatus, r.Signature)
+		fmt.Printf("overall=%s signature=%s\n", r.OverallStatus, r.Signature)
 		os.Exit(exit)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown subcommand: %s\n\n", os.Args[1])
@@ -101,8 +111,10 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
-	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
+	fmt.Fprintln(w, "  rust-lint                  Cargo fmt + clippy only (pre-merge)")
+	fmt.Fprintln(w, "  ts                         pnpm tsc + eslint + vitest + build + verify-dist")
 	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines≥90% stmts≥90% fns≥90% branches≥85%)")
+	fmt.Fprintln(w, "  docs                       Current docs/eval claim-drift scan")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
 	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
 	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")
@@ -113,8 +125,9 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  a11y                       Hand-rolled WCAG 2.2 AA spot-checks (lang, contrast, focus, names)")
 	fmt.Fprintln(w, "  soak                       Memory-growth soak (15s RAF loop; GC before/after; heap budget 5 MB)")
 	fmt.Fprintln(w, "  supply-chain               cargo deny check (licenses + advisories + bans + sources)")
+	fmt.Fprintln(w, "  verify-report <path>       Recompute and verify an FNV-signed JSON report")
 	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
-	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
+	fmt.Fprintln(w, "  all                        Every release gate; FNV-signed tamper-evident JSON report")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Common flags:")
 	fmt.Fprintln(w, "  --version    Print version")
