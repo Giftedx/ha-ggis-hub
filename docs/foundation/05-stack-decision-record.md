@@ -20,7 +20,7 @@ Rust gives the project a serious deterministic core for movement, interactions, 
 
 TypeScript/Vite gives the project a practical browser host for DOM, routing, input capture, audio unlock, build tooling, and static deployment.
 
-A replaceable renderer prevents the first renderer choice from becoming the architecture. Canvas2D may be enough for a tiny first room; PixiJS may be justified if sprite batching and effects are needed.
+A replaceable renderer prevents the first renderer choice from becoming the architecture. Canvas2D is the selected first-room renderer; PixiJS may be justified later if sprite batching and effects are needed.
 
 ## Current selected components
 
@@ -32,7 +32,7 @@ Current decisions:
 - Package manager: pnpm
 - Static host: Cloudflare Pages target
 - Test direction: Rust tests + Vitest + Playwright
-- Renderer: undecided; Canvas2D or PixiJS leading
+- Renderer: Canvas2D for the first room, per [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md)
 
 ## Why not Phaser first
 

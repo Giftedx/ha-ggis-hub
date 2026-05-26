@@ -92,7 +92,7 @@ Acceptance:
 - Complete: door prompt renders from core interaction state.
 - Complete: direct play remains outside the canvas and available on fallback.
 - Complete: Playwright browser smoke passes with no console errors (`scripts/smoke-door-launch.mjs` walks haggis to launchable door, presses Enter, asserts the WHS URL is navigated to).
-- Beyond plan: ported WHS croft procedural drawers (haggis, hearth, walls, floor, window, mantelpiece, doors, particles) so the room matches WHS character quality. Wired door interaction → game launch via interact key (Enter/Space/E) and pointer-down tap (mobile). Source files at `src/render/whs-{haggis,hearth,bothy}.ts`. Smokes: `scripts/smoke-door-launch.mjs` (keyboard), `scripts/smoke-door-tap.mjs` (touch).
+- Beyond plan: ported WHS croft procedural drawers for room fixtures (hearth, walls, floor, window, mantelpiece, doors, particles), then replaced the earlier haggis stand-in with the hub-original Wee Chieftain drawer. Wired door interaction → game launch via interact key (Enter/Space/E) and pointer-down tap (mobile). Source files include `src/render/bothy-haggis.ts`, `src/render/whs-hearth.ts`, and `src/render/whs-bothy.ts`. Smokes: `scripts/smoke-door-launch.mjs` (keyboard), `scripts/smoke-door-tap.mjs` (touch).
 
 ## Slice 6: deployment hardening — complete 2026-05-23
 

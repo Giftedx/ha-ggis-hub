@@ -2,7 +2,7 @@
 // Survivors' `drawRoomEnvelope()` (croft variant). Source:
 //   ../../../wild-haggis-survivors/src/art/sprites/croft/interior.ts
 //
-// Draws the back-wall plaster substrate, flagstone floor, and timber
+// Draws the back-wall plaster substrate, peat-stained plank floor, and timber
 // ceiling/post/upright beams. Does NOT draw doors, window, or hearth —
 // those are separate concerns (hub uses its own doors/window for now,
 // and its own WHS hearth port for the fireplace).

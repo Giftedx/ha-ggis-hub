@@ -44,7 +44,7 @@ The thin WebAssembly boundary (`hub-wasm`) that exposes the Rust core to the Typ
 
 ## Renderer
 
-The browser rendering implementation. It may be Canvas2D, PixiJS, custom WebGL2, or later WebGPU. It must not own gameplay truth. The first-slice renderer is the subject of [ADR-0002](decisions/0002-renderer-evaluation-plan.md).
+The browser rendering implementation. The first-slice renderer is Canvas2D per [ADR-0005](decisions/0005-canvas2d-first-room-renderer.md), but future renderer replacements may be PixiJS, custom WebGL2, or later WebGPU if a new ADR justifies them. Rendering must not own gameplay truth.
 
 ## Registry
 

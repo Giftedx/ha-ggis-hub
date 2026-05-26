@@ -100,7 +100,7 @@ const PX = {
   flameMid: '#e4a020',              // neeps-orange
   flameOuter: '#c8842a',            // whisky-amber
   ember: '#c44218',                 // ember-red
-  // Wild haggis — peat-brown body with a ginger mane suggestion
+  // The Wee Chieftain — cooked-casing body with a pale oat cutaway
   hagOutline: '#1a0e08',
   hagDark: '#3a2418',
   hagBody: '#5a3a20',
@@ -646,9 +646,9 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
   ctx.globalAlpha = 1;
 }
 
-// drawFloor — WHS bothy flagstone substrate + dawn-beam overlay +
+// drawFloor — WHS bothy plank substrate + dawn-beam overlay +
 // mullion shadows. Replaced 160+ lines of pixel-art per-zone dither
-// (Phase 2b) with WHS-quality smooth flagstones + simple translucent
+// (Phase 2b) with WHS-quality smooth planks + simple translucent
 // beam ellipse. Keeps signature dawn-light-from-window flourish.
 function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number, reducedMotion: boolean): void {
   const env: BothyEnvelope = {

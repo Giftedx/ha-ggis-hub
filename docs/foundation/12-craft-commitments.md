@@ -229,4 +229,4 @@ Dependencies that are unused, replaceable by simple local code, or responsible f
 
 - This doc does not catalogue every file the project will ever produce. It catalogues the primitives we *commit* to hand-rolling and the artifacts we *commit* to writing in a hard language.
 - This doc does not duplicate the [Dependency policy](#dependency-policy). It is the positive-space counterpart: the things we are not going to reach for a library for.
-- This doc does not pick the renderer; that remains [ADR-0002](../decisions/0002-renderer-evaluation-plan.md)'s job. If a custom renderer is chosen later, it joins Section A.
+- This doc does not reopen the renderer decision; [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md) selected the first-room Canvas2D renderer. If a future custom renderer replaces it, add that commitment here.

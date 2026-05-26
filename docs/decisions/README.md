@@ -19,7 +19,7 @@ When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 | [0003](0003-whs-integration-strategy.md) | Wild Haggis Survivors integration strategy | accepted | 2026-05-23 | Option A chosen (external URL to `https://wild-haggis-survivors.pages.dev/`); Option B (`/wild-haggis-survivors/` mount) is the documented end-state for when the combined build is warranted. |
 | [0004](0004-language-and-craft-philosophy.md) | Language and craft philosophy | accepted | 2026-05-22 | Makes the systems-language taste and hand-roll-vs-library posture explicit policy. |
 | [0005](0005-canvas2d-first-room-renderer.md) | Canvas2D renderer for first room | accepted | 2026-05-23 | Selects a hand-rolled Canvas2D renderer for the First Perfect Slice room. |
-| [0006](0006-hub-visual-direction-highland-dawn-bothy.md) | Highland-dawn-bothy visual direction | accepted | 2026-05-23 | Locks the hub's visual register: peat-night palette, monospace, Scots voice, sister to WHS without sharing tokens. |
+| [0006](0006-hub-visual-direction-highland-dawn-bothy.md) | Highland-dawn-bothy visual direction | accepted | 2026-05-23 | Locks the hub's visual register: Highland dawn palette, humanist serif, warmer Scots-tinted lobby voice, sister to WHS without sharing tokens. |
 
 ## Statuses
 

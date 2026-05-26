@@ -9,7 +9,7 @@ ha + ggis = haggis
 ha.ggis.xyz = say it without the dot
 ```
 
-This repository has moved from documentation-only foundation into a working executable hub. The current state: a Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement and door proximity; `hub-wasm` exposes a typed boundary the browser consumes; a strict TypeScript/Vite host owns lifecycle, input, registry, direct-play launch seams, and a hand-rolled Canvas2D first-room renderer. The room is rendered procedurally (WHS croft drawers ported to Canvas2D — haggis, hearth, walls, floor, window, mantelpiece, doors, particles). Door interaction is wired both via keyboard (walk + Enter) and pointer (tap), each launching the matching game from the registry. Deployment is hardened (CSP, security headers, source map policy, build verification). Browser smoke tests cover the keyboard and tap launch paths.
+This repository has moved from documentation-only foundation into a working executable hub. The current state: a Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement and door proximity; `hub-wasm` exposes a typed boundary the browser consumes; a strict TypeScript/Vite host owns lifecycle, input, registry, direct-play launch seams, and a hand-rolled Canvas2D first-room renderer. The room is rendered procedurally: a hub-original Wee Chieftain haggis drawer plus WHS croft-derived hearth, walls, floor, window, mantelpiece, doors, and particles. Door interaction is wired both via keyboard (walk + Enter) and pointer (tap), each launching the matching game from the registry. Deployment is hardened (CSP, security headers, source map policy, build verification). Browser smoke tests cover the keyboard and tap launch paths.
 
 ## Start here
 
@@ -32,7 +32,7 @@ If you only have time for the load-bearing five, read these in order:
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
 - Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (typecheck + lint + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (cargo workspace tests + ts + coverage + security + perf bundle + perf paint-timing + browser smokes + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits a cryptographically signed JSON report.
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
-- Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D (ported from the WHS croft drawers — see `src/render/whs-*.ts`).
+- Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is procedural Canvas2D: hub-original haggis in `src/render/bothy-haggis.ts`, with WHS croft-derived room fixtures in `src/render/whs-*.ts`.
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
 
 ## Non-negotiable standard
@@ -107,7 +107,7 @@ node scripts/run-soak-gate.mjs
 cargo deny check
 ```
 
-CI (`.github/workflows/ci.yml`) is two-tier: `pnpm verify` is the fast PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main. Both gates currently green on the latest commit.
+CI (`.github/workflows/ci.yml`) is two-tier: `pnpm verify` is the fast PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main.
 
 A Go-built orchestrator CLI bundles every gate above into one command with a signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 
