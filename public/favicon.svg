@@ -42,9 +42,9 @@
   <circle cx="12.2" cy="15.8" r="2.36" fill="#f0e6c8"/>
   <circle cx="20.2" cy="15.8" r="2.36" fill="#f0e6c8"/>
   <circle cx="12.8" cy="15.55" r="0.92" fill="#0a0604"/>
-  <circle cx="20.8" cy="15.55" r="0.92" fill="#0a0604"/>
+  <circle cx="19.6" cy="15.55" r="0.92" fill="#0a0604"/>
   <circle cx="12.48" cy="14.82" r="0.34" fill="#fff0c8"/>
-  <circle cx="20.48" cy="14.82" r="0.34" fill="#fff0c8"/>
+  <circle cx="19.28" cy="14.82" r="0.34" fill="#fff0c8"/>
   <path d="M 9.85,13.9 Q 11.7,13.55 14.0,13.85" fill="none" stroke="#1a0e08" stroke-width="0.32" stroke-linecap="round" opacity="0.28"/>
   <path d="M 17.85,13.9 Q 20.0,13.55 22.25,13.85" fill="none" stroke="#1a0e08" stroke-width="0.32" stroke-linecap="round" opacity="0.28"/>
 </svg>
