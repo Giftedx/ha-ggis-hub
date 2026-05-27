@@ -2,6 +2,33 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 hardening: add opt-in production proof gate
+
+The local and release gates are now honest enough to show the next blocker: production DNS is not configured. This slice adds a live deployment probe without pretending it passes. The gate is explicit and opt-in until `ha.ggis.xyz` and `ggis.xyz` resolve and Cloudflare Pages is actually serving the hub.
+
+### Changed
+
+- **`scripts/check-production.mjs`** + **`scripts/check-production.test.ts`** — new live production probe for `ha.ggis.xyz`, `ggis.xyz` redirect preservation, production security/cache headers, hashed immutable assets with no source-map references, and the WHS launch URL.
+- **`tools/haggis-eval`** + **`tools/haggis-eval/slices.json`** — added `haggis-eval production` and `haggis-eval slice production`; intentionally not wired into `all` while DNS/deploy is absent.
+- **`README.md`**, **`docs/README.md`**, **`docs/foundation/07-quality-gates.md`**, **`docs/deployment/cloudflare-pages.md`**, **`tools/haggis-eval/README.md`** — documented the opt-in production gate and the current DNS blocker.
+
+### Verification
+
+```text
+pnpm exec vitest run scripts/check-production.test.ts                  PASS, 6 tests
+go test ./... && go build . (tools/haggis-eval)                       PASS
+node scripts/check-doc-claims.mjs                                      PASS, 11 files checked
+pnpm verify                                                           PASS, 26 test files, 186 tests
+pnpm run coverage                                                     statements 99.05%, branches 93.40%, functions 98.30%, lines 99.29%
+haggis-eval slice pre-merge                                           PASS, 17 gate results
+haggis-eval all                                                       PASS, report target/haggis-eval/all-20260527T001955Z.json, signature 0x00cbe78c6e38522e
+haggis-eval verify-report target/haggis-eval/all-20260527T001955Z.json PASS
+node scripts/check-production.mjs                                      FAIL as expected: ENOTFOUND ha.ggis.xyz and ggis.xyz
+haggis-eval production                                                 FAIL as expected: ENOTFOUND ha.ggis.xyz and ggis.xyz
+```
+
+---
+
 ## [Unreleased] — 2026-05-27 hardening: gate docs and eval claim drift
 
 The trust-recovery slice still relied on human discipline to keep `slices.json`, CI comments, and current docs aligned. This hardening slice adds a real docs-claim gate that derives pre-merge gate text from `tools/haggis-eval/slices.json`, rejects stale report/test-count/signing claims, and runs through `haggis-eval docs`, `slice pre-merge`, `slice release`, and `all`.

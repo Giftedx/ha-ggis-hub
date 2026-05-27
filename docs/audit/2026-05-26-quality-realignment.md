@@ -30,6 +30,6 @@ Related: [Quality gates](../foundation/07-quality-gates.md), [Testing strategy](
 ## Still Future Work
 
 - Reduce remaining slice-definition duplication where practical; current pre-merge claims are now checked against `slices.json`, but release-count prose still needs broader generation if the matrix grows again.
-- Add live production probes for `ha.ggis.xyz`, `ggis.xyz`, security headers, and the WHS launch URL.
+- Make `haggis-eval production` pass by configuring Cloudflare Pages/DNS for `ha.ggis.xyz` and the `ggis.xyz` redirect; the probe is wired and currently fails on `ENOTFOUND`.
 - Evaluate Firefox/WebKit smoke coverage after Chromium-only gates are stable.
 - Design real cryptographic signing separately, including key custody, verification, and rotation.

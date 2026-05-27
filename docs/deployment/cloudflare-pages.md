@@ -10,6 +10,14 @@ In-repo config is complete. The files below are the actual shipped files. `deplo
 
 Cloudflare dashboard config (project name, branch, build command, domain) is out-of-band and must be applied manually.
 
+The live production probe is wired as an opt-in command:
+
+```bash
+./tools/haggis-eval/haggis-eval production
+```
+
+Current status on 2026-05-27: the probe fails before HTTP because `ha.ggis.xyz` and `ggis.xyz` do not resolve from this environment. Keep it out of `haggis-eval all` until DNS/deploy is configured.
+
 ## Target domains
 
 ```text
@@ -113,3 +121,4 @@ Out-of-band (Cloudflare dashboard + DNS):
 - [ ] `ggis.xyz` redirects preserving path/query (Cloudflare Bulk Redirect or Redirect Rule)
 - [ ] HTTPS active
 - [ ] No production source maps unless intentional
+- [ ] `./tools/haggis-eval/haggis-eval production` passes from repo root

@@ -13,6 +13,10 @@
     "fast": {
       "description": "Smoke-only — the absolute minimum to confirm the toolchain still works. Current docs/eval claim checks, typecheck, vitest, build, bundle-size + paint-timing budgets. ~10 seconds end to end. Use when iterating on docs or non-rendered code paths.",
       "gates": ["docs", "ts", "perf"]
+    },
+    "production": {
+      "description": "Opt-in live deployment proof. Probes ha.ggis.xyz, ggis.xyz redirect behavior, production headers, hashed immutable assets, source-map absence, and the WHS launch URL. Not part of pre-merge or all until DNS/deploy is live.",
+      "gates": ["production"]
     }
   }
 }

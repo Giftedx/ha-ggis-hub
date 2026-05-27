@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **Execution status (2026-05-26):** Completed in this repository. Final evidence: `pnpm verify` passed 24 files / 175 tests; `haggis-eval slice pre-merge` passed; `haggis-eval all` passed with report `target/haggis-eval/all-20260526T035736Z.json` and signature `0x22923d84024cf670`; `haggis-eval verify-report target/haggis-eval/all-20260526T035736Z.json` passed.
+> **Execution status (2026-05-26):** Completed in this repository. This plan's original completion evidence has been superseded by later gate additions; use the newest `CHANGELOG.md` verification block for current test counts, report paths, and signatures.
 
 **Goal:** Fix the remaining weaknesses in the trust-recovery slice so reports are actually verifiable, browser orchestration is honestly covered, CI is strong without wasteful duplication, and docs stop overclaiming.
 
@@ -185,7 +185,7 @@ Expected: PASS.
 Run:
 
 ```bash
-./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/all-20260526T035736Z.json
+./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/<report>.json
 ```
 
 Expected: PASS after regenerating the report with string signatures.

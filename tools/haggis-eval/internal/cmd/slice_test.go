@@ -140,7 +140,7 @@ func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 	for _, want := range []string{
 		"rust", "rust-lint", "docs", "ts", "coverage", "security", "perf", "browser",
 		"determinism", "visual", "a11y", "soak", "supply-chain",
-		"differential-hash", "differential-rng",
+		"differential-hash", "differential-rng", "production",
 	} {
 		if _, ok := reg[want]; !ok {
 			t.Errorf("Registry() missing %q — slices that reference it will fail dispatch", want)

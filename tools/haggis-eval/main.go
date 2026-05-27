@@ -59,6 +59,8 @@ func main() {
 		os.Exit(printAndExit("soak", cmd.Soak()))
 	case "supply-chain":
 		os.Exit(printAndExit("supply-chain", cmd.SupplyChain()))
+	case "production":
+		os.Exit(printAndExit("production", cmd.Production()))
 	case "verify-report":
 		if len(os.Args) != 3 {
 			fmt.Fprintln(os.Stderr, "usage: haggis-eval verify-report <report.json>")
@@ -125,6 +127,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  a11y                       Hand-rolled WCAG 2.2 AA spot-checks (lang, contrast, focus, names)")
 	fmt.Fprintln(w, "  soak                       Memory-growth soak (15s RAF loop; GC before/after; heap budget 5 MB)")
 	fmt.Fprintln(w, "  supply-chain               cargo deny check (licenses + advisories + bans + sources)")
+	fmt.Fprintln(w, "  production                 Live production probe (ha.ggis.xyz, ggis.xyz redirect, headers, assets, WHS URL)")
 	fmt.Fprintln(w, "  verify-report <path>       Recompute and verify an FNV-signed JSON report")
 	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
 	fmt.Fprintln(w, "  all                        Every release gate; FNV-signed tamper-evident JSON report")

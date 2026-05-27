@@ -113,6 +113,9 @@ cd ../..
 ./tools/haggis-eval/haggis-eval slice pre-merge
 ./tools/haggis-eval/haggis-eval all
 ./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/all-<utc>.json
+
+# Opt-in live production proof; currently blocked until DNS/deploy is configured.
+./tools/haggis-eval/haggis-eval production
 ```
 
 CI (`.github/workflows/ci.yml`) is staged: `pnpm verify` is the local fast feedback gate; `haggis-eval slice pre-merge` is the PR gate; `haggis-eval all` (every gate above + cargo workspace + differential hash/rng) is the release gate on push to main.

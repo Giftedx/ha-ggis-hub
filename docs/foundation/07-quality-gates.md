@@ -209,6 +209,16 @@ Quality gates may be staged while scaffolding. They may not be weakened to make 
 
 A release is not a build artifact. It is a claim that the project is safe, understandable, polished, and representative of the quality bar.
 
+### Opt-In Production Proof
+
+The live deployment probe is wired but not part of `pre-merge` or `all` until DNS/deploy is live:
+
+```bash
+./tools/haggis-eval/haggis-eval production
+```
+
+It probes `https://ha.ggis.xyz/`, the `https://ggis.xyz/` redirect, production security/cache headers, hashed immutable assets with no source-map references, and the WHS launch URL. Current status on 2026-05-27: it fails on DNS (`ENOTFOUND` for `ha.ggis.xyz` and `ggis.xyz`), which is an out-of-band Cloudflare/DNS blocker rather than a local code failure.
+
 ## First public release requirements
 
 Product:

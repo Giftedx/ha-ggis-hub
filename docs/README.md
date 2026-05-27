@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a procedural Canvas2D bothy renderer (hub-original haggis + WHS croft-derived room fixtures + pixel sprites). Staged CI (`.github/workflows/ci.yml`): `haggis-eval slice pre-merge` on PR, including docs/eval claim-drift scanning; the full `haggis-eval all` release gate on push to main, emitting an FNV-signed tamper-evident JSON report that `haggis-eval verify-report` can recompute. Deployment headers, manifest, OG card, and SPA redirects under `public/`.
+The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a procedural Canvas2D bothy renderer (hub-original haggis + WHS croft-derived room fixtures + pixel sprites). Staged CI (`.github/workflows/ci.yml`): `haggis-eval slice pre-merge` on PR, including docs/eval claim-drift scanning; the full `haggis-eval all` release gate on push to main, emitting an FNV-signed tamper-evident JSON report that `haggis-eval verify-report` can recompute. Deployment headers, manifest, OG card, and SPA redirects are under `public/`; `haggis-eval production` is an opt-in live DNS/deploy probe and currently fails until `ha.ggis.xyz`/`ggis.xyz` are configured.
 
 ## Recommended reading order
 
