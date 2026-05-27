@@ -2,6 +2,20 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 fix: sync docs and perf budget after music/font additions
+
+Five doc files and the perf budget had drifted after the music controller and font-face CSS additions. No code changes; gate-state is now accurate everywhere.
+
+### Fixed
+
+- **`perf-budgets.json`** — index stem budget raised 64 KB → 72 KB to reflect music controller + font-face CSS (measured 64.2 KB; was 185 B over the stale budget). Note updated to name the new scope.
+- **`README.md`** — corrected smoke count (three → five), a11y count (22 → 26), and total-client size (~83 KB → ~96 KB) with updated asset breakdown.
+- **`WRITEUP.md`** — updated bundle table (83 KB → ~96 KB), architecture-diagram JS callout (49 KB → 59 KB), smoke count, a11y count (22 → 26), vitest count (144 → 190), and rewrote "Where the art now stands" to describe the painted backdrop, current Wee Chieftain design, self-hosted Old Standard TT, and opt-in music.
+- **`docs/architecture/testing-strategy.md`** — vitest count corrected 187 → 190.
+- **`src/app/music.test.ts`** — added test covering the `if (!audio.paused)` false branch in `playCurrent` (play resolves but audio stays paused — a legitimate edge-case browser path). 190 vitest cases; branches 89.66%.
+
+---
+
 ## [Unreleased] — 2026-05-27 feat: self-host Old Standard TT for consistent cross-platform serif
 
 The hub chrome (brand, links, music button, status) renders in the system serif stack — Georgia on most platforms, but Times New Roman on Windows where Georgia's metrics differ most. This pass locks the rendering across all platforms: three self-hosted woff2 files (Regular 400, Italic 400, Bold 700; latin subset) ship with the app and the italic 400 is preloaded so the chrome renders in-font on first paint with no FOUT.
