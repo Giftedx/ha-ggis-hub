@@ -2,6 +2,8 @@ package report
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -66,5 +68,62 @@ func TestRoundTripsThroughJson(t *testing.T) {
 	}
 	if back.OverallStatus != r.OverallStatus {
 		t.Errorf("overall status differs after round-trip")
+	}
+}
+
+func TestBuildOverallFailsIfAnyGateErrors(t *testing.T) {
+	results := sampleResults()
+	results[0].Status = gate.StatusError
+	results[0].ExitCode = -1
+	r := Build("test-run", time.Now(), results)
+	if r.OverallStatus != gate.StatusFail {
+		t.Errorf("OverallStatus = %s; want FAIL when a gate has StatusError", r.OverallStatus)
+	}
+}
+
+func TestWriteCreatesFileAtExpectedPath(t *testing.T) {
+	dir := t.TempDir()
+	ts := time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC)
+	r := Build("all", ts, sampleResults())
+	path, err := r.Write(dir)
+	if err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+	wantName := "all-20260523T120000Z.json"
+	if filepath.Base(path) != wantName {
+		t.Errorf("filename = %q, want %q", filepath.Base(path), wantName)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Errorf("file does not exist after Write: %v", err)
+	}
+}
+
+func TestWriteSignatureRoundTrips(t *testing.T) {
+	dir := t.TempDir()
+	ts := time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC)
+	r := Build("all", ts, sampleResults())
+	path, err := r.Write(dir)
+	if err != nil {
+		t.Fatalf("Write: %v", err)
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	var back Report
+	if err := json.Unmarshal(raw, &back); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if back.Signature != r.Signature {
+		t.Errorf("signature after Write/ReadFile = %#x, want %#x", back.Signature, r.Signature)
+	}
+}
+
+func TestWriteCreatesDirectoryIfMissing(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "nested", "output")
+	r := Build("run", time.Now(), sampleResults())
+	_, err := r.Write(dir)
+	if err != nil {
+		t.Fatalf("Write with missing dir hierarchy: %v", err)
 	}
 }

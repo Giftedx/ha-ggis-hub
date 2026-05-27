@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -146,6 +148,38 @@ func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 		if _, ok := reg[want]; !ok {
 			t.Errorf("Registry() missing %q — slices that reference it will fail dispatch", want)
 		}
+	}
+}
+
+func TestListSlices_outputIsAlphabetical(t *testing.T) {
+	cfg := SlicesConfig{
+		Schema: 1,
+		Slices: map[string]SliceBundle{
+			"zebra": {Description: "last gate-set", Gates: []string{"ts"}},
+			"alpha": {Description: "first gate-set", Gates: []string{"perf"}},
+		},
+	}
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe: %v", err)
+	}
+	ListSlices(cfg, w)
+	w.Close()
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r); err != nil {
+		t.Fatalf("read pipe: %v", err)
+	}
+	out := buf.String()
+	iAlpha := strings.Index(out, "alpha")
+	iZebra := strings.Index(out, "zebra")
+	if iAlpha < 0 || iZebra < 0 {
+		t.Fatalf("expected both slice names in output, got:\n%s", out)
+	}
+	if iAlpha > iZebra {
+		t.Errorf("expected alpha before zebra in output:\n%s", out)
+	}
+	if !strings.Contains(out, "available slices:") {
+		t.Errorf("expected header 'available slices:' in output:\n%s", out)
 	}
 }
 
