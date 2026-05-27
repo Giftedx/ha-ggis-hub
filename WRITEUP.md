@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~94 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~96 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -86,7 +86,7 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~94 KB total client bundle
+### ~96 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
