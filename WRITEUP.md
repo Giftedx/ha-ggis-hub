@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~93 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -16,7 +16,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TypeScript / Vite host  (56 KB JS, strict mode)        │
+│  TypeScript / Vite host  (55 KB JS, strict mode)        │
 │  - Lifecycle, input sampling, fixed-step pump           │
 │  - Pointer-drive + keyboard, single launch entry point  │
 │  - Hand-rolled Canvas2D renderer (no engine, no library)│
@@ -96,15 +96,15 @@ Five proptest blocks cover invariants that are hard to exhaust with example-base
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~93 KB total client bundle
+### ~92 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.60 kB | 1.29 kB |
-| `dist/assets/index-*.js` | 56.49 kB | 18.70 kB |
+| `dist/assets/index-*.js` | 54.93 kB | 18.57 kB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 28.05 kB | 12.71 kB |
 | `dist/assets/index-*.css` | 5.25 kB | 1.55 kB |
-| **Total** | **93.39 kB** | **34.25 kB** |
+| **Total** | **91.83 kB** | **34.12 kB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 35 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 

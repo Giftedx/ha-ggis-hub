@@ -37,6 +37,18 @@ const HEATHER_DARK = '#5a3878';
 const HEATHER_PURPLE = '#7a4a9c';
 const MOUNTAIN_FAR = '#5a4a78';
 const MOUNTAIN_NEAR = '#3a2c4a';
+// Sun glow shades — warm halo bands for drawWhsWindowBay
+const SUN_WARM = '#ffd6b8';
+const SUN_HALO = '#ffe0c0';
+const SUN_CORE = '#ffe8c8';
+const SUN_BRIGHT = '#fff4d8';
+// Locked door state colours
+const LOCKED_FRAME = '#1a0e08';
+const LOCKED_HANDLE = '#8a6a30';
+// Rug body colours — warm wood mid + ember stripe
+const RUG_WOOD_MID = '#6a3818';
+const RUG_WOOD_LIGHT = '#8a5828';
+const RUG_EMBER = '#9a3818';
 
 export interface WhsBothyContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
@@ -298,14 +310,14 @@ export function drawWhsWindowBay(
   fillRectA(ctx, DAWN_PINK, 0.78, x, y + h * 0.3, w, h * 0.2);
   fillRectA(ctx, DAWN_PINK, 0.92, x, y + h * 0.42, w, h * 0.18);
   fillRectA(ctx, DAWN_PEACH, 0.95, x, y + h * 0.52, w, h * 0.18);
-  fillRectA(ctx, '#ffd6b8', 0.85, x, y + h * 0.6, w, h * 0.1);
+  fillRectA(ctx, SUN_WARM, 0.85, x, y + h * 0.6, w, h * 0.1);
 
   // Soft sun glow — broad warm halo behind where dawn breaks.
   const sunCx = x + w * 0.68;
   const sunCy = y + h * 0.55;
-  fillEllipseA(ctx, '#ffe0c0', 0.32, sunCx, sunCy, w * 0.85, h * 0.3);
-  fillEllipseA(ctx, '#ffe8c8', 0.45, sunCx, sunCy, compact ? 22 : 30, compact ? 10 : 14);
-  fillEllipseA(ctx, '#fff4d8', 0.65, sunCx, sunCy, compact ? 10 : 14, compact ? 5 : 7);
+  fillEllipseA(ctx, SUN_HALO, 0.32, sunCx, sunCy, w * 0.85, h * 0.3);
+  fillEllipseA(ctx, SUN_CORE, 0.45, sunCx, sunCy, compact ? 22 : 30, compact ? 10 : 14);
+  fillEllipseA(ctx, SUN_BRIGHT, 0.65, sunCx, sunCy, compact ? 10 : 14, compact ? 5 : 7);
 
   // Distant Highland silhouette — two layered ridges in deep peat
   // purple, anchoring the horizon. Far ridge softer, near ridge
@@ -409,10 +421,10 @@ export function drawWhsDoor(
 ): void {
   const { x, y, w, h } = region;
   // Palette per state.
-  const frame = state === 'locked' ? '#1a0e08' : INK;
+  const frame = state === 'locked' ? LOCKED_FRAME : INK;
   const body = state === 'open' ? WOOD_LIGHT : state === 'locked' ? PEAT_DARK : WOOD_MID;
   const rail = state === 'open' ? WHISKY_LIGHT : WOOD_LIGHT;
-  const handleC = state === 'locked' ? '#8a6a30' : WHISKY;
+  const handleC = state === 'locked' ? LOCKED_HANDLE : WHISKY;
 
   fillRectA(ctx, frame, 1, x - 3, y - 4, w + 6, h + 6);
   fillRectA(ctx, PEAT_DARK, 1, x, y, w, h);
@@ -448,8 +460,8 @@ export function drawWhsRug(
   // gold + warm wood). Replaced heather-purple per hub palette.
   fillEllipseA(ctx, INK, 1, x + w / 2, y + h * 0.52, w, h);
   fillEllipseA(ctx, PEAT_DARK, 1, x + w / 2, y + h * 0.5, w - 4, h - 4);
-  fillEllipseA(ctx, '#6a3818', 1, x + w / 2, y + h * 0.49, w - 10, h - 8); // warm wood mid
-  fillEllipseA(ctx, '#8a5828', 0.3, x + w / 2 - w * 0.08, y + h * 0.42, w * 0.44, h * 0.34);
+  fillEllipseA(ctx, RUG_WOOD_MID, 1, x + w / 2, y + h * 0.49, w - 10, h - 8);
+  fillEllipseA(ctx, RUG_WOOD_LIGHT, 0.3, x + w / 2 - w * 0.08, y + h * 0.42, w * 0.44, h * 0.34);
 
   // Tartan-style cross-stripes — dawn ember + whisky-gold instead of
   // heather/red. Reads as a hand-woven wool rug in firelight.
@@ -457,8 +469,8 @@ export function drawWhsRug(
   const stripeW = compact ? 3 : 5;
   fillRectA(ctx, PEAT_DARK, 0.78, x + w * 0.08, y + h * 0.42, w * 0.84, stripeH);
   fillRectA(ctx, PEAT_DARK, 0.78, x + w * 0.08, y + h * 0.57, w * 0.84, Math.max(2, stripeH - 1));
-  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.18, y + h * 0.24, stripeW, h * 0.5); // ember red
-  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.7, y + h * 0.24, stripeW, h * 0.5);
+  fillRectA(ctx, RUG_EMBER, 0.7, x + w * 0.18, y + h * 0.24, stripeW, h * 0.5);
+  fillRectA(ctx, RUG_EMBER, 0.7, x + w * 0.7, y + h * 0.24, stripeW, h * 0.5);
   fillRectA(ctx, WHISKY, 0.78, x + w * 0.1, y + h * 0.51, w * 0.8, Math.max(2, stripeH - 2));
   fillRectA(ctx, WHISKY, 0.78, x + w * 0.36, y + h * 0.28, Math.max(2, stripeW - 1), h * 0.44);
 

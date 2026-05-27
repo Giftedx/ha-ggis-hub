@@ -2,6 +2,22 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: whs-bothy Rule 5 compliance + dead DOOR_OPEN removal
+
+Completed palette discipline sweep across the three remaining render files:
+- **`src/render/whs-bothy.ts`**: 10 inline hex values in draw functions promoted to named
+  constants at top of file — `SUN_WARM/HALO/CORE/BRIGHT` (window bay sun glow shades),
+  `LOCKED_FRAME/HANDLE` (locked door state), `RUG_WOOD_MID/LIGHT/EMBER` (rug body colours).
+  Zero inline hex remain in any draw function.
+- **`src/render/whs-hearth.ts`**: removed spurious `void RAMPS;` statement. RAMPS is actively
+  used on the following lines (LOG_DARK through GLOW_WARM); the void was misleading.
+- **`src/render/sprites/door.ts`**: removed dead `DOOR_OPEN` export and its `DOOR_PALETTE`
+  const. DOOR_OPEN was never imported anywhere — a leftover from an earlier planned layout
+  that was superseded. Removal shrank JS bundle from 56.49 kB → 54.93 kB (gzip: 18.70 → 18.57 kB);
+  total bundle now **91.83 kB / 34.12 kB gzip**.
+
+219 tests pass; golden unchanged.
+
 ## [Unreleased] — 2026-05-27 chore: palette discipline compliance (rules.md Rule 5)
 
 Brought all draw functions into compliance with rules.md Rule 5 ("inline hex

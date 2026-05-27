@@ -39,7 +39,6 @@ const STONE_DARK = '#3a2818';
 const STONE_MID = '#5a3e28';
 const STONE_HI = '#7a5838';
 const MORTAR = '#2a1c10';
-void RAMPS;
 const BACK_BLACK = '#08050a';
 const LOG_DARK = RAMPS.woodDeep;
 const LOG_MID = RAMPS.woodDark;
