@@ -2,6 +2,37 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 test: systematic coverage push; 190 → 214 vitest; branches 89.66% → 98.13%
+
+Three coverage sessions across bothy-module, canvas-room, sprite, and pixel-font. Branch coverage
+rose from 89.66% to 98.13% (threshold: 85%). Statement/line/function coverage all above 98%.
+
+### Added
+
+- **`src/hub/bothy-module.test.ts`** — 25 new tests: keyboard directional movement (right+down, left-only,
+  up-only), all pointer-drive directions and deadzone guard, consumeInteract with non-launchable and
+  out-of-bounds index, unregistered and locked door keyboard interact, hasPointerCapture=false path,
+  debug overlay in normal + active-interaction states + null door id, visibility-hidden guard, post-destroy
+  rAF guard, double-destroy guard, beforeunload serialisation.
+- **`src/navigation/browser-navigator.test.ts`** — new file; 2 tests for `createBrowserLaunchNavigator`.
+- **`src/render/canvas-room.test.ts`** — "Next Moon" → "SOON" doorShortLabel branch.
+- **`src/render/sprite.test.ts`** — `blitSpriteTL` transparent-pixel skip test.
+- **`src/app/music.test.ts`** — `if (!audio.paused)` false branch.
+
+### Fixed
+
+- **`src/render/canvas-room.ts`** — simplified dead three-way ternary to two-way (door.status is
+  launchable|locked; 'available' arm was unreachable). Replaced non-functional `c8 ignore else`
+  annotation on drawLantern with an early-return guard annotated `v8 ignore next`.
+- **`src/render/sprite.ts`** — `colour === null || colour === undefined` → `colour == null` (covers both
+  with correct TypeScript narrowing under noUncheckedIndexedAccess; previous form had dead `=== undefined`
+  arm).
+- **`src/render/sprites/pixel-font.ts`** — annotated two unreachable `?? GLYPH_FULL_WIDTH` fallbacks.
+- **`src/hub/bothy-module.ts`** — four `v8-ignore-next` annotations on defensive dead-code guards
+  (devicePixelRatio fallback, doorSnap sentinel, game?.title fallback, missing-game plan arm).
+
+---
+
 ## [Unreleased] — 2026-05-27 fix: sync docs and perf budget after music/font additions
 
 Five doc files and the perf budget had drifted after the music controller and font-face CSS additions. No code changes; gate-state is now accurate everywhere.

@@ -128,6 +128,7 @@ function makeShell(): SceneElements {
 function installBrowserGlobals(search = ''): {
   flushRaf(now: number): void;
   docAddEventListener: ReturnType<typeof vi.fn>;
+  winAddEventListener: ReturnType<typeof vi.fn>;
 } {
   let rafId = 0;
   let callbacks: Array<(now: number) => void> = [];
@@ -159,6 +160,7 @@ function installBrowserGlobals(search = ''): {
   });
   return {
     docAddEventListener,
+    winAddEventListener: addEventListener,
     flushRaf(now: number): void {
       const pending = callbacks;
       callbacks = [];
@@ -221,7 +223,7 @@ async function mountHarness(options?: {
     launchSource: 'door',
     reducedMotion: options?.reducedMotion ?? false
   });
-  return { browser, boundary, renderer, keyboard, navigator, shell, instance, docAddEventListener: browser.docAddEventListener };
+  return { browser, boundary, renderer, keyboard, navigator, shell, instance, docAddEventListener: browser.docAddEventListener, winAddEventListener: browser.winAddEventListener };
 }
 
 beforeEach(() => {
@@ -535,6 +537,16 @@ describe('createBothyGameModule', () => {
     expect(overlay.update).toHaveBeenCalledWith(
       expect.objectContaining({ interactionDoorId: null })
     );
+  });
+
+  it('writes the serialised input log to window.__lastHaggisLog on beforeunload', async () => {
+    const { browser, winAddEventListener } = await mountHarness();
+    browser.flushRaf(100);
+    const calls = winAddEventListener.mock.calls as [string, EventListener][];
+    const entry = calls.find(([type]) => type === 'beforeunload');
+    expect(entry).toBeDefined();
+    entry![1](new Event('beforeunload'));
+    expect((window as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog).toBeInstanceOf(Uint8Array);
   });
 
   it('destroys the boundary and throws when room doors drift from the registry', async () => {
