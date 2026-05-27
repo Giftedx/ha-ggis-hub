@@ -390,6 +390,25 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.length).toBeGreaterThan(20);
   });
 
+  it('uses SOON as the short label for doors whose title includes "Next Moon"', () => {
+    const nextMoonRoom: RoomDefinition = {
+      worldWidth: 1_000,
+      worldHeight: 1_000,
+      doors: [
+        {
+          id: 'next-moon-bothy',
+          status: 'launchable',
+          // prettifyKebab('next-moon-bothy') = 'Next Moon Bothy' → contains
+          // 'Next Moon' → doorShortLabel returns 'SOON'.
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+        }
+      ]
+    };
+    const { surface, context } = recordingSurface(1200, 800);
+    createCanvasRoomRenderer(surface, nextMoonRoom).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls.length).toBeGreaterThan(20);
+  });
+
   it('renders a door with an unregistered single-word ID — exercises prettifyKebab and doorShortLabel single-word return', () => {
     const unknownDoorRoom: RoomDefinition = {
       worldWidth: 1_000,

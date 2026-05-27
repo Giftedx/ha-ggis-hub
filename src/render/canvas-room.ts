@@ -1057,12 +1057,10 @@ function drawDoor(
 ): void {
   const { x, y, width, height } = door.rect;
   const isLaunchable = door.status === 'launchable';
-  const isLocked = door.status === 'locked';
 
-  // Phase 3b: WHS smooth door port. Locked → dark wood. Launchable →
-  // lit warm wood with brass handle catching the dawn glow. Available
-  // (in-between) → mid wood.
-  const state = isLaunchable ? 'open' : isLocked ? 'locked' : 'available';
+  // Phase 3b: WHS smooth door port. Launchable → lit warm wood. Locked → dark wood.
+  // status is 'launchable' | 'locked' — no third state reachable from room doors.
+  const state = isLaunchable ? 'open' : 'locked';
   drawDoorRecess(ctx, door);
   drawWhsDoor(ctx, { x, y, w: width, h: height }, state);
   drawDoorCasing(ctx, door);
@@ -1149,29 +1147,29 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
   // scale. Now 22px wide with a proper iron bracket curl off the wall.
   const cx = x + Math.round(width / 2);
   const lanternCy = y + 9;
-  if (isLit) {
-    const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
-    // Phase 3c: smooth translucent halo (dithered version read as
-    // noise against the WHS substrate). Two layered ellipses fading
-    // outward, multiplied by pulse for the lantern flicker.
-    for (let i = 3; i >= 1; i--) {
-      const r = 42 * (i / 3);
-      ctx.save();
-      ctx.globalAlpha = 0.04 * i * pulse;
-      ctx.fillStyle = PALETTE.dawnGold;
-      ctx.beginPath();
-      ctx.ellipse(cx, lanternCy, r, r * 0.85, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
+  /* v8 ignore next — drawLantern only called for launchable doors (line 365) */
+  if (!isLit) { blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2); return; }
+  const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
+  // Phase 3c: smooth translucent halo (dithered version read as
+  // noise against the WHS substrate). Two layered ellipses fading
+  // outward, multiplied by pulse for the lantern flicker.
+  for (let i = 3; i >= 1; i--) {
+    const r = 42 * (i / 3);
     ctx.save();
-    ctx.globalAlpha = 0.4 * pulse;
-    ctx.fillStyle = PALETTE.dawnHighlight;
+    ctx.globalAlpha = 0.04 * i * pulse;
+    ctx.fillStyle = PALETTE.dawnGold;
     ctx.beginPath();
-    ctx.ellipse(cx, lanternCy, 14, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, lanternCy, r, r * 0.85, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
+  ctx.save();
+  ctx.globalAlpha = 0.4 * pulse;
+  ctx.fillStyle = PALETTE.dawnHighlight;
+  ctx.beginPath();
+  ctx.ellipse(cx, lanternCy, 14, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
   // Blit the lantern sprite (centred at cx, lanternCy)
   blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2);
 }
