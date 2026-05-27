@@ -246,7 +246,7 @@ elevation:
     overlay-policy: "player haggis, interaction prompt, vignette, particles, and runtime state remain Canvas2D overlays"
 
   panoramic-dawn-view:
-    role: "fallback back-wall art mass; replaces the small central window when the painted backdrop is not yet available"
+    role: "fallback back-wall art mass; replaces the small central window when the painted backdrop has not loaded"
     size: "432×108 px on the canonical 540×360 surface"
     value-policy: "heather-purple sky, peach dawn band, cream sun core, dark mountain silhouettes, bracken foreground"
 
