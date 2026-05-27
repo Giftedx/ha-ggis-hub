@@ -2,6 +2,11 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: fix stale smoke counts + a11y check count in CI + haggis-eval docs
+
+ci.yml: 6→7 chromium smokes, 5→6 firefox/webkit core smokes.
+haggis-eval README: browser row missing locked-door smoke; a11y row 22→26 checks + expanded criterion list.
+
 ## [Unreleased] — 2026-05-27 docs: index DEPLOYMENT.md + link from quality-gates
 
 docs/README.md: added deployment runbook entry (docs/DEPLOYMENT.md — DNS, rollback, WHS integration decision).

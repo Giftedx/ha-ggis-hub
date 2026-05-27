@@ -39,8 +39,8 @@ jobs:
   # (vitest v8 thresholds: lines=100% stmts=100% fns=100% branches=100%),
   # security (deploy-config.test — headers+CSP+cache), perf (bundle
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
-  # (chromium: 6 smokes incl. a11y), multi-browser (firefox + webkit:
-  # 5 core smokes, a11y excluded — tab-focus behaviour is OS-dependent),
+  # (chromium: 7 smokes — 6 core + a11y), multi-browser (firefox + webkit:
+  # 6 core smokes, a11y excluded — tab-focus behaviour is OS-dependent),
   # determinism
   # (same-seed state-hash equality across two runs), visual (aHash
   # diff vs tests/golden/ with Hamming tolerance), a11y (26 WCAG 2.2
