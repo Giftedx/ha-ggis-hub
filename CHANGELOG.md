@@ -2,6 +2,70 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: doc/count sync + push to origin
+
+218 vitest count propagated to WRITEUP.md and docs/architecture/testing-strategy.md.
+Pushed 147 commits to origin/main (202e0c0 → de796b0).
+
+### Changed
+- **`WRITEUP.md`** — vitest count 214 → 218.
+- **`docs/architecture/testing-strategy.md`** — vitest count 214 → 218 in two places.
+
+---
+
+## [Unreleased] — 2026-05-27 test+docs: transform balance, property coverage, rollback docs, mantel inscription
+
+Four independent improvements shipped in one session:
+
+**feat: mantel inscription** — `"Hame's best."` rendered in pixel-font above the
+inglenook arch crown in canvas-room.ts `drawMantelInscription`. Shortened from
+the deferred `"A wee place tae rest before ye ge'awa'."` (215 px) to 64 px at
+scale 1. DESIGN.md ornament budget now fully spent (inscriptions 2/2). Two new
+canvas-room tests: inscription present at archY−9 on 540×360; absent on narrow
+surfaces (width < 400).
+
+**feat: rasterize:music** — `scripts/render-wario-share-audio.mjs` committed
+with a maintenance header documenting the content-hash fragility, manual ffmpeg
+conversion step, and non-CI status. `pnpm rasterize:music` target added to
+package.json, parallel to `rasterize:og`.
+
+**docs: rollback procedure** — new section in `docs/DEPLOYMENT.md` satisfying
+the quality-gates requirement that the release plan must document how to identify
+and restore a prior build. Covers dashboard rollback, wrangler CLI, and emergency
+local-dist re-deploy.
+
+**test: INTERACTION_CENTER_ABOVE_FEET property coverage** — new proptest in
+`crates/hub-core/src/sim.rs` verifies that for ANY valid in-bounds position,
+the snapshot interaction_kind matches what the body hitbox geometry (shifted by
+INTERACTION_CENTER_ABOVE_FEET above the feet anchor) predicts. Rust test count
+43 → 45.
+
+**test: ctx save/restore balance** — two new canvas-room tests assert that
+`save` and `restore` call counts are equal after a full render in the fallback
+path and in the storybook-backdrop path. Guards against future renderer edits
+that leave the canvas state stack open. Vitest count 216 → 218.
+
+**test: Report.Write, ListSlices, StatusError** (previous commit) — three Go
+test gaps closed in haggis-eval: `Report.Write` (filename format, dir creation,
+signature round-trip), `ListSlices` (alphabetical output), `Build` with
+`StatusError` gate.
+
+### Added
+- **`scripts/render-wario-share-audio.mjs`** — one-shot music rasterizer (committed).
+- **`scripts/smoke-music-toggle.mjs`** — music toggle browser smoke (committed).
+
+### Changed
+- **`src/render/canvas-room.ts`** — `drawMantelInscription` added; called in fallback path.
+- **`src/render/canvas-room.test.ts`** — 4 new tests (mantel inscription ×2, transform balance ×2).
+- **`DESIGN.md`** — mantel-inscription shipped; inscriptions-spent: 2/2.
+- **`package.json`** — `rasterize:music` script added.
+- **`docs/DEPLOYMENT.md`** — rollback procedure section added.
+- **`crates/hub-core/src/sim.rs`** — property test for interaction hitbox geometry added.
+- **`tools/haggis-eval/internal/report/report_test.go`** — Write + StatusError tests added.
+- **`tools/haggis-eval/internal/cmd/slice_test.go`** — ListSlices test added.
+
+---
+
 ## [Unreleased] — 2026-05-27 smoke: add locked-door browser smoke
 
 `scripts/smoke-locked-door.mjs` added as the 7th core browser smoke. Walks the
