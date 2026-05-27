@@ -2,6 +2,12 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: visual golden re-capture + DESIGN/WRITEUP doc sync
+
+Re-captured bothy-idle-seed-42 golden after locked-door sign — distance now 0.
+DESIGN.md: added door-fixtures entry documenting launchable vs locked visual treatment.
+WRITEUP.md: updated "Where the art now stands" to describe the door sign distinction.
+
 ## [Unreleased] — 2026-05-27 feat: locked-door sign + globalAlpha tracking
 
 Locked doors now display a dimmed heather-purple "SOON" sign (`drawLockedDoorSign`; 0.65 opacity,

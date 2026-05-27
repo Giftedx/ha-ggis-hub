@@ -255,6 +255,11 @@ elevation:
     outer-arch: "132×134 px at the room centre"
     value-policy: "lit-stone surround, cool shadow interior, cream block highlights"
 
+  door-fixtures:
+    launchable: "lit lantern (PX.haloWarm glow) + full-opacity bone sign — drawLantern + drawSign in canvas-room.ts — shipped 2026-05-27"
+    locked: "dimmed sign only — 0.65 opacity, PX.haloCool label text — drawLockedDoorSign in canvas-room.ts — shipped 2026-05-27"
+    rationale: "launchable door is the primary CTA; locked door reads 'coming' without competing — opacity + colour signal the distinction, not absence"
+
 ornament:
   # Ornament budget per scene: at most 3 framed objects, 2 dried-herb
   # bundles, 2 domestic prop anchors, 1 mantel inscription, 1 hearth
