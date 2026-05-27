@@ -80,6 +80,16 @@ The C kernel exists in a single Rust crate (`hub-hardlang`) which is also the *o
 
 The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production build graph. The runtime hub uses only the Rust implementation; the WAT lives to prove the bytecode-level kernel agrees.
 
+### Property tests for deterministic core invariants
+
+Five proptest blocks cover invariants that are hard to exhaust with example-based tests:
+
+- **Bounds invariant** (`sim.rs`): for any seed and any sequence of up to 50 ticks with arbitrary axis inputs, player position stays within `[PLAYER_HALF, WORLD_W - PLAYER_HALF] × [PLAYER_HALF, WORLD_H - PLAYER_HALF]`. Exercises the clamping arithmetic across the full i8 input space and across varied starting states.
+- **Input signum** (`sim.rs`): `from_axes(x, y, interact).x() == x.signum()` for all 256 `i8` values. The explicit tests only checked {−127, 0, 127}; this one proves the match arms are exhaustive.
+- **Replay faithfulness** (`replay.rs`): for any seed and any `btree_map` of 0–10 input changes (sorted, deduplicated tick_indexes → valid log order), drives a `Sim` directly while writing to a `LogWriter`, then replays the log and asserts the final state hashes and tick counts match. Proves replay correctness across arbitrary sessions, not just the fixed 20-tick scripted test.
+- **Log round-trip** (`log.rs`): any set of records encodes and decodes with seed, record count, tick_indexes, input axes, and final hash all preserved exactly. Exercises the FNV-1a body digest for arbitrary payloads.
+- **Hash streaming** (`hash.rs`): `update()` in arbitrary chunk sizes produces the same digest as `update()` in one shot. The existing `rng.rs` blocks add determinism and bounded-output coverage.
+
 ### Cryptographically signed gate reports
 
 `haggis-eval all` runs every wired gate (`rust`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
