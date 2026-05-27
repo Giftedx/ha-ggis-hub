@@ -85,6 +85,59 @@ curl.exe -I https://ha.ggis.xyz/
 curl.exe -I "https://ggis.xyz/test/path?x=1"
 ```
 
+## Rollback procedure
+
+The hub is a static build; there is no server state to migrate. Cloudflare Pages retains every prior deployment and can serve any of them instantly.
+
+### Identify a known-good build
+
+All production deployments list at:
+`https://dash.cloudflare.com/ → Pages → ha-ggis-hub → Deployments`
+
+Each row shows: commit hash, deployment ID, branch, and timestamp. Pick the last row with a green "Active" or "Success" indicator that pre-dates the broken deploy.
+
+Alternatively, list from the CLI:
+
+```powershell
+pnpm dlx wrangler@latest pages deployment list --project-name=ha-ggis-hub
+```
+
+The first `Deployment ID` column entry is the rollback target.
+
+### Roll back via the dashboard
+
+1. Open `ha-ggis-hub → Deployments`.
+2. Click the three-dot menu next to the target row.
+3. Choose **Rollback to this deployment**.
+4. Cloudflare re-routes production traffic to that build within seconds. No new build is triggered.
+
+### Roll back via CLI
+
+```powershell
+# Replace <DEPLOYMENT_ID> with the ID from the list above.
+pnpm dlx wrangler@latest pages deployment rollback <DEPLOYMENT_ID> --project-name=ha-ggis-hub
+```
+
+### Verify after rollback
+
+```powershell
+curl.exe -I https://ha.ggis.xyz/
+curl.exe -I "https://ggis.xyz/test/path?x=1"
+```
+
+Confirm `HTTP 200` from `ha.ggis.xyz` and `HTTP 301` from `ggis.xyz`. Check the `ETag` or `x-deployment-id` response header to confirm the rolled-back deployment ID is active.
+
+### Re-deploy a local dist (emergency)
+
+If the Cloudflare rollback list is missing the target build (unlikely), re-deploy from a local `dist/` built from the known-good commit:
+
+```powershell
+git checkout <GOOD_COMMIT>
+pnpm install --frozen-lockfile
+pnpm run build:verified
+pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main
+```
+
 ## WHS Integration Decision (2026-05-23)
 
 **Chosen: Option A — hub links to the separate WHS deployment.**

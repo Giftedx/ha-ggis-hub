@@ -617,9 +617,48 @@ mod prop_tests {
             interact in any::<bool>()
         ) {
             let snap = InputSnapshot::from_axes(x, y, interact);
-            prop_assert_eq!(snap.x(), x.signum(), "x={} → snap.x()={}", x, snap.x());
-            prop_assert_eq!(snap.y(), y.signum(), "y={} → snap.y()={}", y, snap.y());
+            prop_assert_eq!(snap.x(), x.signum(), "x={} -> snap.x()={}", x, snap.x());
+            prop_assert_eq!(snap.y(), y.signum(), "y={} -> snap.y()={}", y, snap.y());
             prop_assert_eq!(snap.interact(), interact);
+        }
+
+        /// For any valid in-bounds position, the interaction kind matches what
+        /// the body hitbox geometry predicts. Tests that
+        /// INTERACTION_CENTER_ABOVE_FEET shifts the hitbox center above the feet
+        /// anchor for ALL positions, not just the hand-crafted example cases.
+        #[test]
+        fn interaction_kind_matches_body_hitbox_geometry_for_arbitrary_position(
+            player_x in PLAYER_HALF..=(WORLD_W - PLAYER_HALF),
+            player_y in PLAYER_HALF..=(WORLD_H - PLAYER_HALF),
+        ) {
+            let mut sim = Sim::new(0);
+            sim.player_x = player_x;
+            sim.player_y = player_y;
+            let snapshot = sim.render_snapshot();
+
+            let center_y = player_y.saturating_sub(INTERACTION_CENTER_ABOVE_FEET);
+            let p_min_x = player_x.saturating_sub(PLAYER_HALF);
+            let p_min_y = center_y.saturating_sub(PLAYER_HALF);
+            let p_max_x = player_x.saturating_add(PLAYER_HALF);
+            let p_max_y = center_y.saturating_add(PLAYER_HALF);
+
+            let mut expected = InteractionKind::None as u8;
+            for &(_, min_x, min_y, max_x, max_y, launchable) in FIRST_ROOM_DOORS.iter() {
+                if p_min_x <= max_x && p_max_x >= min_x && p_min_y <= max_y && p_max_y >= min_y {
+                    expected = if launchable {
+                        InteractionKind::Launchable as u8
+                    } else {
+                        InteractionKind::Locked as u8
+                    };
+                    break;
+                }
+            }
+
+            prop_assert_eq!(
+                snapshot.interaction_kind, expected,
+                "player=({},{}) center_y={}",
+                player_x, player_y, center_y
+            );
         }
     }
 }
