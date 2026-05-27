@@ -6,7 +6,7 @@ Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-cr
 
 ## Current repo status
 
-End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The currently-unwired items called out below are explicitly opt-in (no multi-browser Playwright, no SCA scanners yet). The paint-timing half of `perf` is wired without a Lighthouse dep via the W3C Paint Timing API through chromium-headless. The a11y gate is wired without an axe-core / pa11y dep — a hand-rolled WCAG 2.2 AA spot-check suite via Playwright.
+End-to-end functional. The full release-gate matrix is wired in `tools/haggis-eval` and runs on every push to main via `.github/workflows/ci.yml`; `pnpm verify` is the fast PR subset. The paint-timing half of `perf` is wired without a Lighthouse dep via the W3C Paint Timing API through chromium-headless. The a11y gate is wired without an axe-core / pa11y dep — a hand-rolled WCAG 2.2 AA spot-check suite via Playwright.
 
 ## Gate tiers
 
@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → eslint → vitest → vite build → scripts/ve
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 19 gates, ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 15 gate subcommands (24 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -34,7 +34,7 @@ cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-unde
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build
-pnpm run coverage                                     # v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
+pnpm run coverage                                     # v8 coverage (lines=100%, stmts=100%, fns=100%, branches=100%)
 pnpm exec vitest run scripts/deploy-config.test.ts   # security/headers
 node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
@@ -93,7 +93,7 @@ pnpm exec playwright test --grep @soak
 # gitleaks promoted to supply-chain gate on 2026-05-27 — see above
 ```
 
-Why they're deferred: each adds either a non-trivial dependency, or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
+Why they're deferred: each adds either a non-trivial dependency, or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly). They get added when the project is genuinely insufficient without them.
 
 ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks.
 

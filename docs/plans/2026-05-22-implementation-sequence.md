@@ -143,7 +143,7 @@ Acceptance:
 - Differential test passes for 100 000+ outputs.
 - WAT file is readable + commented (single file, side-by-side comparable with the Rust impl).
 
-## Slice 9: `haggis-eval` CLI — fully wired (13 gate categories, 0 stubs)
+## Slice 9: `haggis-eval` CLI — fully wired (15 gate categories, 0 stubs)
 
 Go orchestration tool with FNV-1a-signed JSON reports.
 
@@ -163,7 +163,7 @@ Wired:
 - `soak` — `node scripts/run-soak-gate.mjs` (build → vite preview → 15-second RAF loop soak → CDP `HeapProfiler.collectGarbage` before/after → assert heap growth < 5 MB). Catches per-frame allocation leaks, RAF accumulator leaks, and event-listener stacking. No leak-detection lib dep. Shipped 2026-05-24.
 - `coverage` — `pnpm vitest --coverage` with V8 provider and package thresholds.
 - `supply-chain` — lightweight lockfile / dependency hygiene checks, wired into the release slice.
-- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 19 gates, ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold; soak adds ~20s).
+- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gate subcommands (24 individual checks), ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold; soak adds ~20s).
 
 Outstanding stubs (`exit 78`):
 
@@ -171,7 +171,7 @@ Outstanding stubs (`exit 78`):
 
 Acceptance:
 
-- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all wired gate categories: rust, ts, coverage, security, perf, browser, determinism, visual, a11y, soak, supply-chain, differential, and slice orchestration.
+- Complete: single command (`haggis-eval all`) answers "is this slice good?" across all wired gate categories: rust, rust-cov, ts, coverage, security, perf, browser, multi-browser, determinism, visual, a11y, soak, supply-chain, differential rng, differential hash, and slice orchestration.
 - Complete: exits non-zero on any failure.
 - Complete: orchestration logic unit-tested (`internal/gate/`, `internal/report/`, `internal/fnv/` test files).
 - Complete: referenced from the release gate (README "Current executable gates" section).
