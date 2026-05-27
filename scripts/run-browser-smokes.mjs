@@ -17,12 +17,16 @@ if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNum
   throw new Error(`Invalid preview port: ${PORT}`);
 }
 const BASE = `http://localhost:${PORT}/`;
+const BROWSER = process.env.PLAYWRIGHT_BROWSER ?? 'chromium';
 const SMOKES = [
   'scripts/smoke-door-launch.mjs',
   'scripts/smoke-door-tap.mjs',
   'scripts/smoke-pointer-drive.mjs',
   'scripts/smoke-music-toggle.mjs',
-  'scripts/smoke-a11y.mjs'
+  // smoke-a11y uses computed CSS and keyboard focus behaviour that is
+  // intentionally chromium-specific (26 WCAG AA spot-checks). Skipped
+  // for firefox/webkit runs where tab-focus behaviour is OS-dependent.
+  ...(BROWSER === 'chromium' ? ['scripts/smoke-a11y.mjs'] : []),
 ];
 
 function log(...args) {

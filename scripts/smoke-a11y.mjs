@@ -42,7 +42,7 @@
 // Or via the run-a11y-gate.mjs harness which builds + previews + runs
 // + tears down — the form haggis-eval's `a11y` gate shells out to.
 
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser-factory.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:4173/';
 
@@ -178,7 +178,7 @@ const TEXT_PAIRS = [
   }
 ];
 
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await ctx.newPage();

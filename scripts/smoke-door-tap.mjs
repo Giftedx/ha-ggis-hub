@@ -1,11 +1,11 @@
 // Mobile/touch smoke: load the hub, tap directly on the launchable
 // WHS door (no haggis-walking, no Enter), verify navigation fires.
 
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser-factory.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:5173/';
 
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await ctx.newPage();

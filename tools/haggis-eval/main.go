@@ -39,6 +39,8 @@ func main() {
 		os.Exit(printAndExit("differential", cmd.Differential(os.Args[2])))
 	case "browser":
 		os.Exit(printAndExit("browser", cmd.Browser()))
+	case "multi-browser":
+		os.Exit(printAndExit("multi-browser", cmd.MultiBrowser()))
 	case "determinism":
 		os.Exit(printAndExit("determinism", cmd.Determinism()))
 	case "perf":
@@ -108,7 +110,8 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines=100% stmts=100% fns=100% branches=100%)")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
 	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
-	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")
+	fmt.Fprintln(w, "  browser                    Playwright smokes on chromium (door-launch + door-tap + pointer-drive + music-toggle + a11y)")
+	fmt.Fprintln(w, "  multi-browser              Core smokes (no a11y) on firefox + webkit")
 	fmt.Fprintln(w, "  determinism                Same seed + same input → same state hash (browser replay)")
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")

@@ -14,6 +14,7 @@ func All() []gate.Result {
 	out = append(out, Security()...)
 	out = append(out, Perf()...)
 	out = append(out, Browser()...)
+	out = append(out, MultiBrowser()...)
 	out = append(out, Determinism()...)
 	out = append(out, Visual("verify")...)
 	out = append(out, A11y()...)

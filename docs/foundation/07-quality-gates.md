@@ -40,7 +40,9 @@ node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
 
 # Browser-driven (vite preview internally)
-node scripts/run-browser-smokes.mjs    # 5 chromium smokes
+node scripts/run-browser-smokes.mjs    # 5 chromium smokes (incl. a11y gate)
+PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 4 core smokes on firefox
+PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 4 core smokes on webkit
 node scripts/run-determinism-smoke.mjs # state-hash equality
 node scripts/run-visual-gate.mjs verify # perceptual aHash
 node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
@@ -83,8 +85,7 @@ cargo bench --workspace
 # (prettier promoted to gate — see below)
 
 # Multi-browser + lab-perf
-pnpm exec playwright test --project=firefox
-pnpm exec playwright test --project=webkit
+# firefox + webkit promoted to multi-browser gate on 2026-05-27 — see above
 pnpm exec playwright test --grep @soak
 
 # Supply-chain scanners

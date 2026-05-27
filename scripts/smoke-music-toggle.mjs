@@ -2,11 +2,11 @@
 // fetch MP3 assets before the visitor asks for sound, and the first
 // click must start the local rendered track through HTMLAudioElement.
 
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser-factory.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:4173/';
 
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await ctx.newPage();

@@ -27,6 +27,7 @@ func Registry() map[string]GateRunner {
 		"security":          Security,
 		"perf":              Perf,
 		"browser":           Browser,
+		"multi-browser":     MultiBrowser,
 		"determinism":       Determinism,
 		"visual":            func() []gate.Result { return Visual("verify") },
 		"a11y":              A11y,

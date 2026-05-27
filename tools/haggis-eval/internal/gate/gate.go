@@ -53,13 +53,24 @@ const DefaultTimeout = 10 * time.Minute
 // `category` and `name` are recorded in the result for grouping; `bin`
 // and `args` are passed straight to exec.CommandContext.
 func Run(category, name, bin string, args ...string) Result {
-	return RunWithTimeout(DefaultTimeout, category, name, bin, args...)
+	return runImpl(DefaultTimeout, nil, category, name, bin, args...)
 }
 
 // RunWithTimeout is Run with an explicit budget. Use for categories
 // known to legitimately take longer than DefaultTimeout — e.g. the
 // differential proptest fuzz at --include-ignored.
 func RunWithTimeout(timeout time.Duration, category, name, bin string, args ...string) Result {
+	return runImpl(timeout, nil, category, name, bin, args...)
+}
+
+// RunWithEnv is Run with extra environment variables merged on top of the
+// current process environment. Use for gates that need a specific env key
+// set (e.g. PLAYWRIGHT_BROWSER=firefox) without forking a shell.
+func RunWithEnv(category, name string, extraEnv map[string]string, bin string, args ...string) Result {
+	return runImpl(DefaultTimeout, extraEnv, category, name, bin, args...)
+}
+
+func runImpl(timeout time.Duration, extraEnv map[string]string, category, name, bin string, args ...string) Result {
 	cmdLine := bin
 	if len(args) > 0 {
 		cmdLine = bin + " " + strings.Join(args, " ")
@@ -68,6 +79,13 @@ func RunWithTimeout(timeout time.Duration, category, name, bin string, args ...s
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
+	if len(extraEnv) > 0 {
+		env := os.Environ()
+		for k, v := range extraEnv {
+			env = append(env, k+"="+v)
+		}
+		cmd.Env = env
+	}
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdout)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &stderr)

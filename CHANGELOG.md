@@ -2,6 +2,36 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: multi-browser smoke gate (firefox + webkit)
+
+All 5 gate browser smokes parameterised via `PLAYWRIGHT_BROWSER` env var + shared
+`scripts/browser-factory.mjs`. New `multi-browser` haggis-eval gate runs door-launch,
+door-tap, pointer-drive, and music-toggle on Firefox and WebKit. The a11y smoke is
+excluded: its 26 WCAG spot-checks use computed CSS and keyboard focus behaviour that
+is intentionally chromium-specific (WebKit tab-focus for anchors is OS-level on macOS/Windows).
+Firefox and WebKit both pass all 4 core smokes. CI updated to install all three browsers.
+`gate.RunWithEnv` added to the gate package for env-injected subprocess invocations.
+
+### Added
+
+- **`scripts/browser-factory.mjs`** — shared `launchBrowser()` helper; reads `PLAYWRIGHT_BROWSER` env.
+- **`tools/haggis-eval/internal/cmd/multi_browser.go`** — `MultiBrowser()` gate.
+- **`tools/haggis-eval/internal/cmd/all.go`** — `MultiBrowser()` inserted after `Browser()`.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `"multi-browser"` entry for slice bundles.
+- **`tools/haggis-eval/main.go`** — `multi-browser` subcommand + updated help.
+- **`tools/haggis-eval/internal/gate/gate.go`** — `RunWithEnv` + `runImpl` refactor.
+
+### Changed
+
+- **`scripts/smoke-{door-launch,door-tap,pointer-drive,music-toggle,a11y}.mjs`** — import
+  `launchBrowser` from `browser-factory.mjs` instead of `chromium` directly.
+- **`scripts/run-browser-smokes.mjs`** — reads `PLAYWRIGHT_BROWSER`; skips a11y when not chromium.
+- **`.github/workflows/ci.yml`** — `playwright install` now covers chromium + firefox + webkit.
+- **`tools/haggis-eval/README.md`** — `multi-browser` row added.
+- **`docs/foundation/07-quality-gates.md`** — multi-browser promoted; gate block updated.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: osv-scanner cross-ecosystem CVE scan; Go 1.22 → 1.24
 
 `osv-scanner --recursive .` added as a fourth step in the `supply-chain` haggis-eval gate.
