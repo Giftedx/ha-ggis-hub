@@ -28,6 +28,7 @@ Runs via the Go-orchestrated `haggis-eval all`. 19 gates, ~3.5 min warm / ~5–6
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace --exclude hub-wasm
+cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
 
 # TypeScript host + deploy artifact gate
 pnpm exec tsc --noEmit
@@ -72,7 +73,7 @@ The release-gate matrix above covers correctness, perf budgets, determinism, sec
 # Rust deepening
 cargo audit                  # crate advisories (deny.toml covers advisories; audit adds deeper history)
 # cargo machete promoted to supply-chain gate on 2026-05-27 — see above
-cargo llvm-cov ... --fail-under-lines 85   # Rust coverage threshold
+# cargo llvm-cov promoted to rust-cov gate on 2026-05-27 — see above
 cargo +nightly fuzz run <target> -- -max_total_time=1800
 cargo bench --workspace
 
@@ -162,7 +163,8 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 
 ## Initial budgets
 
-- Rust core line coverage: >= 85%, target 90%.
+- Rust core line coverage: 100% (enforced by cargo llvm-cov; raised from 85% target on 2026-05-27).
+- Rust core function coverage: 100% (enforced by cargo llvm-cov).
 - TypeScript statement coverage: 100% (enforced by vitest threshold; raised from 90% on 2026-05-27).
 - TypeScript branch coverage: 100% (enforced; raised from 85% on 2026-05-27).
 - TypeScript function coverage: 100% (enforced; raised from 90% on 2026-05-27).

@@ -114,6 +114,16 @@ mod tests {
     use crate::sim::Sim;
 
     #[test]
+    fn from_log_error_produces_invalid_log_variant() {
+        let err = crate::log::LogError::BadMagic;
+        let replay_err = ReplayError::from(err);
+        assert!(matches!(
+            replay_err,
+            ReplayError::InvalidLog(crate::log::LogError::BadMagic)
+        ));
+    }
+
+    #[test]
     fn captured_session_replays_to_identical_state_hash() {
         // Record a tiny session by driving a Sim manually.
         let seed = 99;

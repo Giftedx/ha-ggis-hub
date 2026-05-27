@@ -364,6 +364,27 @@ mod tests {
     }
 
     #[test]
+    fn decode_rejects_unsupported_format_version() {
+        let mut bytes = sample_log_bytes();
+        // Overwrite format_version field (bytes 4..6) with an unknown version.
+        let unknown: u16 = 999;
+        bytes[4..6].copy_from_slice(&unknown.to_le_bytes());
+        let result = Log::decode(&bytes, crate::CORE_API_VERSION);
+        assert_eq!(result, Err(LogError::UnsupportedFormatVersion(999)));
+    }
+
+    #[test]
+    fn decode_rejects_non_aligned_body() {
+        // Insert one padding byte into the body region (after the header, before
+        // the trailer). parse_body is called before the digest check in decode(),
+        // so the non-aligned body triggers Truncated before the digest fires.
+        let mut bytes = sample_log_bytes();
+        bytes.insert(HEADER_LEN, 0xFF);
+        let result = Log::decode(&bytes, crate::CORE_API_VERSION);
+        assert_eq!(result, Err(LogError::Truncated));
+    }
+
+    #[test]
     fn decode_rejects_digest_tamper() {
         let mut bytes = sample_log_bytes();
         // Flip a body bit; digest must catch it.

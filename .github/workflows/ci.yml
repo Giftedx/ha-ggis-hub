@@ -33,8 +33,9 @@ jobs:
       - run: pnpm verify
 
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
-  # subcommand which composes 19 gate groups sequentially:
-  # rust (cargo fmt+clippy+test), ts (tsc+vitest+build), coverage
+  # subcommand which composes 20 gate groups sequentially:
+  # rust (cargo fmt+clippy+test), rust-cov (llvm-cov lines=100% fns=100%),
+  # ts (tsc+vitest+build), coverage
   # (vitest v8 thresholds: lines=100% stmts=100% fns=100% branches=100%),
   # security (deploy-config.test — headers+CSP+cache), perf (bundle
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
@@ -57,7 +58,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
       - uses: actions/setup-go@v6
         with:
           go-version: '1.22'

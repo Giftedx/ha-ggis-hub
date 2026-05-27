@@ -149,6 +149,8 @@ cargo fmt --all -- --check
 cargo test --workspace --exclude hub-wasm
 cargo clippy --workspace --all-targets -- -D warnings
 RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
+# Rust coverage (requires: rustup component add llvm-tools-preview; cargo install cargo-llvm-cov)
+cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
 
 # Single-binary orchestrator (runs everything above + signs a JSON report)
 cd tools/haggis-eval && go build .

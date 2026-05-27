@@ -18,6 +18,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | Subcommand            | What it runs                                                                |
 |-----------------------|-----------------------------------------------------------------------------|
 | `rust`                | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`   |
+| `rust-cov`            | `cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100`. Requires `llvm-tools-preview` rustup component and `cargo-llvm-cov` binary. |
 | `ts`                  | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`                    |
 | `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines=100%, stmts=100%, fns=100%, branches=100%). Excludes `src/main.ts` and generated wasm bindings. |
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |

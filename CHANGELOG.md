@@ -2,6 +2,38 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: Rust coverage gate via cargo-llvm-cov (lines=100%, fns=100%)
+
+New `rust-cov` haggis-eval gate runs `cargo llvm-cov --workspace --exclude hub-wasm
+--fail-under-lines 100 --fail-under-functions 100`. Wired into `haggis-eval all` immediately
+after the `rust` gate. CI updated: `llvm-tools-preview` component added to rust-toolchain step,
+`cargo-llvm-cov` installed via `taiki-e/install-action`.
+
+To reach 100% lines and functions: added 4 targeted tests covering `Fnv1a64::default()`,
+`LogError::UnsupportedFormatVersion`, `parse_body` truncated (non-aligned body), and
+`From<LogError> for ReplayError`. hub-core now at 44 tests.
+
+### Added
+
+- **`tools/haggis-eval/internal/cmd/rust_cov.go`** — new `RustCov` gate function.
+- **`tools/haggis-eval/internal/cmd/all.go`** — `RustCov()` inserted after `Rust()`.
+- **`tools/haggis-eval/internal/cmd/registry.go`** — `"rust-cov"` entry for slice bundles.
+- **`tools/haggis-eval/main.go`** — `rust-cov` subcommand; help text updated.
+- **`tools/haggis-eval/README.md`** — `rust-cov` row added.
+- **`.github/workflows/ci.yml`** — `llvm-tools-preview` component + `cargo-llvm-cov` install step.
+- **`crates/hub-core/src/hash.rs`** — `default_produces_same_initial_state_as_new` test.
+- **`crates/hub-core/src/log.rs`** — `decode_rejects_unsupported_format_version` and
+  `decode_rejects_non_aligned_body` tests.
+- **`crates/hub-core/src/replay.rs`** — `from_log_error_produces_invalid_log_variant` test.
+
+### Changed
+
+- **`docs/foundation/07-quality-gates.md`** — Rust coverage budget raised to 100%;
+  `cargo llvm-cov` promoted out of still-planned list into release gate block.
+- **`WRITEUP.md`** — Rust reproduce section includes llvm-cov command.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: wire cargo-machete into supply-chain gate
 
 `cargo machete` added to the `supply-chain` haggis-eval gate alongside `cargo deny`. Runs unused

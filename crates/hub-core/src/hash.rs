@@ -74,6 +74,13 @@ mod tests {
     }
 
     #[test]
+    fn default_produces_same_initial_state_as_new() {
+        let via_new = Fnv1a64::new();
+        let via_default = Fnv1a64::default();
+        assert_eq!(via_new.digest(), via_default.digest());
+    }
+
+    #[test]
     fn streaming_hash_equals_one_shot() {
         let input = b"the quick brown haggis jumps over the lazy bothy";
         let mut hasher = Fnv1a64::new();

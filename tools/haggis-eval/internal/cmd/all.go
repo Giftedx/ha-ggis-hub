@@ -8,6 +8,7 @@ import (
 func All() []gate.Result {
 	out := []gate.Result{}
 	out = append(out, Rust()...)
+	out = append(out, RustCov()...)
 	out = append(out, Ts()...)
 	out = append(out, Coverage()...)
 	out = append(out, Security()...)

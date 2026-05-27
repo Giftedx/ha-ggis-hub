@@ -21,6 +21,7 @@ type GateRunner func() []gate.Result
 func Registry() map[string]GateRunner {
 	return map[string]GateRunner{
 		"rust":              Rust,
+		"rust-cov":          RustCov,
 		"ts":                Ts,
 		"coverage":          Coverage,
 		"security":          Security,

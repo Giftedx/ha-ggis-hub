@@ -25,6 +25,8 @@ func main() {
 		usage(os.Stdout)
 	case "rust":
 		os.Exit(printAndExit("rust", cmd.Rust()))
+	case "rust-cov":
+		os.Exit(printAndExit("rust-cov", cmd.RustCov()))
 	case "ts":
 		os.Exit(printAndExit("ts", cmd.Ts()))
 	case "coverage":
@@ -101,6 +103,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
+	fmt.Fprintln(w, "  rust-cov                   cargo llvm-cov (lines=100%, fns=100%; requires llvm-tools-preview + cargo-llvm-cov)")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
 	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines=100% stmts=100% fns=100% branches=100%)")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
