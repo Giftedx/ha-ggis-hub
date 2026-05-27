@@ -2,6 +2,20 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: wire cargo-machete into supply-chain gate
+
+`cargo machete` added to the `supply-chain` haggis-eval gate alongside `cargo deny`. Runs unused
+dependency detection across the Rust workspace on every release gate. Workspace is currently clean.
+`cargo machete` promoted out of the "still-planned" list in quality-gates.md.
+
+### Added
+
+- **`tools/haggis-eval/internal/cmd/supply_chain.go`** — second gate step: `cargo machete`.
+- **`tools/haggis-eval/main.go`**, **`tools/haggis-eval/README.md`** — help text updated.
+- **`.github/workflows/ci.yml`**, **`docs/foundation/07-quality-gates.md`** — doc sync.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: lift TS coverage thresholds to 100%; fix CI/doc drift
 
 Coverage thresholds raised from `lines:90, stmts:90, fns:90, branches:85` to 100% across all four

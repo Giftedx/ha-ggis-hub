@@ -47,6 +47,7 @@ node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5
 
 # Supply-chain
 cargo deny check                        # license compliance + RustSec advisories + source policy
+cargo machete                           # unused dependency detection
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
@@ -70,7 +71,7 @@ The release-gate matrix above covers correctness, perf budgets, determinism, sec
 ```bash
 # Rust deepening
 cargo audit                  # crate advisories (deny.toml covers advisories; audit adds deeper history)
-cargo machete                # unused-dep detection
+# cargo machete promoted to supply-chain gate on 2026-05-27 — see above
 cargo llvm-cov ... --fail-under-lines 85   # Rust coverage threshold
 cargo +nightly fuzz run <target> -- -max_total_time=1800
 cargo bench --workspace
