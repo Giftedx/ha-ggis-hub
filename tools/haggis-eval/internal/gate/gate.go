@@ -79,6 +79,12 @@ func runImpl(timeout time.Duration, extraEnv map[string]string, category, name, 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
+	// WaitDelay caps the grace period for I/O goroutines after the process
+	// exits or the context is cancelled. Without this, cmd.Wait() blocks
+	// indefinitely on Windows when a killed process leaves its pipes open
+	// (the context deadline fires, TerminateProcess is called, but the
+	// stdio I/O goroutines keep waiting for EOF that never comes).
+	cmd.WaitDelay = 2 * time.Second
 	if len(extraEnv) > 0 {
 		env := os.Environ()
 		for k, v := range extraEnv {
