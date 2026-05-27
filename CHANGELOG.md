@@ -2,6 +2,16 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 docs: WRITEUP and AGENTS accuracy pass
+
+Gate list in WRITEUP/AGENTS updated to reflect the full promoted gate matrix:
+`rust-cov` and `multi-browser` added to the signed-report gate enumeration. Bundle
+table corrected (58.91/19.48 kB JS). Reproduce section in WRITEUP gains multi-browser
+smokes, `cargo machete`, `gitleaks`, `osv-scanner`. AGENTS current-phase paragraph
+rewritten to enumerate all active gates with 100% TS/Rust coverage and prettier in verify.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: multi-browser smoke gate (firefox + webkit)
 
 All 5 gate browser smokes parameterised via `PLAYWRIGHT_BROWSER` env var + shared
