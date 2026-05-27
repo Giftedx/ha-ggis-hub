@@ -131,7 +131,7 @@ export function hardContactShadow(
   halfWidth: number,
   depth: number
 ): void {
-  ctx.fillStyle = '#0a0408'; // PALETTE.shadowDeep
+  ctx.fillStyle = PALETTE.shadowDeep;
   ctx.globalAlpha = 0.4;
   for (let dy = -depth; dy <= depth; dy += 1) {
     const t = Math.abs(dy) / depth;
