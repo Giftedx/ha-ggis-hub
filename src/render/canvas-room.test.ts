@@ -517,4 +517,25 @@ describe('createCanvasRoomRenderer', () => {
     const mantelCalls = context.calls.filter((c) => c === 'fillRect:238,189,1,1');
     expect(mantelCalls).toHaveLength(0);
   });
+
+  it('balances every ctx.save() with a ctx.restore() in the fallback path', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+    const saves = context.calls.filter((c) => c === 'save').length;
+    const restores = context.calls.filter((c) => c === 'restore').length;
+    expect(saves).toBe(restores);
+  });
+
+  it('balances every ctx.save() with a ctx.restore() in the storybook-backdrop path', () => {
+    vi.stubGlobal('Image', LoadedImage);
+    const { surface, context } = recordingSurface(540, 360);
+    const renderer = createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 });
+    renderer.render(SNAPSHOT_NO_INTERACTION);
+    renderer.render(SNAPSHOT_NO_INTERACTION); // second render exercises cached-image path
+    const saves = context.calls.filter((c) => c === 'save').length;
+    const restores = context.calls.filter((c) => c === 'restore').length;
+    expect(saves).toBe(restores);
+  });
 });
