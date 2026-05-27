@@ -6,7 +6,7 @@ Related: [First public release requirements](../foundation/07-quality-gates.md#f
 
 ## Current status
 
-In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` (6 assertions) guards them in CI: security headers, CSP directives, immutable asset cache, SPA fallback.
+In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` (7 assertions) guards them in CI: security headers, CSP directives, immutable asset cache, font immutable cache, SPA fallback.
 
 Cloudflare dashboard config (project name, branch, build command, domain) is out-of-band and must be applied manually.
 
@@ -50,6 +50,9 @@ If Rust/WASM tooling is awkward in the Cloudflare build image, prefer GitHub Act
   Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob: data:
 
 /assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
 /*.html
