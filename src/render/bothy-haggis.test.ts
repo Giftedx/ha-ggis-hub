@@ -57,8 +57,7 @@ describe('drawBothyHaggis', () => {
   it('renders the food-shaped Wee Chieftain without throwing on empty frame', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    // Squat pudding body, casing seam, knot, oat flecks, cream eyes,
-    // tartan/twine collar, legs, and heather patch.
+    // Squat pudding body, casing seams, oat flecks, cream eyes, legs, and heather patch.
     expect(ctx.calls.length).toBeGreaterThan(55);
   });
 
@@ -71,13 +70,12 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('ellipse:121.2,101.6,2.4,6.8');
   });
 
-  it('uses food-mascot colours: casing, oat flecks, cream eyes, and restrained twine', () => {
+  it('uses food-mascot colours: casing, oat flecks, and cream eyes', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.casingMid}`);
     expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.oatFleck}`);
     expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.eyeWhite}`);
-    expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.twine}`);
   });
 
   it('avoids symmetric side blobs that read as ears or headphones', () => {
@@ -85,39 +83,25 @@ describe('drawBothyHaggis', () => {
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).not.toContain('ellipse:75,101,4.2,6');
     expect(ctx.calls).not.toContain('ellipse:125,100.5,4.6,6.4');
-    expect(ctx.calls).toContain('ellipse:123,104,2.4,3.5');
+    expect(ctx.calls).not.toContain('ellipse:123,104,2.4,3.5');
   });
 
-  it('places the pale oat cutaway low on the casing so it does not compete with the face', () => {
+  it('does not render an oat cutaway or tied casing knot', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
-    expect(ctx.calls).not.toContain('moveTo:77.8,95');
-    expect(ctx.calls).toContain('moveTo:80.8,102');
-    expect(ctx.calls).toContain('quadraticCurveTo:84.1,98.6,90.8,101');
-    expect(ctx.calls).toContain('quadraticCurveTo:92.2,103.8,90.4,106.4');
-    expect(ctx.calls).toContain('quadraticCurveTo:87.8,109.2,82.3,108.2');
-    expect(ctx.calls).toContain('arc:84.2,102.6,0.95');
-    expect(ctx.calls).toContain('arc:87.2,104.8,1.05');
-    expect(ctx.calls).toContain('arc:90.2,101.9,0.85');
-    expect(ctx.calls.indexOf('moveTo:80.8,102')).toBeLessThan(
-      ctx.calls.indexOf('arc:93.8,97.7,4')
-    );
-    expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
-    expect(ctx.calls).not.toContain('ellipse:85.2,97.1,6.4,2.7');
-    expect(ctx.calls).not.toContain('ellipse:85,96.5,4.3,1.8');
-    expect(ctx.calls).not.toContain('ellipse:82,100.5,5.1,2.3');
-    expect(ctx.calls).not.toContain('ellipse:84,96,5.4,2.4');
-    expect(ctx.calls).not.toContain('ellipse:100,108.2,17,1.4');
-    expect(ctx.calls).not.toContain('moveTo:87,106');
-    expect(ctx.calls).not.toContain('moveTo:114,106');
-    expect(ctx.calls).not.toContain('lineTo:121,109.5');
-    expect(ctx.calls).toContain('fillRect:120.2,99.1,1.15,8');
-    expect(ctx.calls).toContain('fillRect:122.6,100.2,0.9,6.2');
-    expect(ctx.calls).toContain('arc:121.65,101.6,1.15');
-    expect(ctx.calls).toContain('arc:124.2,102.8,1.15');
-    expect(ctx.calls).toContain('quadraticCurveTo:124.4,101.1,125.4,103.2');
-    expect(ctx.calls).not.toContain('quadraticCurveTo:125.5,101.2,127.5,104.2');
+    expect(ctx.calls).not.toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
+    expect(ctx.calls).not.toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.twine}`);
+    expect(ctx.calls).not.toContain('ellipse:123,104,2.4,3.5');
+    expect(ctx.calls).not.toContain('fillRect:120.2,99.1,1.15,8');
+    expect(ctx.calls).not.toContain('fillRect:122.6,100.2,0.9,6.2');
+    expect(ctx.calls).not.toContain('arc:121.65,101.6,1.15');
+    expect(ctx.calls).not.toContain('arc:124.2,102.8,1.15');
+    expect(ctx.calls).not.toContain('quadraticCurveTo:124.4,101.1,125.4,103.2');
+    expect(ctx.calls).not.toContain('moveTo:80.8,102');
+    expect(ctx.calls).not.toContain('quadraticCurveTo:84.1,98.6,90.8,101');
+    expect(ctx.calls).not.toContain('arc:84.2,102.6,0.95');
+    expect(ctx.calls).not.toContain('arc:87.2,104.8,1.05');
+    expect(ctx.calls).not.toContain('arc:90.2,101.9,0.85');
   });
 
   it('gives the eyes an alert directed look instead of a vacant or sleepy stare', () => {

@@ -53,9 +53,8 @@
   <!-- The Wee Chieftain — living whole-haggis mascot, synced with
        bothy-haggis.ts. Design units are at scale=1 (same as the TS
        renderer); the SVG scale(6) produces room-scale legibility on the
-       social card. Food-shaped first: glossy casing, asymmetric tied
-       end, pale oat cutaway, cream eyes with eyelids and converging
-       pupils, bold brow arcs, nose dot, wide smile. -->
+       social card. Food-shaped first: glossy casing, cream eyes with
+       eyelids and converging pupils, bold brow arcs, nose dot, wide smile. -->
   <g transform="translate(900 330) scale(6)">
 
     <!-- Heather-purple ground patch -->
@@ -87,38 +86,10 @@
     <ellipse cx="21.2"  cy="1.6"  rx="2.4" ry="6.8" fill="#2a1408" opacity="0.48"/>
     <ellipse cx="18.2"  cy="-6.3" rx="2.5" ry="4.2" fill="#b46a38" opacity="0.36"/>
 
-    <!-- Asymmetric tied casing — right end only; left is seam oval only -->
-    <ellipse cx="23"   cy="4" rx="2.4"  ry="3.5" fill="#1a0e08"/>
-    <ellipse cx="22.5" cy="4" rx="1.45" ry="2.5" fill="#3a1e12"/>
-    <rect x="20.2" y="-0.9" width="1.15" height="8"   fill="#5a3a20" opacity="0.9"/>
-    <rect x="22.6" y="0.2"  width="0.9"  height="6.2"  fill="#c4a878" opacity="0.9"/>
-    <circle cx="21.65" cy="1.6" r="1.15" fill="#c4a878" opacity="0.95"/>
-    <circle cx="24.2"  cy="2.8" r="1.15" fill="#5a3a20" opacity="0.85"/>
-    <circle cx="24.2"  cy="2.8" r="0.72" fill="#c4a878" opacity="0.76"/>
-    <circle cx="21.85" cy="2.1" r="0.52" fill="#9c2018" opacity="0.95"/>
-    <circle cx="21.95" cy="4.2" r="0.48" fill="#1f4628" opacity="0.95"/>
-    <path d="M 22.6,1.6 Q 24.4,1.1 25.4,3.2" fill="none" stroke="#c4a878" stroke-width="0.7" stroke-linecap="round" opacity="0.8"/>
-
     <!-- Casing seams — low-alpha so they don't compete with the face -->
     <path d="M -18,2 Q -7,9 7,8"    fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.32"/>
     <path d="M -14,-8 Q 0,-11 15,-5" fill="none" stroke="#2a1408" stroke-width="0.7" stroke-linecap="round" opacity="0.08"/>
     <path d="M -16,-5 Q -8,-8 2,-7"  fill="none" stroke="#b46a38" stroke-width="0.8" stroke-linecap="round" opacity="0.08"/>
-
-    <!-- Pale oat cutaway — left-of-centre cross-section window.
-         Shape uses fillTornCutaway offsets: outer offsetX=3 / cutawayY=7;
-         inner offsetX=3.8 / cutawayY=7.45. Reads as food, not a wound. -->
-    <path d="M -19.2,2 Q -15.9,-1.4 -9.2,1 Q -7.8,3.8 -9.6,6.4 Q -12.2,9.2 -17.7,8.2 Q -20.4,5.6 -19.2,2"
-          fill="#2a1408" opacity="0.64"/>
-    <path d="M -18.4,2.45 Q -15.1,-0.95 -8.4,1.45 Q -7,4.25 -8.8,6.85 Q -11.4,9.65 -16.9,8.65 Q -19.6,6.05 -18.4,2.45"
-          fill="#f4d8a0"/>
-    <path d="M -19.2,2 Q -15.9,-1.4 -9.2,1"  fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.72"/>
-    <path d="M -17.7,8.2 Q -12.8,9 -9.6,6.4" fill="none" stroke="#b46a38" stroke-width="0.7" stroke-linecap="round" opacity="0.42"/>
-    <!-- Crumb dark specks + oat flecks inside cutaway -->
-    <circle cx="-16.2" cy="2.3" r="0.5"  fill="#3a2a1a" opacity="0.45"/>
-    <circle cx="-15.8" cy="2.6" r="0.95" fill="#d8b46a" opacity="0.95"/>
-    <circle cx="-12.8" cy="4.8" r="1.05" fill="#d8b46a" opacity="0.9"/>
-    <circle cx="-9.8"  cy="1.9" r="0.85" fill="#d8b46a" opacity="0.82"/>
-    <circle cx="-12.1" cy="6"   r="0.5"  fill="#3a2a1a" opacity="0.45"/>
 
     <!-- Oat flecks embedded in casing surface -->
     <circle cx="-4" cy="8"  r="0.58" fill="#d8b46a" opacity="0.72"/>

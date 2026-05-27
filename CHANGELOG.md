@@ -2,6 +2,22 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 design: remove oat cutaway and tied casing from Wee Chieftain
+
+Both elements read as confusing rather than charming at room scale: the oat cutaway (pale
+torn window on the left flank) was unidentifiable as food context and competed with the body
+silhouette; the tied casing knot (protruding right-end detail with twine/tartan dots) was
+unrecognisable as a feature. Both removed from bothy-haggis.ts, og.svg, and og.png. Dead
+fillTornCutaway helper removed. Tests rewritten: cutaway test now asserts absence; twine
+fillStyle assertion removed; symmetric-blob test now asserts not.toContain for the knot
+ellipse. Visual golden recaptured. All 219 tests pass.
+
+## [Unreleased] — 2026-05-27 fix: favicon.svg right pupil wall-eyed
+
+Right pupil at cx=20.8 was 0.6 units AWAY from right eye centre (cx=20.2) — same wall-eyed
+bug fixed in bothy-haggis.ts (mx(8)→mx(6.4)) and og.svg. Fixed to cx=19.6 (0.6 units toward
+centre); right glint to cx=19.28. All 219 tests pass (no tests pinned pupil coordinates).
+
 ## [Unreleased] — 2026-05-27 design: sync og.svg social card with current Wee Chieftain
 
 og.svg had accumulated significant drift from bothy-haggis.ts across multiple mascot redesign rounds:

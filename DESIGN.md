@@ -103,16 +103,16 @@ colors:
   art-haggis-casing-light: "#9c5630" # Lit casing face
   art-haggis-casing-highlight: "#b46a38"
   art-haggis-seam: "#2a1408"         # Casing seams and low smile
-  art-haggis-crumb-light: "#f4d8a0"  # Pale exposed oat/stuffing cutaway
-  art-haggis-crumb-dark: "#3a2a1a"   # Dark oat/stuffing speck
-  art-haggis-crumb-mid: "#6a4a28"    # Warm oat/stuffing patch
-  art-haggis-oat: "#d8b46a"          # Bright oat flecks
+  art-haggis-crumb-light: "#f4d8a0"  # Reserved — not currently rendered
+  art-haggis-crumb-dark: "#3a2a1a"   # Reserved — not currently rendered
+  art-haggis-crumb-mid: "#6a4a28"    # Reserved — not currently rendered
+  art-haggis-oat: "#d8b46a"          # Bright oat surface flecks
   art-haggis-eye: "#f0e6c8"          # Cream eye whites
   art-haggis-pupil: "#0a0604"
   art-haggis-eye-glint: "#fff0c8"
-  art-haggis-twine: "#c4a878"        # Tied-end collar
+  art-haggis-twine: "#c4a878"        # Reserved — not currently rendered
   art-haggis-twine-shadow: "#5a3a20"
-  art-haggis-tartan-red: "#9c2018"   # Tiny collar accent only
+  art-haggis-tartan-red: "#9c2018"   # Reserved — not currently rendered
   art-haggis-tartan-green: "#1f4628"
 
   # ── Text family (warm cream → ink, six stops) ───────────────
@@ -289,10 +289,10 @@ mascot:
   rationale: |
     A haggis is a Scots word for a savoury pudding (oatmeal, offal, suet,
     cased in stomach) before it was adopted as the name of a mythical creature.
-    The Wee Chieftain reads as the food artefact: squat oval casing, tied ends,
-    oat cutaway — then secondarily as a mascot with face and legs.
+    The Wee Chieftain reads as the food artefact: squat oval casing, cooked
+    surface texture, oat flecks — then secondarily as a mascot with face and legs.
   renderer: "src/render/bothy-haggis.ts — drawBothyHaggis(ctx, cx, cy, scale, frame)"
-  design-units: "body outline ~50 wide × ~30 tall; legs ~7 below baseline; tied ends ~±25 from centre"
+  design-units: "body outline ~50 wide × ~30 tall; legs ~7 below baseline"
   render-scale: 2.0   # HAGGIS_SCALE in canvas-room.ts — body 100 px wide on 540 px canvas
   storybook-scale: 1.6    # used when painted backdrop is loaded — body 80 px wide, r=52 shadow
   placement: "doorway centre, 10×scale px above floor contact point; hard-contact shadow r=68 (fallback) / r=52 (storybook)"
@@ -307,9 +307,6 @@ mascot:
       white: "4.0×scale"
       eyelid: "rx=4.2×scale, ry=1.2×scale — half-covers top of white; directed rather than vacant"
       pupil: "2.2×scale — large enough to track"
-    cutaway:
-      position: "left-of-centre (offsetX=3 design units from body centre)"
-      rationale: "centred cutaway read as wound; left-of-centre reads as cross-section window into stuffing"
     face-zone:
       rule: "seam strokes in the upper face area (above my(2)) use alpha ≤ 0.08; the lower-body seam (my(2)→my(9)) may use up to 0.32 — below the eye zone, it reads as food texture not face clutter"
       rationale: "high-alpha seams in the eye zone competed with pupils and brows; the lower seam at 0.32 adds haggis-casing texture without crossing the face"
