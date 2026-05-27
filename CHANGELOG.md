@@ -2,6 +2,53 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.0] — 2026-05-27 · First Perfect Slice
+
+**Live at <https://ha.ggis.xyz/>.**
+
+The hub's first public release: a deliberately scoped, structurally sound playable lobby
+that demonstrates the quality bar the project commits to. Every requirement from the
+[First Perfect Slice](docs/foundation/07-quality-gates.md#first-public-release-requirements)
+checklist is met.
+
+### What ships
+
+- **Playable bothy room.** The visitor walks The Wee Chieftain, a food-shaped haggis mascot,
+  across a Highland Dawn Bothy interior at dawn. Walking to the right-wall door launches
+  Wild Haggis Survivors. Tap/click or keyboard (Enter/Space/E); pointer-drag movement on mobile.
+- **Direct-play fallback.** Scots-tinted HTML link ("awa' in →") outside the canvas for visitors
+  who cannot or prefer not to use the canvas controls.
+- **Opt-in hub music.** Two Wario Synth MP3 tracks (Flower of Scotland, Scotland the Brave),
+  started only from the music button, no autoplay, `preload=none`.
+- **Self-hosted Old Standard TT serif.** Italic 400 preloaded; hub chrome renders in-font
+  on first paint without FOUT.
+- **Painted storybook backdrop.** 1080×720 WebP Highland Dawn Bothy scene; Canvas2D
+  procedural diorama remains the interactive gameplay surface and no-image fallback.
+- **Reduced-motion path.** Particles, hearth flicker, and dawn pulse suppressed; walk cycle
+  and door launch preserved; status line shows "reduced motion · the bothy bides quiet."
+
+### Engineering receipts
+
+- **~96 KB total client** (59 KB JS + 28 KB WASM + 3.6 KB HTML + 5.3 KB CSS, ~35 KB gzipped).
+- **Rust workspace** (`hub-core`, `hub-wasm`, `hub-hardlang`) — deterministic sim, FNV-1a
+  state hash, typed WASM boundary, C FNV-1a FFI, WAT xoshiro128** RNG.
+- **Three independent FNV-1a 64 implementations** (Rust + C + Go), byte-for-byte identical
+  across four published reference vectors.
+- **100% line and function coverage** — TypeScript (vitest v8, all 4 metrics) and Rust
+  (cargo llvm-cov), enforced in CI.
+- **15 gate subcommands (24 individual checks)** via `haggis-eval all`: rust, rust-cov, ts,
+  coverage, security, perf, browser (5 chromium), multi-browser (4 core on firefox + webkit),
+  determinism, visual, a11y (26 WCAG 2.2 AA), soak (15s heap < 5 MB), supply-chain
+  (cargo deny + machete + gitleaks + osv-scanner), differential rng, differential hash.
+  Emits a cryptographically signed JSON report.
+- **Mozilla Observatory A+** target: full CSP, HSTS preload, X-Frame-Options DENY,
+  Permissions-Policy denying ~30 features, no `unsafe-eval`.
+
+The detailed development log for this release is below (entries marked "Unreleased" from
+the development period; all became v0.1.0).
+
+---
+
 ## [Unreleased] — 2026-05-27 docs: WRITEUP and AGENTS accuracy pass
 
 Gate list in WRITEUP/AGENTS updated to reflect the full promoted gate matrix:
