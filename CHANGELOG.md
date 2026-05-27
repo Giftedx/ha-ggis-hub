@@ -2,6 +2,15 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: palette and docs sync after mascot cleanup
+
+Removed 7 dead tokens from BothyHaggisPalette interface and BOTHY_HAGGIS_PALETTE constant
+(crumbLight, crumbDark, crumbMid, twine, twineShadow, tartanRed, tartanGreen) — these were
+unreachable after the oat-cutaway and tied-casing removal. Tests updated to use literal hex
+values instead of now-absent palette references. canvas-room.ts stale comment fixed ("tied
+ends" removed from design-units note). WRITEUP.md bundle table updated to current accurate
+values (94.28 kB / 34.55 kB gzip, down from 96.06 kB). 219 tests pass.
+
 ## [Unreleased] — 2026-05-27 design: remove oat cutaway and tied casing from Wee Chieftain
 
 Both elements read as confusing rather than charming at room scale: the oat cutaway (pale

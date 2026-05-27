@@ -1272,10 +1272,10 @@ function drawHaggis(
     (storybookBackdropDrawn ? 56 : 0);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // bothy-haggis design units: body outline ~50 wide x ~30 tall,
-  // plus legs and tied ends. Scale 2.0 keeps the mascot readable as a
-  // character without filling the doorway. Storybook path uses 1.6 so
-  // the mascot reads against the painted room (1.18 was too small to see).
+  // bothy-haggis design units: body outline ~50 wide x ~30 tall, plus legs.
+  // Scale 2.0 keeps the mascot readable as a character without filling the
+  // doorway. Storybook path uses 1.6 so the mascot reads against the painted
+  // room (1.18 was too small to see).
   const HAGGIS_SCALE = storybookBackdropDrawn ? 1.6 : 2.0;
   const FEET_OFFSET = 10 * HAGGIS_SCALE;
   const bodyCx = cx;
@@ -1285,7 +1285,7 @@ function drawHaggis(
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
   // The Wee Chieftain stays front-facing; motion stays breath + legs.
-  void reducedMotion;
+  void reducedMotion; // walk is preserved in reduced-motion mode by design (DESIGN.md)
   const walkCycle = phase * 6 * Math.PI;
   const legAmp = 1.5;
   const frontLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;

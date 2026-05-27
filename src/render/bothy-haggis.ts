@@ -47,19 +47,12 @@ export interface BothyHaggisPalette {
   readonly casingLight: string;
   readonly casingHighlight: string;
   readonly casingSeam: string;
-  readonly crumbLight: string;
-  readonly crumbDark: string;
-  readonly crumbMid: string;
   readonly oatFleck: string;
   readonly eyeWhite: string;
   readonly eyePupil: string;
   readonly eyeGlint: string;
   readonly mouth: string;
   readonly legDark: string;
-  readonly twine: string;
-  readonly twineShadow: string;
-  readonly tartanRed: string;
-  readonly tartanGreen: string;
   readonly heatherShadow: string;
   readonly heatherBloom: string;
 }
@@ -71,19 +64,12 @@ export const BOTHY_HAGGIS_PALETTE: BothyHaggisPalette = {
   casingLight: '#9c5630',
   casingHighlight: '#b46a38',
   casingSeam: '#2a1408',
-  crumbLight: '#f4d8a0',
-  crumbDark: '#3a2a1a',
-  crumbMid: '#6a4a28',
   oatFleck: '#d8b46a',
   eyeWhite: '#f0e6c8',
   eyePupil: '#0a0604',
   eyeGlint: '#fff0c8',
   mouth: '#2a1408',
   legDark: '#1a0e08',
-  twine: '#c4a878',
-  twineShadow: '#5a3a20',
-  tartanRed: '#9c2018',
-  tartanGreen: '#1f4628',
   heatherShadow: '#28182c',
   heatherBloom: '#7a4a9c',
 };

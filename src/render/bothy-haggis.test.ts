@@ -89,8 +89,8 @@ describe('drawBothyHaggis', () => {
   it('does not render an oat cutaway or tied casing knot', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).not.toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
-    expect(ctx.calls).not.toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.twine}`);
+    expect(ctx.calls).not.toContain('fillStyle:#f4d8a0');
+    expect(ctx.calls).not.toContain('fillStyle:#c4a878');
     expect(ctx.calls).not.toContain('ellipse:123,104,2.4,3.5');
     expect(ctx.calls).not.toContain('fillRect:120.2,99.1,1.15,8');
     expect(ctx.calls).not.toContain('fillRect:122.6,100.2,0.9,6.2');
@@ -155,14 +155,9 @@ describe('drawBothyHaggis', () => {
   it('exposes the Wee Chieftain food-mascot palette', () => {
     expect(BOTHY_HAGGIS_PALETTE.casingMid).toBe('#7a3f24');
     expect(BOTHY_HAGGIS_PALETTE.casingHighlight).toBe('#b46a38');
-    expect(BOTHY_HAGGIS_PALETTE.crumbLight).toBe('#f4d8a0');
-    expect(BOTHY_HAGGIS_PALETTE.crumbDark).toBe('#3a2a1a');
     expect(BOTHY_HAGGIS_PALETTE.oatFleck).toBe('#d8b46a');
     expect(BOTHY_HAGGIS_PALETTE.eyeWhite).toBe('#f0e6c8');
     expect(BOTHY_HAGGIS_PALETTE.eyePupil).toBe('#0a0604');
-    expect(BOTHY_HAGGIS_PALETTE.twine).toBe('#c4a878');
-    expect(BOTHY_HAGGIS_PALETTE.tartanRed).toBe('#9c2018');
-    expect(BOTHY_HAGGIS_PALETTE.tartanGreen).toBe('#1f4628');
   });
 
   it('facingLeft mirrors leg drift only', () => {
