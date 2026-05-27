@@ -2,6 +2,35 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 smoke: add reduced-motion browser smoke
+
+`scripts/smoke-reduced-motion.mjs` added as the 6th core browser smoke. Loads
+the hub with Playwright's `reducedMotion: 'reduce'` context option, waits for
+WASM boot (800 ms), then asserts the `.scene-status` element shows
+`"reduced motion · the bothy bides quiet"`. Proves the OS-preference detection
+path (main.ts `matchMedia` → bothy-module `fallbackText` → door-status
+announcer) is wired end-to-end. No page errors asserted. Walk/launch coverage
+delegated to `smoke-door-launch.mjs`.
+
+Wired into `run-browser-smokes.mjs`: now runs on chromium (6 smokes incl. a11y)
+and Firefox + WebKit (5 core smokes each). All count references updated: README,
+AGENTS, WRITEUP, testing-strategy, quality-gates, CI workflow comment,
+slices.json pre-merge description, and Go gate comments in browser.go +
+multi_browser.go.
+
+### Added
+- **`scripts/smoke-reduced-motion.mjs`** — reduced-motion browser smoke.
+
+### Changed
+- **`scripts/run-browser-smokes.mjs`** — `smoke-reduced-motion.mjs` added to core
+  smoke list (before the chromium-only a11y conditional).
+- **`tools/haggis-eval/internal/cmd/browser.go`** — comment updated to list 6 smokes.
+- **`tools/haggis-eval/internal/cmd/multi_browser.go`** — comment: 4 → 5 core smokes.
+- **All count references** — README, AGENTS.md, WRITEUP.md, testing-strategy.md,
+  07-quality-gates.md, ci.yml, tools/haggis-eval/README.md, slices.json.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: expand lint to scripts/ (.mjs + deploy-config.test.ts)
 
 `pnpm lint` now covers `scripts/` in addition to `src/` and `vite.config.ts`.
