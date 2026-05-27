@@ -197,7 +197,7 @@ export function drawBothyHaggis(
   );
 
   // Casing seams and cooked wrinkles.
-  strokeCurve(ctx, palette.casingSeam, 0.55, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
+  strokeCurve(ctx, palette.casingSeam, 0.20, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
   strokeCurve(
     ctx,
     palette.casingSeam,
@@ -262,25 +262,24 @@ export function drawBothyHaggis(
   const flecks: readonly [number, number, number][] = [
     [-4, 8, 0.58],
     [10, 4, 0.62],
-    [15, -3, 0.52],
     [6, -8, 0.48],
   ];
   for (const [fx, fy, fr] of flecks) {
     fillCircle(ctx, palette.oatFleck, 0.72, mx(fx), my(fy), fr * s);
   }
 
-  // Small bead-eyes. The previous oversized cream whites read as pasted
-  // googly eyes at room scale; these keep intent without stealing the scene.
-  fillCircle(ctx, palette.outline, 1, mx(-6.2), my(-2.2), 2.8 * s);
-  fillCircle(ctx, palette.outline, 1, mx(7.2), my(-2.2), 2.8 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(-6.2), my(-2.3), 2.1 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(7.2), my(-2.3), 2.1 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 2.35 * s, 0.9 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 2.35 * s, 0.9 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 0.85 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 0.85 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.1), 0.65 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.1), 0.65 * s);
+  // Eyes sized to carry personality at room scale. Eyelid half-covers the
+  // top of each white so they read focused rather than vacant.
+  fillCircle(ctx, palette.outline, 1, mx(-6.2), my(-2.2), 3.8 * s);
+  fillCircle(ctx, palette.outline, 1, mx(7.2), my(-2.2), 3.8 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(-6.2), my(-2.3), 2.8 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(7.2), my(-2.3), 2.8 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 3.0 * s, 1.2 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 3.0 * s, 1.2 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 1.4 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 1.4 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.1), 0.85 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.1), 0.85 * s);
   strokeCurve(
     ctx,
     palette.outline,

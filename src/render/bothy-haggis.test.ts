@@ -101,7 +101,7 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('arc:87.2,104.8,1.05');
     expect(ctx.calls).toContain('arc:90.2,101.9,0.85');
     expect(ctx.calls.indexOf('moveTo:80.8,102')).toBeLessThan(
-      ctx.calls.indexOf('arc:93.8,97.7,2.1')
+      ctx.calls.indexOf('arc:93.8,97.7,2.8')
     );
     expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
     expect(ctx.calls).not.toContain('ellipse:85.2,97.1,6.4,2.7');
@@ -125,10 +125,10 @@ describe('drawBothyHaggis', () => {
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).not.toContain('arc:92.8,97.5,3.4');
     expect(ctx.calls).not.toContain('arc:108.3,97.5,3.4');
-    expect(ctx.calls).toContain('arc:93.8,97.7,2.1');
-    expect(ctx.calls).toContain('arc:107.2,97.7,2.1');
-    expect(ctx.calls).toContain('arc:94.5,97.65,0.85');
-    expect(ctx.calls).toContain('arc:108,97.65,0.85');
+    expect(ctx.calls).toContain('arc:93.8,97.7,2.8');
+    expect(ctx.calls).toContain('arc:107.2,97.7,2.8');
+    expect(ctx.calls).toContain('arc:94.5,97.65,1.4');
+    expect(ctx.calls).toContain('arc:108,97.65,1.4');
   });
 
   it('adds an authored brow line so the mascot reads alive rather than blank', () => {
@@ -143,8 +143,8 @@ describe('drawBothyHaggis', () => {
   it('adds casing eyelids so the mascot expression reads authored instead of googly', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).toContain('ellipse:93.8,96,2.35,0.9');
-    expect(ctx.calls).toContain('ellipse:107.2,96,2.35,0.9');
+    expect(ctx.calls).toContain('ellipse:93.8,96,3,1.2');
+    expect(ctx.calls).toContain('ellipse:107.2,96,3,1.2');
     expect(ctx.calls).toContain('quadraticCurveTo:94.2,96.1,96.6,96.3');
     expect(ctx.calls).toContain('quadraticCurveTo:107.2,96.1,110.2,96.3');
   });
