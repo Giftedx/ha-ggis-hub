@@ -65,6 +65,21 @@ func TestRunWithTimeoutKillsHungCommand(t *testing.T) {
 	}
 }
 
+func TestRunWithEnvPassesEnvToSubprocess(t *testing.T) {
+	// Override GOOS to a sentinel value and ask `go env GOOS` to echo it
+	// back. No compilation required — `go env` reads GOOS from the
+	// process environment, so this confirms extraEnv reaches the child.
+	r := RunWithEnv("test", "env-pass",
+		map[string]string{"GOOS": "plan9"},
+		"go", "env", "GOOS")
+	if r.Status != StatusPass {
+		t.Fatalf("expected PASS, got %s; stderr=%q", r.Status, r.StderrTail)
+	}
+	if !strings.Contains(r.StdoutTail, "plan9") {
+		t.Errorf("expected stdout to contain sentinel GOOS=plan9, got %q", r.StdoutTail)
+	}
+}
+
 // TestRunWithTimeoutFiresOnHang uses a tiny self-rebuilt fixture binary
 // that sleeps longer than the timeout. We rely on `go run` with stdin
 // piped from a heredoc-like string, which compiles + runs the program
