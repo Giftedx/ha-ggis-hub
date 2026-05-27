@@ -33,7 +33,7 @@ jobs:
       - run: pnpm verify
 
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
-  # subcommand which composes 21 gate groups sequentially:
+  # subcommand which composes 15 gate subcommands (24 individual checks) sequentially:
   # rust (cargo fmt+clippy+test), rust-cov (llvm-cov lines=100% fns=100%),
   # ts (tsc+vitest+build), coverage
   # (vitest v8 thresholds: lines=100% stmts=100% fns=100% branches=100%),
