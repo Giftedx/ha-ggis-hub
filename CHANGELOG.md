@@ -2,6 +2,30 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 smoke: add locked-door browser smoke
+
+`scripts/smoke-locked-door.mjs` added as the 7th core browser smoke. Walks the
+haggis LEFT from spawn (340, 540) to the future-bothy locked door (world x: 80–200),
+asserts `.scene-status` shows `"Comin' Wi' The Next Moon door — comin' soon."`,
+presses Enter, and asserts no navigation fires. Proves the `InteractionKind.Locked`
+→ `door-status` announcer → status text path and the non-launch invariant for locked
+doors end-to-end in a real browser.
+
+Chromium now runs 7 smokes (6 core + a11y). Firefox and WebKit each run 6 core smokes.
+All count references updated across 11 files.
+
+### Added
+- **`scripts/smoke-locked-door.mjs`** — locked-door browser smoke.
+
+### Changed
+- **`scripts/run-browser-smokes.mjs`** — `smoke-locked-door.mjs` added to core smoke list.
+- **`tools/haggis-eval/internal/cmd/browser.go`** — comment updated to list 7 smokes.
+- **`tools/haggis-eval/internal/cmd/multi_browser.go`** — comment: 5 → 6 core smokes.
+- **All count references** — README, AGENTS.md, WRITEUP.md, testing-strategy.md,
+  07-quality-gates.md, ci.yml, tools/haggis-eval/README.md, slices.json.
+
+---
+
 ## [Unreleased] — 2026-05-27 smoke: add reduced-motion browser smoke
 
 `scripts/smoke-reduced-motion.mjs` added as the 6th core browser smoke. Loads
