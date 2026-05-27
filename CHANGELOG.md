@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: dead palette token removal
+
+Three cleanup commits removing unreachable colour constants that accumulated
+during the mascot redesign and scene evolution:
+- **`src/render/canvas-room.ts` PX const**: trimmed from 56 tokens to 17 live ones.
+  Removed `hag*` (7 tokens — mascot-specific, now in `BOTHY_HAGGIS_PALETTE`), all stone
+  shadow/dark/mid variants, floor mid/light/seam/knot/litWash, `woodCold`/`woodColdShade`,
+  iron/brass handle tokens, `flameCore`/`flameOuter`/`ember`, `eyePupil`, `legDark`,
+  `haloWarm`, door-sign tokens, and `promptText`. Zero references in draw functions.
+- **`src/render/palette.ts` RAMPS**: trimmed from 16 to 6 live tokens. Entire `stoneDark/
+  stoneDeep/stoneMid/stoneLit` ramp removed (unused); `woodMid`/`woodLit` removed;
+  all four `hag*` fur tokens (`hagDeep/hagDark/hagMid/hagLit`) removed — WHS-era ginger
+  ramp, superseded by the Wee Chieftain design which uses `BOTHY_HAGGIS_PALETTE` directly.
+- **`src/render/palette.ts` PALETTE**: removed 11 dead tokens: `haggisHairLit/Mid`,
+  `haggisFaceDark`, `haggisNose`, `emberHot/Bright/Dim`, `dawnCream`, `litStoneShadow`,
+  `shadowCool`, `shadowStoneHi`. Stale migration comment dropped — remaining tokens are
+  all actively used by `canvas-room.ts` and `door.ts`.
+- **`src/render/palette.ts` `hardContactShadow`**: replaced inline `'#0a0408'` hex with
+  `PALETTE.shadowDeep` — the comment had already named the token; the migration loop
+  was never closed.
+
+219 tests pass; visual golden unchanged (no draw-function changes).
+
 ## [Unreleased] — 2026-05-27 chore: post-mascot-cleanup doc accuracy pass
 
 Seven doc accuracy fixes across docs, source comments, and the design system following the
