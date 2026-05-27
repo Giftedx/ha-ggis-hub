@@ -82,13 +82,14 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 ### Property tests for deterministic core invariants
 
-Five proptest blocks cover invariants that are hard to exhaust with example-based tests:
+Six proptest scenarios cover invariants that are hard to exhaust with example-based tests:
 
 - **Bounds invariant** (`sim.rs`): for any seed and any sequence of up to 50 ticks with arbitrary axis inputs, player position stays within `[PLAYER_HALF, WORLD_W - PLAYER_HALF] × [PLAYER_HALF, WORLD_H - PLAYER_HALF]`. Exercises the clamping arithmetic across the full i8 input space and across varied starting states.
 - **Input signum** (`sim.rs`): `from_axes(x, y, interact).x() == x.signum()` for all 256 `i8` values. The explicit tests only checked {−127, 0, 127}; this one proves the match arms are exhaustive.
+- **Interaction hitbox geometry** (`sim.rs`): for any valid in-bounds player position, the interaction kind reported by the snapshot matches what the `INTERACTION_CENTER_ABOVE_FEET` geometry predicts by computing the AABB intersection manually. Covers the full position space rather than hand-crafted examples, proving the hitbox shift constant is applied consistently.
 - **Replay faithfulness** (`replay.rs`): for any seed and any `btree_map` of 0–10 input changes (sorted, deduplicated tick_indexes → valid log order), drives a `Sim` directly while writing to a `LogWriter`, then replays the log and asserts the final state hashes and tick counts match. Proves replay correctness across arbitrary sessions, not just the fixed 20-tick scripted test.
 - **Log round-trip** (`log.rs`): any set of records encodes and decodes with seed, record count, tick_indexes, input axes, and final hash all preserved exactly. Exercises the FNV-1a body digest for arbitrary payloads.
-- **Hash streaming** (`hash.rs`): `update()` in arbitrary chunk sizes produces the same digest as `update()` in one shot. The existing `rng.rs` blocks add determinism and bounded-output coverage.
+- **Hash streaming** (`hash.rs`): `update()` in arbitrary chunk sizes produces the same digest as `update()` in one shot. The existing `rng.rs` scenarios add determinism and bounded-output coverage.
 
 ### Cryptographically signed gate reports
 
