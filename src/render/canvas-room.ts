@@ -1272,15 +1272,15 @@ function drawHaggis(
     (storybookBackdropDrawn ? 56 : 0);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
-  // bothy-haggis design units: food body ~50 wide x ~30 tall,
-  // plus tiny legs and tied ends. The painted backdrop already carries
-  // the scene, so the overlay mascot becomes a small floor inhabitant.
-  const HAGGIS_SCALE = storybookBackdropDrawn ? 0.92 : 1.55;
+  // bothy-haggis design units: body outline ~50 wide x ~30 tall,
+  // plus legs and tied ends. Scale 2.0 keeps the mascot readable as a
+  // character without filling the doorway.
+  const HAGGIS_SCALE = storybookBackdropDrawn ? 1.18 : 2.0;
   const FEET_OFFSET = 10 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  hardContactShadow(ctx, cx, cy + bob + 6, storybookBackdropDrawn ? 28 : 54, 2);
+  hardContactShadow(ctx, cx, cy + bob + 6, storybookBackdropDrawn ? 36 : 68, 2);
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
   // The Wee Chieftain stays front-facing; motion stays breath + legs.

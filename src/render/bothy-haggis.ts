@@ -13,8 +13,8 @@
 //   - tiny uneven legs for the haggis-family drift gag
 //
 // Native scale 1 is about 58 wide by 42 tall including legs. The room
-// renderer currently uses scale 2.7 to stay bold without swallowing
-// the bothy doorway.
+// renderer currently uses scale 2.0 so the mascot reads as a character
+// without filling the doorway (canvas-room.ts: HAGGIS_SCALE).
 
 export interface BothyHaggisContext {
   fillStyle: string | CanvasGradient | CanvasPattern;
@@ -152,7 +152,7 @@ export function drawBothyHaggis(
   // Whole-haggis casing: outline, cooked mid-tone, then a smaller lit face.
   fillEllipseRaw(ctx, palette.outline, 1, cx, my(1), 25 * s, 15 * s);
   fillEllipseRaw(ctx, palette.casingMid, 1, cx, my(0), 22 * s, 12.5 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.68, mx(-5), my(-3.5), 15 * s, 7.5 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-2), my(-3.5), 15 * s, 7.5 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 0.5, mx(6), my(7), 15 * s, 4.2 * s);
   fillEllipseRaw(ctx, palette.casingHighlight, 0.58, mx(-8), my(-8), 9 * s, 2.6 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 0.55, cx, my(11.3), 20 * s, 2.2 * s);
@@ -160,20 +160,8 @@ export function drawBothyHaggis(
   fillEllipseRaw(ctx, palette.casingSeam, 0.48, mx(21.2), my(1.6), 2.4 * s, 6.8 * s);
   fillEllipseRaw(ctx, palette.casingHighlight, 0.36, mx(18.2), my(-6.3), 2.5 * s, 4.2 * s);
 
-  // Asymmetric tied casing. One small pucker and trailing string reads
-  // as food packaging; two large side blobs read as ears.
-  strokeCurve(
-    ctx,
-    palette.casingSeam,
-    0.52,
-    0.9 * s,
-    mx(-21),
-    my(-3),
-    mx(-19),
-    my(1),
-    mx(-21),
-    my(5)
-  );
+  // Asymmetric tied casing. Left end is marked by the seam oval only;
+  // the right gets the tied knot. Two large side blobs would read as ears.
   fillEllipseRaw(ctx, palette.outline, 1, mx(23), my(4), 2.4 * s, 3.5 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 1, mx(22.5), my(4), 1.45 * s, 2.5 * s);
   fillRect(ctx, palette.twineShadow, 0.9, mx(20.2), my(-0.9), 1.15 * s, 8 * s);
@@ -196,32 +184,11 @@ export function drawBothyHaggis(
     my(3.2)
   );
 
-  // Casing seams and cooked wrinkles.
-  strokeCurve(ctx, palette.casingSeam, 0.20, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
-  strokeCurve(
-    ctx,
-    palette.casingSeam,
-    0.35,
-    0.7 * s,
-    mx(-14),
-    my(-8),
-    mx(0),
-    my(-11),
-    mx(15),
-    my(-5)
-  );
-  strokeCurve(
-    ctx,
-    palette.casingHighlight,
-    0.38,
-    0.8 * s,
-    mx(-16),
-    my(-5),
-    mx(-8),
-    my(-8),
-    mx(2),
-    my(-7)
-  );
+  // Casing seams: bottom wrinkle kept very faint so it doesn't compete
+  // with the smile; upper seam and highlight nearly invisible in face zone.
+  strokeCurve(ctx, palette.casingSeam, 0.18, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
+  strokeCurve(ctx, palette.casingSeam, 0.08, 0.7 * s, mx(-14), my(-8), mx(0), my(-11), mx(15), my(-5));
+  strokeCurve(ctx, palette.casingHighlight, 0.08, 0.8 * s, mx(-16), my(-5), mx(-8), my(-8), mx(2), my(-7));
 
   // Pale oat cutaway: one loud food cue, kept low and left-of-centre so it
   // reads as a cross-section window rather than edge damage or a third eye.
@@ -269,88 +236,41 @@ export function drawBothyHaggis(
   }
 
   // Eyes sized to carry personality at room scale. Eyelid half-covers the
-  // top of each white so they read focused rather than vacant.
-  fillCircle(ctx, palette.outline, 1, mx(-6.2), my(-2.2), 3.8 * s);
-  fillCircle(ctx, palette.outline, 1, mx(7.2), my(-2.2), 3.8 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(-6.2), my(-2.3), 2.8 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(7.2), my(-2.3), 2.8 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 3.0 * s, 1.2 * s);
-  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 3.0 * s, 1.2 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 1.4 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 1.4 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.1), 0.85 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.1), 0.85 * s);
+  // top of each white so they read focused rather than vacant or googly.
+  fillCircle(ctx, palette.outline, 1, mx(-6.2), my(-2.2), 4.8 * s);
+  fillCircle(ctx, palette.outline, 1, mx(7.2), my(-2.2), 4.8 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(-6.2), my(-2.3), 4.0 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(7.2), my(-2.3), 4.0 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 4.2 * s, 1.2 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 4.2 * s, 1.2 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 2.2 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 2.2 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.1), 1.0 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.1), 1.0 * s);
+  // One clear brow arc per eye — bold enough to read at room scale.
   strokeCurve(
     ctx,
-    palette.outline,
-    0.55,
-    0.50 * s,
-    mx(-8.6),
-    my(-3.9),
-    mx(-5.8),
-    my(-3.9),
-    mx(-3.4),
-    my(-3.7)
-  );
-  strokeCurve(
-    ctx,
-    palette.outline,
-    0.55,
-    0.50 * s,
-    mx(4.8),
-    my(-3.9),
-    mx(7.2),
-    my(-3.9),
-    mx(10.2),
-    my(-3.7)
-  );
-  strokeCurve(
-    ctx,
-    palette.outline,
-    0.52,
-    0.62 * s,
-    mx(-10.4),
-    my(-4.4),
-    mx(-7.3),
-    my(-5),
-    mx(-3.8),
-    my(-4.7)
-  );
-  strokeCurve(
-    ctx,
-    palette.outline,
-    0.52,
-    0.62 * s,
-    mx(4.1),
-    my(-4.4),
-    mx(8.4),
-    my(-5),
-    mx(11.9),
-    my(-4.7)
+    palette.casingSeam,
+    0.86,
+    0.80 * s,
+    mx(-11),
+    my(-7.5),
+    mx(-7),
+    my(-9.5),
+    mx(-3),
+    my(-7.5)
   );
   strokeCurve(
     ctx,
     palette.casingSeam,
-    0.80,
-    0.65 * s,
-    mx(-12.2),
-    my(-6.9),
-    mx(-8),
-    my(-8.2),
-    mx(-3.6),
-    my(-6.8)
-  );
-  strokeCurve(
-    ctx,
-    palette.casingSeam,
-    0.80,
-    0.65 * s,
-    mx(4.3),
-    my(-6.9),
-    mx(8.6),
-    my(-8.2),
-    mx(13.6),
-    my(-6.8)
+    0.86,
+    0.80 * s,
+    mx(3),
+    my(-7.5),
+    mx(7),
+    my(-9.5),
+    mx(11),
+    my(-7.5)
   );
   fillEllipseRaw(ctx, palette.casingHighlight, 0.2, mx(5.4), my(4.8), 5.6 * s, 1.4 * s);
 

@@ -284,7 +284,7 @@ describe('createCanvasRoomRenderer', () => {
       SNAPSHOT_NO_INTERACTION
     );
     expect(context.calls).not.toContain('ellipse:270,148.6,67.5,40.5');
-    expect(context.calls).toContain('ellipse:270,166.05,38.75,23.25');
+    expect(context.calls).toContain('ellipse:270,162,50,30');
   });
 
   it('paints a structured woven hearth runner instead of a muddy oval patch', () => {

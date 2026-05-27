@@ -101,7 +101,7 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('arc:87.2,104.8,1.05');
     expect(ctx.calls).toContain('arc:90.2,101.9,0.85');
     expect(ctx.calls.indexOf('moveTo:80.8,102')).toBeLessThan(
-      ctx.calls.indexOf('arc:93.8,97.7,2.8')
+      ctx.calls.indexOf('arc:93.8,97.7,4')
     );
     expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
     expect(ctx.calls).not.toContain('ellipse:85.2,97.1,6.4,2.7');
@@ -125,28 +125,26 @@ describe('drawBothyHaggis', () => {
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).not.toContain('arc:92.8,97.5,3.4');
     expect(ctx.calls).not.toContain('arc:108.3,97.5,3.4');
-    expect(ctx.calls).toContain('arc:93.8,97.7,2.8');
-    expect(ctx.calls).toContain('arc:107.2,97.7,2.8');
-    expect(ctx.calls).toContain('arc:94.5,97.65,1.4');
-    expect(ctx.calls).toContain('arc:108,97.65,1.4');
+    expect(ctx.calls).toContain('arc:93.8,97.7,4');
+    expect(ctx.calls).toContain('arc:107.2,97.7,4');
+    expect(ctx.calls).toContain('arc:94.5,97.65,2.2');
+    expect(ctx.calls).toContain('arc:108,97.65,2.2');
   });
 
   it('adds an authored brow line so the mascot reads alive rather than blank', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).toContain('moveTo:87.8,93.1');
-    expect(ctx.calls).toContain('quadraticCurveTo:92,91.8,96.4,93.2');
-    expect(ctx.calls).toContain('moveTo:104.3,93.1');
-    expect(ctx.calls).toContain('quadraticCurveTo:108.6,91.8,113.6,93.2');
+    expect(ctx.calls).toContain('moveTo:89,92.5');
+    expect(ctx.calls).toContain('quadraticCurveTo:93,90.5,97,92.5');
+    expect(ctx.calls).toContain('moveTo:103,92.5');
+    expect(ctx.calls).toContain('quadraticCurveTo:107,90.5,111,92.5');
   });
 
   it('adds casing eyelids so the mascot expression reads authored instead of googly', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).toContain('ellipse:93.8,96,3,1.2');
-    expect(ctx.calls).toContain('ellipse:107.2,96,3,1.2');
-    expect(ctx.calls).toContain('quadraticCurveTo:94.2,96.1,96.6,96.3');
-    expect(ctx.calls).toContain('quadraticCurveTo:107.2,96.1,110.2,96.3');
+    expect(ctx.calls).toContain('ellipse:93.8,96,4.2,1.2');
+    expect(ctx.calls).toContain('ellipse:107.2,96,4.2,1.2');
   });
 
   it('rounds the tiny feet so the haggis does not stand on table legs', () => {
