@@ -103,17 +103,10 @@ colors:
   art-haggis-casing-light: "#9c5630" # Lit casing face
   art-haggis-casing-highlight: "#b46a38"
   art-haggis-seam: "#2a1408"         # Casing seams and low smile
-  art-haggis-crumb-light: "#f4d8a0"  # Reserved — not currently rendered
-  art-haggis-crumb-dark: "#3a2a1a"   # Reserved — not currently rendered
-  art-haggis-crumb-mid: "#6a4a28"    # Reserved — not currently rendered
   art-haggis-oat: "#d8b46a"          # Bright oat surface flecks
   art-haggis-eye: "#f0e6c8"          # Cream eye whites
   art-haggis-pupil: "#0a0604"
   art-haggis-eye-glint: "#fff0c8"
-  art-haggis-twine: "#c4a878"        # Reserved — not currently rendered
-  art-haggis-twine-shadow: "#5a3a20"
-  art-haggis-tartan-red: "#9c2018"   # Reserved — not currently rendered
-  art-haggis-tartan-green: "#1f4628"
 
   # ── Text family (warm cream → ink, six stops) ───────────────
   text-bright: "#fff0c8"             # Flame-core — display-only emphasis
