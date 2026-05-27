@@ -101,12 +101,12 @@ const PX = {
 // These are one-off painted shades for the through-the-window scene; they
 // deliberately fall between the room palette tokens to read as outdoor light.
 const WINDOW_VIEW = {
-  skyDeep: '#5c3470',      // deep heather sky (pre-dawn purple)
-  skyMid: '#a65fa0',       // heather sky mid-tone
+  skyDeep: '#5c3470', // deep heather sky (pre-dawn purple)
+  skyMid: '#a65fa0', // heather sky mid-tone
   horizonPeach: '#f0a878', // peach horizon wash
   horizonAmber: '#ffe0a8', // warm amber horizon above peach
   mountainShadow: '#4a3470', // mountain silhouette — purple-blue shadow
-  mountainDeep: '#2a2038',   // rightmost ridge — deep blue-violet
+  mountainDeep: '#2a2038', // rightmost ridge — deep blue-violet
 } as const;
 
 // Diorama runner (carpet strip visible between player and back wall).
