@@ -2,6 +2,12 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 feat: locked-door sign + globalAlpha tracking
+
+Locked doors now display a dimmed heather-purple "SOON" sign (`drawLockedDoorSign`; 0.65 opacity,
+`PX.haloCool` text colour). `drawSign` parameterised with optional `colour: string`. `RecordingCanvasContext`
+tracks `globalAlpha` assignments in the call log. 219 vitest (was 218). Bundle 59.16 KB / 19.55 KB gzip.
+
 ## [Unreleased] — 2026-05-27 chore: doc/count sync + push to origin
 
 218 vitest count propagated to WRITEUP.md and docs/architecture/testing-strategy.md.

@@ -377,12 +377,14 @@ function renderRoom(
       drawDoor(ctx, door, interactingId);
     }
 
-    // 6. Door lanterns — only the launchable
-    //    one gets a fixture (unlit lanterns are visual noise).
+    // 6. Door lanterns and signs. Launchable doors get a lit lantern +
+    //    full-opacity sign. Locked doors get a dimmed sign only.
     for (const door of doors) {
       if (door.status === 'launchable') {
         drawLantern(ctx, door, phase);
         drawSign(ctx, door, doorShortLabel(door.title));
+      } else {
+        drawLockedDoorSign(ctx, door);
       }
     }
 
@@ -1214,7 +1216,12 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
   blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2);
 }
 
-function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void {
+function drawSign(
+  ctx: CanvasRoomContext,
+  door: DoorLayout,
+  label: string,
+  colour: string = PALETTE.bone
+): void {
   const { x, y, width } = door.rect;
   const cx = x + Math.round(width / 2);
   // Sign hangs above the lantern. Sprite-based now.
@@ -1235,8 +1242,15 @@ function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void
     cx - Math.round(textW / 2),
     signCy - Math.round(textH / 2) + 1,
     scale,
-    PALETTE.bone
+    colour
   );
+}
+
+function drawLockedDoorSign(ctx: CanvasRoomContext, door: DoorLayout): void {
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  drawSign(ctx, door, doorShortLabel(door.title), PX.haloCool);
+  ctx.restore();
 }
 
 // Bothy haggis — the lobby inhabitant. Hub-original drawer in

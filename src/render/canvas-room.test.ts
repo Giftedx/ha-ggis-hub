@@ -16,7 +16,14 @@ class RecordingCanvasContext {
   lineWidth = 0;
   font = '';
   textAlign: CanvasTextAlign = 'start';
-  globalAlpha = 1;
+  private _globalAlpha = 1;
+  get globalAlpha(): number {
+    return this._globalAlpha;
+  }
+  set globalAlpha(v: number) {
+    this._globalAlpha = v;
+    this.calls.push(`globalAlpha:${v}`);
+  }
   // Present so createCanvasRoomRenderer exercises the imageSmoothingEnabled=false path.
   imageSmoothingEnabled = true;
 
@@ -516,6 +523,14 @@ describe('createCanvasRoomRenderer', () => {
     // Width guard in drawMantelInscription: inscription at textY=189 must be absent.
     const mantelCalls = context.calls.filter((c) => c === 'fillRect:238,189,1,1');
     expect(mantelCalls).toHaveLength(0);
+  });
+
+  it('renders a dimmed sign on locked doors', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+    expect(context.calls).toContain('globalAlpha:0.65');
   });
 
   it('balances every ctx.save() with a ctx.restore() in the fallback path', () => {
