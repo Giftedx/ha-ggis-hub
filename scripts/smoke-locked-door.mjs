@@ -10,7 +10,7 @@
 import { launchBrowser } from './browser-factory.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:4173/';
-const EXPECTED_STATUS = "Comin' Wi' The Next Moon door — comin' soon.";
+const EXPECTED_STATUS = "Comin' Wi' The Next Moon door — comin’ soon.";
 
 const browser = await launchBrowser();
 try {

@@ -643,7 +643,7 @@ mod prop_tests {
             let p_max_y = center_y.saturating_add(PLAYER_HALF);
 
             let mut expected = InteractionKind::None as u8;
-            for &(_, min_x, min_y, max_x, max_y, launchable) in FIRST_ROOM_DOORS.iter() {
+            for &(_, min_x, min_y, max_x, max_y, launchable) in FIRST_ROOM_DOORS {
                 if p_min_x <= max_x && p_max_x >= min_x && p_min_y <= max_y && p_max_y >= min_y {
                     expected = if launchable {
                         InteractionKind::Launchable as u8
