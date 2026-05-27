@@ -85,6 +85,8 @@ const PX = {
   cream: '#f0e6c8',
   // Active-door glow — heather-purple (locked counterpoint, dawn-correct)
   haloCool: '#7a4a9c',
+  // Corner vignette fade-to-black overlay
+  vignette: '#000000',
   // Interaction prompt overlay
   promptShadow: 'rgba(26, 14, 8, 0.92)',
   // Wall ornaments
@@ -94,6 +96,21 @@ const PX = {
   cordShadow: '#7a5018',
   stemFade: '#7a5230',
 } as const;
+
+// Highland landscape palette — sky + mountain layers in the window view.
+// These are one-off painted shades for the through-the-window scene; they
+// deliberately fall between the room palette tokens to read as outdoor light.
+const WINDOW_VIEW = {
+  skyDeep: '#5c3470',      // deep heather sky (pre-dawn purple)
+  skyMid: '#a65fa0',       // heather sky mid-tone
+  horizonPeach: '#f0a878', // peach horizon wash
+  horizonAmber: '#ffe0a8', // warm amber horizon above peach
+  mountainShadow: '#4a3470', // mountain silhouette — purple-blue shadow
+  mountainDeep: '#2a2038',   // rightmost ridge — deep blue-violet
+} as const;
+
+// Diorama runner (carpet strip visible between player and back wall).
+const DIORAMA_RUNNER_BASE = '#4f2c46'; // dark reddish-purple — heather-berry
 
 export const STORYBOOK_BACKDROP_SRC = '/art/bothy-storybook-backdrop.webp';
 let storybookBackdropImage: HTMLImageElement | undefined;
@@ -757,7 +774,7 @@ function drawAmbientParticles(
     if (lit < 0.05) continue;
     ctx.save();
     ctx.globalAlpha = 0.7 * lit;
-    ctx.fillStyle = '#fff0c8';
+    ctx.fillStyle = PALETTE.dawnHighlight;
     ctx.beginPath();
     ctx.arc(mx, my, 1.3, 0, Math.PI * 2);
     ctx.fill();
@@ -782,18 +799,18 @@ function drawTopWallWindow(
   ctx.fillRect(x - 6, y - 6, w + 12, h + 12);
   ctx.fillStyle = PX.woodWarmShade;
   ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
-  ctx.fillStyle = '#5c3470';
+  ctx.fillStyle = WINDOW_VIEW.skyDeep;
   ctx.fillRect(x, y, w, h);
 
   ctx.save();
   ctx.globalAlpha = 0.92;
-  ctx.fillStyle = '#a65fa0';
+  ctx.fillStyle = WINDOW_VIEW.skyMid;
   ctx.fillRect(x, y + 18, w, 26);
-  ctx.fillStyle = '#f0a878';
+  ctx.fillStyle = WINDOW_VIEW.horizonPeach;
   ctx.fillRect(x, y + 44, w, 22);
-  ctx.fillStyle = '#ffe0a8';
+  ctx.fillStyle = WINDOW_VIEW.horizonAmber;
   ctx.fillRect(x, y + 63, w, 16);
-  ctx.fillStyle = '#fff0c8';
+  ctx.fillStyle = PALETTE.dawnHighlight;
   ctx.fillRect(cx - 22, y + 55, 44, 18);
   ctx.restore();
 
@@ -807,21 +824,21 @@ function drawTopWallWindow(
 
   ctx.save();
   ctx.globalAlpha = 0.95;
-  ctx.fillStyle = '#4a3470';
+  ctx.fillStyle = WINDOW_VIEW.mountainShadow;
   ctx.beginPath();
   ctx.moveTo(x, y + 88);
   ctx.lineTo(x + 114, y + 42);
   ctx.lineTo(x + 246, y + 88);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#2a2038';
+  ctx.fillStyle = WINDOW_VIEW.mountainDeep;
   ctx.beginPath();
   ctx.moveTo(x + 170, y + h);
   ctx.lineTo(x + 318, y + 53);
   ctx.lineTo(x + w + 8, y + h);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#5a7a5a';
+  ctx.fillStyle = PX.brackenGreen;
   ctx.beginPath();
   ctx.moveTo(x, y + 92);
   ctx.lineTo(x + 78, y + 76);
@@ -885,7 +902,7 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
   for (let i = 0; i < layers; i += 1) {
     const fade = 0.018 + i * 0.012;
     const thickness = Math.round(((i + 1) / layers) * 24);
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = PX.vignette;
     ctx.globalAlpha = fade;
     ctx.fillRect(0, 0, w, thickness);
     ctx.fillRect(0, h - thickness, w, thickness);
@@ -936,7 +953,7 @@ function drawDioramaRunner(
   ctx.clip();
 
   ctx.globalAlpha = 0.82;
-  ctx.fillStyle = '#4f2c46';
+  ctx.fillStyle = DIORAMA_RUNNER_BASE;
   ctx.fillRect(leftBack - 6, backY, rightBack - leftBack + 12, frontY - backY + 4);
   ctx.globalAlpha = 0.38;
   ctx.fillStyle = PX.haloCool;
