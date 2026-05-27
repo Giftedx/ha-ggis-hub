@@ -127,5 +127,12 @@ describe('game registry', () => {
         HUB_GAME_REGISTRY
       )
     ).toEqual(['Launchable room door "future-bothy" maps to non-playable registry entry']);
+
+    expect(
+      validateRoomRegistryCoherence(
+        [{ id: 'wild-haggis-survivors', status: 'locked' }],
+        HUB_GAME_REGISTRY
+      )
+    ).toEqual(['Locked room door "wild-haggis-survivors" maps to playable registry entry']);
   });
 });
