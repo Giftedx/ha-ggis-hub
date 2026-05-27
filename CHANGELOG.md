@@ -2,6 +2,31 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 design: Redesign Wee Chieftain for room-scale character readability
+
+Root-cause fix: HAGGIS_SCALE was 1.55 (stale comment said 2.7) — body only 68 px wide on a 540 px canvas.
+Raised to 2.0; body now 100 px wide, readable as a character at bothy scale.
+Brows redesigned from six low-alpha strokeCurves (invisible at room scale) to two bold arcs (86% alpha).
+Eyes enlarged: outline 3.8→4.8×s, white 2.8→4.0×s, eyelid rx 3.0→4.2×s, pupil 1.4→2.2×s.
+Casing seam strokes in the face zone reduced to minimal alpha; left-side pucker removed.
+Canvas-room shadow radius 54→68; bothy-storybook scale 0.92→1.18.
+All pinned coordinate tests updated; visual golden re-captured; all 26 haggis-eval gates pass.
+
+## [Unreleased] — 2026-05-27 design: Enlarge Wee Chieftain eyes for room-scale readability
+
+Eye outline 2.8→3.8×s, white 2.1→2.8×s, eyelid rx 2.35→3.0×s (ry kept 0.9×s), pupil 1.4×s kept.
+Right-side pucker moved off face; oat fleck at eye level removed.
+All coordinate assertions updated to match.
+
+## [Unreleased] — 2026-05-27 design: Sharpen Wee Chieftain expression and cutaway placement
+
+Casing seam alpha collapsed (0.18 / 0.08 / 0.08); face illumination ellipse stronger + more centred.
+Brow strokes: three low-alpha pairs → two clean bold arcs readable at room scale.
+Smile: 0.55→0.82 alpha, 0.8→1.6×s lineWidth; wider arc (mx(±4)) set lower (my(5.8)).
+Oat cutaway shifted right 3 px — reads as cross-section window not bite/wound.
+Eye glint 0.85→1.0×s; upper-brow strokeCurves removed.
+All coordinate assertions updated; visual golden re-captured.
+
 ## [Unreleased] — 2026-05-27 chore: fix stale smoke count in evaluation-strategy.md
 
 docs/architecture/evaluation-strategy.md: "5 chromium smokes" → "7 chromium smokes — 6 core + a11y".

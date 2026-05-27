@@ -280,6 +280,41 @@ ornament:
   quiet-zone-policy: "upper-left and lower-right of the floor stay empty"
 ```
 
+## Mascot — Wee Chieftain
+
+```yaml
+mascot:
+  name: "Wee Chieftain"
+  shape: "haggis pudding — food-shaped first, creature second"
+  rationale: |
+    A haggis is a Scots word for a savoury pudding (oatmeal, offal, suet,
+    cased in stomach) before it was adopted as the name of a mythical creature.
+    The Wee Chieftain reads as the food artefact: squat oval casing, tied ends,
+    oat cutaway — then secondarily as a mascot with face and legs.
+  renderer: "src/render/bothy-haggis.ts — drawBothyHaggis(ctx, cx, cy, scale, frame)"
+  design-units: "body outline ~50 wide × ~30 tall; legs ~7 below baseline; tied ends ~±25 from centre"
+  render-scale: 2.0   # HAGGIS_SCALE in canvas-room.ts — body 100 px wide on 540 px canvas
+  storybook-scale: 1.18   # used when painted backdrop is loaded
+  placement: "doorway centre, 10×scale px above floor contact point; hard-contact shadow r=68"
+  animation: "breathY bob (sine, 6s period), frontLegY / backLegY walk swing"
+
+  design-decisions:
+    brows:
+      rule: "one bold arc per eye — 86% alpha, 0.80×scale lineWidth"
+      rationale: "six low-alpha strokes were invisible at room scale; clear arcs read as authored expression"
+    eyes:
+      outline: "4.8×scale"
+      white: "4.0×scale"
+      eyelid: "rx=4.2×scale, ry=1.2×scale — half-covers top of white; directed rather than vacant"
+      pupil: "2.2×scale — large enough to track"
+    cutaway:
+      position: "left-of-centre (offsetX=3 design units from body centre)"
+      rationale: "centred cutaway read as wound; left-of-centre reads as cross-section window into stuffing"
+    face-zone:
+      rule: "casing seam strokes crossing the face area use alpha ≤ 0.18"
+      rationale: "high-alpha seams competed with eyes and smile at room scale"
+```
+
 ## Motion
 
 ```yaml
