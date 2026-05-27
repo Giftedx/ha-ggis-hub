@@ -52,6 +52,17 @@ describe('formatDoorStatus', () => {
     expect(formatDoorStatus(snapshotWithInteraction('launchable', 99), HUB_GAME_REGISTRY, 'fallback'))
       .toBe('fallback');
   });
+
+  it('uses the door id as the title when the registry has no matching game', () => {
+    const snapshot: DecodedSnapshot = {
+      ...BASE_SNAPSHOT,
+      interactionKind: 'locked',
+      interactionDoorIndex: 0,
+      doors: [{ id: 'unregistered-door', status: 'locked', bounds: { minX: 0, minY: 0, maxX: 100, maxY: 100 } }]
+    };
+    expect(formatDoorStatus(snapshot, HUB_GAME_REGISTRY))
+      .toBe("unregistered-door door — comin’ soon.");
+  });
 });
 
 describe('createDoorStatusAnnouncer', () => {
