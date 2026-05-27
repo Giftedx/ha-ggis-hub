@@ -258,7 +258,10 @@ describe('createCanvasRoomRenderer', () => {
   it('uses the painted storybook backdrop asset when the browser image is loaded', () => {
     vi.stubGlobal('Image', LoadedImage);
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    const renderer = createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 });
+    renderer.render(SNAPSHOT_NO_INTERACTION);
+    // Second render exercises the cached storybookBackdropImage path (module-level singleton).
+    renderer.render(SNAPSHOT_NO_INTERACTION);
     expect(context.calls).toContain(`drawImage:${STORYBOOK_BACKDROP_SRC}@0,0,540,360`);
     expect(context.calls).not.toContain('fillRect:54,14,432,108');
   });

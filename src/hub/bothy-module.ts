@@ -42,6 +42,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const canvasSurface = {
         get width() { return 540; },
         get height() { return 360; },
+        /* v8 ignore next — called by canvas-room.ts internals; mocked at createCanvasRoomRenderer boundary in tests */
         getContext(kind: '2d') { return shell.canvas.getContext(kind); }
       };
 
@@ -215,8 +216,10 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         __stateHash?: () => bigint;
         __seed?: bigint;
       };
+      /* v8 ignore start — browser-only dev hooks; called by smoke-determinism.mjs, not unit tests */
       winHooks.__roomSnapshot = () => room.lastSnapshot();
       winHooks.__stateHash = () => boundary.stateHash();
+      /* v8 ignore stop */
       winHooks.__seed = seed;
 
       const debugMode = new URLSearchParams(window.location.search).has('debug');

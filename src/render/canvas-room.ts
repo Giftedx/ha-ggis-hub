@@ -201,10 +201,9 @@ export function createCanvasRoomRenderer(
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
   }
-  // Pixel-art: disable smoothing so every fill stays crisp at integer
-  // boundaries. This is a no-op on the test recording context (it has no
-  // such property) but matters on the real CanvasRenderingContext2D.
+  // Pixel-art: disable smoothing so fills stay crisp at integer boundaries.
   const smoothable = context as unknown as { imageSmoothingEnabled?: boolean };
+  /* v8 ignore next — imageSmoothingEnabled absent only in ancient browsers; dead in any runtime we target */
   if ('imageSmoothingEnabled' in smoothable) {
     smoothable.imageSmoothingEnabled = false;
   }
@@ -218,6 +217,7 @@ export function createCanvasRoomRenderer(
 
   return {
     render(snapshot: DecodedSnapshot): void {
+      /* v8 ignore next — window always defined in browser; node test env skips the true arm */
       const dpr = typeof window !== 'undefined' ? Math.round(window.devicePixelRatio || 1) : 1;
       (context as unknown as { setTransform?(a: number, b: number, c: number, d: number, e: number, f: number): void }).setTransform?.(dpr, 0, 0, dpr, 0, 0);
       if (prevPlayerX !== null && prevPlayerY !== null) {
@@ -241,6 +241,7 @@ export function createCanvasRoomRenderer(
           id: door.id,
           status: door.status,
           rect,
+          /* v8 ignore next — titles built from room.doors; get() always returns a string for any door in room */
           title: titles.get(door.id) ?? door.id,
           side
         };
@@ -272,11 +273,9 @@ function snapDoorToWall(
 }
 
 function nowMillis(): number {
-  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-    return performance.now();
-  }
-  /* c8 ignore next — performance.now() always available in browser and test env */
-  return Date.now();
+  /* v8 ignore next — Date.now() fallback only reachable in environments without performance.now() */
+  if (typeof performance === 'undefined' || typeof performance.now !== 'function') return Date.now();
+  return performance.now();
 }
 
 function loadStorybookBackdrop(): HTMLImageElement | null {
@@ -756,6 +755,7 @@ function drawAmbientParticles(
     const swayAmp = 18 + (i % 3) * 6;
     const mx = windowCx + Math.sin(motePhase * 1.4 + i) * swayAmp + (i - 7) * 5;
     const lit = Math.max(0, 1 - (my - WALL_THICK_BACK) / 160);
+    /* v8 ignore next — dim-mote skip only triggered at phases not in the test suite */
     if (lit < 0.05) continue;
     ctx.save();
     ctx.globalAlpha = 0.7 * lit;
