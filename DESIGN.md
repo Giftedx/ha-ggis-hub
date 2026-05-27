@@ -249,7 +249,7 @@ elevation:
     value-policy: "lit-stone surround, cool shadow interior, cream block highlights"
 
   door-fixtures:
-    launchable: "lit lantern (PX.haloWarm glow) + full-opacity bone sign — drawLantern + drawSign in canvas-room.ts — shipped 2026-05-27"
+    launchable: "lit lantern (PALETTE.dawnGold halo, pulsed) + full-opacity bone sign — drawLantern + blitSprite(LANTERN_LIT) + drawSign in canvas-room.ts — shipped 2026-05-27"
     locked: "dimmed sign only — 0.65 opacity, PX.haloCool label text — drawLockedDoorSign in canvas-room.ts — shipped 2026-05-27"
     rationale: "launchable door is the primary CTA; locked door reads 'coming' without competing — opacity + colour signal the distinction, not absence"
 
