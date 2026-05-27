@@ -12,7 +12,7 @@ The pyramid is fully realised as of 2026-05-24. 190 vitest cases, cargo workspac
 
 ```text
 Many: Rust unit/property tests for deterministic core              ✓ shipped
-Many: TypeScript unit tests for pure host logic                    ✓ shipped (189 vitest)
+Many: TypeScript unit tests for pure host logic                    ✓ shipped (190 vitest)
 Some: WASM boundary tests                                          ✓ shipped
 Some: Playwright smoke/accessibility/console tests                 ✓ shipped (5 smokes + a11y gate)
 Few:  visual/performance/soak tests, focused on critical flows     ✓ visual + bundle-budgets + paint-timing + soak (memory-growth)

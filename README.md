@@ -98,7 +98,7 @@ node scripts/run-visual-gate.mjs capture  # re-baseline after intentional art ch
 node scripts/run-paint-gate.mjs           # FCP/LCP/DCL/load median vs perf-budgets.json paint.max_ms
 
 # Accessibility gate (builds + previews + hand-rolled WCAG 2.2 AA spot-checks via Playwright)
-node scripts/run-a11y-gate.mjs            # 22 checks: lang, viewport, title, names, status, label-in-name, focus, contrast
+node scripts/run-a11y-gate.mjs            # 26 checks: lang, viewport, title, names, status, label-in-name, focus, contrast, font-load, page-errors
 
 # Memory-growth soak (15s RAF loop; heap budget 5 MB)
 node scripts/run-soak-gate.mjs
