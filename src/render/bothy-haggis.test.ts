@@ -88,19 +88,20 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('ellipse:123,104,2.4,3.5');
   });
 
-  it('uses a dominant pale oat cutaway and twine collar instead of timid flecks or animal anatomy', () => {
+  it('places the pale oat cutaway low on the casing so it does not compete with the face', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
-    expect(ctx.calls).toContain('moveTo:77.8,95');
-    expect(ctx.calls).toContain('quadraticCurveTo:81.1,91.6,87.8,94');
-    expect(ctx.calls).toContain('quadraticCurveTo:89.2,96.8,87.4,99.4');
-    expect(ctx.calls).toContain('quadraticCurveTo:84.8,102.2,79.3,101.2');
-    expect(ctx.calls).toContain('arc:81.2,95.6,0.95');
-    expect(ctx.calls).toContain('arc:84.2,97.8,1.05');
-    expect(ctx.calls).toContain('arc:87.2,94.9,0.85');
-    expect(ctx.calls.indexOf('moveTo:77.8,95')).toBeLessThan(
-      ctx.calls.indexOf('arc:92.8,97.5,3.4')
+    expect(ctx.calls).not.toContain('moveTo:77.8,95');
+    expect(ctx.calls).toContain('moveTo:77.8,102');
+    expect(ctx.calls).toContain('quadraticCurveTo:81.1,98.6,87.8,101');
+    expect(ctx.calls).toContain('quadraticCurveTo:89.2,103.8,87.4,106.4');
+    expect(ctx.calls).toContain('quadraticCurveTo:84.8,109.2,79.3,108.2');
+    expect(ctx.calls).toContain('arc:81.2,102.6,0.95');
+    expect(ctx.calls).toContain('arc:84.2,104.8,1.05');
+    expect(ctx.calls).toContain('arc:87.2,101.9,0.85');
+    expect(ctx.calls.indexOf('moveTo:77.8,102')).toBeLessThan(
+      ctx.calls.indexOf('arc:93.8,97.7,2.1')
     );
     expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
     expect(ctx.calls).not.toContain('ellipse:85.2,97.1,6.4,2.7');
@@ -122,12 +123,30 @@ describe('drawBothyHaggis', () => {
   it('gives the eyes an alert directed look instead of a vacant or sleepy stare', () => {
     const ctx = new RecordingHaggisContext();
     drawBothyHaggis(ctx, 100, 100, 1, {});
-    expect(ctx.calls).not.toContain('arc:93.9,98.1,1.55');
-    expect(ctx.calls).not.toContain('arc:109.4,98.1,1.55');
-    expect(ctx.calls).toContain('arc:94.2,97.4,1.45');
-    expect(ctx.calls).toContain('arc:109.7,97.4,1.45');
-    expect(ctx.calls).toContain('quadraticCurveTo:92.7,95,96.2,95.3');
-    expect(ctx.calls).toContain('quadraticCurveTo:108.4,95,111.9,95.3');
+    expect(ctx.calls).not.toContain('arc:92.8,97.5,3.4');
+    expect(ctx.calls).not.toContain('arc:108.3,97.5,3.4');
+    expect(ctx.calls).toContain('arc:93.8,97.7,2.1');
+    expect(ctx.calls).toContain('arc:107.2,97.7,2.1');
+    expect(ctx.calls).toContain('arc:94.5,97.65,0.85');
+    expect(ctx.calls).toContain('arc:108,97.65,0.85');
+  });
+
+  it('adds an authored brow line so the mascot reads alive rather than blank', () => {
+    const ctx = new RecordingHaggisContext();
+    drawBothyHaggis(ctx, 100, 100, 1, {});
+    expect(ctx.calls).toContain('moveTo:87.8,93.1');
+    expect(ctx.calls).toContain('quadraticCurveTo:92,91.8,96.4,93.2');
+    expect(ctx.calls).toContain('moveTo:104.3,93.1');
+    expect(ctx.calls).toContain('quadraticCurveTo:108.6,91.8,113.6,93.2');
+  });
+
+  it('adds casing eyelids so the mascot expression reads authored instead of googly', () => {
+    const ctx = new RecordingHaggisContext();
+    drawBothyHaggis(ctx, 100, 100, 1, {});
+    expect(ctx.calls).toContain('ellipse:93.8,96,2.35,0.9');
+    expect(ctx.calls).toContain('ellipse:107.2,96,2.35,0.9');
+    expect(ctx.calls).toContain('quadraticCurveTo:94.2,96.1,96.6,96.3');
+    expect(ctx.calls).toContain('quadraticCurveTo:107.2,96.1,110.2,96.3');
   });
 
   it('rounds the tiny feet so the haggis does not stand on table legs', () => {

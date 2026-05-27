@@ -2,72 +2,86 @@ import { describe, expect, it } from 'vitest';
 import {
   drawWhsBothyEnvelope,
   drawWhsDoor,
+  drawWhsMantelpiece,
   drawWhsRug,
-  type WhsBothyContext,
-  type BothyEnvelope
+  drawWhsWindowBay
 } from './whs-bothy';
 
-class RecordingBothyContext implements WhsBothyContext {
+class RecordingWhsContext {
   readonly calls: string[] = [];
   fillStyle: string | CanvasGradient | CanvasPattern = '';
   strokeStyle: string | CanvasGradient | CanvasPattern = '';
   lineWidth = 0;
   globalAlpha = 1;
 
-  fillRect(x: number, y: number, w: number, h: number): void {
-    this.calls.push(`fillRect:${x},${y},${w},${h}`);
+  fillRect(x: number, y: number, width: number, height: number): void {
+    this.calls.push(`fillRect:${x},${y},${width},${height}`);
   }
-  beginPath(): void { this.calls.push('beginPath'); }
-  moveTo(x: number, y: number): void { this.calls.push(`moveTo:${x},${y}`); }
-  lineTo(x: number, y: number): void { this.calls.push(`lineTo:${x},${y}`); }
-  arc(x: number, y: number, r: number): void { this.calls.push(`arc:${x},${y},${r}`); }
+  beginPath(): void {
+    this.calls.push('beginPath');
+  }
+  moveTo(x: number, y: number): void {
+    this.calls.push(`moveTo:${x},${y}`);
+  }
+  lineTo(x: number, y: number): void {
+    this.calls.push(`lineTo:${x},${y}`);
+  }
+  arc(x: number, y: number, radius: number): void {
+    this.calls.push(`arc:${x},${y},${radius}`);
+  }
   ellipse(cx: number, cy: number, rx: number, ry: number): void {
     this.calls.push(`ellipse:${cx},${cy},${rx},${ry}`);
   }
-  fill(): void { this.calls.push('fill'); }
-  stroke(): void { this.calls.push('stroke'); }
-  save(): void { this.calls.push('save'); }
-  restore(): void { this.calls.push('restore'); }
+  fill(): void {
+    this.calls.push('fill');
+  }
+  stroke(): void {
+    this.calls.push('stroke');
+  }
+  save(): void {
+    this.calls.push('save');
+  }
+  restore(): void {
+    this.calls.push('restore');
+  }
 }
 
-const ENV: BothyEnvelope = {
-  left: 0,
-  right: 800,
-  top: 0,
-  wallBottom: 300,
-  floorBottom: 500,
-  compact: false
-};
+describe('WHS bothy fixture helpers', () => {
+  it('keeps retained room-fixture exports covered after the hub panorama replaced the small window path', () => {
+    const ctx = new RecordingWhsContext();
 
-describe('drawWhsDoor', () => {
-  it('renders the available state — exercises WOOD_MID body branch (state !== open, !== locked)', () => {
-    const ctx = new RecordingBothyContext();
-    drawWhsDoor(ctx, { x: 10, y: 10, w: 40, h: 80 }, 'available');
-    expect(ctx.calls.length).toBeGreaterThan(5);
-  });
-});
+    drawWhsBothyEnvelope(ctx, {
+      left: 24,
+      right: 516,
+      top: 0,
+      wallBottom: 96,
+      floorBottom: 336,
+      compact: false
+    });
+    drawWhsBothyEnvelope(ctx, {
+      left: 24,
+      right: 420,
+      top: 0,
+      wallBottom: 84,
+      floorBottom: 260,
+      compact: true
+    });
+    drawWhsWindowBay(ctx, { x: 40, y: 14, w: 88, h: 58 }, false);
+    drawWhsWindowBay(ctx, { x: 160, y: 14, w: 64, h: 44 }, true);
+    drawWhsRug(ctx, 36, 180, 128, 48, false);
+    drawWhsRug(ctx, 188, 180, 96, 36, true);
+    drawWhsMantelpiece(ctx, { x: 304, y: 70, w: 140, h: 8 });
+    drawWhsDoor(ctx, { x: 24, y: 140, w: 58, h: 70 }, 'open');
+    drawWhsDoor(ctx, { x: 104, y: 140, w: 58, h: 70 }, 'locked');
+    drawWhsDoor(ctx, { x: 184, y: 140, w: 58, h: 70 }, 'available');
 
-describe('drawWhsBothyEnvelope', () => {
-  it('renders walls and floor without throwing', () => {
-    const ctx = new RecordingBothyContext();
-    drawWhsBothyEnvelope(ctx, ENV);
-    expect(ctx.calls.length).toBeGreaterThan(10);
-  });
-});
-
-describe('drawWhsRug', () => {
-  it('renders all rug layers without throwing (compact=false — normal stripe sizes)', () => {
-    const ctx = new RecordingBothyContext();
-    drawWhsRug(ctx, 200, 300, 400, 100, false);
-    expect(ctx.calls.length).toBeGreaterThan(10);
-  });
-
-  it('renders with reduced stripe sizes on compact viewports (compact=true)', () => {
-    const ctxCompact = new RecordingBothyContext();
-    drawWhsRug(ctxCompact, 200, 300, 400, 100, true);
-    const ctxNormal = new RecordingBothyContext();
-    drawWhsRug(ctxNormal, 200, 300, 400, 100, false);
-    // Both paths produce identical call counts — compact only changes sizes.
-    expect(ctxCompact.calls.length).toBe(ctxNormal.calls.length);
+    expect(ctx.calls.length).toBeGreaterThan(450);
+    expect(ctx.calls).toContain('fillRect:24,0,492,96');
+    expect(ctx.calls).toContain('fillRect:24,96,492,240');
+    expect(ctx.calls).toContain('fillRect:33,6,102,74');
+    expect(ctx.calls).toContain('fillRect:304,70,140,8');
+    expect(ctx.calls).toContain('fillRect:21,136,64,76');
+    expect(ctx.calls).toContain('fillRect:101,136,64,76');
+    expect(ctx.calls).toContain('fillRect:181,136,64,76');
   });
 });

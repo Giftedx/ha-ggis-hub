@@ -211,7 +211,7 @@ const WORLD_H: i32 = 1_000;
 /// at doors before the haggis looked “there”.
 const PLAYER_HALF: i32 = 56;
 /// Door proximity uses a center shifted up from the feet anchor so overlap
-/// matches the painted body (renderer FEET_OFFSET ≈ 16×2.6 px → ~42 world).
+/// matches the painted body rather than the sprite's full leg footprint.
 const INTERACTION_CENTER_ABOVE_FEET: i32 = 42;
 const PLAYER_SPEED_PER_TICK: i32 = 100;
 const DIAGONAL_SCALE_PER_MILLE: i32 = 707;

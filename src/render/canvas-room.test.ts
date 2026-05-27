@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { createCanvasRoomRenderer, computeVisualDoorBounds, formatPromptText, type CanvasRoomSurface } from './canvas-room';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  STORYBOOK_BACKDROP_SRC,
+  createCanvasRoomRenderer,
+  computeVisualDoorBounds,
+  formatPromptText,
+  type CanvasRoomSurface
+} from './canvas-room';
 import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
@@ -44,6 +50,10 @@ class RecordingCanvasContext {
   fillText(text: string, x: number, y: number): void {
     this.calls.push(`fillText:${text}@${x},${y}`);
   }
+  drawImage(image: CanvasImageSource, x: number, y: number, width: number, height: number): void {
+    const src = (image as { readonly src?: string }).src ?? 'unknown';
+    this.calls.push(`drawImage:${src}@${x},${y},${width},${height}`);
+  }
   save(): void {
     this.calls.push('save');
   }
@@ -62,6 +72,14 @@ class RecordingCanvasContext {
   clip(): void {
     this.calls.push('clip');
   }
+}
+
+class LoadedImage {
+  complete = true;
+  naturalWidth = 1080;
+  naturalHeight = 720;
+  decoding = '';
+  src = '';
 }
 
 function recordingSurface(
@@ -126,6 +144,10 @@ const SNAPSHOT_NO_INTERACTION: DecodedSnapshot = {
   playerX: 500,
   interactionKind: 'none'
 };
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('computeVisualDoorBounds', () => {
   it('returns one entry per door', () => {
@@ -231,6 +253,56 @@ describe('createCanvasRoomRenderer', () => {
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, ROOM, { reducedMotion: true }).render(SNAPSHOT_AT_LAUNCHABLE);
     expect(context.calls.length).toBeGreaterThan(20);
+  });
+
+  it('uses the painted storybook backdrop asset when the browser image is loaded', () => {
+    vi.stubGlobal('Image', LoadedImage);
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).toContain(`drawImage:${STORYBOOK_BACKDROP_SRC}@0,0,540,360`);
+    expect(context.calls).not.toContain('fillRect:54,14,432,108');
+  });
+
+  it('stages the Wee Chieftain as a room inhabitant instead of the dominant room mass', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).not.toContain('ellipse:270,148.6,67.5,40.5');
+    expect(context.calls).toContain('ellipse:270,166.05,38.75,23.25');
+  });
+
+  it('paints a structured woven hearth runner instead of a muddy oval patch', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).toContain('moveTo:176,200');
+    expect(context.calls).toContain('lineTo:354,282');
+    expect(context.calls).toContain('fillRect:170,230,200,6');
+    expect(context.calls).toContain('fillRect:234,202,8,104');
+    expect(context.calls).not.toContain('ellipse:270,223,98,22');
+  });
+
+  it('grounds side-wall doors with threshold stones instead of leaving them as flat blocks', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).toContain('fillRect:18,213,73,6');
+    expect(context.calls).toContain('fillRect:449,213,73,6');
+  });
+
+  it('uses a panoramic Highland dawn view as the primary wall composition', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).toContain('fillRect:54,14,432,108');
+    expect(context.calls).toContain('moveTo:54,102');
+    expect(context.calls).toContain('lineTo:168,56');
+    expect(context.calls).toContain('lineTo:300,102');
+    expect(context.calls).not.toContain('fillRect:226,19,88,58');
+  });
+
+  it('builds a stone inglenook mass behind the hearth so the room has a focal structure', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    expect(context.calls).toContain('ellipse:270,198,66,30');
+    expect(context.calls).toContain('fillRect:204,198,132,134');
+    expect(context.calls).toContain('fillRect:224,205,92,116');
   });
 
   it('can freeze animation phase for deterministic visual-gate captures', () => {

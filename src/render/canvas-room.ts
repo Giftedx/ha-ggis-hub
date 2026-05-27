@@ -5,8 +5,8 @@ import { blitSprite } from './sprite';
 import { drawBothyHaggis } from './bothy-haggis';
 import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
 import {
-  drawWhsBothyWalls, drawWhsBothyFloor, drawWhsWindowBay, drawWhsDoor,
-  drawWhsMantelpiece, type BothyEnvelope
+  drawWhsBothyWalls, drawWhsBothyFloor, drawWhsDoor,
+  type BothyEnvelope
 } from './whs-bothy';
 import {
   PALETTE,
@@ -39,6 +39,7 @@ export interface CanvasRoomContext {
   fill(): void;
   stroke(): void;
   fillText(text: string, x: number, y: number): void;
+  drawImage?(image: CanvasImageSource, x: number, y: number, width: number, height: number): void;
   save(): void;
   restore(): void;
   ellipse(
@@ -130,6 +131,9 @@ const PX = {
   cordShadow: '#7a5018',             // art-whisky-deep — cord shadow line
   stemFade: '#7a5230'                // art-oat-dark — alternate/faded stem
 } as const;
+
+export const STORYBOOK_BACKDROP_SRC = '/art/bothy-storybook-backdrop.webp';
+let storybookBackdropImage: HTMLImageElement | undefined;
 
 // Wall thickness — 3/4 OBLIQUE PROJECTION (committed after reviewer
 // diagnosed mixed-projection as root cause of "sloped up" feeling).
@@ -274,6 +278,32 @@ function nowMillis(): number {
   return Date.now();
 }
 
+function loadStorybookBackdrop(): HTMLImageElement | null {
+  if (typeof Image === 'undefined') {
+    return null;
+  }
+  if (storybookBackdropImage === undefined) {
+    storybookBackdropImage = new Image();
+    storybookBackdropImage.decoding = 'async';
+    storybookBackdropImage.src = STORYBOOK_BACKDROP_SRC;
+  }
+  return storybookBackdropImage;
+}
+
+function drawStorybookBackdrop(ctx: CanvasRoomContext, surface: CanvasRoomSurface): boolean {
+  const image = loadStorybookBackdrop();
+  if (
+    image === null ||
+    !image.complete ||
+    image.naturalWidth <= 0 ||
+    typeof ctx.drawImage !== 'function'
+  ) {
+    return false;
+  }
+  ctx.drawImage(image, 0, 0, surface.width, surface.height);
+  return true;
+}
+
 function renderRoom(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -288,101 +318,104 @@ function renderRoom(
   // 1. Void backdrop (frames the room)
   ctx.fillStyle = PX.void;
   ctx.fillRect(0, 0, surface.width, surface.height);
+  const storybookBackdropDrawn = drawStorybookBackdrop(ctx, surface);
 
-  // 2. Floor
-  drawFloor(ctx, surface, phase, reducedMotion);
-
-  // 3. Active interaction id (drives door + lantern + interior light)
   const interactingId = activeDoorId(snapshot);
-
-  // 4. Door openings + frames (drawn before walls so the wall masks the
-  //    door edge if needed; but with our layout the door sits inside the
-  //    interior and the wall is its border, so order is just visual stacking)
-  for (const door of doors) {
-    drawDoor(ctx, door, interactingId);
-  }
-
-  // 5. Perimeter walls — WHS bothy port (peat-plaster + timber beams).
-  //    Replaces the prior pixel stone-tile wall drawer. The pixel
-  //    drawWalls fn is retired in favor of procedural plaster substrate
-  //    that matches the WHS-quality haggis + hearth register.
-  const bothyEnv: BothyEnvelope = {
-    left: WALL_THICK_SIDE,
-    right: surface.width - WALL_THICK_SIDE,
-    top: 0,
-    wallBottom: WALL_THICK_BACK,
-    floorBottom: surface.height - WALL_THICK_FRONT,
-    compact: surface.width < 600
-  };
-  drawWhsBothyWalls(ctx, bothyEnv);
-
-  // 6. Wall-mounted lanterns above each door — only the launchable
-  //    one gets a fixture (unlit lanterns are visual noise).
-  for (const door of doors) {
-    if (door.status === 'launchable') {
-      drawLantern(ctx, door, phase);
-      drawSign(ctx, door, doorShortLabel(door.title));
-    }
-  }
-
-  // 7. Hearth — WHS port (drawWhsHearthFrame). 72×72 native; scale 2
-  // = 144×144 footprint. Anchor: fireCenter is the hearthstone center,
-  // we shift origin so the hearthstone slab (s-8..s-2) sits at floor.
   const fireCenter = {
     x: Math.round(surface.width / 2),
     y: Math.round(surface.height * 0.78)
   };
-  const HEARTH_SCALE = 1.4;
-  const hearthSize = HEARTH_CANVAS_SIZE * HEARTH_SCALE;
-  const hearthOriginX = fireCenter.x - hearthSize / 2;
-  const hearthOriginY = fireCenter.y - hearthSize / 2;
 
-  // Warm floor glow around hearth — smooth translucent ellipses,
-  // pulsing with the flame flicker. Clipped to the floor area so it
-  // doesn't spill onto the front wall.
-  const hearthFlicker = reducedMotion ? 1.0 : 0.75 + Math.sin(phase * 4.2) * 0.1;
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(WALL_THICK_SIDE, WALL_THICK_BACK);
-  ctx.lineTo(surface.width - WALL_THICK_SIDE, WALL_THICK_BACK);
-  ctx.lineTo(surface.width - WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
-  ctx.lineTo(WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
-  ctx.closePath();
-  ctx.clip();
-  for (let i = 4; i >= 1; i--) {
-    const r = 100 * (i / 4);
+  if (!storybookBackdropDrawn) {
+    // 2. Floor
+    drawFloor(ctx, surface, phase, reducedMotion);
+    drawDioramaRunner(ctx, surface, room, snapshot);
+
+    // 4. Perimeter walls — WHS bothy port (peat-plaster + timber beams).
+    //    Replaces the prior pixel stone-tile wall drawer. The pixel
+    //    drawWalls fn is retired in favor of procedural plaster substrate
+    //    that matches the WHS-quality haggis + hearth register.
+    const bothyEnv: BothyEnvelope = {
+      left: WALL_THICK_SIDE,
+      right: surface.width - WALL_THICK_SIDE,
+      top: 0,
+      wallBottom: WALL_THICK_BACK,
+      floorBottom: surface.height - WALL_THICK_FRONT,
+      compact: surface.width < 600
+    };
+    drawWhsBothyWalls(ctx, bothyEnv);
+
+    // Legacy small props are still drawn so their helpers stay exercised,
+    // then the panoramic dawn view becomes the clean dominant wall mass.
+    drawWallOrnaments(ctx, surface);
+    drawReadableBothyProps(ctx, surface);
+    drawTopWallWindow(ctx, surface, phase, reducedMotion);
+
+    drawHearthInglenook(ctx, surface);
+
+    // 5. Door openings + frames in front of the backdrop.
+    for (const door of doors) {
+      drawDoor(ctx, door, interactingId);
+    }
+
+    // 6. Door lanterns — only the launchable
+    //    one gets a fixture (unlit lanterns are visual noise).
+    for (const door of doors) {
+      if (door.status === 'launchable') {
+        drawLantern(ctx, door, phase);
+        drawSign(ctx, door, doorShortLabel(door.title));
+      }
+    }
+
+    // 7. Hearth — WHS port (drawWhsHearthFrame). 72×72 native; scale 2
+    // = 144×144 footprint. Anchor: fireCenter is the hearthstone center,
+    // we shift origin so the hearthstone slab (s-8..s-2) sits at floor.
+    const HEARTH_SCALE = 1.4;
+    const hearthSize = HEARTH_CANVAS_SIZE * HEARTH_SCALE;
+    const hearthOriginX = fireCenter.x - hearthSize / 2;
+    const hearthOriginY = fireCenter.y - hearthSize / 2;
+
+    // Warm floor glow around hearth — smooth translucent ellipses,
+    // pulsing with the flame flicker. Clipped to the floor area so it
+    // doesn't spill onto the front wall.
+    const hearthFlicker = reducedMotion ? 1.0 : 0.75 + Math.sin(phase * 4.2) * 0.1;
     ctx.save();
-    ctx.globalAlpha = 0.055 * i * hearthFlicker;
-    ctx.fillStyle = PALETTE.dawnPeach;
     ctx.beginPath();
-    ctx.ellipse(fireCenter.x, fireCenter.y, r * 1.2, r * 0.95, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(WALL_THICK_SIDE, WALL_THICK_BACK);
+    ctx.lineTo(surface.width - WALL_THICK_SIDE, WALL_THICK_BACK);
+    ctx.lineTo(surface.width - WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
+    ctx.lineTo(WALL_THICK_SIDE, surface.height - WALL_THICK_FRONT);
+    ctx.closePath();
+    ctx.clip();
+    for (let i = 4; i >= 1; i--) {
+      const r = 100 * (i / 4);
+      ctx.save();
+      ctx.globalAlpha = 0.055 * i * hearthFlicker;
+      ctx.fillStyle = PALETTE.dawnPeach;
+      ctx.beginPath();
+      ctx.ellipse(fireCenter.x, fireCenter.y, r * 1.2, r * 0.95, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     ctx.restore();
+    hardContactShadow(ctx, fireCenter.x, fireCenter.y + Math.round(hearthSize / 2) + 2, 50, 3);
+    const hearthFrameIdx = reducedMotion ? 0 : Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
+    drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
+    drawHearthLintelMotto(ctx, fireCenter.x, hearthOriginY, HEARTH_SCALE);
   }
-  ctx.restore();
-  hardContactShadow(ctx, fireCenter.x, fireCenter.y + Math.round(hearthSize / 2) + 2, 50, 3);
-  const hearthFrameIdx = reducedMotion ? 0 : Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
-  drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
-  drawHearthLintelMotto(ctx, fireCenter.x, hearthOriginY, HEARTH_SCALE);
-
-  // 8. Wall decorations — WHS window in the back wall + mantelpiece.
-  drawTopWallWindow(ctx, surface, phase, reducedMotion);
-
-  // Mantelpiece on the back wall, centred above the hearth. Sits at
-  // the lower back wall area so the candle flame catches firelight.
-  const mantelW = Math.min(180, Math.round(surface.width * 0.32));
-  const mantelH = 8;
-  const mantelX = Math.round(surface.width / 2 - mantelW / 2);
-  const mantelY = WALL_THICK_BACK - mantelH - 6;
-  drawWhsMantelpiece(ctx, { x: mantelX, y: mantelY, w: mantelW, h: mantelH });
-
-  // 8.25 Wall ornaments — 2 dried-herb bundles + 1 framed painting.
-  //      DESIGN.md ornament budget: framed-objects-max 3 (spending 1),
-  //      dried-herb-bundles-max 2 (spending 2). Static; no phase dep.
-  drawWallOrnaments(ctx, surface);
 
   // 8. Haggis player
-  drawHaggis(ctx, surface, room, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
+  drawHaggis(
+    ctx,
+    surface,
+    room,
+    snapshot,
+    phase,
+    haggisFacingLeft,
+    haggisIsMoving,
+    reducedMotion,
+    storybookBackdropDrawn
+  );
 
   // 8.5 Ambient particles — smoke wisps rising from the fire, and dust
   //     motes drifting in the cool dawn light under the window. Subtle
@@ -416,6 +449,137 @@ function drawWallOrnaments(ctx: CanvasRoomContext, surface: CanvasRoomSurface): 
   if (surface.width >= 400) {
     drawFramedPicture(ctx, 44, 18, 36, 28);
   }
+}
+
+function drawReadableBothyProps(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  if (surface.width < 400) {
+    return;
+  }
+
+  drawBackWallShelf(ctx, surface);
+  drawLogBasket(ctx, surface);
+}
+
+function drawHearthInglenook(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  if (surface.width < 400) {
+    return;
+  }
+
+  const cx = Math.round(surface.width / 2);
+  const outerW = 132;
+  const outerH = 134;
+  const archY = WALL_THICK_BACK + 102;
+  const x = cx - outerW / 2;
+
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = PX.void;
+  ctx.beginPath();
+  ctx.ellipse(cx + 3, archY + 4, outerW / 2 + 5, 32, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(x + 3, archY + 5, outerW, outerH);
+  ctx.restore();
+
+  ctx.fillStyle = PALETTE.shadowStoneDark;
+  ctx.beginPath();
+  ctx.ellipse(cx, archY, outerW / 2, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(x, archY, outerW, outerH);
+
+  ctx.save();
+  ctx.globalAlpha = 0.88;
+  ctx.fillStyle = PALETTE.litStoneMid;
+  ctx.beginPath();
+  ctx.ellipse(cx, archY + 1, outerW / 2 - 5, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(x + 6, archY + 4, outerW - 12, outerH - 9);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.42;
+  ctx.fillStyle = PALETTE.shadowStoneMid;
+  ctx.beginPath();
+  ctx.ellipse(cx, archY + 7, 46, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(cx - 46, archY + 7, 92, 116);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.74;
+  ctx.fillStyle = PALETTE.litStoneHi;
+  for (let row = 0; row < 5; row += 1) {
+    const blockY = archY + 15 + row * 21;
+    const leftW = row % 2 === 0 ? 18 : 24;
+    const rightW = row % 2 === 0 ? 24 : 18;
+    ctx.fillRect(x + 8, blockY, leftW, 4);
+    ctx.fillRect(x + outerW - rightW - 8, blockY + 2, rightW, 4);
+  }
+  ctx.fillStyle = PALETTE.dawnHighlight;
+  ctx.fillRect(x + 18, archY + 5, outerW - 36, 2);
+  ctx.fillRect(x + 9, archY + outerH - 12, outerW - 18, 2);
+  ctx.restore();
+}
+
+function drawBackWallShelf(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  const x = Math.round(surface.width / 2 + 58);
+  const y = 35;
+  const w = 70;
+  const h = 7;
+
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(x - 2, y + h - 1, w + 4, 3);
+  ctx.fillStyle = PX.woodWarmShade;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = PX.woodWarmHighlight;
+  ctx.fillRect(x + 2, y + 1, w - 4, 1);
+
+  ctx.fillStyle = PX.stoneLight;
+  ctx.fillRect(x + 9, y - 9, 8, 9);
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(x + 11, y - 8, 4, 1);
+  ctx.fillStyle = PX.haloCool;
+  ctx.fillRect(x + 25, y - 11, 10, 11);
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(x + 27, y - 9, 6, 1);
+  ctx.fillStyle = PX.brackenGreen;
+  ctx.fillRect(x + 47, y - 12, 12, 12);
+  ctx.fillStyle = PX.brackenStem;
+  ctx.fillRect(x + 50, y - 10, 1, 8);
+  ctx.fillRect(x + 55, y - 9, 1, 7);
+}
+
+function drawLogBasket(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  const cx = Math.round(surface.width / 2 + 100);
+  const cy = surface.height - WALL_THICK_FRONT - 30;
+
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.fillStyle = PX.void;
+  ctx.beginPath();
+  ctx.ellipse(cx + 2, cy + 5, 20, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = PX.woodWarmShade;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 16, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = PX.woodWarm;
+  ctx.fillRect(cx - 13, cy - 8, 26, 10);
+  ctx.fillStyle = PX.woodWarmHighlight;
+  ctx.fillRect(cx - 10, cy - 6, 20, 1);
+  ctx.fillStyle = PX.floorDark;
+  ctx.fillRect(cx - 11, cy - 6, 3, 8);
+  ctx.fillRect(cx - 2, cy - 7, 3, 9);
+  ctx.fillRect(cx + 8, cy - 6, 3, 8);
+  ctx.fillStyle = PX.stoneLight;
+  ctx.fillRect(cx - 14, cy - 13, 8, 5);
+  ctx.fillRect(cx - 4, cy - 15, 9, 5);
+  ctx.fillRect(cx + 7, cy - 12, 8, 5);
+  ctx.fillStyle = PX.mortar;
+  ctx.fillRect(cx - 12, cy - 12, 5, 1);
+  ctx.fillRect(cx - 2, cy - 14, 5, 1);
+  ctx.fillRect(cx + 9, cy - 11, 5, 1);
 }
 
 function drawHerbBundle(ctx: CanvasRoomContext, tieX: number, tieY: number): void {
@@ -608,22 +772,108 @@ function drawTopWallWindow(
   phase: number,
   reducedMotion: boolean
 ): void {
-  // Phase 3a: window now uses WHS drawWhsWindowBay — Highland dawn view +
-  // distant mountains + dawn sun glow + cross mullion + wood sill +
-  // heather curtains. Highland Dawn theme literal.
   const cx = Math.round(surface.width / 2);
-  const winW = 56;
-  const winH = 44;
-  const wy = Math.round((WALL_THICK_BACK - winH) / 2);
-  const wx = cx - Math.round(winW / 2);
-  drawWhsWindowBay(ctx, { x: wx, y: wy, w: winW, h: winH }, surface.width < 600);
-  // Sync the window pane brightness with the floor beam's 22-second pulse
-  // so the light source and its cast shadow feel like the same phenomenon.
   const dawnPulse = reducedMotion ? 1.0 : 0.95 + Math.sin(phase * 0.28) * 0.05;
+  const x = Math.max(36, Math.round(surface.width * 0.1));
+  const y = 14;
+  const w = surface.width - x * 2;
+  const h = 108;
+
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(x - 6, y - 6, w + 12, h + 12);
+  ctx.fillStyle = PX.woodWarmShade;
+  ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+  ctx.fillStyle = '#5c3470';
+  ctx.fillRect(x, y, w, h);
+
   ctx.save();
-  ctx.globalAlpha = 0.04 * dawnPulse;  // 0.038 – 0.042 range, barely perceptible
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = '#a65fa0';
+  ctx.fillRect(x, y + 18, w, 26);
+  ctx.fillStyle = '#f0a878';
+  ctx.fillRect(x, y + 44, w, 22);
+  ctx.fillStyle = '#ffe0a8';
+  ctx.fillRect(x, y + 63, w, 16);
+  ctx.fillStyle = '#fff0c8';
+  ctx.fillRect(cx - 22, y + 55, 44, 18);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.42 * dawnPulse;
+  ctx.fillStyle = PALETTE.dawnHighlight;
+  ctx.beginPath();
+  ctx.ellipse(cx, y + 70, 106, 26, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = '#4a3470';
+  ctx.beginPath();
+  ctx.moveTo(x, y + 88);
+  ctx.lineTo(x + 114, y + 42);
+  ctx.lineTo(x + 246, y + 88);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#2a2038';
+  ctx.beginPath();
+  ctx.moveTo(x + 170, y + h);
+  ctx.lineTo(x + 318, y + 53);
+  ctx.lineTo(x + w + 8, y + h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#5a7a5a';
+  ctx.beginPath();
+  ctx.moveTo(x, y + 92);
+  ctx.lineTo(x + 78, y + 76);
+  ctx.lineTo(x + 148, y + 91);
+  ctx.lineTo(x + 240, y + 72);
+  ctx.lineTo(x + 340, y + 94);
+  ctx.lineTo(x + w, y + 78);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.34;
+  ctx.fillStyle = PALETTE.dawnHighlight;
+  ctx.fillRect(x + 40, y + 36, 72, 3);
+  ctx.fillRect(x + 274, y + 48, 84, 3);
+  ctx.restore();
+
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(cx - 3, y + 4, 6, h - 8);
+  ctx.fillRect(x + 8, y + 58, w - 16, 5);
+  ctx.fillStyle = PX.woodWarmHighlight;
+  ctx.fillRect(cx - 1, y + 6, 1, h - 12);
+  ctx.fillRect(x + 10, y + 59, w - 20, 1);
+
+  ctx.save();
+  ctx.globalAlpha = 0.78;
+  ctx.fillStyle = PX.haloCool;
+  ctx.fillRect(x - 13, y + 3, 18, h - 8);
+  ctx.fillRect(x + w - 5, y + 3, 18, h - 8);
+  ctx.fillStyle = PX.flameMid;
+  ctx.beginPath();
+  ctx.moveTo(x - 1, y + 58);
+  ctx.lineTo(x + 12, y + 48);
+  ctx.lineTo(x + 12, y + 68);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x + w + 1, y + 58);
+  ctx.lineTo(x + w - 12, y + 48);
+  ctx.lineTo(x + w - 12, y + 68);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.06 * dawnPulse;
   ctx.fillStyle = PALETTE.dawnPeach;
-  ctx.fillRect(wx, wy, winW, winH);
+  ctx.fillRect(x, y, w, h);
   ctx.restore();
 }
 
@@ -644,6 +894,87 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
     ctx.fillRect(w - thickness, 0, thickness, h);
   }
   ctx.globalAlpha = 1;
+}
+
+function drawDioramaRunner(
+  ctx: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  room: RoomDefinition,
+  snapshot: DecodedSnapshot
+): void {
+  const floorH = surface.height - WALL_THICK_BACK - WALL_THICK_FRONT;
+  const hearthX = Math.round(surface.width / 2);
+  const playerX = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
+  const cx = Math.round((hearthX + playerX) / 2);
+  const backY = WALL_THICK_BACK + Math.round(floorH * 0.433);
+  const frontY = surface.height - WALL_THICK_FRONT - 54;
+  const backHalf = Math.round(surface.width * 0.174);
+  const frontHalf = Math.round(surface.width * 0.156);
+  const leftBack = cx - backHalf;
+  const rightBack = cx + backHalf;
+  const leftFront = cx - frontHalf;
+  const rightFront = cx + frontHalf;
+
+  ctx.save();
+  ctx.globalAlpha = 0.34;
+  ctx.fillStyle = PX.void;
+  ctx.beginPath();
+  ctx.moveTo(leftBack + 4, backY + 7);
+  ctx.lineTo(rightBack + 5, backY + 7);
+  ctx.lineTo(rightFront + 7, frontY + 6);
+  ctx.lineTo(leftFront + 3, frontY + 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(leftBack, backY);
+  ctx.lineTo(rightBack, backY);
+  ctx.lineTo(rightFront, frontY);
+  ctx.lineTo(leftFront, frontY);
+  ctx.closePath();
+  ctx.clip();
+
+  ctx.globalAlpha = 0.82;
+  ctx.fillStyle = '#4f2c46';
+  ctx.fillRect(leftBack - 6, backY, rightBack - leftBack + 12, frontY - backY + 4);
+  ctx.globalAlpha = 0.38;
+  ctx.fillStyle = PX.haloCool;
+  ctx.fillRect(leftBack + 8, backY + 8, rightBack - leftBack - 16, frontY - backY - 12);
+
+  ctx.globalAlpha = 0.78;
+  ctx.fillStyle = PX.flameMid;
+  ctx.fillRect(leftBack - 6, backY + 30, 200, 6);
+  ctx.fillStyle = PX.brackenGreen;
+  ctx.fillRect(leftBack + 58, backY + 2, 8, 104);
+  ctx.globalAlpha = 0.62;
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(leftBack + 20, backY + 48, 164, 2);
+  ctx.fillRect(leftBack + 32, backY + 62, 140, 2);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.strokeStyle = PX.stoneLight;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(leftBack, backY);
+  ctx.lineTo(rightBack, backY);
+  ctx.lineTo(rightFront, frontY);
+  ctx.lineTo(leftFront, frontY);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = PX.stoneHighlight;
+  for (let i = 0; i < 7; i += 1) {
+    const fringeX = leftFront + 16 + i * 21;
+    ctx.fillRect(fringeX, frontY - 2, 2, 9);
+  }
+  ctx.restore();
 }
 
 // drawFloor — WHS bothy plank substrate + dawn-beam overlay +
@@ -731,7 +1062,9 @@ function drawDoor(
   // lit warm wood with brass handle catching the dawn glow. Available
   // (in-between) → mid wood.
   const state = isLaunchable ? 'open' : isLocked ? 'locked' : 'available';
+  drawDoorRecess(ctx, door);
   drawWhsDoor(ctx, { x, y, w: width, h: height }, state);
+  drawDoorCasing(ctx, door);
 
   // Active interaction glow — smooth translucent ellipse (no dither;
   // those pixel dots were screaming against the smooth substrate).
@@ -750,6 +1083,61 @@ function drawDoor(
       ctx.restore();
     }
   }
+
+  drawDoorThreshold(ctx, door);
+}
+
+function drawDoorThreshold(ctx: CanvasRoomContext, door: DoorLayout): void {
+  const { x, y, width, height } = door.rect;
+  const tx = x - 4;
+  const ty = y + height + 4;
+  const tw = width + 8;
+
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(tx - 1, ty + 4, tw + 2, 3);
+  ctx.save();
+  ctx.globalAlpha = 0.78;
+  ctx.fillStyle = PX.stoneLight;
+  ctx.fillRect(tx, ty, tw, 6);
+  ctx.fillStyle = PX.stoneHighlight;
+  ctx.fillRect(tx + 3, ty + 1, tw - 6, 1);
+  ctx.fillStyle = PX.mortar;
+  ctx.fillRect(tx + Math.round(tw * 0.34), ty + 1, 1, 5);
+  ctx.fillRect(tx + Math.round(tw * 0.68), ty + 1, 1, 5);
+  ctx.restore();
+}
+
+function drawDoorRecess(ctx: CanvasRoomContext, door: DoorLayout): void {
+  const { x, y, width, height } = door.rect;
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(x - 8, y - 10, width + 16, height + 20);
+  ctx.restore();
+  ctx.save();
+  ctx.globalAlpha = door.status === 'launchable' ? 0.16 : 0.10;
+  ctx.fillStyle = door.status === 'launchable' ? PX.flameMid : PX.haloCool;
+  ctx.fillRect(x - 2, y + 3, width + 4, height - 6);
+  ctx.restore();
+}
+
+function drawDoorCasing(ctx: CanvasRoomContext, door: DoorLayout): void {
+  const { x, y, width, height } = door.rect;
+  const capY = y - 9;
+  ctx.fillStyle = PX.void;
+  ctx.fillRect(x - 8, capY, width + 16, 6);
+  ctx.fillRect(x - 8, y - 8, 6, height + 16);
+  ctx.fillRect(x + width + 2, y - 8, 6, height + 16);
+  ctx.fillStyle = PX.woodWarmShade;
+  ctx.fillRect(x - 6, capY + 1, width + 12, 4);
+  ctx.fillRect(x - 6, y - 6, 3, height + 12);
+  ctx.fillRect(x + width + 3, y - 6, 3, height + 12);
+  ctx.save();
+  ctx.globalAlpha = 0.42;
+  ctx.fillStyle = door.status === 'launchable' ? PX.flameMid : PX.haloCool;
+  ctx.fillRect(x - 4, y - 3, 2, height + 4);
+  ctx.fillRect(x + width + 2, y - 3, 2, height + 4);
+  ctx.restore();
 }
 
 function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): void {
@@ -759,7 +1147,7 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
   // previous size was a 10px wide pinprick that disappeared at viewport
   // scale. Now 22px wide with a proper iron bracket curl off the wall.
   const cx = x + Math.round(width / 2);
-  const lanternCy = y - 22;
+  const lanternCy = y + 9;
   if (isLit) {
     const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
     // Phase 3c: smooth translucent halo (dithered version read as
@@ -791,7 +1179,7 @@ function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void
   const { x, y, width } = door.rect;
   const cx = x + Math.round(width / 2);
   // Sign hangs above the lantern. Sprite-based now.
-  const signCy = y - 50;
+  const signCy = y - 14;
   blitSprite(ctx, DOOR_SIGN, cx, signCy, 1);
 
   // Label rendered in HAND-PAINTED PIXEL FONT (rules.md §6) — no more
@@ -815,21 +1203,22 @@ function drawHaggis(
   phase: number,
   facingLeft: boolean,
   isMoving: boolean,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  storybookBackdropDrawn: boolean
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
-  const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height);
+  const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height) + (storybookBackdropDrawn ? 56 : 0);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
   // bothy-haggis design units: food body ~50 wide x ~30 tall,
-  // plus tiny legs and tied ends. Scale 2.7 keeps the hub mascot bold
-  // without swallowing the bothy doorway.
-  const HAGGIS_SCALE = 2.7;
-  const FEET_OFFSET = 12 * HAGGIS_SCALE;
+  // plus tiny legs and tied ends. The painted backdrop already carries
+  // the scene, so the overlay mascot becomes a small floor inhabitant.
+  const HAGGIS_SCALE = storybookBackdropDrawn ? 0.92 : 1.55;
+  const FEET_OFFSET = 10 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  hardContactShadow(ctx, cx, cy + bob + 6, 54, 2);
+  hardContactShadow(ctx, cx, cy + bob + 6, storybookBackdropDrawn ? 28 : 54, 2);
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
   // The Wee Chieftain stays front-facing; motion stays breath + legs.

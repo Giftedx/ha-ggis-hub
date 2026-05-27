@@ -2,6 +2,39 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 feat: rebuild the bothy around a painted storybook backdrop
+
+The hub scene had working pieces but weak art direction: the mascot overpowered the room, the floor read as a flat brown stage, the main light source was too timid, the hearth lacked architectural weight, and the mascot's oat cutaway competed with its face. This pass moves the live scene out of assembled programmer-art territory: a generated 1080×720 painted bothy backdrop now carries the main composition, while the existing procedural Canvas2D diorama remains as the no-image fallback.
+
+### Changed
+
+- **`public/art/bothy-storybook-backdrop.webp`** — added the shipped painted Highland Dawn Bothy backdrop, generated from the locked visual brief and normalized to WebP for the browser runtime.
+- **`src/render/canvas-room.ts`** — composites the painted backdrop once the browser image is loaded, keeps the procedural Canvas2D diorama as fallback, and reduces/repositions the Wee Chieftain overlay so the character reads as a room inhabitant instead of the dominant room mass.
+- **`src/render/canvas-room.ts`** — in the fallback path, replaced the muddy oval floor patch with a structured heather hearth runner, replaced the small central window with a panoramic Highland dawn view, added a stone inglenook behind the hearth, grounded side-wall doors with recesses/casings/threshold stones, moved sign/lantern fixtures into the door architecture, and added readable shelf/log-basket props.
+- **`src/render/whs-bothy.ts`** — lifted the plaster and floor substrate palette so the room separates into wall, floor, stone, and dawn-light values instead of collapsing into one brown mass.
+- **`src/render/bothy-haggis.ts`** — added authored brow lines, smaller casing eyelids, and a small casing highlight; moved the oat cutaway low on the casing and replaced the oversized cream googly eyes with smaller bead-eyes so it reads as food identity rather than a stray facial feature.
+- **`src/render/canvas-room.test.ts`** + **`src/render/bothy-haggis.test.ts`** — locked the loaded-backdrop path, fallback diorama staging, door grounding, structured runner, panoramic dawn view, hearth inglenook, and mascot-expression constraints.
+- **`src/hub/bothy-module.test.ts`** — added mocked browser-host coverage for mount, tap launch, pointer drive, keyboard interact, cleanup, and room/registry mismatch so the release coverage gate remains earned.
+- **`crates/hub-core/src/sim.rs`** — removed stale renderer-scale wording from the feet-anchor proximity comment while closing the clippy doc-markdown warning.
+- **`DESIGN.md`** — documented the painted backdrop, its procedural fallback, and the fallback composition budget.
+
+---
+
+## [Unreleased] — 2026-05-27 feat: add opt-in generated hub music
+
+The accepted Wario Synth shares are now local hub music assets. The share pages resolve to BitMidi MIDI sources and synthesize the Game Boy-style output client-side, so this pass stores both the source MIDI files and rendered MP3 outputs in the repo.
+
+### Added
+
+- **`public/music/`** — downloaded `flower-of-scotland.mid` and `scotland-the-brave.mid`; rendered matching 96 kbps MP3 files for browser playback; removed the rejected `scotland.mp3` track and added asset provenance in `public/music/README.md`.
+- **`scripts/render-wario-share-audio.mjs`** — regenerates the WAV intermediates through the Wario Synth browser path without vendoring the external synth engine into the app.
+- **`src/app/music.ts`** — new explicit opt-in playlist controller. It starts only from the music button, uses `preload="none"`, keeps volume at `0.38`, and advances tracks only after the user has chosen playback.
+- **`src/app/app.ts`** + **`src/app/shell.ts`** + **`src/main.ts`** — thread the playlist into the app model, add a small accessible `music` / `music on` control, and wire it to the runtime controller.
+- **`src/app/music.test.ts`** + app/shell tests — cover track metadata, no-autoplay start state, user-gesture playback, playlist advance, and listener cleanup.
+- **`DESIGN.md`** — added the sound policy: explicit opt-in, no preload on first paint, top-right chrome, source links retained.
+
+---
+
 ## [Unreleased] — 2026-05-26 refine: make the Wee Chieftain read as haggis before bean
 
 The V4 mascot fixed the worst problems but still leaned on tiny secondary cues: the body could read as a brown bean, the oat patch was too timid, and the favicon was still mostly a face. V5 makes one food cue do the heavy lifting: a larger pale oat/stuffing cutaway with a dark casing lip. The tied end stays, but the cutaway now carries the immediate "haggis pudding" read.

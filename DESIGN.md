@@ -15,7 +15,7 @@ This document is the missing technique spec. Sister project WHS already has the 
 name: ha.ggis Hub
 register: Highland Dawn Bothy
 mood: painterly storybook, warm, lobby-quiet, intimate
-medium: hand-rolled Canvas2D + serif HTML chrome
+medium: Canvas2D composite + painted WebP backdrop + procedural fallback + serif HTML chrome
 sister-resemblance-rule: shared canon nouns (peat, heather, whisky), not shared hex
 ```
 
@@ -239,13 +239,38 @@ elevation:
     alpha-per-ring: [0.055, 0.110, 0.165, 0.220] (× flicker)
     register: "smooth radial — second deliberate exception"
 
+  painted-storybook-backdrop:
+    role: "primary live art mass; hand-painted Highland Dawn Bothy backdrop carries the room, dawn view, door staging, hearth, and floor"
+    asset: "public/art/bothy-storybook-backdrop.webp"
+    source: "generated from the ADR-0006 visual brief, normalized to 1080×720 WebP"
+    runtime-policy: "draw with CanvasRenderingContext2D.drawImage once loaded; keep procedural Canvas2D diorama as no-image fallback"
+    overlay-policy: "player haggis, interaction prompt, vignette, particles, and runtime state remain Canvas2D overlays"
+
+  panoramic-dawn-view:
+    role: "fallback back-wall art mass; replaces the small central window when the painted backdrop is not yet available"
+    size: "432×108 px on the canonical 540×360 surface"
+    value-policy: "heather-purple sky, peach dawn band, cream sun core, dark mountain silhouettes, bracken foreground"
+
+  hearth-inglenook:
+    role: "large stone focal mass behind the hearth so the fire reads as architecture, not a loose UI tile"
+    outer-arch: "132×134 px at the room centre"
+    value-policy: "lit-stone surround, cool shadow interior, cream block highlights"
+
 ornament:
   # Ornament budget per scene: at most 3 framed objects, 2 dried-herb
-  # bundles, 1 mantel inscription, 1 hearth lintel motto. Keep quiet zones.
+  # bundles, 2 domestic prop anchors, 1 mantel inscription, 1 hearth
+  # lintel motto, 1 structured floor runner, and 1 hearth-inglenook
+  # focal structure. Keep quiet zones.
   framed-objects-max: 3
   framed-objects-spent: 1       # 1 unfinished Highland painting (left back wall) — shipped 2026-05-24
   dried-herb-bundles-max: 2
   dried-herb-bundles-spent: 2   # 2 bundles from ceiling beam (x=80, x=460) — shipped 2026-05-24
+  domestic-props-max: 2
+  domestic-props-spent: 2       # 1 back-wall crockery/herb shelf + 1 floor log basket — shipped 2026-05-27
+  painted-storybook-backdrop-spent: 1 # 1080×720 WebP primary backdrop — shipped 2026-05-27
+  panoramic-dawn-view-spent: 1 # fallback 432×108 px Highland dawn panorama — revised 2026-05-27
+  floor-runner-spent: 1         # fallback structured heather runner between Wee Chieftain and hearth — revised 2026-05-27
+  hearth-inglenook-spent: 1     # fallback stone focal mass behind hearth — shipped 2026-05-27
   inscriptions-max: 2          # mantel + lintel
   quiet-zone-policy: "upper-left and lower-right of the floor stay empty"
 ```
@@ -270,6 +295,31 @@ motion:
   # — A11y —
   reduced-motion:
     current: "dampen — particles + hearth flicker + dawn pulse suppressed; walk + door launch preserved; status 'reduced motion · the bothy bides quiet' shown (shipped 2026-05-24)"
+```
+
+## Sound
+
+```yaml
+sound:
+  policy: "explicit opt-in only; no autoplay, no preload on first paint"
+  control:
+    selector: ".scene-music"
+    placement: "top-right chrome, after direct/fallback links in DOM tab order"
+    visible-labels: ["music", "music on"]
+    accessible-labels: ["Play hub music: {track title}", "Pause hub music"]
+  playlist:
+    - title: "Flower of Scotland"
+      audio: "public/music/flower-of-scotland.mp3"
+      midi-source: "public/music/flower-of-scotland.mid"
+      source-url: "https://www.wario.style/s/7u0vk4ok"
+    - title: "Scotland the Brave"
+      audio: "public/music/scotland-the-brave.mp3"
+      midi-source: "public/music/scotland-the-brave.mid"
+      source-url: "https://www.wario.style/s/tw6IWdAL"
+  runtime:
+    implementation: "HTMLAudioElement playlist controller in src/app/music.ts"
+    volume: 0.38
+    advance: "on ended, move to next track and keep playing only if user already opted in"
 ```
 
 ## Voice + register

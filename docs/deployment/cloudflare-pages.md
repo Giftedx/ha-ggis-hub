@@ -109,7 +109,7 @@ In-repo (already verified by CI):
 
 Out-of-band (Cloudflare dashboard + DNS):
 
-- [ ] `ha.ggis.xyz` resolves to Pages production
-- [ ] `ggis.xyz` redirects preserving path/query (Cloudflare Bulk Redirect or Redirect Rule)
-- [ ] HTTPS active
-- [ ] No production source maps unless intentional
+- [x] `ha.ggis.xyz` resolves to Pages production (`HTTP 200`, verified 2026-05-27)
+- [x] `ggis.xyz` redirects preserving path/query (`HTTP 301` to `ha.ggis.xyz`, verified 2026-05-27)
+- [x] HTTPS active
+- [x] No production source maps unless intentional (`pnpm run build:verified`, verified 2026-05-27)

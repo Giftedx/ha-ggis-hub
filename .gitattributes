@@ -9,6 +9,7 @@
 *.webp binary
 *.ico binary
 *.mp3 binary
+*.mid binary
 *.ogg binary
 *.wav binary
 *.wasm binary

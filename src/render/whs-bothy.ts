@@ -15,12 +15,12 @@
 // Warm peat/plaster palette (kept from WHS croft — reads right for a
 // Highland bothy interior regardless of light register on top).
 const INK = '#0a0604';
-const PEAT_SHADOW = '#322018';
-const PEAT_DARK = '#4a3020';
-const PEAT_MID = '#6a4a28';
-const PLASTER_DARK = '#5a3828';
-const PLASTER_MID = '#7a5630';
-const PLASTER_LIGHT = '#b08850';
+const PEAT_SHADOW = '#2a1a18';
+const PEAT_DARK = '#3a261c';
+const PEAT_MID = '#6a4528';
+const PLASTER_DARK = '#675046';
+const PLASTER_MID = '#9a7650';
+const PLASTER_LIGHT = '#d8b878';
 const WOOD_DARK = '#2a1608';
 const WOOD_MID = '#5a3218';
 const WOOD_LIGHT = '#8a5a2e';

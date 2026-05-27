@@ -174,16 +174,18 @@ export function drawBothyHaggis(
   strokeCurve(ctx, palette.casingSeam, 0.35, 0.7 * s, mx(-14), my(-8), mx(0), my(-11), mx(15), my(-5));
   strokeCurve(ctx, palette.casingHighlight, 0.38, 0.8 * s, mx(-16), my(-5), mx(-8), my(-8), mx(2), my(-7));
 
-  // Pale oat cutaway: one loud food cue, not a wound, snout, or freckles.
-  fillTornCutaway(ctx, palette.casingSeam, 0.64, mx, my, 0, 0);
-  fillTornCutaway(ctx, palette.crumbLight, 1, mx, my, 0.8, 0.45);
-  strokeCurve(ctx, palette.casingSeam, 0.72, 0.9 * s, mx(-22.2), my(-5), mx(-18.9), my(-8.4), mx(-12.2), my(-6));
-  strokeCurve(ctx, palette.casingHighlight, 0.42, 0.7 * s, mx(-20.7), my(1.2), mx(-15.8), my(2), mx(-12.6), my(-0.6));
-  fillCircle(ctx, palette.crumbDark, 0.45, mx(-19.2), my(-4.7), 0.5 * s);
-  fillCircle(ctx, palette.oatFleck, 0.95, mx(-18.8), my(-4.4), 0.95 * s);
-  fillCircle(ctx, palette.oatFleck, 0.9, mx(-15.8), my(-2.2), 1.05 * s);
-  fillCircle(ctx, palette.oatFleck, 0.82, mx(-12.8), my(-5.1), 0.85 * s);
-  fillCircle(ctx, palette.crumbDark, 0.45, mx(-15.1), my(-1.0), 0.5 * s);
+  // Pale oat cutaway: one loud food cue, kept low on the casing so it
+  // does not read as a third eye or accidental facial feature.
+  const cutawayY = 7;
+  fillTornCutaway(ctx, palette.casingSeam, 0.64, mx, my, 0, cutawayY);
+  fillTornCutaway(ctx, palette.crumbLight, 1, mx, my, 0.8, cutawayY + 0.45);
+  strokeCurve(ctx, palette.casingSeam, 0.72, 0.9 * s, mx(-22.2), my(cutawayY - 5), mx(-18.9), my(cutawayY - 8.4), mx(-12.2), my(cutawayY - 6));
+  strokeCurve(ctx, palette.casingHighlight, 0.42, 0.7 * s, mx(-20.7), my(cutawayY + 1.2), mx(-15.8), my(cutawayY + 2), mx(-12.6), my(cutawayY - 0.6));
+  fillCircle(ctx, palette.crumbDark, 0.45, mx(-19.2), my(cutawayY - 4.7), 0.5 * s);
+  fillCircle(ctx, palette.oatFleck, 0.95, mx(-18.8), my(cutawayY - 4.4), 0.95 * s);
+  fillCircle(ctx, palette.oatFleck, 0.9, mx(-15.8), my(cutawayY - 2.2), 1.05 * s);
+  fillCircle(ctx, palette.oatFleck, 0.82, mx(-12.8), my(cutawayY - 5.1), 0.85 * s);
+  fillCircle(ctx, palette.crumbDark, 0.45, mx(-15.1), my(cutawayY - 1.0), 0.5 * s);
 
   // Oat flecks embedded in the casing.
   const flecks: readonly [number, number, number][] = [
@@ -196,17 +198,25 @@ export function drawBothyHaggis(
     fillCircle(ctx, palette.oatFleck, 0.72, mx(fx), my(fy), fr * s);
   }
 
-  // Big readable mascot eyes.
-  fillCircle(ctx, palette.outline, 1, mx(-7.2), my(-2.2), 4.2 * s);
-  fillCircle(ctx, palette.outline, 1, mx(8.3), my(-2.2), 4.2 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(-7.2), my(-2.5), 3.4 * s);
-  fillCircle(ctx, palette.eyeWhite, 1, mx(8.3), my(-2.5), 3.4 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(-5.8), my(-2.6), 1.45 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(9.7), my(-2.6), 1.45 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-6.1), my(-3.7), 0.6 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(9.5), my(-3.7), 0.6 * s);
+  // Small bead-eyes. The previous oversized cream whites read as pasted
+  // googly eyes at room scale; these keep intent without stealing the scene.
+  fillCircle(ctx, palette.outline, 1, mx(-6.2), my(-2.2), 2.8 * s);
+  fillCircle(ctx, palette.outline, 1, mx(7.2), my(-2.2), 2.8 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(-6.2), my(-2.3), 2.1 * s);
+  fillCircle(ctx, palette.eyeWhite, 1, mx(7.2), my(-2.3), 2.1 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 2.35 * s, 0.9 * s);
+  fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 2.35 * s, 0.9 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 0.85 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 0.85 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.05), 0.34 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.05), 0.34 * s);
+  strokeCurve(ctx, palette.outline, 0.34, 0.36 * s, mx(-8.6), my(-3.9), mx(-5.8), my(-3.9), mx(-3.4), my(-3.7));
+  strokeCurve(ctx, palette.outline, 0.34, 0.36 * s, mx(4.8), my(-3.9), mx(7.2), my(-3.9), mx(10.2), my(-3.7));
   strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(-10.4), my(-4.4), mx(-7.3), my(-5), mx(-3.8), my(-4.7));
   strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(4.1), my(-4.4), mx(8.4), my(-5), mx(11.9), my(-4.7));
+  strokeCurve(ctx, palette.casingSeam, 0.64, 0.65 * s, mx(-12.2), my(-6.9), mx(-8), my(-8.2), mx(-3.6), my(-6.8));
+  strokeCurve(ctx, palette.casingSeam, 0.64, 0.65 * s, mx(4.3), my(-6.9), mx(8.6), my(-8.2), mx(13.6), my(-6.8));
+  fillEllipseRaw(ctx, palette.casingHighlight, 0.20, mx(5.4), my(4.8), 5.6 * s, 1.4 * s);
 
   // Tiny content smile, low-contrast enough not to become a snout.
   strokeCurve(ctx, palette.mouth, 0.55, 0.8 * s, mx(-2.5), my(3.2), mx(0), my(4.8), mx(3.2), my(3.2));
