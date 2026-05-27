@@ -15,7 +15,7 @@
     "build:verified": "pnpm run build && node scripts/verify-dist.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/ vite.config.ts --max-warnings=0",
+    "lint": "eslint src/ scripts/ vite.config.ts --max-warnings=0",
     "fmt:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.mjs\"",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run build:verified",
     "rasterize:og": "node scripts/rasterize-og.mjs",

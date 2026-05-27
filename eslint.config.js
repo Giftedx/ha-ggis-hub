@@ -47,4 +47,16 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
+  // Plain-JS automation scripts — no TypeScript project service; disable all
+  // rules that require type information so the parser doesn't demand
+  // project membership for .mjs files outside the tsconfig scope.
+  {
+    files: ['scripts/**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+      },
+    },
+  },
 );
