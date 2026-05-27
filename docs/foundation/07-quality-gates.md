@@ -49,6 +49,7 @@ node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5
 # Supply-chain
 cargo deny check                        # license compliance + RustSec advisories + source policy
 cargo machete                           # unused dependency detection
+gitleaks detect --source . --no-banner  # git history scan for accidentally committed secrets
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
@@ -87,7 +88,7 @@ pnpm exec playwright test --grep @soak
 
 # Supply-chain scanners
 osv-scanner --recursive .
-gitleaks detect --source . -v
+# gitleaks promoted to supply-chain gate on 2026-05-27 — see above
 ```
 
 Why they're deferred: each adds either a non-trivial dependency, or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.

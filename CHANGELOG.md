@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: gitleaks secret scan added to supply-chain gate
+
+`gitleaks detect --source . --no-banner` added as a third step in the `supply-chain` haggis-eval
+gate. Scans all 202 commits of git history for accidentally committed secrets. Repo is clean.
+CI updated: `gitleaks` installed via `taiki-e/install-action`.
+
+### Added
+
+- **`tools/haggis-eval/internal/cmd/supply_chain.go`** — third gate step: `gitleaks detect`.
+- **`.github/workflows/ci.yml`** — gitleaks install step via `taiki-e/install-action`.
+- **`tools/haggis-eval/main.go`**, **`tools/haggis-eval/README.md`** — help/table updated.
+- **`docs/foundation/07-quality-gates.md`** — gitleaks promoted out of still-planned list.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: Rust coverage gate via cargo-llvm-cov (lines=100%, fns=100%)
 
 New `rust-cov` haggis-eval gate runs `cargo llvm-cov --workspace --exclude hub-wasm

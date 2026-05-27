@@ -44,7 +44,8 @@ jobs:
   # diff vs tests/golden/ with Hamming tolerance), a11y (26 WCAG 2.2
   # AA spot-checks, hand-rolled, no axe-core dep), soak (15s RAF loop
   # heap-growth < 5 MB), supply-chain (cargo deny: licenses + RustSec
-  # advisories + source policy; cargo machete: unused deps), differential hash (C vs Rust FNV-1a,
+  # advisories + source policy; cargo machete: unused deps; gitleaks: secret scan),
+  # differential hash (C vs Rust FNV-1a,
   # 100k+ cases), differential rng (WAT vs Rust xoshiro128**, 100k+
   # cases). Emits signed JSON report to target/haggis-eval/all-*.json.
   haggis-eval-all:
@@ -65,6 +66,10 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
+      - name: Install gitleaks
+        uses: taiki-e/install-action@v2
+        with:
+          tool: gitleaks
       - uses: actions/setup-go@v6
         with:
           go-version: '1.22'
