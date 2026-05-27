@@ -1,0 +1,10 @@
+[[IgnoredVulns]]
+id = "GHSA-g4v2-cjqp-rfmq"
+reason = """
+wasmi is a [dev-dependencies] in crates/hub-hardlang — used only in the
+differential RNG integration test (tests/differential_rng.rs). It is never
+compiled into the production WASM binary or any shipped artifact. The OSV
+'fixed version' (0.47.1) is yanked from crates.io; the next available release
+is 2.0.0-beta.2 (pre-release, breaking API). Re-evaluate when wasmi publishes
+a stable 1.x or 2.x release with this advisory resolved.
+"""

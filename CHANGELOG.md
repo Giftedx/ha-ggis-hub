@@ -2,6 +2,35 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: osv-scanner cross-ecosystem CVE scan; Go 1.22 → 1.24
+
+`osv-scanner --recursive .` added as a fourth step in the `supply-chain` haggis-eval gate.
+Scans Cargo.lock (64 packages), pnpm-lock.yaml (208 packages), and go.mod (1 package) against
+the OSV vulnerability database. CI updated: `google/osv-scanner-action/osv-installer@v2`.
+
+Initial scan found 3 vulnerabilities across 2 packages:
+- **Go stdlib 1.22**: GO-2025-3750 + GO-2025-3956 — fixed by upgrading go.mod + CI to Go 1.24.
+- **wasmi 0.45.0**: GHSA-g4v2-cjqp-rfmq (CVSS 8.4) — fixed version (0.47.1) is yanked;
+  next release is 2.0.0-beta.2 (pre-release). Documented exception in `osv-scanner.toml`
+  with rationale: wasmi is a `[dev-dependencies]` only, never compiled into any shipped artifact.
+
+Gate now passes clean: 0 vulnerabilities after Go upgrade + wasmi exception.
+
+### Added
+
+- **`osv-scanner.toml`** — exception config for GHSA-g4v2-cjqp-rfmq with rationale.
+- **`tools/haggis-eval/internal/cmd/supply_chain.go`** — fourth gate step: `osv-scanner`.
+- **`.github/workflows/ci.yml`** — osv-scanner install step via `google/osv-scanner-action/osv-installer@v2`.
+
+### Changed
+
+- **`tools/haggis-eval/go.mod`** — `go 1.22` → `go 1.24` (fixes GO-2025-3750, GO-2025-3956).
+- **`.github/workflows/ci.yml`** — `go-version: '1.22'` → `'1.24'`.
+- **`tools/haggis-eval/main.go`**, **`tools/haggis-eval/README.md`** — help/table updated.
+- **`docs/foundation/07-quality-gates.md`** — osv-scanner promoted out of still-planned list.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: gitleaks secret scan added to supply-chain gate
 
 `gitleaks detect --source . --no-banner` added as a third step in the `supply-chain` haggis-eval

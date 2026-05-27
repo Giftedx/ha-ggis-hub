@@ -44,7 +44,8 @@ jobs:
   # diff vs tests/golden/ with Hamming tolerance), a11y (26 WCAG 2.2
   # AA spot-checks, hand-rolled, no axe-core dep), soak (15s RAF loop
   # heap-growth < 5 MB), supply-chain (cargo deny: licenses + RustSec
-  # advisories + source policy; cargo machete: unused deps; gitleaks: secret scan),
+  # advisories + source policy; cargo machete: unused deps; gitleaks:
+  # secret scan; osv-scanner: cross-ecosystem CVE scan),
   # differential hash (C vs Rust FNV-1a,
   # 100k+ cases), differential rng (WAT vs Rust xoshiro128**, 100k+
   # cases). Emits signed JSON report to target/haggis-eval/all-*.json.
@@ -70,9 +71,11 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: gitleaks
+      - name: Install osv-scanner
+        uses: google/osv-scanner-action/osv-installer@v2
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.22'
+          go-version: '1.24'
           # haggis-eval is stdlib-only, so there's no go.sum to key the
           # module cache on. Disable cache to silence the "Dependencies
           # file is not found" warning.

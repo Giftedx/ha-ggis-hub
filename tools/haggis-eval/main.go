@@ -115,7 +115,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  visual [verify|capture]    Perceptual aHash diff vs tests/golden/ (default verify)")
 	fmt.Fprintln(w, "  a11y                       Hand-rolled WCAG 2.2 AA spot-checks (lang, contrast, focus, names)")
 	fmt.Fprintln(w, "  soak                       Memory-growth soak (15s RAF loop; GC before/after; heap budget 5 MB)")
-	fmt.Fprintln(w, "  supply-chain               cargo deny check (licenses + advisories + bans + sources) + cargo machete (unused deps) + gitleaks (secret scan)")
+	fmt.Fprintln(w, "  supply-chain               cargo deny + cargo machete + gitleaks (secret scan) + osv-scanner (cross-ecosystem CVE scan)")
 	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
 	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
 	fmt.Fprintln(w, "")

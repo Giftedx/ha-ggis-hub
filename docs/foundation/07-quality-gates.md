@@ -50,6 +50,7 @@ node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5
 cargo deny check                        # license compliance + RustSec advisories + source policy
 cargo machete                           # unused dependency detection
 gitleaks detect --source . --no-banner  # git history scan for accidentally committed secrets
+osv-scanner --recursive .               # cross-ecosystem CVE scan (Cargo.lock + pnpm-lock.yaml + go.mod)
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
@@ -87,7 +88,7 @@ pnpm exec playwright test --project=webkit
 pnpm exec playwright test --grep @soak
 
 # Supply-chain scanners
-osv-scanner --recursive .
+# osv-scanner promoted to supply-chain gate on 2026-05-27 — see above
 # gitleaks promoted to supply-chain gate on 2026-05-27 — see above
 ```
 
