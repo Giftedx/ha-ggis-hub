@@ -583,3 +583,43 @@ mod tests {
         assert_eq!(a.state_hash(), b.state_hash());
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest::proptest! {
+        /// Player position must stay within world bounds for any input sequence.
+        #[test]
+        fn player_always_within_bounds_under_any_input_sequence(
+            seed in any::<u64>(),
+            inputs in proptest::collection::vec(
+                ((-1i8..=1i8), (-1i8..=1i8), any::<bool>()),
+                1..50usize
+            )
+        ) {
+            let mut sim = Sim::new(seed);
+            for (x, y, interact) in inputs {
+                let snap = sim.tick(InputSnapshot::from_axes(x, y, interact));
+                prop_assert!(snap.player_x >= PLAYER_HALF, "player_x={} < PLAYER_HALF={}", snap.player_x, PLAYER_HALF);
+                prop_assert!(snap.player_x <= WORLD_W - PLAYER_HALF, "player_x={} > max={}", snap.player_x, WORLD_W - PLAYER_HALF);
+                prop_assert!(snap.player_y >= PLAYER_HALF, "player_y={} < PLAYER_HALF={}", snap.player_y, PLAYER_HALF);
+                prop_assert!(snap.player_y <= WORLD_H - PLAYER_HALF, "player_y={} > max={}", snap.player_y, WORLD_H - PLAYER_HALF);
+            }
+        }
+
+        /// from_axes preserves the sign of each axis for arbitrary i8 inputs.
+        #[test]
+        fn from_axes_preserves_signum_for_arbitrary_inputs(
+            x in any::<i8>(),
+            y in any::<i8>(),
+            interact in any::<bool>()
+        ) {
+            let snap = InputSnapshot::from_axes(x, y, interact);
+            prop_assert_eq!(snap.x(), x.signum(), "x={} → snap.x()={}", x, snap.x());
+            prop_assert_eq!(snap.y(), y.signum(), "y={} → snap.y()={}", y, snap.y());
+            prop_assert_eq!(snap.interact(), interact);
+        }
+    }
+}
