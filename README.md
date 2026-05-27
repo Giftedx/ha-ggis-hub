@@ -52,7 +52,7 @@ The hub is also a **portfolio artifact for the engineering layer underneath**. T
 - **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
 - **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
 - **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **vitest suite** + cargo workspace tests + five Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, a11y) + four core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
+- **vitest suite** + cargo workspace tests + six Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, a11y) + five core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
 - **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
 - **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
@@ -88,9 +88,9 @@ pnpm verify        # typecheck → lint → fmt:check → vitest → build → s
 pnpm run coverage  # vitest v8 coverage (lines=100%, stmts=100%, fns=100%, branches=100%)
 
 # Browser smokes (each builds dist + starts vite preview internally)
-node scripts/run-browser-smokes.mjs    # 5 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + a11y
-PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 4 core smokes on Firefox
-PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 4 core smokes on WebKit
+node scripts/run-browser-smokes.mjs    # 6 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + a11y
+PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 5 core smokes on Firefox
+PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 5 core smokes on WebKit
 node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same state hash
 
 # Visual gate (builds + previews + diffs against tests/golden/)

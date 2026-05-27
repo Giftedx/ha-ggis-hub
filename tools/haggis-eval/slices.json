@@ -3,7 +3,7 @@
   "schema": 1,
   "slices": {
     "pre-merge": {
-      "description": "Fast pre-merge gate-set — what a contributor runs before opening a PR. Skips rust/rust-cov, coverage, multi-browser, soak, supply-chain, and the differential tests — all release-gate territory. Keeps typecheck + vitest + build + security headers + perf budgets (both halves) + five chromium browser smokes + determinism + visual + a11y. Closest analogue to `pnpm verify` but extended with the browser tier.",
+      "description": "Fast pre-merge gate-set — what a contributor runs before opening a PR. Skips rust/rust-cov, coverage, multi-browser, soak, supply-chain, and the differential tests — all release-gate territory. Keeps typecheck + vitest + build + security headers + perf budgets (both halves) + six chromium browser smokes + determinism + visual + a11y. Closest analogue to `pnpm verify` but extended with the browser tier.",
       "gates": ["ts", "security", "perf", "browser", "determinism", "visual", "a11y"]
     },
     "release": {
