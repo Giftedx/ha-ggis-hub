@@ -128,7 +128,7 @@ describe('drawBothyHaggis', () => {
     expect(ctx.calls).toContain('arc:93.8,97.7,4');
     expect(ctx.calls).toContain('arc:107.2,97.7,4');
     expect(ctx.calls).toContain('arc:94.5,97.65,2.2');
-    expect(ctx.calls).toContain('arc:108,97.65,2.2');
+    expect(ctx.calls).toContain('arc:106.4,97.65,2.2');
   });
 
   it('adds an authored brow line so the mascot reads alive rather than blank', () => {

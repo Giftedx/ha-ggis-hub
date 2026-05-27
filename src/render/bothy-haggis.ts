@@ -244,9 +244,9 @@ export function drawBothyHaggis(
   fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(-6.2), my(-4), 4.2 * s, 1.2 * s);
   fillEllipseRaw(ctx, palette.casingLight, 0.82, mx(7.2), my(-4), 4.2 * s, 1.2 * s);
   fillCircle(ctx, palette.eyePupil, 1, mx(-5.5), my(-2.35), 2.2 * s);
-  fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 2.2 * s);
+  fillCircle(ctx, palette.eyePupil, 1, mx(6.4), my(-2.35), 2.2 * s);
   fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.1), 1.0 * s);
-  fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.1), 1.0 * s);
+  fillCircle(ctx, palette.eyeGlint, 0.92, mx(6.2), my(-3.1), 1.0 * s);
   // One clear brow arc per eye — bold enough to read at room scale.
   strokeCurve(
     ctx,
