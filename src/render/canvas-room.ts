@@ -81,8 +81,8 @@ const PX = {
   woodWarmHighlight: '#8a5630',
   // Fire — banked embers from last night, warm but not roaring
   flameMid: '#e4a020',
-  // Eyes — cream whites read warmer than cool blue-white in the dawn light
-  eyeWhite: '#f0e6c8',
+  // Tatties-cream — storybook canvas ground
+  cream: '#f0e6c8',
   // Active-door glow — heather-purple (locked counterpoint, dawn-correct)
   haloCool: '#7a4a9c',
   // Interaction prompt overlay
@@ -653,13 +653,13 @@ function drawFramedPicture(
   ctx.fillRect(x + w - 2, y + 1, 1, h - 2); // right edge lit
   ctx.restore();
 
-  // Inner canvas — cream ground (tatties-cream from PX.eyeWhite)
+  // Inner canvas — cream ground (tatties-cream from PX.cream)
   const bord = 3;
   const cx = x + bord,
     cy = y + bord,
     cw = w - bord * 2,
     ch = h - bord * 2;
-  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillStyle = PX.cream;
   ctx.fillRect(cx, cy, cw, ch);
 
   // Sky wash — upper 45% of canvas: heather-purple (painted first)
@@ -695,7 +695,7 @@ function drawFramedPicture(
   ctx.restore();
 
   // Lower canvas — bare cream (unfinished: foreground never painted)
-  ctx.fillStyle = PX.eyeWhite;
+  ctx.fillStyle = PX.cream;
   ctx.fillRect(cx, mBase, cw, cy + ch - mBase);
 }
 
