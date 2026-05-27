@@ -10,6 +10,9 @@ class FakeElement {
   textContent = '';
   href = '';
   rel = '';
+  type = '';
+  src = '';
+  preload = '';
   width = 0;
   height = 0;
 
@@ -39,6 +42,16 @@ const MODEL: AppModel = {
     label: 'Play Wild Haggis Survivors',
     target: 'https://wild-haggis-survivors.pages.dev/',
     title: 'Wild Haggis Survivors'
+  },
+  music: {
+    tracks: [
+      {
+        title: 'Flower of Scotland',
+        src: '/music/flower-of-scotland.mp3',
+        midiSrc: '/music/flower-of-scotland.mid',
+        sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
+      }
+    ]
   }
 };
 
@@ -107,6 +120,31 @@ describe('createShell', () => {
     expect(direct.getAttribute('aria-label')).toBe('awa’ in → — Play Wild Haggis Survivors');
 
     expect(shell.status.getAttribute('role')).toBe('status');
+  });
+
+  it('adds opt-in music controls without moving the primary keyboard links', () => {
+    stubDom();
+
+    const shell = createShell(MODEL) as unknown as {
+      scene: FakeElement;
+      musicButton: FakeElement;
+      musicAudio: FakeElement;
+    };
+
+    const directIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-direct');
+    const fallbackIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-fallback');
+    const musicIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-music');
+
+    expect(directIndex).toBeGreaterThan(-1);
+    expect(fallbackIndex).toBe(directIndex + 1);
+    expect(musicIndex).toBeGreaterThan(fallbackIndex);
+    expect(shell.musicButton.tagName).toBe('button');
+    expect(shell.musicButton.type).toBe('button');
+    expect(shell.musicButton.textContent).toBe('music');
+    expect(shell.musicButton.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+    expect(shell.musicAudio.tagName).toBe('audio');
+    expect(shell.musicAudio.preload).toBe('none');
+    expect(shell.musicAudio.src).toBe('/music/flower-of-scotland.mp3');
   });
 
   it('exposes persistent semantic fallback instructions and a direct game link', () => {

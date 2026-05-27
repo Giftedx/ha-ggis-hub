@@ -111,6 +111,45 @@ body {
   border-radius: 2px;
 }
 
+.scene-music {
+  position: fixed;
+  top: 0.85rem;
+  right: 1.2rem;
+  margin: 0;
+  padding: 0.34rem 0.52rem 0.38rem;
+  color: var(--hub-cairn-stone);
+  background: rgba(26, 14, 8, 0.74);
+  border: 1px solid rgba(184, 168, 120, 0.34);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  opacity: 0.68;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 200ms ease, border-color 200ms ease, opacity 200ms ease;
+}
+
+.scene-music:hover,
+.scene-music:focus-visible,
+.scene-music.is-playing {
+  color: var(--hub-neeps-orange);
+  border-color: rgba(228, 160, 32, 0.66);
+  opacity: 0.95;
+}
+
+.scene-music:focus-visible {
+  outline: 2px solid var(--hub-neeps-orange);
+  outline-offset: 3px;
+}
+
+.scene-music:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
 .scene-fallback {
   /* Screen-reader-only by default — charter playable path is discoverable
      without a visible tutorial plate. Semantic content + direct link stay

@@ -152,7 +152,7 @@ const TEXT_PAIRS = [
     bg: '#1a0e08'
   },
   {
-    label: 'cairn-stone text on ink-deep backdrop (scene-brand + scene-direct resting)',
+    label: 'cairn-stone text on ink-deep backdrop (scene-brand + scene-direct + scene-music resting)',
     fg: '#b8a878',
     bg: '#1a0e08'
   },
@@ -365,9 +365,10 @@ try {
     `focused=${JSON.stringify(secondFocusedTag)}`);
 
   // 10. Focus visible — outline computed to something other than `none`
-  //    (or a non-zero outline width). Check both visible launch links.
+  //    (or a non-zero outline width). Check both visible launch links
+  //    plus the opt-in music button.
   const focusStyles = await page.evaluate(() => {
-    const selectors = ['a.scene-direct', '.scene-fallback a'];
+    const selectors = ['a.scene-direct', '.scene-fallback a', 'button.scene-music'];
     return selectors.map((selector) => {
       const el = document.querySelector(selector);
       if (!el) return { selector, found: false };

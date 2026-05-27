@@ -1,6 +1,7 @@
 import './style.css';
 import { createAppModel } from './app/app';
 import { createShell } from './app/shell';
+import { createMusicController } from './app/music';
 import { createGameLifecycleHost } from './engine/lifecycle';
 import { createBothyGameModule } from './hub/bothy-module';
 
@@ -23,6 +24,11 @@ async function start(root: HTMLElement): Promise<void> {
   }
 
   const shell = createShell(model);
+  createMusicController({
+    button: shell.musicButton,
+    audio: shell.musicAudio,
+    tracks: model.music.tracks
+  });
   root.replaceChildren(shell.scene);
 
   const host = createGameLifecycleHost(shell.scene);

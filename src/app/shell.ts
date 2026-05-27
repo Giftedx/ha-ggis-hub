@@ -5,6 +5,8 @@ export interface SceneElements {
   readonly canvas: HTMLCanvasElement;
   readonly status: HTMLElement;
   readonly fallback: HTMLElement;
+  readonly musicButton: HTMLButtonElement;
+  readonly musicAudio: HTMLAudioElement;
 }
 
 export function createShell(model: AppModel): SceneElements {
@@ -34,13 +36,37 @@ export function createShell(model: AppModel): SceneElements {
   direct.setAttribute('aria-label', `awa’ in → — ${model.directPlay.label}`);
 
   const fallback = createFallbackHelp(model);
+  const musicButton = createMusicButton(model);
+  const musicAudio = createMusicAudio(model);
 
   const status = document.createElement('p');
   status.className = 'scene-status';
   status.setAttribute('role', 'status');
 
-  scene.append(canvas, brand, direct, fallback, status);
-  return { scene, canvas, status, fallback };
+  scene.append(canvas, brand, direct, fallback, musicButton, musicAudio, status);
+  return { scene, canvas, status, fallback, musicButton, musicAudio };
+}
+
+function createMusicButton(model: AppModel): HTMLButtonElement {
+  const button = document.createElement('button');
+  const firstTrack = model.music.tracks[0];
+  button.className = 'scene-music';
+  button.type = 'button';
+  button.textContent = 'music';
+  button.disabled = firstTrack === undefined;
+  button.setAttribute('aria-label', firstTrack === undefined ? 'Hub music unavailable' : `Play hub music: ${firstTrack.title}`);
+  return button;
+}
+
+function createMusicAudio(model: AppModel): HTMLAudioElement {
+  const audio = document.createElement('audio');
+  audio.className = 'scene-music-audio';
+  audio.preload = 'none';
+  const firstTrack = model.music.tracks[0];
+  if (firstTrack !== undefined) {
+    audio.src = firstTrack.src;
+  }
+  return audio;
 }
 
 function createFallbackHelp(model: AppModel): HTMLElement {

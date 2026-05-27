@@ -20,7 +20,8 @@ const BASE = `http://localhost:${PORT}/`;
 const SMOKES = [
   'scripts/smoke-door-launch.mjs',
   'scripts/smoke-door-tap.mjs',
-  'scripts/smoke-pointer-drive.mjs'
+  'scripts/smoke-pointer-drive.mjs',
+  'scripts/smoke-music-toggle.mjs'
 ];
 
 function log(...args) {

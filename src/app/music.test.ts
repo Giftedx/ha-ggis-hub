@@ -1,0 +1,152 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createMusicController, type MusicTrackModel } from './music';
+
+class FakeButton {
+  readonly listeners = new Map<string, EventListener>();
+  className = '';
+  textContent = '';
+  disabled = false;
+  readonly attributes = new Map<string, string>();
+
+  addEventListener(type: string, listener: EventListener): void {
+    this.listeners.set(type, listener);
+  }
+
+  removeEventListener(type: string, listener: EventListener): void {
+    if (this.listeners.get(type) === listener) {
+      this.listeners.delete(type);
+    }
+  }
+
+  setAttribute(name: string, value: string): void {
+    this.attributes.set(name, value);
+  }
+
+  getAttribute(name: string): string | null {
+    return this.attributes.get(name) ?? null;
+  }
+
+  click(): void {
+    this.listeners.get('click')?.(new Event('click'));
+  }
+}
+
+class FakeAudio {
+  readonly listeners = new Map<string, EventListener>();
+  src = '';
+  preload = '';
+  volume = 1;
+  paused = true;
+  playCalls = 0;
+  pauseCalls = 0;
+
+  addEventListener(type: string, listener: EventListener): void {
+    this.listeners.set(type, listener);
+  }
+
+  removeEventListener(type: string, listener: EventListener): void {
+    if (this.listeners.get(type) === listener) {
+      this.listeners.delete(type);
+    }
+  }
+
+  async play(): Promise<void> {
+    this.playCalls += 1;
+    this.paused = false;
+  }
+
+  pause(): void {
+    this.pauseCalls += 1;
+    this.paused = true;
+  }
+
+  end(): void {
+    this.paused = true;
+    this.listeners.get('ended')?.(new Event('ended'));
+  }
+}
+
+const TRACKS: MusicTrackModel[] = [
+  {
+    title: 'Flower of Scotland',
+    src: '/music/flower-of-scotland.mp3',
+    midiSrc: '/music/flower-of-scotland.mid',
+    sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
+  },
+  {
+    title: 'Scotland the Brave',
+    src: '/music/scotland-the-brave.mp3',
+    midiSrc: '/music/scotland-the-brave.mid',
+    sourceUrl: 'https://www.wario.style/s/tw6IWdAL'
+  }
+];
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('createMusicController', () => {
+  it('starts paused and plays only after the user presses the music control', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    expect(audio.preload).toBe('none');
+    expect(audio.src).toBe('/music/flower-of-scotland.mp3');
+    expect(audio.volume).toBe(0.38);
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+
+    button.click();
+    await Promise.resolve();
+
+    expect(audio.playCalls).toBe(1);
+    expect(button.textContent).toBe('music on');
+    expect(button.getAttribute('aria-label')).toBe('Pause hub music');
+  });
+
+  it('advances through the playlist while playback is active', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    button.click();
+    await Promise.resolve();
+    audio.end();
+    await Promise.resolve();
+
+    expect(audio.src).toBe('/music/scotland-the-brave.mp3');
+    expect(audio.playCalls).toBe(2);
+    expect(button.textContent).toBe('music on');
+    expect(button.getAttribute('aria-label')).toBe('Pause hub music');
+  });
+
+  it('pauses and unregisters listeners on destroy', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    const controller = createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    button.click();
+    await Promise.resolve();
+    controller.destroy();
+
+    expect(audio.pauseCalls).toBe(1);
+    expect(button.listeners.size).toBe(0);
+    expect(audio.listeners.size).toBe(0);
+  });
+});
