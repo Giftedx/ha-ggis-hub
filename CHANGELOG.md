@@ -2,6 +2,26 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: palette discipline compliance (rules.md Rule 5)
+
+Brought all draw functions into compliance with rules.md Rule 5 ("inline hex
+is acceptable ONLY inside a named constant block — never inside draw logic"):
+- **`WINDOW_VIEW` const** added near PX: 6 highland landscape colours for the
+  through-the-window sky + mountain scene (skyDeep, skyMid, horizonPeach,
+  horizonAmber, mountainShadow, mountainDeep). Deliberately off-palette from the
+  bothy room tokens — outdoor light reads different from interior.
+- **`DIORAMA_RUNNER_BASE`** const for the heather-berry carpet strip between
+  player and back wall.
+- **`PX.vignette`** added for the pure-black corner fade overlay.
+- Two exact palette matches fixed: `'#fff0c8'` → `PALETTE.dawnHighlight` in
+  ambient particles + window highlight; `'#5a7a5a'` → `PX.brackenGreen` in
+  hill foreground.
+- **`PX.eyeWhite` renamed `PX.cream`**: the token has always served the
+  storybook canvas ground (not the mascot's eyes, which now use
+  `BOTHY_HAGGIS_PALETTE.eyeWhite` directly).
+
+Zero inline hex remain in any draw function across all render files.
+
 ## [Unreleased] — 2026-05-27 chore: dead palette token removal
 
 Three cleanup commits removing unreachable colour constants that accumulated
