@@ -181,7 +181,7 @@ These files exist now and form the current executable foundation:
 The list is short — most of the original "missing by design" set has shipped (CI workflow, `public/_headers`, `public/_redirects`, `LICENSE`, plus the render/sprites/whs-\* modules and the `public/` deploy assets).
 
 - `eslint.config.js` — shipped; `pnpm verify` runs ESLint alongside `tsc --strict`, Vitest, Vite build, and dist verification.
-- `prettier.config.js` — not chosen; the codebase is small enough to hand-format consistently.
+- `.prettierrc` — shipped; `pnpm fmt:check` (`prettier --check "src/**/*.ts" "scripts/**/*.mjs"`) runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. Generated files and dist excluded via `.prettierignore`.
 - `playwright.config.ts` — not chosen; smoke scripts under `scripts/` use `chromium.launch()` directly without a config file.
 - `wrangler.toml` — only needed if GitHub Actions + Wrangler is chosen over native Cloudflare Pages build. Not chosen.
 
