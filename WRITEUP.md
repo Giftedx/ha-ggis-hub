@@ -92,7 +92,7 @@ Five proptest blocks cover invariants that are hard to exhaust with example-base
 
 ### Cryptographically signed gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `ts`, `coverage`, `security`, `browser`, `determinism`, `perf`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
@@ -101,10 +101,10 @@ This is not strong cryptography — anyone can re-sign an edited report. It's a 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.60 kB | 1.29 kB |
-| `dist/assets/index-*.js` | 58.93 kB | 19.49 kB |
+| `dist/assets/index-*.js` | 58.91 kB | 19.48 kB |
 | `dist/assets/hub_wasm_bg-*.wasm` | 28.05 kB | 12.71 kB |
 | `dist/assets/index-*.css` | 5.25 kB | 1.55 kB |
-| **Total** | **95.83 kB** | **35.04 kB** |
+| **Total** | **95.81 kB** | **35.03 kB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 36 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
@@ -161,12 +161,17 @@ cat target/haggis-eval/all-*.json | jq .
 Browser smokes (each builds dist + spins up `vite preview` internally — no external server needed):
 
 ```bash
-node scripts/run-browser-smokes.mjs    # 5 smokes: door-launch + door-tap + pointer-drive + music-toggle + a11y
+node scripts/run-browser-smokes.mjs    # 5 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + a11y
+PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 4 core smokes on Firefox
+PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 4 core smokes on WebKit
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
 node scripts/run-a11y-gate.mjs          # 26 WCAG 2.2 AA spot-checks (hand-rolled)
 node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
 cargo deny check                        # license compliance + RustSec advisories
+cargo machete                           # unused Rust dependencies
+gitleaks detect --source . --no-banner  # secret scan across git history
+osv-scanner --recursive .               # cross-ecosystem CVE scan (Cargo + npm + Go)
 ```
 
 ## Where the art now stands
