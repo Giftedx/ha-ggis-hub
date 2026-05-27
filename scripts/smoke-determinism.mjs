@@ -50,7 +50,9 @@ try {
   console.log(`run A state-hash: ${hashA}`);
   console.log(`run B state-hash: ${hashB}`);
   if (hashA !== hashB) {
-    console.error(`FAIL: same seed + same input produced different state — sim is NON-deterministic`);
+    console.error(
+      `FAIL: same seed + same input produced different state — sim is NON-deterministic`
+    );
     process.exitCode = 1;
   } else {
     console.log(`smoke OK — determinism holds (seed=${SEED}, both runs hash=${hashA})`);

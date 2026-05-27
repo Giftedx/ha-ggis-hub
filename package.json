@@ -16,7 +16,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/ vite.config.ts --max-warnings=0",
-    "fmt:check": "prettier --check \"src/**/*.ts\"",
+    "fmt:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.mjs\"",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run build:verified",
     "rasterize:og": "node scripts/rasterize-og.mjs",
     "visual:capture": "node scripts/run-visual-gate.mjs capture",

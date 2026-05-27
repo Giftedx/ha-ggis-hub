@@ -39,7 +39,7 @@ try {
     const worldToCanvasY = 500 / 1000;
     return {
       x: r.left + r.width * worldToCanvasX,
-      y: r.top + r.height * worldToCanvasY
+      y: r.top + r.height * worldToCanvasY,
     };
   });
   if (!tap) throw new Error('canvas not found');

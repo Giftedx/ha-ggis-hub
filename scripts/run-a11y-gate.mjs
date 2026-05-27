@@ -60,7 +60,7 @@ const isPosix = process.platform !== 'win32';
 const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
   stdio: ['ignore', 'pipe', 'pipe'],
   shell: true,
-  detached: isPosix
+  detached: isPosix,
 });
 
 const previewOut = [];
@@ -74,7 +74,7 @@ try {
 
   const result = spawnSync(NODE, [SMOKE], {
     stdio: 'inherit',
-    env: { ...process.env, SCREENSHOT_URL: BASE }
+    env: { ...process.env, SCREENSHOT_URL: BASE },
   });
   if (result.status !== 0) failed = true;
 } catch (err) {

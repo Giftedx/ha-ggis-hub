@@ -97,7 +97,7 @@ Why they're deferred: each adds either a non-trivial dependency, or a non-determ
 
 ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks.
 
-Prettier was promoted on 2026-05-27 — `pnpm fmt:check` (`prettier --check "src/**/*.ts"`) now runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. All source files formatted in the same commit; 100% TS coverage held after reformatting.
+Prettier was promoted on 2026-05-27 — `pnpm fmt:check` (`prettier --check "src/**/*.ts" "scripts/**/*.mjs"`) now runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. Generated files excluded via `.prettierignore`. All source and script files formatted in the same commit; 100% TS coverage held after reformatting.
 
 ## Technical bar
 

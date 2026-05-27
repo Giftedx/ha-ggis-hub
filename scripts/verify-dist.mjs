@@ -22,9 +22,15 @@ function must(condition, message) {
 must(existsSync(dist), 'dist/ missing — did you run `pnpm build`?');
 if (errors.length === 0) {
   must(existsSync(join(dist, '_headers')), 'dist/_headers missing (public/_headers not copied)');
-  must(existsSync(join(dist, '_redirects')), 'dist/_redirects missing (public/_redirects not copied)');
+  must(
+    existsSync(join(dist, '_redirects')),
+    'dist/_redirects missing (public/_redirects not copied)'
+  );
   must(existsSync(join(dist, 'index.html')), 'dist/index.html missing');
-  must(existsSync(join(dist, 'favicon.svg')), 'dist/favicon.svg missing — icon broken in production');
+  must(
+    existsSync(join(dist, 'favicon.svg')),
+    'dist/favicon.svg missing — icon broken in production'
+  );
   must(existsSync(join(dist, 'manifest.webmanifest')), 'dist/manifest.webmanifest missing');
   must(existsSync(join(dist, 'assets')), 'dist/assets/ missing');
 
@@ -33,18 +39,21 @@ if (errors.length === 0) {
 
   if (existsSync(join(dist, 'assets'))) {
     const assets = readdirSync(join(dist, 'assets'));
-    must(assets.some((f) => f.endsWith('.js')), 'no .js chunk in dist/assets');
-    must(assets.some((f) => f.endsWith('.wasm')), 'no .wasm in dist/assets');
+    must(
+      assets.some((f) => f.endsWith('.js')),
+      'no .js chunk in dist/assets'
+    );
+    must(
+      assets.some((f) => f.endsWith('.wasm')),
+      'no .wasm in dist/assets'
+    );
     // Vite hashes assets as `name-HASH.ext` (8+ char hash before ext).
     const hashedPattern = /-[A-Za-z0-9_-]{8,}\.[a-z]+$/;
     must(
       assets.every((f) => hashedPattern.test(f)),
       `unhashed assets found (caching policy violation): ${assets.filter((f) => !hashedPattern.test(f)).join(', ')}`
     );
-    const totalBytes = assets.reduce(
-      (sum, f) => sum + statSync(join(dist, 'assets', f)).size,
-      0
-    );
+    const totalBytes = assets.reduce((sum, f) => sum + statSync(join(dist, 'assets', f)).size, 0);
     const LIMIT = 200 * 1024;
     must(
       totalBytes <= LIMIT,
@@ -64,10 +73,7 @@ if (errors.length === 0) {
       /<meta charset/i.test(html),
       'index.html missing <meta charset> (encoding declaration required)'
     );
-    must(
-      html.includes('<html lang='),
-      'index.html missing lang attribute on <html> (WCAG 3.1.1)'
-    );
+    must(html.includes('<html lang='), 'index.html missing lang attribute on <html> (WCAG 3.1.1)');
   }
 
   // Headers file sanity: must contain CSP directive + wasm-unsafe-eval.
@@ -77,10 +83,7 @@ if (errors.length === 0) {
       /Content-Security-Policy:.*'wasm-unsafe-eval'/.test(headers),
       'CSP missing wasm-unsafe-eval (WASM init will fail in production)'
     );
-    must(
-      headers.includes('Strict-Transport-Security'),
-      'HSTS header missing'
-    );
+    must(headers.includes('Strict-Transport-Security'), 'HSTS header missing');
   }
 }
 

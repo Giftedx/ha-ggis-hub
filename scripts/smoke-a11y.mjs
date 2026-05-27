@@ -56,7 +56,10 @@ function record(criterion, label, ok, detail) {
 }
 
 function normalizeAccessibleText(input) {
-  return input.toLowerCase().replace(/[\s’'→—–-]+/g, ' ').trim();
+  return input
+    .toLowerCase()
+    .replace(/[\s’'→—–-]+/g, ' ')
+    .trim();
 }
 
 // sRGB → relative luminance per WCAG 2.x. Channels are 0..1 sRGB
@@ -79,14 +82,14 @@ function parseColor(input) {
         r: parseInt(hex[0] + hex[0], 16),
         g: parseInt(hex[1] + hex[1], 16),
         b: parseInt(hex[2] + hex[2], 16),
-        a: 1
+        a: 1,
       };
     }
     return {
       r: parseInt(hex.slice(0, 2), 16),
       g: parseInt(hex.slice(2, 4), 16),
       b: parseInt(hex.slice(4, 6), 16),
-      a: 1
+      a: 1,
     };
   }
   const m = s.match(/^rgba?\(([^)]+)\)$/i);
@@ -96,7 +99,7 @@ function parseColor(input) {
       r: parseFloat(parts[0]),
       g: parseFloat(parts[1]),
       b: parseFloat(parts[2]),
-      a: parts.length === 4 ? parseFloat(parts[3]) : 1
+      a: parts.length === 4 ? parseFloat(parts[3]) : 1,
     };
   }
   throw new Error(`unsupported colour form: ${input}`);
@@ -113,7 +116,7 @@ function compositeOver(fg, opaqueBg) {
     r: Math.round(fg.r * a + opaqueBg.r * (1 - a)),
     g: Math.round(fg.g * a + opaqueBg.g * (1 - a)),
     b: Math.round(fg.b * a + opaqueBg.b * (1 - a)),
-    a: 1
+    a: 1,
   };
 }
 
@@ -139,43 +142,44 @@ const TEXT_PAIRS = [
     label: 'prompt text on prompt plate (over void)',
     fg: '#f0e6c8',
     bg: 'rgba(26, 14, 8, 0.92)',
-    bgUnder: '#1a0e08'
+    bgUnder: '#1a0e08',
   },
   {
     label: 'sign label (bone) on sign wood',
     fg: '#f0e6c8',
-    bg: '#5a3220'
+    bg: '#5a3220',
   },
   {
     label: 'noscript paragraph text on backdrop',
     fg: '#f0e6c8',
-    bg: '#1a0e08'
+    bg: '#1a0e08',
   },
   {
     label: 'noscript fallback link on backdrop',
     fg: '#e4a020',
-    bg: '#1a0e08'
+    bg: '#1a0e08',
   },
   {
-    label: 'cairn-stone text on ink-deep backdrop (scene-brand + scene-direct + scene-music resting)',
+    label:
+      'cairn-stone text on ink-deep backdrop (scene-brand + scene-direct + scene-music resting)',
     fg: '#b8a878',
-    bg: '#1a0e08'
+    bg: '#1a0e08',
   },
   {
     label: 'scene-direct link (focus neeps-orange) on backdrop',
     fg: '#e4a020',
-    bg: '#1a0e08'
+    bg: '#1a0e08',
   },
   {
     label: 'fallback panel text on ink-deep backdrop',
     fg: '#f0e6c8',
-    bg: '#1a0e08'
+    bg: '#1a0e08',
   },
   {
     label: 'fallback panel link on ink-deep backdrop',
     fg: '#e4a020',
-    bg: '#1a0e08'
-  }
+    bg: '#1a0e08',
+  },
 ];
 
 const browser = await launchBrowser();
@@ -207,14 +211,17 @@ try {
     const maxScaleMatch = content.match(/maximum-scale\s*=\s*([0-9.]+)/);
     const maxScale = maxScaleMatch ? parseFloat(maxScaleMatch[1]) : Infinity;
     const zoomOk = !blocksZoom && maxScale >= 2;
-    record('1.4.4', 'meta viewport permits zoom', zoomOk,
-      `content=${JSON.stringify(viewport)}`);
+    record('1.4.4', 'meta viewport permits zoom', zoomOk, `content=${JSON.stringify(viewport)}`);
   }
 
   // 3. <title> non-empty.
   const title = await page.title();
-  record('2.4.2', '<title> non-empty', typeof title === 'string' && title.trim().length > 0,
-    `title=${JSON.stringify(title)}`);
+  record(
+    '2.4.2',
+    '<title> non-empty',
+    typeof title === 'string' && title.trim().length > 0,
+    `title=${JSON.stringify(title)}`
+  );
 
   // 4. Canvas accessible name. Read via aria-label OR labelled-by.
   const canvasName = await page.evaluate(() => {
@@ -234,8 +241,12 @@ try {
     record('1.1.1', 'canvas accessible name', false, 'no canvas.scene-canvas in DOM');
   } else {
     const name = canvasName.label ?? canvasName.labelText ?? '';
-    record('1.1.1', 'canvas accessible name', typeof name === 'string' && name.trim().length > 0,
-      `aria-label=${JSON.stringify(canvasName.label)}`);
+    record(
+      '1.1.1',
+      'canvas accessible name',
+      typeof name === 'string' && name.trim().length > 0,
+      `aria-label=${JSON.stringify(canvasName.label)}`
+    );
   }
 
   // 5. Persistent semantic fallback/help. This is the JS-on counterpart
@@ -259,23 +270,35 @@ try {
       describedBy,
       describedText,
       linkHref: link?.getAttribute('href') ?? '',
-      linkName: link?.getAttribute('aria-label') ?? link?.textContent?.trim() ?? ''
+      linkName: link?.getAttribute('aria-label') ?? link?.textContent?.trim() ?? '',
     };
   });
   const helpText = `${fallbackHelp.text} ${fallbackHelp.describedText}`;
-  const mentionsControls = /arrows/i.test(helpText)
-    && /wasd/i.test(helpText)
-    && /enter/i.test(helpText)
-    && /space/i.test(helpText)
-    && /chap a door/i.test(helpText)
-    && /tap a door/i.test(helpText);
-  const hasDirectFallback = fallbackHelp.linkHref === 'https://wild-haggis-survivors.pages.dev/'
-    && /Wild Haggis Survivors/i.test(fallbackHelp.linkName);
-  record('1.1.1', 'persistent fallback/help instructions',
-    fallbackHelp.found && !fallbackHelp.hidden && fallbackHelp.labelledBy.length > 0 && mentionsControls,
-    `text=${JSON.stringify(fallbackHelp.text)} describedBy=${JSON.stringify(fallbackHelp.describedBy)}`);
-  record('2.1.1', 'persistent fallback direct game link', hasDirectFallback,
-    `href=${JSON.stringify(fallbackHelp.linkHref)} name=${JSON.stringify(fallbackHelp.linkName)}`);
+  const mentionsControls =
+    /arrows/i.test(helpText) &&
+    /wasd/i.test(helpText) &&
+    /enter/i.test(helpText) &&
+    /space/i.test(helpText) &&
+    /chap a door/i.test(helpText) &&
+    /tap a door/i.test(helpText);
+  const hasDirectFallback =
+    fallbackHelp.linkHref === 'https://wild-haggis-survivors.pages.dev/' &&
+    /Wild Haggis Survivors/i.test(fallbackHelp.linkName);
+  record(
+    '1.1.1',
+    'persistent fallback/help instructions',
+    fallbackHelp.found &&
+      !fallbackHelp.hidden &&
+      fallbackHelp.labelledBy.length > 0 &&
+      mentionsControls,
+    `text=${JSON.stringify(fallbackHelp.text)} describedBy=${JSON.stringify(fallbackHelp.describedBy)}`
+  );
+  record(
+    '2.1.1',
+    'persistent fallback direct game link',
+    hasDirectFallback,
+    `href=${JSON.stringify(fallbackHelp.linkHref)} name=${JSON.stringify(fallbackHelp.linkName)}`
+  );
 
   // 6. Live status: the visual canvas prompt is mirrored in the polite
   //    status region when the haggis reaches a door, so proximity is not
@@ -284,23 +307,31 @@ try {
   const liveDoorStatus = await page.evaluate(async () => {
     const status = document.querySelector('.scene-status');
     const before = status?.textContent?.trim() ?? '';
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
+    );
     await new Promise((resolve) => window.setTimeout(resolve, 140));
-    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
+    window.dispatchEvent(
+      new KeyboardEvent('keyup', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
+    );
     await new Promise((resolve) => window.setTimeout(resolve, 60));
     return {
       found: status !== null,
       role: status?.getAttribute('role') ?? '',
       before,
-      after: status?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+      after: status?.textContent?.replace(/\s+/g, ' ').trim() ?? '',
     };
   });
-  const announcesDoor = /Wild Haggis Survivors door/i.test(liveDoorStatus.after)
-    && /Enter, Space, or E/i.test(liveDoorStatus.after)
-    && /tap the door/i.test(liveDoorStatus.after);
-  record('4.1.3', 'live door status announcement',
+  const announcesDoor =
+    /Wild Haggis Survivors door/i.test(liveDoorStatus.after) &&
+    /Enter, Space, or E/i.test(liveDoorStatus.after) &&
+    /tap the door/i.test(liveDoorStatus.after);
+  record(
+    '4.1.3',
+    'live door status announcement',
     liveDoorStatus.found && liveDoorStatus.role === 'status' && announcesDoor,
-    `before=${JSON.stringify(liveDoorStatus.before)} after=${JSON.stringify(liveDoorStatus.after)}`);
+    `before=${JSON.stringify(liveDoorStatus.before)} after=${JSON.stringify(liveDoorStatus.after)}`
+  );
 
   // 7. Every interactive element has an accessible name. Hub keeps the
   //    surface small (scene links plus the noscript anchor when JS is off).
@@ -320,19 +351,27 @@ try {
         accessibleName: typeof name === 'string' ? name.trim() : '',
         visibleText: text,
         ariaLabel: ariaLabel ?? '',
-        hidden: el.hasAttribute('aria-hidden') && el.getAttribute('aria-hidden') === 'true'
+        hidden: el.hasAttribute('aria-hidden') && el.getAttribute('aria-hidden') === 'true',
       };
     });
   });
   for (const el of interactives) {
     if (el.hidden) continue;
-    record('4.1.2', `${el.tag} accessible name`, el.accessibleName.length > 0,
-      `accessibleName=${JSON.stringify(el.accessibleName)}`);
+    record(
+      '4.1.2',
+      `${el.tag} accessible name`,
+      el.accessibleName.length > 0,
+      `accessibleName=${JSON.stringify(el.accessibleName)}`
+    );
     if (el.ariaLabel.length > 0 && el.visibleText.length > 0) {
       const visible = normalizeAccessibleText(el.visibleText);
       const accessible = normalizeAccessibleText(el.accessibleName);
-      record('2.5.3', `${el.tag} label in name`, accessible.includes(visible),
-        `visible=${JSON.stringify(el.visibleText)} accessibleName=${JSON.stringify(el.accessibleName)}`);
+      record(
+        '2.5.3',
+        `${el.tag} label in name`,
+        accessible.includes(visible),
+        `visible=${JSON.stringify(el.visibleText)} accessibleName=${JSON.stringify(el.accessibleName)}`
+      );
     }
   }
 
@@ -343,31 +382,43 @@ try {
   await page.keyboard.press('Tab');
   const focusedTag = await page.evaluate(() => {
     const el = document.activeElement;
-    return el ? {
-      tag: el.tagName.toLowerCase(),
-      className: el.className ?? '',
-      accessibleName: el.getAttribute?.('aria-label') ?? el.textContent?.trim() ?? ''
-    } : null;
+    return el
+      ? {
+          tag: el.tagName.toLowerCase(),
+          className: el.className ?? '',
+          accessibleName: el.getAttribute?.('aria-label') ?? el.textContent?.trim() ?? '',
+        }
+      : null;
   });
-  const directReachable = focusedTag !== null
-    && focusedTag.tag === 'a'
-    && /scene-direct/.test(focusedTag.className);
-  record('2.1.1', 'direct-play link reachable via Tab', directReachable,
-    `focused=${JSON.stringify(focusedTag)}`);
+  const directReachable =
+    focusedTag !== null && focusedTag.tag === 'a' && /scene-direct/.test(focusedTag.className);
+  record(
+    '2.1.1',
+    'direct-play link reachable via Tab',
+    directReachable,
+    `focused=${JSON.stringify(focusedTag)}`
+  );
   await page.keyboard.press('Tab');
   const secondFocusedTag = await page.evaluate(() => {
     const el = document.activeElement;
-    return el ? {
-      tag: el.tagName.toLowerCase(),
-      className: el.className ?? '',
-      accessibleName: el.getAttribute?.('aria-label') ?? el.textContent?.trim() ?? ''
-    } : null;
+    return el
+      ? {
+          tag: el.tagName.toLowerCase(),
+          className: el.className ?? '',
+          accessibleName: el.getAttribute?.('aria-label') ?? el.textContent?.trim() ?? '',
+        }
+      : null;
   });
-  const fallbackReachable = secondFocusedTag !== null
-    && secondFocusedTag.tag === 'a'
-    && /Wild Haggis Survivors/i.test(secondFocusedTag.accessibleName);
-  record('2.1.1', 'fallback direct link reachable via Tab', fallbackReachable,
-    `focused=${JSON.stringify(secondFocusedTag)}`);
+  const fallbackReachable =
+    secondFocusedTag !== null &&
+    secondFocusedTag.tag === 'a' &&
+    /Wild Haggis Survivors/i.test(secondFocusedTag.accessibleName);
+  record(
+    '2.1.1',
+    'fallback direct link reachable via Tab',
+    fallbackReachable,
+    `focused=${JSON.stringify(secondFocusedTag)}`
+  );
 
   // 10. Focus visible — outline computed to something other than `none`
   //    (or a non-zero outline width). Check both visible launch links
@@ -385,22 +436,31 @@ try {
         outlineStyle: cs.outlineStyle,
         outlineWidth: cs.outlineWidth,
         outlineColor: cs.outlineColor,
-        boxShadow: cs.boxShadow
+        boxShadow: cs.boxShadow,
       };
     });
   });
   for (const focusStyle of focusStyles) {
     if (!focusStyle.found) {
-      record('2.4.7', `${focusStyle.selector} focus indicator visible`, false, 'link missing from DOM');
+      record(
+        '2.4.7',
+        `${focusStyle.selector} focus indicator visible`,
+        false,
+        'link missing from DOM'
+      );
       continue;
     }
     const widthPx = parseFloat(focusStyle.outlineWidth) || 0;
     const styled = focusStyle.outlineStyle && focusStyle.outlineStyle !== 'none' && widthPx > 0;
     const shadowed = focusStyle.boxShadow && focusStyle.boxShadow !== 'none';
     const visible = styled || shadowed;
-    record('2.4.7', `${focusStyle.selector} focus indicator visible`, !!visible,
+    record(
+      '2.4.7',
+      `${focusStyle.selector} focus indicator visible`,
+      !!visible,
       `outline=${focusStyle.outlineWidth} ${focusStyle.outlineStyle} ${focusStyle.outlineColor}` +
-      `; boxShadow=${focusStyle.boxShadow}`);
+        `; boxShadow=${focusStyle.boxShadow}`
+    );
   }
 
   // 11. Contrast ratio assertions on declared text pairs.

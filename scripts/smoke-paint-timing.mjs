@@ -65,7 +65,7 @@ async function measureOnce(browser) {
           window.__paintMetrics.lcpEntries.push({
             startTime: entry.startTime,
             renderTime: entry.renderTime,
-            size: entry.size
+            size: entry.size,
           });
         }
       });
@@ -117,7 +117,7 @@ async function measureOnce(browser) {
       hubFirstFrame,
       domContentLoaded: nav ? nav.domContentLoadedEventEnd : null,
       loadEvent: nav ? nav.loadEventEnd : null,
-      lcpEntryCount: lcpEntries.length
+      lcpEntryCount: lcpEntries.length,
     };
   });
 
@@ -136,7 +136,9 @@ try {
   for (let i = 0; i < SAMPLES; i += 1) {
     log(`sample ${i + 1}/${SAMPLES}`);
     const m = await measureOnce(browser);
-    log(`  fp=${fmt(m.firstPaint)} fcp=${fmt(m.firstContentfulPaint)} lcp=${fmt(m.largestContentfulPaint)} hubFrame=${fmt(m.hubFirstFrame)} dcl=${fmt(m.domContentLoaded)} load=${fmt(m.loadEvent)} lcpEntries=${m.lcpEntryCount}`);
+    log(
+      `  fp=${fmt(m.firstPaint)} fcp=${fmt(m.firstContentfulPaint)} lcp=${fmt(m.largestContentfulPaint)} hubFrame=${fmt(m.hubFirstFrame)} dcl=${fmt(m.domContentLoaded)} load=${fmt(m.loadEvent)} lcpEntries=${m.lcpEntryCount}`
+    );
     allSamples.push(m);
   }
 
@@ -144,13 +146,17 @@ try {
   // doesn't sink the gate. Median is the "robust" Lighthouse-style
   // central tendency for paint metrics on shared CI runners.
   const aggregated = aggregateMedian(allSamples);
-  log(`median: fcp=${fmt(aggregated.firstContentfulPaint)} lcp=${fmt(aggregated.largestContentfulPaint)} hubFrame=${fmt(aggregated.hubFirstFrame)} dcl=${fmt(aggregated.domContentLoaded)} load=${fmt(aggregated.loadEvent)}`);
+  log(
+    `median: fcp=${fmt(aggregated.firstContentfulPaint)} lcp=${fmt(aggregated.largestContentfulPaint)} hubFrame=${fmt(aggregated.hubFirstFrame)} dcl=${fmt(aggregated.domContentLoaded)} load=${fmt(aggregated.loadEvent)}`
+  );
 
   const breaches = [];
   for (const [metric, budget] of Object.entries(paintBudgets.max_ms ?? {})) {
     const v = aggregated[metric];
     if (v == null) {
-      breaches.push(`metric "${metric}" not observed (got null); cannot verify against budget ${budget}ms`);
+      breaches.push(
+        `metric "${metric}" not observed (got null); cannot verify against budget ${budget}ms`
+      );
       continue;
     }
     const pct = Math.round((v / budget) * 100);
@@ -168,7 +174,13 @@ try {
     log('paint-timing OK');
   }
 
-  console.log(JSON.stringify({ samples: allSamples, median: aggregated, budgets: paintBudgets.max_ms }, null, 2));
+  console.log(
+    JSON.stringify(
+      { samples: allSamples, median: aggregated, budgets: paintBudgets.max_ms },
+      null,
+      2
+    )
+  );
 } catch (err) {
   console.error('paint-timing FAIL:', err.message);
   exitCode = 1;
@@ -183,10 +195,20 @@ function fmt(v) {
 }
 
 function aggregateMedian(samples) {
-  const keys = ['firstPaint', 'firstContentfulPaint', 'largestContentfulPaint', 'hubFirstFrame', 'domContentLoaded', 'loadEvent'];
+  const keys = [
+    'firstPaint',
+    'firstContentfulPaint',
+    'largestContentfulPaint',
+    'hubFirstFrame',
+    'domContentLoaded',
+    'loadEvent',
+  ];
   const out = {};
   for (const k of keys) {
-    const vals = samples.map((s) => s[k]).filter((v) => v != null).sort((a, b) => a - b);
+    const vals = samples
+      .map((s) => s[k])
+      .filter((v) => v != null)
+      .sort((a, b) => a - b);
     if (vals.length === 0) {
       out[k] = null;
       continue;

@@ -59,8 +59,8 @@ const SCENES = [
     // sits at 8 — see visual-budgets.json _comment for the 2026-05-24
     // calibration that sourced this from 4 consecutive Linux CI runs
     // (stable 3-bit drift against the Windows-captured golden).
-    toleranceBits: 8
-  }
+    toleranceBits: 8,
+  },
 ];
 
 function log(...args) {
@@ -109,7 +109,7 @@ async function ahashFromPngBytes(pngBytes) {
     if (data[i] > mean) {
       const byteIdx = i >> 3;
       const bitIdx = i & 7;
-      hashBytes[byteIdx] |= (1 << bitIdx);
+      hashBytes[byteIdx] |= 1 << bitIdx;
     }
   }
   return hashBytes.toString('hex');
@@ -167,7 +167,7 @@ try {
       budgets.scenes[scene.name] = {
         hash,
         toleranceBits: scene.toleranceBits,
-        capturedAt: new Date().toISOString()
+        capturedAt: new Date().toISOString(),
       };
       log(`  captured: ${pngPath}`);
       log(`  hash:     ${hash}`);
@@ -197,7 +197,7 @@ try {
       hash,
       golden: golden.hash,
       distance,
-      tolerance
+      tolerance,
     });
     if (!ok) exitCode = 1;
   }

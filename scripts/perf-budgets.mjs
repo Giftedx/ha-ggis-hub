@@ -43,12 +43,18 @@ for (const entry of config.per_stem) {
     matched.push(`${file} (${size}B)`);
   }
   const pct = max_bytes > 0 ? Math.round((stemTotal / max_bytes) * 100) : 0;
-  console.log(`[${stem}] ${stemTotal} / ${max_bytes} B (${pct}%) — ${matched.join(', ') || '(none matched)'}`);
+  console.log(
+    `[${stem}] ${stemTotal} / ${max_bytes} B (${pct}%) — ${matched.join(', ') || '(none matched)'}`
+  );
   if (stemTotal > max_bytes) {
-    errors.push(`stem "${stem}" total ${stemTotal} B exceeds budget ${max_bytes} B (${note ?? ''})`);
+    errors.push(
+      `stem "${stem}" total ${stemTotal} B exceeds budget ${max_bytes} B (${note ?? ''})`
+    );
   }
   if (matched.length === 0) {
-    errors.push(`stem "${stem}" matched no assets — config drift, expected files starting with "${stem}-"`);
+    errors.push(
+      `stem "${stem}" matched no assets — config drift, expected files starting with "${stem}-"`
+    );
   }
 }
 

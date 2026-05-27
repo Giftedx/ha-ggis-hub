@@ -54,14 +54,11 @@ buildDist();
 
 log(`starting preview on :${PORT}…`);
 const isPosix = process.platform !== 'win32';
-const preview = spawn(
-  `${PNPM} exec vite preview --port ${PORT} --strictPort`,
-  {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    shell: true,
-    detached: isPosix,
-  },
-);
+const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
+  stdio: ['ignore', 'pipe', 'pipe'],
+  shell: true,
+  detached: isPosix,
+});
 
 const previewOut = [];
 preview.stdout.on('data', (b) => previewOut.push(b.toString()));

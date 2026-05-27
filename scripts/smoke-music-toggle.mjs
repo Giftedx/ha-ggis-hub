@@ -26,19 +26,26 @@ try {
     buttonLabel: document.querySelector('.scene-music')?.getAttribute('aria-label') ?? null,
     audioSrc: document.querySelector('.scene-music-audio')?.getAttribute('src') ?? null,
     audioPreload: document.querySelector('.scene-music-audio')?.preload ?? null,
-    musicResources: performance.getEntriesByType('resource')
+    musicResources: performance
+      .getEntriesByType('resource')
       .map((entry) => entry.name)
-      .filter((name) => name.includes('/music/') && name.endsWith('.mp3'))
+      .filter((name) => name.includes('/music/') && name.endsWith('.mp3')),
   }));
 
   if (before.buttonText !== 'music') {
-    throw new Error(`expected initial music button text "music", got ${JSON.stringify(before.buttonText)}`);
+    throw new Error(
+      `expected initial music button text "music", got ${JSON.stringify(before.buttonText)}`
+    );
   }
   if (before.buttonLabel !== 'Play hub music: Flower of Scotland') {
-    throw new Error(`expected initial music aria-label for Flower of Scotland, got ${JSON.stringify(before.buttonLabel)}`);
+    throw new Error(
+      `expected initial music aria-label for Flower of Scotland, got ${JSON.stringify(before.buttonLabel)}`
+    );
   }
   if (before.audioSrc !== '/music/flower-of-scotland.mp3') {
-    throw new Error(`expected first audio src /music/flower-of-scotland.mp3, got ${JSON.stringify(before.audioSrc)}`);
+    throw new Error(
+      `expected first audio src /music/flower-of-scotland.mp3, got ${JSON.stringify(before.audioSrc)}`
+    );
   }
   if (before.audioPreload !== 'none') {
     throw new Error(`expected preload=none, got ${JSON.stringify(before.audioPreload)}`);
@@ -48,15 +55,21 @@ try {
   }
 
   await page.click('.scene-music');
-  await page.waitForFunction(() => {
-    const button = document.querySelector('.scene-music');
-    const audio = document.querySelector('.scene-music-audio');
-    return button?.textContent?.trim() === 'music on' &&
-      button.getAttribute('aria-label') === 'Pause hub music' &&
-      audio !== null &&
-      audio.paused === false &&
-      audio.currentSrc.endsWith('/music/flower-of-scotland.mp3');
-  }, null, { timeout: 4_000 });
+  await page.waitForFunction(
+    () => {
+      const button = document.querySelector('.scene-music');
+      const audio = document.querySelector('.scene-music-audio');
+      return (
+        button?.textContent?.trim() === 'music on' &&
+        button.getAttribute('aria-label') === 'Pause hub music' &&
+        audio !== null &&
+        audio.paused === false &&
+        audio.currentSrc.endsWith('/music/flower-of-scotland.mp3')
+      );
+    },
+    null,
+    { timeout: 4_000 }
+  );
 
   if (errors.length > 0) {
     throw new Error(errors.join('\n'));
@@ -66,7 +79,7 @@ try {
     return {
       buttonText: document.querySelector('.scene-music')?.textContent?.trim() ?? null,
       currentSrc: audio?.currentSrc ?? null,
-      paused: audio?.paused ?? null
+      paused: audio?.paused ?? null,
     };
   });
   console.log('music-toggle:', after);

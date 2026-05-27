@@ -32,7 +32,7 @@ try {
     { name: 'top-wall-window', left: 720, top: 0, width: 480, height: 120 },
     { name: 'top-wall-decor', left: 320, top: 0, width: 1280, height: 120 },
     { name: 'fire-pit', left: 820, top: 660, width: 280, height: 280 },
-    { name: 'haggis-only', left: 830, top: 380, width: 260, height: 360 }
+    { name: 'haggis-only', left: 830, top: 380, width: 260, height: 360 },
   ];
 
   for (const r of regions) {

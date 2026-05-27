@@ -77,7 +77,7 @@ try {
 
   const result = spawnSync(NODE, [SMOKE, MODE], {
     stdio: 'inherit',
-    env: { ...process.env, SCREENSHOT_URL: BASE }
+    env: { ...process.env, SCREENSHOT_URL: BASE },
   });
   if (result.status !== 0) {
     failed = true;

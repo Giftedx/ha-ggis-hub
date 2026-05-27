@@ -8,8 +8,8 @@ try {
   const ctx = await browser.newContext({ viewport, bypassCSP: true });
   const page = await ctx.newPage();
   const logs = [];
-  page.on('console', m => logs.push(`[${m.type()}] ${m.text()}`));
-  page.on('pageerror', e => logs.push(`[ERROR] ${e.message}`));
+  page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
+  page.on('pageerror', (e) => logs.push(`[ERROR] ${e.message}`));
   await page.goto(url, { waitUntil: 'networkidle' });
   // Hard reload to bust any cached module
   await page.reload({ waitUntil: 'networkidle' });
@@ -17,4 +17,6 @@ try {
   await page.screenshot({ path: '.tmp/inspect-full.png' });
   console.log('--- LOGS ---');
   for (const l of logs) console.log(l);
-} finally { await browser.close(); }
+} finally {
+  await browser.close();
+}

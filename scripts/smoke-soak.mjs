@@ -67,7 +67,7 @@ try {
     exitCode = 1;
   } else if (growthMB > MAX_GROWTH_MB) {
     console.error(
-      `soak FAIL: heap grew ${growthMB.toFixed(2)} MB — exceeds ${MAX_GROWTH_MB} MB budget`,
+      `soak FAIL: heap grew ${growthMB.toFixed(2)} MB — exceeds ${MAX_GROWTH_MB} MB budget`
     );
     exitCode = 1;
   } else {

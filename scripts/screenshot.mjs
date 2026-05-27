@@ -36,7 +36,7 @@ try {
       left: 'ArrowLeft',
       right: 'ArrowRight',
       up: 'ArrowUp',
-      down: 'ArrowDown'
+      down: 'ArrowDown',
     }[direction];
     if (!key) throw new Error(`unknown direction: ${direction}`);
     await page.keyboard.down(key);
