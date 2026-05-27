@@ -2,6 +2,68 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 ci: wire haggis-eval Go lint + test into CI; gofmt two pre-existing files
+
+`gofmt -l .`, `go vet ./...`, and `go test ./... -timeout 120s` added as
+a CI step in `haggis-eval-all` before the `go build` step. Two pre-existing
+files (`internal/cmd/browser.go`, `internal/cmd/visual.go`) were not
+gofmt-clean; formatted in the same commit.
+
+### Added
+- **`.github/workflows/ci.yml`** — `Lint and test haggis-eval` step: gofmt
+  check, go vet, go test with 120s timeout.
+
+### Fixed
+- **`tools/haggis-eval/internal/cmd/browser.go`** — gofmt.
+- **`tools/haggis-eval/internal/cmd/visual.go`** — gofmt.
+
+---
+
+## [Unreleased] — 2026-05-27 fix: gate.go WaitDelay=2s for Windows pipe-drain hang
+
+`exec.CommandContext` on Windows does not drain I/O pipes after
+`TerminateProcess` — `cmd.Wait()` blocks indefinitely in `io.Copy` goroutines
+even after the child exits. Setting `cmd.WaitDelay = 2 * time.Second` in
+`runImpl` gives the goroutines a bounded grace window. `TestRunWithTimeoutFiresOnHang`
+previously hung for the full 10-minute Go test default on cold cache; now
+completes in ~2.8s.
+
+### Fixed
+- **`tools/haggis-eval/internal/gate/gate.go`** — `cmd.WaitDelay = 2 * time.Second`.
+
+---
+
+## [Unreleased] — 2026-05-27 test(haggis-eval): RunWithEnv coverage; complete registry guard
+
+`TestRunWithEnvPassesEnvToSubprocess` added to `gate_test.go` — overrides
+`GOOS=plan9` via `RunWithEnv`, asserts `go env GOOS` echoes it back; 68ms,
+no compilation required. `TestRegistry_containsAllSlicesProjectGates` in
+`slice_test.go` was checking 9 of 15 registry keys; now checks all 15,
+fulfilling its stated purpose of guarding against silent dispatch drift.
+
+### Fixed
+- **`tools/haggis-eval/internal/cmd/slice_test.go`** — 6 missing gate IDs
+  added to registry completeness guard.
+
+### Added
+- **`tools/haggis-eval/internal/gate/gate_test.go`** — `TestRunWithEnvPassesEnvToSubprocess`.
+
+---
+
+## [Unreleased] — 2026-05-27 fix: sync release slice; correct registry guard and CI comment
+
+`slices.json` `release` slice claimed equivalence to `all` but was missing
+`rust-cov` and `multi-browser` (both promoted earlier in the session).
+CI comment "21 gate groups" corrected to "15 gate subcommands / 24 individual
+checks".
+
+### Fixed
+- **`tools/haggis-eval/slices.json`** — `rust-cov` and `multi-browser`
+  added to `release` slice; `pre-merge` description updated.
+- **`.github/workflows/ci.yml`** — gate count comment corrected.
+
+---
+
 ## [0.1.0] — 2026-05-27 · First Perfect Slice
 
 **Live at <https://ha.ggis.xyz/>.**

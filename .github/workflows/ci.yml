@@ -85,6 +85,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Playwright browser needed by `browser` smoke gate.
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Lint and test haggis-eval
+        working-directory: tools/haggis-eval
+        run: |
+          gofmt -l . | tee /tmp/gofmt_out.txt
+          if [ -s /tmp/gofmt_out.txt ]; then echo "gofmt: files need formatting" && exit 1; fi
+          go vet ./...
+          go test ./... -timeout 120s
       - name: Build haggis-eval
         working-directory: tools/haggis-eval
         run: go build .

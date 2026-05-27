@@ -10,6 +10,7 @@ import (
 //   - smoke-door-launch.mjs  (keyboard interact: walk + Enter → launch)
 //   - smoke-door-tap.mjs     (touch tap on door → launch)
 //   - smoke-pointer-drive.mjs (touch drag walks the haggis)
+//
 // Shipped 2026-05-23 as the spec entry unstubs.
 func Browser() []gate.Result {
 	return []gate.Result{

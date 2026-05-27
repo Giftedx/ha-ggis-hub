@@ -12,7 +12,8 @@ import (
 // the per-scene Hamming tolerance fails the gate.
 //
 // Argument:
-//   mode = "verify" (default) | "capture"
+//
+//	mode = "verify" (default) | "capture"
 //
 // Capture is a deliberate human act — it overwrites the recorded
 // golden hash and PNG with the current scene state. Use only after
