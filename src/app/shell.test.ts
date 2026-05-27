@@ -165,6 +165,19 @@ describe('createShell', () => {
     expect(shell.musicAudio.src).toBe('');
   });
 
+  it('triggers sizeCanvasToViewport via the captured resize listener', () => {
+    const { resizeListeners } = stubDom(2);
+    const shell = createShell(MODEL) as unknown as { canvas: FakeElement };
+    expect(resizeListeners).toHaveLength(1);
+    // Canvas should already be at DPR=2 resolution after createShell.
+    expect(shell.canvas.width).toBe(1080);
+    // Stub DPR back to 1, fire the resize listener, verify canvas shrinks.
+    vi.stubGlobal('window', { devicePixelRatio: 1 });
+    (resizeListeners[0] as (event: Event) => void)(new Event('resize'));
+    expect(shell.canvas.width).toBe(540);
+    expect(shell.canvas.height).toBe(360);
+  });
+
   it('exposes persistent semantic fallback instructions and a direct game link', () => {
     stubDom();
 
@@ -212,6 +225,16 @@ describe('sizeCanvasToViewport', () => {
     const canvas = new FakeElement('canvas') as unknown as HTMLCanvasElement;
     (canvas as unknown as { width: number; height: number }).width = 540;
     (canvas as unknown as { width: number; height: number }).height = 360;
+
+    sizeCanvasToViewport(canvas);
+
+    expect(canvas.width).toBe(540);
+    expect(canvas.height).toBe(360);
+  });
+
+  it('falls back to DPR=1 when devicePixelRatio is falsy', () => {
+    stubDom(0);
+    const canvas = new FakeElement('canvas') as unknown as HTMLCanvasElement;
 
     sizeCanvasToViewport(canvas);
 
