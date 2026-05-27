@@ -2,10 +2,10 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-27 test: systematic coverage push; 190 → 214 vitest; branches 89.66% → 98.13%
+## [Unreleased] — 2026-05-27 test: systematic coverage push; 190 → 214 vitest; branches 89.66% → 100%
 
-Three coverage sessions across bothy-module, canvas-room, sprite, and pixel-font. Branch coverage
-rose from 89.66% to 98.13% (threshold: 85%). Statement/line/function coverage all above 98%.
+Four coverage sessions across bothy-module, canvas-room, sprite, pixel-font, and whs-bothy. Branch
+coverage rose from 89.66% to 100%. Statements, functions, and lines also at 100%.
 
 ### Added
 
