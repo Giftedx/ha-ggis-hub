@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 feat: self-host Old Standard TT for consistent cross-platform serif
+
+The hub chrome (brand, links, music button, status) renders in the system serif stack — Georgia on most platforms, but Times New Roman on Windows where Georgia's metrics differ most. This pass locks the rendering across all platforms: three self-hosted woff2 files (Regular 400, Italic 400, Bold 700; latin subset) ship with the app and the italic 400 is preloaded so the chrome renders in-font on first paint with no FOUT.
+
+### Added
+
+- **`public/fonts/`** — `old-standard-tt-latin-400.woff2`, `old-standard-tt-latin-400i.woff2`, `old-standard-tt-latin-700.woff2` (~73 KB total). SIL OFL-1.1. Source: Google Fonts v22 latin subset.
+- **`public/fonts/README.md`** — provenance, license, update instructions.
+- **`public/_headers`** — `/fonts/*` cache rule: `public, max-age=31536000, immutable`.
+- **`src/style.css`** — three `@font-face` blocks for the self-hosted variants; font-family stack updated to `'Old Standard TT', Georgia, ...`.
+- **`index.html`** — `<link rel="preload">` for the italic 400 woff2 to eliminate FOUT on first paint.
+- **`DESIGN.md`** — updated typography note: planned upgrade → shipped.
+
+---
+
 ## [Unreleased] — 2026-05-27 feat: rebuild the bothy around a painted storybook backdrop
 
 The hub scene had working pieces but weak art direction: the mascot overpowered the room, the floor read as a flat brown stage, the main light source was too timid, the hearth lacked architectural weight, and the mascot's oat cutaway competed with its face. This pass moves the live scene out of assembled programmer-art territory: a generated 1080×720 painted bothy backdrop now carries the main composition, while the existing procedural Canvas2D diorama remains as the no-image fallback.

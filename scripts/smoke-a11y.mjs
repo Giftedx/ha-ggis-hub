@@ -420,7 +420,17 @@ try {
     record('1.4.3', `contrast: ${pair.label}`, ok, `ratio=${ratio.toFixed(2)}:1 (need 4.5)`);
   }
 
-  // 12. Page errors during a11y walk → fail the gate. A console error
+  // 12. Self-hosted font loads — verify Old Standard TT italic is
+  //    available after the page has painted and font-display: swap
+  //    has had time to swap in. document.fonts.check() returns true
+  //    only if the face is fully loaded and matched.
+  await page.evaluate(() => document.fonts.ready);
+  const fontLoaded = await page.evaluate(() =>
+    document.fonts.check('italic 1em "Old Standard TT"')
+  );
+  record('font', 'Old Standard TT italic woff2 loaded', fontLoaded, '');
+
+  // 13. Page errors during a11y walk → fail the gate. A console error
   //    or unhandled exception during a screen-reader-style walk is
   //    itself a user-facing defect.
   if (pageErrors.length > 0) {

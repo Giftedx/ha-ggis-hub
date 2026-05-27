@@ -143,17 +143,16 @@ typography:
 
   # — HTML chrome (CSS-rendered) —
   display:
-    fontFamily: '"Old Standard TT", "IM Fell English", Cormorant Garamond, Georgia, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
+    fontFamily: '"Old Standard TT", Georgia, "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", serif'
     fontSize: 48px
     fontWeight: "400"
     lineHeight: 56px
     fontStyle: normal
     letterSpacing: 0.01em
     notes: |
-      Self-hosted display face is the planned upgrade (~50 KB woff2,
-      subsetted to the glyph set the hub actually uses). Until then,
-      the system stack reads close enough on macOS / iOS / modern
-      Windows; fallback is the locked default Times.
+      Self-hosted Old Standard TT shipped 2026-05-27: three woff2 files
+      (latin subset, ~73 KB total) in public/fonts/. The italic 400 is
+      preloaded in <head> so the chrome renders in-font on first paint.
   title:
     fontFamily: "{typography.display.fontFamily}"
     fontSize: 28px

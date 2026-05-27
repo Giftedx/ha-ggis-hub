@@ -48,6 +48,10 @@ describe('public/_headers', () => {
     expect(headers).toMatch(/\/\*\.html[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
   });
 
+  it('self-hosted font files get immutable cache so FOUT does not recur after first load', () => {
+    expect(headers).toMatch(/\/fonts\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/);
+  });
+
   it('Permissions-Policy locks dangerous APIs to ()', () => {
     expect(headers).toMatch(/Permissions-Policy:.*camera=\(\)/);
     expect(headers).toMatch(/Permissions-Policy:.*microphone=\(\)/);

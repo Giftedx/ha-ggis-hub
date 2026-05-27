@@ -1,3 +1,39 @@
+/* Old Standard TT — self-hosted latin subset, v22.
+   Source: Google Fonts (fonts.google.com/specimen/Old+Standard+TT).
+   License: SIL Open Font License 1.1 (OFL-1.1). */
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/old-standard-tt-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+                 U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191-2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/old-standard-tt-latin-400i.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+                 U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191-2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/old-standard-tt-latin-700.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+                 U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191-2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: light dark;
   /* Hub Dawn Bothy tokens — locked in docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md.
@@ -16,8 +52,8 @@
 
   color: var(--hub-tatties-cream);
   background: var(--hub-peat-brown);
-  font-family: Georgia, "Iowan Old Style", "Apple Garamond", "Baskerville",
-               "Times New Roman", serif;
+  font-family: 'Old Standard TT', Georgia, "Iowan Old Style", "Apple Garamond",
+               Baskerville, "Times New Roman", serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }

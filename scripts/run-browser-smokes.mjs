@@ -21,7 +21,8 @@ const SMOKES = [
   'scripts/smoke-door-launch.mjs',
   'scripts/smoke-door-tap.mjs',
   'scripts/smoke-pointer-drive.mjs',
-  'scripts/smoke-music-toggle.mjs'
+  'scripts/smoke-music-toggle.mjs',
+  'scripts/smoke-a11y.mjs'
 ];
 
 function log(...args) {
