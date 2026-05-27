@@ -111,6 +111,7 @@ pub fn run(log: &Log) -> Result<ReplayOutcome, ReplayError> {
 mod tests {
     use super::*;
     use crate::log::{LogWriter, WriterConfig};
+    use crate::sim::Sim;
 
     #[test]
     fn captured_session_replays_to_identical_state_hash() {
@@ -226,5 +227,61 @@ mod tests {
                 total_ticks: 5,
             }
         ));
+    }
+}
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use crate::log::{LogWriter, WriterConfig};
+    use crate::sim::Sim;
+    use proptest::prelude::*;
+
+    proptest::proptest! {
+        /// Replay always produces the same final state hash as direct execution,
+        /// for any seed and any set of input changes within a 100-tick session.
+        #[test]
+        fn replay_matches_direct_execution_for_any_session(
+            seed in any::<u64>(),
+            // btree_map gives sorted, deduplicated tick_indexes — valid log order.
+            changes in proptest::collection::btree_map(
+                0u32..100u32,
+                ((-1i8..=1i8), (-1i8..=1i8), any::<bool>()),
+                0..10usize
+            )
+        ) {
+            let total_ticks = 100u32;
+            let initial_state_hash = Sim::new(seed).state_hash();
+
+            let mut writer = LogWriter::new(WriterConfig {
+                seed,
+                core_api_version: crate::CORE_API_VERSION,
+                started_at_utc_ms: 0,
+                initial_state_hash,
+            });
+
+            let mut sim = Sim::new(seed);
+            let mut held = InputSnapshot::idle();
+            let mut changes_iter = changes.iter().peekable();
+
+            for tick in 0..total_ticks {
+                if let Some((tick_idx, (x, y, interact))) = changes_iter.peek()
+                    && **tick_idx == tick
+                {
+                    let input = InputSnapshot::from_axes(*x, *y, *interact);
+                    writer.append(tick, input);
+                    held = input;
+                    changes_iter.next();
+                }
+                sim.tick(held);
+            }
+
+            let final_hash = sim.state_hash();
+            let bytes = writer.finish(total_ticks, final_hash);
+            let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+            let outcome = run(&log).expect("replay");
+            prop_assert_eq!(outcome.final_state_hash, final_hash);
+            prop_assert_eq!(outcome.ticks, total_ticks);
+        }
     }
 }
