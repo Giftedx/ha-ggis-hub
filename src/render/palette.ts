@@ -22,90 +22,46 @@
 // PALETTE
 // =============================================================
 
-// =============================================================
-// NEW DISCIPLINED PALETTE — per pixel-art plan §"Palette: consolidate
-// to 16 colours with hue shift"
-// =============================================================
-//
-// Four 4-tone ramps. Each ramp shifts HUE across the value range
-// (not just value): shadows shift toward red-purple or blue-purple
-// (cool dark), highlights shift toward yellow (warm light). This is
-// the discipline pro pixel art uses; the old single-hue ramps read
-// as muddy. 16 colours total.
-
 export const RAMPS = {
-  // WARM WOOD ramp — bothy floor + furniture wood. Shadow shifts to
-  // red-violet, highlight shifts to yellow-cream.
-  woodDeep: '#1a0e1a', // deep red-violet (shadow base)
-  woodDark: '#3a1e18', // warm red-brown
-  woodMid: '#7a4628', // warm wood mid
-  woodLit: '#d8a85a', // yellow-shifted warm highlight
+  // WARM WOOD ramp — log fuel in the hearth
+  woodDeep: '#1a0e1a',
+  woodDark: '#3a1e18',
 
-  // COOL STONE ramp — bothy walls. Shadow shifts blue-purple, highlight
-  // shifts cream.
-  stoneDeep: '#181828', // deep blue-violet (shadow)
-  stoneDark: '#3a3848', // purple-grey
-  stoneMid: '#9a8a78', // warm tan mid
-  stoneLit: '#e8d0a0', // cream highlight
-
-  // HAGGIS FUR ramp — protagonist. Hue-shifted ginger going to blonde.
-  hagDeep: '#2a1410', // deep red-brown
-  hagDark: '#5a3018', // dark ginger
-  hagMid: '#a86a30', // ginger
-  hagLit: '#f0c878', // bright blonde tip
-
-  // EMBER/ACCENT ramp — hearth glow, dawn highlights. Saturated warm.
-  emberDeep: '#4a1408', // deep red
-  emberMid: '#c44218', // bright orange-red
-  emberHot: '#ffb028', // warm yellow-orange
-  emberCore: '#fff0c8', // near-white core
+  // EMBER/ACCENT ramp — hearth glow
+  emberDeep: '#4a1408',
+  emberMid: '#c44218',
+  emberHot: '#ffb028',
+  emberCore: '#fff0c8',
 } as const;
 
-// Legacy PALETTE — kept for the existing renderer code paths during
-// the migration; new code should use RAMPS only. To be deleted once
-// all references are migrated.
 export const PALETTE = {
   // --- DAWN POOL (warm + light, inside the beam) ---
-  dawnHighlight: '#fff0c8', // brightest, near the window source
-  dawnGold: '#ffd078', // warm sun gold
-  dawnPeach: '#f4b078', // peach (most-saturated mid)
-  dawnCream: '#f0d8a0', // cream-tan for plaster/wood in light
-  litWoodHi: '#a07050', // wood plank lit, top edge
-  litWoodMid: '#7a4a28', // wood plank lit, body
-  litStoneHi: '#e0c090', // stone lit, top edge
-  litStoneMid: '#b89060', // stone lit, body
-  litStoneShadow: '#6a4828', // stone lit, shadow side
+  dawnHighlight: '#fff0c8',
+  dawnGold: '#ffd078',
+  dawnPeach: '#f4b078',
+  litWoodHi: '#a07050',
+  litWoodMid: '#7a4a28',
+  litStoneHi: '#e0c090',
+  litStoneMid: '#b89060',
 
   // --- DAWN EDGE (warm + mid, beam halo / spill) ---
-  edgePink: '#f4c8b8', // dawn pink spill
-  edgeTan: '#c8a878', // warm tan
-  edgeBrown: '#8a6038', // mid ginger / mid wood
+  edgePink: '#f4c8b8',
+  edgeTan: '#c8a878',
+  edgeBrown: '#8a6038',
 
   // --- SHADOW (cool + dark, away from beam) ---
-  // Pushed ~30% darker after reviewer: "value range too narrow — nothing
-  // is near-black, nothing is near-white". The shadow side now actually
-  // drops toward black so the dawn pool reads as truly bright by contrast.
-  shadowCool: '#1a1422', // peat-cool brown-violet (floor away from light)
-  shadowDeep: '#0a0408', // deepest ink shadow (near-black)
-  shadowStoneMid: '#3a3036', // stone in shadow, cool
-  shadowStoneDark: '#1f1818', // stone in shadow, deep
-  shadowStoneHi: '#5a4848', // stone in shadow, top edge (still cool, dimmer)
-  shadowWoodMid: '#1f1410', // wood in shadow
-  shadowWoodHi: '#3a2218', // wood in shadow, top edge
-  shadowHeather: '#28182c', // heather-purple shadow accent
+  shadowDeep: '#0a0408',
+  shadowStoneMid: '#3a3036',
+  shadowStoneDark: '#1f1818',
+  shadowWoodMid: '#1f1410',
+  shadowWoodHi: '#3a2218',
+  shadowHeather: '#28182c',
 
   // --- NEUTRAL / FOCAL ---
-  ink: '#1a0e08', // pure outline ink
-  bone: '#f0e6c8', // tatties-cream (text, paper)
-  haggisHairLit: '#c8a058', // ginger mane in light
-  haggisHairMid: '#8a6038', // ginger mane mid
-  haggisFaceDark: '#2a1408', // dark face skin
-  haggisNose: '#a44030', // dusty rose nose
-  emberHot: '#fff0a8', // ember white-hot core
-  emberBright: '#ffc060', // ember bright glow
-  emberDim: '#c44218', // ember dim red
-  whisky: '#c8842a', // brass / whisky highlight
-  brassDark: '#7a5018', // brass shadow
+  ink: '#1a0e08',
+  bone: '#f0e6c8',
+  whisky: '#c8842a',
+  brassDark: '#7a5018',
 } as const;
 
 // =============================================================

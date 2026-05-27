@@ -68,66 +68,31 @@ export interface CanvasRoomRenderer {
 // Field names match the prior structure so draw fns are unchanged.
 const PX = {
   // Backdrop behind the bothy (deepest ink that peeks past walls)
-  void: '#1a0e08', // ink-deep
+  void: '#1a0e08',
   // Warm sandstone-plastered walls — lit by dawn through the window
-  stoneShadow: '#3a2418', // peat-brown
-  stoneDark: '#4a2c18',
-  stoneMid: '#8a6a4a', // sandstone mid (lit warm)
-  stoneLight: '#b8a878', // cairn-stone
+  stoneLight: '#b8a878',
   stoneHighlight: '#d8c898',
   mortar: '#3a2418',
   // Floor — warm peat-stained oak boards
   floorDark: '#2a1810',
-  floorMid: '#4a2c1c',
-  floorLight: '#7a5230',
-  floorSeam: '#1a0e08',
-  floorKnot: '#1a0a04',
-  floorLitWash: '#e4a020', // neeps-orange wash from the hearth
   // Wooden doors — warm timber, lit
   woodWarm: '#5a3220',
   woodWarmShade: '#2a1808',
   woodWarmHighlight: '#8a5630',
-  woodCold: '#3a2a30', // locked door reads ash-grey (still warm-tinted)
-  woodColdShade: '#1a1218',
-  // Iron + brass
-  iron: '#2a1a14',
-  ironHighlight: '#5a4a3a',
-  goldHandle: '#c8842a', // whisky-amber
-  goldHandleDark: '#7a5018',
   // Fire — banked embers from last night, warm but not roaring
-  flameCore: '#fff0c8',
-  flameMid: '#e4a020', // neeps-orange
-  flameOuter: '#c8842a', // whisky-amber
-  ember: '#c44218', // ember-red
-  // The Wee Chieftain — cooked-casing body with oat flecks and seam texture
-  hagOutline: '#1a0e08',
-  hagDark: '#3a2418',
-  hagBody: '#5a3a20',
-  hagLight: '#8a6038', // ginger highlight (mane hint)
-  hagRim: '#c8a058', // warm rim catching the dawn
-  hagBlush: '#a44030', // dusty rose nose (warm, not pink)
-  hagShadow: 'rgba(20, 10, 4, 0.5)',
+  flameMid: '#e4a020',
   // Eyes — cream whites read warmer than cool blue-white in the dawn light
-  eyeWhite: '#f0e6c8', // tatties-cream
-  eyePupil: '#1a0e08',
-  legDark: '#1a0e08',
-  // Lantern halo + active glow — warm dawn glow
-  haloWarm: '#e4a020', // neeps-orange (launchable)
-  haloCool: '#7a4a9c', // heather-purple (locked counterpoint, dawn-correct)
-  // Door signs — oat wood + cream paint
-  signWood: '#5a3220',
-  signEdge: '#1a0e08',
-  signText: '#f0e6c8', // tatties-cream
-  signTextShadow: '#2a1408',
-  // Interaction prompt
+  eyeWhite: '#f0e6c8',
+  // Active-door glow — heather-purple (locked counterpoint, dawn-correct)
+  haloCool: '#7a4a9c',
+  // Interaction prompt overlay
   promptShadow: 'rgba(26, 14, 8, 0.92)',
-  promptText: '#f0e6c8', // tatties-cream
   // Wall ornaments
-  brackenGreen: '#5a7a5a', // art-bracken-green — dried herbs
-  brackenStem: '#3a2418', // art-peat-mid — dark dried stem
-  cordTwine: '#b8a878', // art-cairn-stone — hanging cord
-  cordShadow: '#7a5018', // art-whisky-deep — cord shadow line
-  stemFade: '#7a5230', // art-oat-dark — alternate/faded stem
+  brackenGreen: '#5a7a5a',
+  brackenStem: '#3a2418',
+  cordTwine: '#b8a878',
+  cordShadow: '#7a5018',
+  stemFade: '#7a5230',
 } as const;
 
 export const STORYBOOK_BACKDROP_SRC = '/art/bothy-storybook-backdrop.webp';
