@@ -308,6 +308,32 @@ describe('createBothyGameModule', () => {
     );
   });
 
+  it('resets the fixed-step accumulator when the page returns to visible', async () => {
+    await mountHarness();
+
+    const docCalls = vi.mocked(document.addEventListener).mock.calls;
+    const visEntry = docCalls.find(([type]) => type === 'visibilitychange');
+    expect(visEntry).toBeDefined();
+
+    const handler = visEntry![1] as EventListener;
+    handler(new Event('visibilitychange'));
+  });
+
+  it('releases pointer capture on pointercancel when a drag is active', async () => {
+    const { shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    canvas.dispatch('pointerdown', { clientX: 390, clientY: 180, pointerId: 11 });
+    canvas.dispatch('pointercancel', { pointerId: 11 });
+    expect(canvas.releasePointerCapture).toHaveBeenCalledWith(11);
+  });
+
+  it('ignores pointer-up events that arrive without an active drag', async () => {
+    const { shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    canvas.dispatch('pointerup', { pointerId: 99 });
+    expect(canvas.releasePointerCapture).not.toHaveBeenCalledWith(99);
+  });
+
   it('destroys the boundary and throws when room doors drift from the registry', async () => {
     vi.resetModules();
     installBrowserGlobals();

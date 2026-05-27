@@ -131,6 +131,101 @@ describe('createMusicController', () => {
     expect(button.getAttribute('aria-label')).toBe('Pause hub music');
   });
 
+  it('pauses on a second click while audio is actively playing', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    button.click();
+    await Promise.resolve();
+    expect(button.textContent).toBe('music on');
+
+    button.click();
+
+    expect(audio.pauseCalls).toBe(1);
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+  });
+
+  it('shows unavailable state when the track-ended event fires with an empty playlist', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: []
+    });
+
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-label')).toBe('Hub music unavailable');
+
+    audio.end();
+
+    expect(audio.playCalls).toBe(0);
+    expect(button.textContent).toBe('music');
+  });
+
+  it('does not restart playback when a track ends and the user has not opted in', () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    audio.end();
+
+    expect(audio.playCalls).toBe(0);
+    expect(audio.src).toBe('/music/scotland-the-brave.mp3');
+    expect(button.textContent).toBe('music');
+  });
+
+  it('reverts to unavailable state when playCurrent is called with no track available', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: []
+    });
+
+    button.click();
+    await Promise.resolve();
+
+    expect(audio.playCalls).toBe(0);
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-label')).toBe('Hub music unavailable');
+  });
+
+  it('reverts to paused state when audio.play() rejects (browser NotAllowedError)', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    audio.play = async (): Promise<void> => {
+      throw new DOMException('User gesture required', 'NotAllowedError');
+    };
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    button.click();
+    await Promise.resolve();
+
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+  });
+
   it('pauses and unregisters listeners on destroy', async () => {
     const button = new FakeButton();
     const audio = new FakeAudio();

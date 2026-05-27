@@ -147,6 +147,23 @@ describe('createShell', () => {
     expect(shell.musicAudio.src).toBe('/music/flower-of-scotland.mp3');
   });
 
+  it('renders the music button disabled and audio without a src when no tracks are available', () => {
+    stubDom();
+
+    const emptyModel: AppModel = {
+      ...MODEL,
+      music: { tracks: [] }
+    };
+    const shell = createShell(emptyModel) as unknown as {
+      musicButton: FakeElement;
+      musicAudio: FakeElement;
+    };
+
+    expect(shell.musicButton.disabled).toBe(true);
+    expect(shell.musicButton.getAttribute('aria-label')).toBe('Hub music unavailable');
+    expect(shell.musicAudio.src).toBe('');
+  });
+
   it('exposes persistent semantic fallback instructions and a direct game link', () => {
     stubDom();
 
@@ -187,5 +204,17 @@ describe('sizeCanvasToViewport', () => {
 
     expect(canvas.width).toBe(1080);
     expect(canvas.height).toBe(720);
+  });
+
+  it('skips the resize when the canvas already has the correct internal resolution', () => {
+    stubDom(1);
+    const canvas = new FakeElement('canvas') as unknown as HTMLCanvasElement;
+    (canvas as unknown as { width: number; height: number }).width = 540;
+    (canvas as unknown as { width: number; height: number }).height = 360;
+
+    sizeCanvasToViewport(canvas);
+
+    expect(canvas.width).toBe(540);
+    expect(canvas.height).toBe(360);
   });
 });
