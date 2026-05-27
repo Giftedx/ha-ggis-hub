@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~83 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~94 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -86,17 +86,17 @@ The WAT and `wasmi` are `[dev-dependencies]` — they never enter the production
 
 This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
 
-### ~83 KB total client bundle
+### ~94 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
-| `dist/index.html` | 3.49 KB | 1.23 KB |
-| `dist/assets/index-*.js` | 49.08 KB | 17.03 KB |
-| `dist/assets/hub_wasm_bg-*.wasm` | 27.72 KB | 12.64 KB |
-| `dist/assets/index-*.css` | 2.65 KB | 0.99 KB |
-| **Total** | **82.94 KB** | **31.89 KB** |
+| `dist/index.html` | 3.60 kB | 1.29 kB |
+| `dist/assets/index-*.js` | 58.93 kB | 19.49 kB |
+| `dist/assets/hub_wasm_bg-*.wasm` | 28.05 kB | 12.71 kB |
+| `dist/assets/index-*.css` | 5.25 kB | 1.55 kB |
+| **Total** | **95.83 kB** | **35.04 kB** |
 
-For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 32 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
+For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 36 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
 There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool, that's it.
 
@@ -131,7 +131,7 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → eslint → vitest 144 cases → vite build → verify-dist
+pnpm verify          # tsc --noEmit → eslint → vitest 190 cases → vite build → verify-dist
 pnpm run coverage    # vitest v8 coverage (lines≥90%, stmts≥90%, fns≥90%, branches≥85%)
 
 # Rust workspace
@@ -149,17 +149,23 @@ cat target/haggis-eval/all-*.json | jq .
 Browser smokes (each builds dist + spins up `vite preview` internally — no external server needed):
 
 ```bash
-node scripts/run-browser-smokes.mjs    # 3 smokes: door-launch + door-tap + pointer-drive
+node scripts/run-browser-smokes.mjs    # 5 smokes: door-launch + door-tap + pointer-drive + music-toggle + a11y
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
-node scripts/run-a11y-gate.mjs          # 22 WCAG 2.2 AA spot-checks (hand-rolled)
+node scripts/run-a11y-gate.mjs          # 26 WCAG 2.2 AA spot-checks (hand-rolled)
 node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
 cargo deny check                        # license compliance + RustSec advisories
 ```
 
 ## Where the art now stands
 
-The three art gaps called out in earlier iterations — daylight loch in the window, WHS-sprite stand-in for the haggis, and flagstone floor — have been closed against the [ADR-0006](docs/decisions/0006-hub-visual-direction-highland-dawn-bothy.md) Highland Dawn Bothy spec. The window is a stacked dawn-pink + heather-purple sky with a soft sun glow and far Highland silhouette. The haggis is a fresh hub-original drawer at [`src/render/bothy-haggis.ts`](src/render/bothy-haggis.ts) — designed around the food joke that gives the creature its name. The shape language is the dish itself: squat cooked casing with tied ends, a tartan-twine collar and thistle sprig, a pale oat cutaway with casing lip, big directed cream eyes, and tiny uneven legs for the canonical tourist-folklore "haggis can only circle the hill one way" drift. The haggis animates at idle (breath bob, slow blink phased so the visual gate captures with eyes open) and during the walk cycle (front + back leg pairs alternate at 3 Hz). The dawn beam through the back-wall window pulses at +/-5% opacity over a 22-second period — the early-morning light shifting quality as if thin clouds were drifting on the horizon. No animation library involved; the whole thing is phased sinusoids and position-delta tracking inside the renderer closure. The floor is now peat-stained planks with grain lines and scattered knots, not flagstones. The same food-mascot shape ships in [`public/og.svg`](public/og.svg) (social card at 1200x630) and [`public/favicon.svg`](public/favicon.svg) (browser tab) so the canon protagonist is consistent across every surface the project exposes. The hearth lintel carries the pixel-font motto "BIDE A WHILE." carved into the stone band above the fire mouth — warm cairn-stone ink on peat-brown stone, the one ornamental inscription the `DESIGN.md` voice spec called for in the bothy interior. The back wall carries its full ornament budget: two dried-herb bundles hanging from the ceiling timber beam (one left, one right of the window), and an unfinished Highland painting on the left wall — a cream canvas with a heather-purple sky wash and charcoal mountain silhouette, foreground left bare. Both are deterministic, palette-disciplined, and covered by the visual gate golden.
+The scene composites a painted 1080×720 Highland Dawn Bothy backdrop (WebP at [`public/art/bothy-storybook-backdrop.webp`](public/art/bothy-storybook-backdrop.webp)) over a procedural Canvas2D diorama that acts as the fallback when the image has not loaded. The backdrop carries the main composition — stone inglenook hearth, panoramic dawn through the back window, shelf props, flagstone floor — while the procedural layer remains the interactive gameplay surface: door hit-tests, door grounding, the hearth lintel "BIDE A WHILE." motto, and the haggis walk cycle all run on Canvas2D regardless of backdrop state.
+
+The haggis is a fresh hub-original drawer at [`src/render/bothy-haggis.ts`](src/render/bothy-haggis.ts) — the Wee Chieftain — designed around the food joke that gives the creature its name. The shape language is the dish itself: squat cooked casing with tied ends, a pale oat cutaway with a casing lip so the mascot reads as food rather than a brown oval, bead eyes above the cutaway, and four asymmetric drift legs for the canonical tourist-folklore "haggis can only circle the hill one way" drift. The haggis animates at idle (breath bob) and during the walk cycle (front + back leg pairs alternate at 3 Hz). No animation library involved; the whole thing is phased sinusoids and position-delta tracking inside the renderer closure. The same food-mascot shape ships in [`public/og.svg`](public/og.svg) (social card at 1200x630) and [`public/favicon.svg`](public/favicon.svg) (browser tab) so the canon protagonist is consistent across every surface the project exposes.
+
+The hub chrome (brand line, links, music button, status) renders in self-hosted Old Standard TT (`public/fonts/`), locking the humanist-serif register across Windows, macOS, and Linux without FOUT. The italic 400 weight is preloaded so the chrome renders in-font on first paint.
+
+Opt-in hub music ships at [`public/music/`](public/music/) — two rendered MP3 tracks from the Wario Synth Game Boy-style output, started only from the music button, preloaded at `none`. The music smoke test asserts no MP3 fetch before opt-in, then asserts the audio element unpauses after the first click.
 
 ## Why MIT
 
