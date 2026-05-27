@@ -2,6 +2,33 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 test: Rust property + boundary tests; TS coverage to 100%
+
+### Added
+
+- **`crates/hub-core/src/sim.rs`** — 6 new unit tests: locked-door interaction kind and door index,
+  no-interaction at spawn, right/top/bottom world-boundary clamping. 2 proptest blocks: bounds invariant
+  under arbitrary seed + input sequence; input signum round-trip for arbitrary i8 axes.
+- **`crates/hub-core/src/replay.rs`** — proptest: replay matches direct execution for any seed and any
+  set of up to 10 input changes. btree_map guarantees valid log ordering. hub-core: 39 tests total.
+- **`src/render/canvas-room.ts`** — annotated 5 remaining dead-code branches (imageSmoothingEnabled
+  false arm, window DPR ternary, titles.get ?? fallback, mote dim-skip, nowMillis fallback).
+  Restructured nowMillis() to early-return guard. Added second render() call in the Image-stubbed test
+  for the storybookBackdropImage singleton path.
+- **`src/hub/bothy-module.ts`** — annotated 3 uncovered functions: getContext (mocked boundary),
+  __roomSnapshot and __stateHash (browser-only dev hooks, v8 ignore start/stop).
+
+### Fixed
+
+- **`WRITEUP.md`** — corrected headline from ~94 KB to ~96 KB (matches table value 95.83 kB and README).
+
+### Result
+
+TypeScript: 100% statements, branches, functions, lines across all 25 test files, 214 tests.
+Rust hub-core: 39 tests (20 unit + 2 proptest in sim, 4 + 1 proptest in replay, 9 in hash+rng+log).
+
+---
+
 ## [Unreleased] — 2026-05-27 test: systematic coverage push; 190 → 214 vitest; branches 89.66% → 100%
 
 Four coverage sessions across bothy-module, canvas-room, sprite, pixel-font, and whs-bothy. Branch

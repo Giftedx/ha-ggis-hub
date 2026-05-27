@@ -29,8 +29,15 @@ Test:
 - launch eligibility
 - registry validation
 - save migration when saves exist
+- locked-door interaction kind and door index
+- all four world-boundary clamping directions (left/right/top/bottom)
 
-Use property tests for invariants once the core has enough shape.
+Property tests (proptest) cover:
+
+- `sim`: bounds invariant under any seed + any input sequence; input signum round-trip for arbitrary i8
+- `replay`: replay matches direct execution for any seed + any set of input changes
+- `hash`: streaming vs one-shot equivalence for arbitrary byte sequences
+- `rng`: seeded-identical streams; bounded output
 
 ## TypeScript tests
 
