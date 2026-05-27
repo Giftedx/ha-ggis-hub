@@ -161,9 +161,9 @@ cat target/haggis-eval/all-*.json | jq .
 Browser smokes (each builds dist + spins up `vite preview` internally — no external server needed):
 
 ```bash
-node scripts/run-browser-smokes.mjs    # 6 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + a11y
-PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 5 core smokes on Firefox
-PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 5 core smokes on WebKit
+node scripts/run-browser-smokes.mjs    # 7 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + locked-door + a11y
+PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 6 core smokes on Firefox
+PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 6 core smokes on WebKit
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality across runs
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
 node scripts/run-a11y-gate.mjs          # 26 WCAG 2.2 AA spot-checks (hand-rolled)
