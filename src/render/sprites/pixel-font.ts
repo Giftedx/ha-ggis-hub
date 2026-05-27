@@ -511,6 +511,7 @@ export function renderPixelText(
   for (const rawCh of upper) {
     const ch = GLYPHS[rawCh] !== undefined ? rawCh : ' ';
     const sprite = GLYPHS[ch]!;
+    /* c8 ignore next — every GLYPHS key has a matching GLYPH_WIDTHS entry; ?? fallback is unreachable */
     const visibleWidth = GLYPH_WIDTHS[ch] ?? GLYPH_FULL_WIDTH;
     // Blit pixel-by-pixel; substitute the call colour for the sentinel.
     for (let yy = 0; yy < sprite.height; yy += 1) {
@@ -534,6 +535,7 @@ export function measurePixelText(text: string, scale: number): number {
   let total = 0;
   for (const rawCh of upper) {
     const ch = GLYPHS[rawCh] !== undefined ? rawCh : ' ';
+    /* c8 ignore next — every GLYPHS key has a matching GLYPH_WIDTHS entry; ?? fallback is unreachable */
     const visibleWidth = GLYPH_WIDTHS[ch] ?? GLYPH_FULL_WIDTH;
     total += visibleWidth * s + GLYPH_SPACING * s;
   }
