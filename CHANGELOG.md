@@ -2,6 +2,28 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: post-mascot-cleanup doc accuracy pass
+
+Seven doc accuracy fixes across docs, source comments, and the design system following the
+oat-cutaway and tied-casing removal:
+- **ADR-0006**: mascot implementation note updated from "asymmetric tied end with tartan-twine
+  collar, oat flecks, warm off-centre oat patch" to match current design (oat flecks +
+  seam texture + eyelid arcs + bold brows + wide confident smile).
+- **`src/render/canvas-room.ts` comment**: "cooked-casing body with a pale oat cutaway" →
+  "cooked-casing body with oat flecks and seam texture".
+- **`src/render/rules.md`**: protagonist outline rule updated — "tied casing end, tartan-twine
+  collar, oat patch" → "eyes, smile, surface oat flecks, casing seams, and legs".
+- **`DESIGN.md` haggis palette**: removed 7 dead colour tokens (crumb-light, crumb-dark, crumb-mid,
+  twine, twine-shadow, tartan-red, tartan-green) that were unreachable after the mascot cleanup.
+  Two tokens were also missing the "Reserved" note, making the section inconsistent.
+- **`DESIGN.md` animation field**: breath-bob period corrected from "6s" to "~4.5s" — the formula
+  Math.sin(phase*1.4) gives period 2π/1.4 ≈ 4.5s; walk-cycle formula also made explicit.
+- **`public/favicon.svg` comment**: updated to explain that the cutaway and knot are intentional
+  icon-only cues retained at 32px (no visitor can identify individual features; they read as
+  food-body texture); the walking mascot removed them because visitors can study it clearly.
+- **`docs/architecture/testing-strategy.md`**: removed stale "save migration when saves exist"
+  entry from Rust core test list — save framework is explicitly deferred with no implementation.
+
 ## [Unreleased] — 2026-05-27 chore: palette and docs sync after mascot cleanup
 
 Removed 7 dead tokens from BothyHaggisPalette interface and BOTHY_HAGGIS_PALETTE constant
