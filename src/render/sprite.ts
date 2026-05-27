@@ -84,7 +84,7 @@ export function blitSprite(
   for (let y = 0; y < sprite.height; y += 1) {
     for (let x = 0; x < sprite.width; x += 1) {
       const colour = sprite.pixelColours[y * sprite.width + x];
-      if (colour === null || colour === undefined) continue;
+      if (colour == null) continue;
       ctx.fillStyle = colour;
       ctx.fillRect(originX + x * s, originY + y * s, s, s);
     }
@@ -105,7 +105,7 @@ export function blitSpriteTL(
   for (let yy = 0; yy < sprite.height; yy += 1) {
     for (let xx = 0; xx < sprite.width; xx += 1) {
       const colour = sprite.pixelColours[yy * sprite.width + xx];
-      if (colour === null || colour === undefined) continue;
+      if (colour == null) continue;
       ctx.fillStyle = colour;
       ctx.fillRect(x + xx * s, y + yy * s, s, s);
     }

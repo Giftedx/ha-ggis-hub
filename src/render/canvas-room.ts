@@ -275,6 +275,7 @@ function nowMillis(): number {
   if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
     return performance.now();
   }
+  /* c8 ignore next — performance.now() always available in browser and test env */
   return Date.now();
 }
 

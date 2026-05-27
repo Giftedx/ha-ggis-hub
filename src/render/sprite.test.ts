@@ -101,4 +101,16 @@ describe('blitSpriteTL', () => {
     expect(ctx.calls).toContain('#000@100,200,1,1');
     expect(ctx.calls).toContain('#000@101,201,1,1');
   });
+
+  it('skips transparent (null) pixels', () => {
+    const sprite = defineSprite({
+      palette: { '.': null, '#': '#000' },
+      pixels: ['.#', '#.']
+    });
+    const ctx = new RecordingBlitContext();
+    blitSpriteTL(ctx, sprite, 10, 20, 1);
+    expect(ctx.calls.length).toBe(2);
+    expect(ctx.calls).toContain('#000@11,20,1,1');
+    expect(ctx.calls).toContain('#000@10,21,1,1');
+  });
 });
