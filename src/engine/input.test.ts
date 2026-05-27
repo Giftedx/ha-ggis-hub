@@ -121,12 +121,14 @@ describe('input sampling', () => {
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
 
-  it('snapshot and consumeInteract return zero/false after destroy', () => {
+  it('snapshot, interactHeld, and consumeInteract return zero/false after destroy', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
     target.dispatch('keydown', 'KeyD');
+    target.dispatch('keydown', 'KeyE');
     sampler.destroy();
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+    expect(sampler.interactHeld()).toBe(false);
     expect(sampler.consumeInteract()).toBe(false);
   });
 
