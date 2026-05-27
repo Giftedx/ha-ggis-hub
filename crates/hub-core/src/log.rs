@@ -383,3 +383,52 @@ mod tests {
         writer.finish(1, 0)
     }
 }
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    proptest::proptest! {
+        /// Any log that can be written round-trips through decode with the
+        /// same seed, record count, total_ticks, and final_state_hash.
+        #[test]
+        fn log_encode_decode_round_trips_for_any_session(
+            seed in any::<u64>(),
+            final_state_hash in any::<u64>(),
+            // btree_map gives sorted, deduplicated tick_indexes.
+            records in proptest::collection::btree_map(
+                0u32..200u32,
+                ((-1i8..=1i8), (-1i8..=1i8), any::<bool>()),
+                0..8usize
+            )
+        ) {
+            let total_ticks = 200u32;
+            let mut writer = LogWriter::new(WriterConfig {
+                seed,
+                core_api_version: crate::CORE_API_VERSION,
+                started_at_utc_ms: 0,
+                initial_state_hash: 0,
+            });
+
+            for (&tick_idx, &(x, y, interact)) in &records {
+                writer.append(tick_idx, InputSnapshot::from_axes(x, y, interact));
+            }
+            let bytes = writer.finish(total_ticks, final_state_hash);
+
+            let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+            prop_assert_eq!(log.seed, seed);
+            prop_assert_eq!(log.records.len(), records.len());
+            prop_assert_eq!(log.total_ticks, total_ticks);
+            prop_assert_eq!(log.final_state_hash, final_state_hash);
+
+            for (i, (&tick_idx, &(x, y, interact))) in records.iter().enumerate() {
+                let rec = &log.records[i];
+                prop_assert_eq!(rec.tick_index, tick_idx);
+                prop_assert_eq!(rec.input.x(), x.signum());
+                prop_assert_eq!(rec.input.y(), y.signum());
+                prop_assert_eq!(rec.input.interact(), interact);
+            }
+        }
+    }
+}
