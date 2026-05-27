@@ -16,7 +16,7 @@ Runs on every PR via `.github/workflows/ci.yml`:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm verify   # tsc --noEmit → eslint → vitest → vite build → scripts/verify-dist.mjs
+pnpm verify   # tsc --noEmit → eslint (src/ + scripts/) → prettier --check → vitest → vite build → scripts/verify-dist.mjs
 ```
 
 ### Current release gate (push to main)
@@ -95,7 +95,7 @@ pnpm exec playwright test --grep @soak
 
 Why they're deferred: each adds either a non-trivial dependency, or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly). They get added when the project is genuinely insufficient without them.
 
-ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks.
+ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks. Lint scope expanded on 2026-05-27 to cover `scripts/` in addition to `src/` and `vite.config.ts`: `.mjs` files use `disableTypeChecked` (no project service); `scripts/deploy-config.test.ts` was added to `tsconfig.json` include so it also receives full type-checking from `tsc --noEmit`.
 
 Prettier was promoted on 2026-05-27 — `pnpm fmt:check` (`prettier --check "src/**/*.ts" "scripts/**/*.mjs"`) now runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. Generated files excluded via `.prettierignore`. All source and script files formatted in the same commit; 100% TS coverage held after reformatting.
 

@@ -2,6 +2,25 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: expand lint to scripts/ (.mjs + deploy-config.test.ts)
+
+`pnpm lint` now covers `scripts/` in addition to `src/` and `vite.config.ts`.
+
+`scripts/**/*.mjs`: `tseslint.configs.disableTypeChecked` + `parserOptions.projectService: false`
+applied in `eslint.config.js` so the TypeScript parser runs without TS project membership. All
+61 type-aware rules are off; non-type-aware rules remain active.
+
+`scripts/deploy-config.test.ts`: added to `tsconfig.json` `include` so it now receives full
+type-checking from `tsc --noEmit` and the ESLint project service. Previously unregistered.
+
+### Changed
+- **`package.json`** — `lint` target: `src/ vite.config.ts` → `src/ scripts/ vite.config.ts`.
+- **`eslint.config.js`** — new `scripts/**/*.mjs` config block: `disableTypeChecked` +
+  `projectService: false`.
+- **`tsconfig.json`** — `scripts/deploy-config.test.ts` added to `include`.
+
+---
+
 ## [Unreleased] — 2026-05-27 docs: fix stale prettier entry in docs/README.md
 
 `docs/README.md` "Still-missing implementation files" listed `prettier.config.js`
