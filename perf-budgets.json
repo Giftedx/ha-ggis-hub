@@ -8,7 +8,7 @@
       "stem": "index",
       "extensions": ["js", "css"],
       "max_bytes": 72000,
-      "note": "TypeScript host bundle + style.css. Procedural Canvas2D renderer + WHS croft ports + door-launch + pointer-drive + opt-in music controller + self-hosted font-face CSS. Raised 64→72 KB on 2026-05-27 to reflect music and font features (measured: ~64.2 KB)."
+      "note": "TypeScript host bundle + style.css. Procedural Canvas2D renderer + WHS croft ports + door-launch + pointer-drive + opt-in music controller + self-hosted font-face CSS. Raised 64→72 KB on 2026-05-27 to reflect music and font features; dead DOOR_OPEN sprite removed 2026-05-27 (measured: ~60.2 KB)."
     },
     {
       "stem": "hub_wasm_bg",
