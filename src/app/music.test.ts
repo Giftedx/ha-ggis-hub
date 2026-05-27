@@ -226,6 +226,28 @@ describe('createMusicController', () => {
     expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
   });
 
+  it('stays paused when play() resolves but audio.paused is still true', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    audio.play = async (): Promise<void> => {
+      audio.playCalls += 1;
+      // paused stays true — edge case where play resolves without unpausing
+    };
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS
+    });
+
+    button.click();
+    await Promise.resolve();
+
+    expect(audio.playCalls).toBe(1);
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+  });
+
   it('pauses and unregisters listeners on destroy', async () => {
     const button = new FakeButton();
     const audio = new FakeAudio();
