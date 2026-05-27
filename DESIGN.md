@@ -289,7 +289,7 @@ mascot:
   render-scale: 2.0   # HAGGIS_SCALE in canvas-room.ts — body 100 px wide on 540 px canvas
   storybook-scale: 1.6    # used when painted backdrop is loaded — body 80 px wide, r=52 shadow
   placement: "doorway centre, 10×scale px above floor contact point; hard-contact shadow r=68 (fallback) / r=52 (storybook)"
-  animation: "breathY bob (sine, 6s period), frontLegY / backLegY walk swing"
+  animation: "breathY bob (sine, ~4.5s period — Math.sin(phase*1.4)), frontLegY / backLegY walk swing (3 Hz — Math.sin(phase*6π))"
 
   design-decisions:
     brows:
