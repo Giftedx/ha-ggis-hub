@@ -339,6 +339,204 @@ describe('createBothyGameModule', () => {
     expect(canvas.releasePointerCapture).not.toHaveBeenCalledWith(99);
   });
 
+  it('translates keyboard rightward+downward movement into correct packed bits', async () => {
+    const { browser, boundary, keyboard } = await mountHarness();
+    keyboard.snapshot.mockReturnValue({ x: 1, y: 1 });
+    browser.flushRaf(100);
+    // right = 0b01 = 1, down = 0b01<<2 = 4, total = 5
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(5);
+  });
+
+  it('translates keyboard leftward-only movement into correct packed bits', async () => {
+    const { browser, boundary, keyboard } = await mountHarness();
+    // x<0 exercises the else-if branch; y=0 exercises the y-not-positive and y-not-negative branches
+    keyboard.snapshot.mockReturnValue({ x: -1, y: 0 });
+    browser.flushRaf(100);
+    // left = 0b10 = 2
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(2);
+  });
+
+  it('translates keyboard upward-only movement into correct packed bits', async () => {
+    const { browser, boundary, keyboard } = await mountHarness();
+    // x=0 exercises x-not-positive and x-not-negative branches; y<0 exercises y else-if
+    keyboard.snapshot.mockReturnValue({ x: 0, y: -1 });
+    browser.flushRaf(100);
+    // up = 0b10<<2 = 8
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(8);
+  });
+
+  it('skips launch when consumeInteract fires but interaction is not launchable', async () => {
+    const { browser, keyboard, navigator } = await mountHarness();
+    // SNAPSHOT has interactionKind: 'none' — consumeInteract=true should hit the early return
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(navigator.navigate).not.toHaveBeenCalled();
+  });
+
+  it('mounts in debug mode and drives the overlay on each frame', async () => {
+    const { browser } = await mountHarness({ search: '?debug' });
+    browser.flushRaf(100);
+    expect(mocks.createDebugOverlay).toHaveBeenCalled();
+    expect(mocks.createFpsTracker).toHaveBeenCalled();
+    const overlay = vi.mocked(mocks.createDebugOverlay).mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    expect(overlay.update).toHaveBeenCalled();
+  });
+
+  it('ignores the visibilitychange event when the page is not visible', async () => {
+    const { docAddEventListener } = await mountHarness();
+    const calls = docAddEventListener.mock.calls as [string, EventListener][];
+    const handler = calls.find(([type]) => type === 'visibilitychange')![1];
+    // Re-stub document with hidden state before firing the event
+    vi.stubGlobal('document', {
+      visibilityState: 'hidden',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    });
+    // Should not throw or reset accumulator — just a no-op guard
+    handler(new Event('visibilitychange'));
+  });
+
+  it('ignores rAF callbacks that fire after destroy', async () => {
+    const { browser, instance } = await mountHarness();
+    await instance.destroy();
+    // cancelAnimationFrame is a vi.fn — it does not prevent the callback from firing in tests.
+    // A second flush should hit the destroyed guard and return immediately.
+    browser.flushRaf(200);
+  });
+
+  it('is safe to call destroy twice', async () => {
+    const { instance } = await mountHarness();
+    await instance.destroy();
+    // Second destroy should hit the guard and return without error.
+    await instance.destroy();
+  });
+
+  it('ignores pointermove events that arrive before any pointerdown', async () => {
+    const { browser, boundary, shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    // pointermove fires before pointerdown — pointerActive is false, handler returns early
+    canvas.dispatch('pointermove', { clientX: 200, clientY: 200, pointerId: 5 });
+    browser.flushRaf(100);
+    // No pointer direction bits set → tick(0)
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(0);
+  });
+
+  it('does not set movement bits when pointer stays inside the deadzone', async () => {
+    const { browser, boundary, shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    // Player at world(340,540). Canvas 540x360, world 1000x1000.
+    // clientX=183 → worldX≈339, clientY=194 → worldY≈539; hypot≈1.6 < POINTER_DEADZONE(18).
+    canvas.dispatch('pointerdown', { clientX: 183, clientY: 194, pointerId: 3 });
+    browser.flushRaf(100);
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(0);
+  });
+
+  it('sets leftward+downward bits when pointer is left of and below the player', async () => {
+    const { browser, boundary, shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    // clientX=50 → worldX≈93, dx≈-247 (< -threshold); clientY=300 → worldY≈833, dy≈293 (> threshold).
+    canvas.dispatch('pointerdown', { clientX: 50, clientY: 300, pointerId: 4 });
+    browser.flushRaf(100);
+    // left = 0b10 = 2, down = 0b01<<2 = 4, total = 6
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(6);
+  });
+
+  it('sets downward bits only when pointer is directly below with no significant horizontal offset', async () => {
+    const { browser, boundary, shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    // clientX=183 → worldX≈339, dx≈-1.1 (between -threshold and threshold);
+    // clientY=300 → worldY≈833, dy≈293 (> threshold).
+    canvas.dispatch('pointerdown', { clientX: 183, clientY: 300, pointerId: 5 });
+    browser.flushRaf(100);
+    // down only = 0b01<<2 = 4
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(4);
+  });
+
+  it('sets rightward bits with no vertical bits when pointer is at neutral y offset', async () => {
+    const { browser, boundary, shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    // clientX=200 → worldX≈370, dx≈30 (> threshold); clientY=193 → worldY≈536, dy≈-4 (|dy| < threshold).
+    canvas.dispatch('pointerdown', { clientX: 200, clientY: 193, pointerId: 6 });
+    browser.flushRaf(100);
+    // right only = 0b01 = 1
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(1);
+  });
+
+  it('does not release pointer capture when capture is already gone at pointer-up', async () => {
+    const { shell } = await mountHarness();
+    const canvas = shell.canvas as unknown as FakeCanvas;
+    canvas.dispatch('pointerdown', { clientX: 300, clientY: 200, pointerId: 20 });
+    (canvas.hasPointerCapture as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    canvas.dispatch('pointerup', { pointerId: 20 });
+    expect(canvas.releasePointerCapture).not.toHaveBeenCalledWith(20);
+  });
+
+  it('sets the status text when keyboard interact fires on an unregistered door id', async () => {
+    const phantomSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 0,
+      doors: [{ id: 'phantom-game', status: 'launchable', bounds: SNAPSHOT.doors[0]!.bounds }]
+    };
+    const { browser, keyboard, shell } = await mountHarness({ snapshot: phantomSnapshot });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(shell.status.textContent).toBe('that door leads nowhere yet');
+  });
+
+  it('announces coming soon via keyboard interact when the door is registered but not playable', async () => {
+    // interactionDoorIndex=1 points to future-bothy (locked), which is in the registry but not launchable
+    const lockedDoorSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 1
+    };
+    const { browser, keyboard, shell } = await mountHarness({ snapshot: lockedDoorSnapshot });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(shell.status.textContent).toContain('soon.');
+  });
+
+  it('does not navigate when interact fires but door index is out of bounds', async () => {
+    const outOfBoundsSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 99
+    };
+    const { browser, keyboard, navigator } = await mountHarness({ snapshot: outOfBoundsSnapshot });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(navigator.navigate).not.toHaveBeenCalled();
+  });
+
+  it('passes the active door id to the debug overlay when an interaction is in progress', async () => {
+    const activeSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 0
+    };
+    const { browser } = await mountHarness({ search: '?debug', snapshot: activeSnapshot });
+    browser.flushRaf(100);
+    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    expect(overlay.update).toHaveBeenCalledWith(
+      expect.objectContaining({ interactionDoorId: 'wild-haggis-survivors' })
+    );
+  });
+
+  it('passes null interactionDoorId to debug overlay when door index is out of bounds', async () => {
+    const badIndexSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 99
+    };
+    const { browser } = await mountHarness({ search: '?debug', snapshot: badIndexSnapshot });
+    browser.flushRaf(100);
+    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    expect(overlay.update).toHaveBeenCalledWith(
+      expect.objectContaining({ interactionDoorId: null })
+    );
+  });
+
   it('destroys the boundary and throws when room doors drift from the registry', async () => {
     vi.resetModules();
     installBrowserGlobals();
