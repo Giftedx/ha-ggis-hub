@@ -2,6 +2,19 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 docs: fix stale prettier entry in docs/README.md
+
+`docs/README.md` "Still-missing implementation files" listed `prettier.config.js`
+as "not chosen; the codebase is small enough to hand-format consistently." The entry
+predated the `.prettierrc` + `pnpm fmt:check` gate added on 2026-05-27. Updated to
+accurately describe what ships.
+
+### Fixed
+- **`docs/README.md`** — `prettier.config.js` entry replaced with current `.prettierrc`
+  description and `pnpm fmt:check` gate reference.
+
+---
+
 ## [Unreleased] — 2026-05-27 gate: expand prettier fmt:check to scripts/**/*.mjs
 
 `pnpm fmt:check` glob extended from `src/**/*.ts` to also cover
