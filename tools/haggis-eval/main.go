@@ -102,7 +102,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
-	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines≥90% stmts≥90% fns≥90% branches≥85%)")
+	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines=100% stmts=100% fns=100% branches=100%)")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
 	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
 	fmt.Fprintln(w, "  browser                    Playwright smokes (door-launch + door-tap + pointer-drive)")

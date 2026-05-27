@@ -162,8 +162,10 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 ## Initial budgets
 
 - Rust core line coverage: >= 85%, target 90%.
-- TypeScript statement coverage: >= 85%, target 90%.
-- TypeScript branch coverage: >= 85% configured, target 90%.
+- TypeScript statement coverage: 100% (enforced by vitest threshold; raised from 90% on 2026-05-27).
+- TypeScript branch coverage: 100% (enforced; raised from 85% on 2026-05-27).
+- TypeScript function coverage: 100% (enforced; raised from 90% on 2026-05-27).
+- TypeScript line coverage: 100% (enforced; raised from 90% on 2026-05-27).
 - Initial JS gzip: <= 180 KB.
 - Initial CSS gzip: <= 40 KB.
 - Initial WASM gzip: <= 300 KB lean / <= 500 KB substantial.

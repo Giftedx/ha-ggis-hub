@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   # Fast PR gate — runs the TS verify chain alone. Keeps PR feedback
-  # under 30s on typical changes.
+  # under 30s on typical changes. Chain: tsc → eslint → prettier --check
+  # → vitest → vite build → verify-dist.
   ts-verify:
     name: pnpm verify (fast PR gate)
     runs-on: ubuntu-latest
@@ -34,12 +35,12 @@ jobs:
   # Full release gate via haggis-eval. Runs the orchestrator's `all`
   # subcommand which composes 19 gate groups sequentially:
   # rust (cargo fmt+clippy+test), ts (tsc+vitest+build), coverage
-  # (vitest v8 thresholds: lines≥90% stmts≥90% fns≥90% branches≥85%),
+  # (vitest v8 thresholds: lines=100% stmts=100% fns=100% branches=100%),
   # security (deploy-config.test — headers+CSP+cache), perf (bundle
   # budgets + W3C paint-timing FCP/LCP/DCL via Playwright), browser
   # (door-launch + door-tap + pointer-drive smokes), determinism
   # (same-seed state-hash equality across two runs), visual (aHash
-  # diff vs tests/golden/ with Hamming tolerance), a11y (22 WCAG 2.2
+  # diff vs tests/golden/ with Hamming tolerance), a11y (26 WCAG 2.2
   # AA spot-checks, hand-rolled, no axe-core dep), soak (15s RAF loop
   # heap-growth < 5 MB), supply-chain (cargo deny: licenses + RustSec
   # advisories + source policy), differential hash (C vs Rust FNV-1a,

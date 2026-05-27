@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: lift TS coverage thresholds to 100%; fix CI/doc drift
+
+Coverage thresholds raised from `lines:90, stmts:90, fns:90, branches:85` to 100% across all four
+metrics. Threshold now matches actual coverage — any future regression fails the gate immediately.
+CI yml, haggis-eval help text, haggis-eval README, quality-gates.md, and WRITEUP.md updated to
+reflect 100% thresholds; CI yml also corrected a11y spot-check count (22 → 26) and added
+prettier to the PR gate description.
+
+### Changed
+
+- **`vite.config.ts`** — coverage thresholds: all four metrics raised to 100%.
+- **`.github/workflows/ci.yml`** — coverage comment updated to 100%; a11y count 22 → 26;
+  PR gate description now lists `prettier --check` in the verify chain.
+- **`tools/haggis-eval/main.go`** — coverage help line updated to 100%.
+- **`tools/haggis-eval/internal/cmd/coverage.go`** — comment updated to 100%.
+- **`tools/haggis-eval/README.md`** — coverage row updated to 100%.
+- **`docs/foundation/07-quality-gates.md`** — TS coverage budget lines updated to 100%
+  (raised from 90%/85% on 2026-05-27).
+- **`WRITEUP.md`** — coverage command comment updated to 100%; verify chain now lists
+  `prettier --check`.
+
+---
+
 ## [Unreleased] — 2026-05-27 tooling: prettier formatting gate
 
 Prettier added as a devDependency and wired into `pnpm verify` via a new `pnpm fmt:check` step.
