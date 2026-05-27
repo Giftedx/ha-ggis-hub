@@ -27,7 +27,7 @@ async function start(root: HTMLElement): Promise<void> {
   createMusicController({
     button: shell.musicButton,
     audio: shell.musicAudio,
-    tracks: model.music.tracks
+    tracks: model.music.tracks,
   });
   root.replaceChildren(shell.scene);
 
@@ -35,7 +35,7 @@ async function start(root: HTMLElement): Promise<void> {
   try {
     await host.launch(createBothyGameModule(shell), {
       launchSource: 'route',
-      reducedMotion
+      reducedMotion,
     });
   } catch (error: unknown) {
     shell.status.textContent = 'the bothy wouldnae load — try the corner link';

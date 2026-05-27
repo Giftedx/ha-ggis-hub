@@ -3,7 +3,7 @@ import {
   HUB_GAME_REGISTRY,
   getGameById,
   validateGameRegistry,
-  validateRoomRegistryCoherence
+  validateRoomRegistryCoherence,
 } from './registry';
 
 describe('game registry', () => {
@@ -16,7 +16,7 @@ describe('game registry', () => {
       id: 'wild-haggis-survivors',
       title: 'Wild Haggis Survivors',
       status: 'playable',
-      launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' }
+      launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' },
     });
   });
 
@@ -26,7 +26,7 @@ describe('game registry', () => {
     expect(future).toMatchObject({
       id: 'future-bothy',
       status: 'coming-soon',
-      launch: { kind: 'none' }
+      launch: { kind: 'none' },
     });
   });
 
@@ -37,38 +37,38 @@ describe('game registry', () => {
           id: 'wild-haggis-survivors',
           title: 'Wild Haggis Survivors',
           status: 'playable',
-          launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' }
+          launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' },
         },
         {
           id: 'wild-haggis-survivors',
           title: 'Duplicate',
           status: 'playable',
-          launch: { kind: 'external-url', target: 'https://example.com/' }
+          launch: { kind: 'external-url', target: 'https://example.com/' },
         },
         {
           id: 'Bad Id',
           title: 'Bad Id',
           status: 'coming-soon',
-          launch: { kind: 'none' }
+          launch: { kind: 'none' },
         },
         {
           id: 'no-launch',
           title: 'No Launch',
           status: 'playable',
-          launch: { kind: 'none' }
+          launch: { kind: 'none' },
         },
         {
           id: 'future-with-launch',
           title: 'Future With Launch',
           status: 'coming-soon',
-          launch: { kind: 'route', target: '/future/' }
-        }
+          launch: { kind: 'route', target: '/future/' },
+        },
       ])
     ).toEqual([
       'Duplicate game id: wild-haggis-survivors',
       'Invalid game id "Bad Id": ids must be lowercase kebab-case',
       'Playable game no-launch must define a route or external-url launch target',
-      'Non-playable game future-with-launch must not define a launch target'
+      'Non-playable game future-with-launch must not define a launch target',
     ]);
   });
 
@@ -79,25 +79,25 @@ describe('game registry', () => {
           id: 'bad-route',
           title: 'Bad Route',
           status: 'playable',
-          launch: { kind: 'route', target: '//evil.example/path' }
+          launch: { kind: 'route', target: '//evil.example/path' },
         },
         {
           id: 'bad-protocol',
           title: 'Bad Protocol',
           status: 'playable',
-          launch: { kind: 'external-url', target: 'javascript:alert(1)' }
+          launch: { kind: 'external-url', target: 'javascript:alert(1)' },
         },
         {
           id: 'bad-url',
           title: 'Bad URL',
           status: 'playable',
-          launch: { kind: 'external-url', target: 'not a url' }
-        }
+          launch: { kind: 'external-url', target: 'not a url' },
+        },
       ])
     ).toEqual([
       'bad-route: Route launch target must be a same-origin absolute path: //evil.example/path',
       'bad-protocol: External launch target must use https: javascript:alert(1)',
-      'bad-url: External launch target must be a valid URL: not a url'
+      'bad-url: External launch target must be a valid URL: not a url',
     ]);
   });
 
@@ -106,7 +106,7 @@ describe('game registry', () => {
       validateRoomRegistryCoherence(
         [
           { id: 'wild-haggis-survivors', status: 'launchable' },
-          { id: 'future-bothy', status: 'locked' }
+          { id: 'future-bothy', status: 'locked' },
         ],
         HUB_GAME_REGISTRY
       )

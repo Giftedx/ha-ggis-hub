@@ -4,15 +4,8 @@ import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import { blitSprite } from './sprite';
 import { drawBothyHaggis } from './bothy-haggis';
 import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
-import {
-  drawWhsBothyWalls, drawWhsBothyFloor, drawWhsDoor,
-  type BothyEnvelope
-} from './whs-bothy';
-import {
-  PALETTE,
-  makeBeamGeometry,
-  hardContactShadow
-} from './palette';
+import { drawWhsBothyWalls, drawWhsBothyFloor, drawWhsDoor, type BothyEnvelope } from './whs-bothy';
+import { PALETTE, makeBeamGeometry, hardContactShadow } from './palette';
 import { DOOR_SIGN, LANTERN_LIT } from './sprites/door';
 import { renderPixelText, measurePixelText, PIXEL_FONT_HEIGHT } from './sprites/pixel-font';
 
@@ -43,8 +36,13 @@ export interface CanvasRoomContext {
   save(): void;
   restore(): void;
   ellipse(
-    x: number, y: number, radiusX: number, radiusY: number,
-    rotation: number, startAngle: number, endAngle: number
+    x: number,
+    y: number,
+    radiusX: number,
+    radiusY: number,
+    rotation: number,
+    startAngle: number,
+    endAngle: number
   ): void;
   quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void;
   clip(): void;
@@ -70,12 +68,12 @@ export interface CanvasRoomRenderer {
 // Field names match the prior structure so draw fns are unchanged.
 const PX = {
   // Backdrop behind the bothy (deepest ink that peeks past walls)
-  void: '#1a0e08',                  // ink-deep
+  void: '#1a0e08', // ink-deep
   // Warm sandstone-plastered walls — lit by dawn through the window
-  stoneShadow: '#3a2418',           // peat-brown
+  stoneShadow: '#3a2418', // peat-brown
   stoneDark: '#4a2c18',
-  stoneMid: '#8a6a4a',              // sandstone mid (lit warm)
-  stoneLight: '#b8a878',            // cairn-stone
+  stoneMid: '#8a6a4a', // sandstone mid (lit warm)
+  stoneLight: '#b8a878', // cairn-stone
   stoneHighlight: '#d8c898',
   mortar: '#3a2418',
   // Floor — warm peat-stained oak boards
@@ -84,52 +82,52 @@ const PX = {
   floorLight: '#7a5230',
   floorSeam: '#1a0e08',
   floorKnot: '#1a0a04',
-  floorLitWash: '#e4a020',          // neeps-orange wash from the hearth
+  floorLitWash: '#e4a020', // neeps-orange wash from the hearth
   // Wooden doors — warm timber, lit
   woodWarm: '#5a3220',
   woodWarmShade: '#2a1808',
   woodWarmHighlight: '#8a5630',
-  woodCold: '#3a2a30',              // locked door reads ash-grey (still warm-tinted)
+  woodCold: '#3a2a30', // locked door reads ash-grey (still warm-tinted)
   woodColdShade: '#1a1218',
   // Iron + brass
   iron: '#2a1a14',
   ironHighlight: '#5a4a3a',
-  goldHandle: '#c8842a',            // whisky-amber
+  goldHandle: '#c8842a', // whisky-amber
   goldHandleDark: '#7a5018',
   // Fire — banked embers from last night, warm but not roaring
   flameCore: '#fff0c8',
-  flameMid: '#e4a020',              // neeps-orange
-  flameOuter: '#c8842a',            // whisky-amber
-  ember: '#c44218',                 // ember-red
+  flameMid: '#e4a020', // neeps-orange
+  flameOuter: '#c8842a', // whisky-amber
+  ember: '#c44218', // ember-red
   // The Wee Chieftain — cooked-casing body with a pale oat cutaway
   hagOutline: '#1a0e08',
   hagDark: '#3a2418',
   hagBody: '#5a3a20',
-  hagLight: '#8a6038',              // ginger highlight (mane hint)
-  hagRim: '#c8a058',                // warm rim catching the dawn
-  hagBlush: '#a44030',              // dusty rose nose (warm, not pink)
+  hagLight: '#8a6038', // ginger highlight (mane hint)
+  hagRim: '#c8a058', // warm rim catching the dawn
+  hagBlush: '#a44030', // dusty rose nose (warm, not pink)
   hagShadow: 'rgba(20, 10, 4, 0.5)',
   // Eyes — cream whites read warmer than cool blue-white in the dawn light
-  eyeWhite: '#f0e6c8',              // tatties-cream
+  eyeWhite: '#f0e6c8', // tatties-cream
   eyePupil: '#1a0e08',
   legDark: '#1a0e08',
   // Lantern halo + active glow — warm dawn glow
-  haloWarm: '#e4a020',              // neeps-orange (launchable)
-  haloCool: '#7a4a9c',              // heather-purple (locked counterpoint, dawn-correct)
+  haloWarm: '#e4a020', // neeps-orange (launchable)
+  haloCool: '#7a4a9c', // heather-purple (locked counterpoint, dawn-correct)
   // Door signs — oat wood + cream paint
   signWood: '#5a3220',
   signEdge: '#1a0e08',
-  signText: '#f0e6c8',              // tatties-cream
+  signText: '#f0e6c8', // tatties-cream
   signTextShadow: '#2a1408',
   // Interaction prompt
   promptShadow: 'rgba(26, 14, 8, 0.92)',
-  promptText: '#f0e6c8',             // tatties-cream
+  promptText: '#f0e6c8', // tatties-cream
   // Wall ornaments
-  brackenGreen: '#5a7a5a',           // art-bracken-green — dried herbs
-  brackenStem: '#3a2418',            // art-peat-mid — dark dried stem
-  cordTwine: '#b8a878',              // art-cairn-stone — hanging cord
-  cordShadow: '#7a5018',             // art-whisky-deep — cord shadow line
-  stemFade: '#7a5230'                // art-oat-dark — alternate/faded stem
+  brackenGreen: '#5a7a5a', // art-bracken-green — dried herbs
+  brackenStem: '#3a2418', // art-peat-mid — dark dried stem
+  cordTwine: '#b8a878', // art-cairn-stone — hanging cord
+  cordShadow: '#7a5018', // art-whisky-deep — cord shadow line
+  stemFade: '#7a5230', // art-oat-dark — alternate/faded stem
 } as const;
 
 export const STORYBOOK_BACKDROP_SRC = '/art/bothy-storybook-backdrop.webp';
@@ -142,9 +140,9 @@ let storybookBackdropImage: HTMLImageElement | undefined;
 // scene from "4-wall frame seen top-down with elevation cheating"
 // into "looking into the bothy through a 3/4 angle, back wall front
 // and centre".
-const WALL_THICK_BACK = 96;   // back wall — dominant, holds window/decor
-const WALL_THICK_SIDE = 24;   // side walls — thin trim
-const WALL_THICK_FRONT = 24;  // front wall — thin trim
+const WALL_THICK_BACK = 96; // back wall — dominant, holds window/decor
+const WALL_THICK_SIDE = 24; // side walls — thin trim
+const WALL_THICK_FRONT = 24; // front wall — thin trim
 
 interface ScaledRect {
   readonly x: number;
@@ -182,7 +180,13 @@ export function computeVisualDoorBounds(
     const simRect = scaleDoorBounds(surface, room, door);
     const side = doorSide(simRect, surface);
     const snapped = snapDoorToWall(simRect, surface, side);
-    return { id: door.id, x: snapped.x, y: snapped.y, width: snapped.width, height: snapped.height };
+    return {
+      id: door.id,
+      x: snapped.x,
+      y: snapped.y,
+      width: snapped.width,
+      height: snapped.height,
+    };
   });
 }
 
@@ -219,7 +223,11 @@ export function createCanvasRoomRenderer(
     render(snapshot: DecodedSnapshot): void {
       /* v8 ignore next — window always defined in browser; node test env skips the true arm */
       const dpr = typeof window !== 'undefined' ? Math.round(window.devicePixelRatio || 1) : 1;
-      (context as unknown as { setTransform?(a: number, b: number, c: number, d: number, e: number, f: number): void }).setTransform?.(dpr, 0, 0, dpr, 0, 0);
+      (
+        context as unknown as {
+          setTransform?(a: number, b: number, c: number, d: number, e: number, f: number): void;
+        }
+      ).setTransform?.(dpr, 0, 0, dpr, 0, 0);
       if (prevPlayerX !== null && prevPlayerY !== null) {
         const dx = snapshot.playerX - prevPlayerX;
         const dy = snapshot.playerY - prevPlayerY;
@@ -243,12 +251,22 @@ export function createCanvasRoomRenderer(
           rect,
           /* v8 ignore next — titles built from room.doors; get() always returns a string for any door in room */
           title: titles.get(door.id) ?? door.id,
-          side
+          side,
         };
       });
       const phase = fixedPhaseSeconds ?? (nowMillis() - startedAt) / 1000;
-      renderRoom(context, surface, room, doors, snapshot, phase, haggisFacingLeft, haggisIsMoving, reducedMotion);
-    }
+      renderRoom(
+        context,
+        surface,
+        room,
+        doors,
+        snapshot,
+        phase,
+        haggisFacingLeft,
+        haggisIsMoving,
+        reducedMotion
+      );
+    },
   };
 }
 
@@ -274,7 +292,8 @@ function snapDoorToWall(
 
 function nowMillis(): number {
   /* v8 ignore next — Date.now() fallback only reachable in environments without performance.now() */
-  if (typeof performance === 'undefined' || typeof performance.now !== 'function') return Date.now();
+  if (typeof performance === 'undefined' || typeof performance.now !== 'function')
+    return Date.now();
   return performance.now();
 }
 
@@ -323,7 +342,7 @@ function renderRoom(
   const interactingId = activeDoorId(snapshot);
   const fireCenter = {
     x: Math.round(surface.width / 2),
-    y: Math.round(surface.height * 0.78)
+    y: Math.round(surface.height * 0.78),
   };
 
   if (!storybookBackdropDrawn) {
@@ -341,7 +360,7 @@ function renderRoom(
       top: 0,
       wallBottom: WALL_THICK_BACK,
       floorBottom: surface.height - WALL_THICK_FRONT,
-      compact: surface.width < 600
+      compact: surface.width < 600,
     };
     drawWhsBothyWalls(ctx, bothyEnv);
 
@@ -585,13 +604,18 @@ function drawLogBasket(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void
 function drawHerbBundle(ctx: CanvasRoomContext, tieX: number, tieY: number): void {
   // 5 stems fan out from the tie point and droop downward.
   // Tips carry small ellipse buds (bracken green). Cord wrap at tieY.
-  type Stem = { readonly dx: number; readonly dy: number; readonly rot: number; readonly fade: boolean };
+  type Stem = {
+    readonly dx: number;
+    readonly dy: number;
+    readonly rot: number;
+    readonly fade: boolean;
+  };
   const stems: readonly Stem[] = [
     { dx: -8, dy: 20, rot: -0.4, fade: false },
-    { dx: -4, dy: 23, rot: -0.15, fade: true  },
-    { dx:  0, dy: 24, rot:  0.0,  fade: false },
-    { dx:  4, dy: 23, rot:  0.15, fade: true  },
-    { dx:  8, dy: 20, rot:  0.4,  fade: false },
+    { dx: -4, dy: 23, rot: -0.15, fade: true },
+    { dx: 0, dy: 24, rot: 0.0, fade: false },
+    { dx: 4, dy: 23, rot: 0.15, fade: true },
+    { dx: 8, dy: 20, rot: 0.4, fade: false },
   ] as const;
 
   ctx.save();
@@ -621,7 +645,7 @@ function drawHerbBundle(ctx: CanvasRoomContext, tieX: number, tieY: number): voi
   // Cord wrap — a 3px strip around the tie point, earthy twine colour
   ctx.save();
   ctx.fillStyle = PX.cordTwine;
-  ctx.globalAlpha = 0.90;
+  ctx.globalAlpha = 0.9;
   ctx.fillRect(tieX - 4, tieY, 8, 3);
   ctx.fillStyle = PX.cordShadow;
   ctx.globalAlpha = 0.55;
@@ -633,7 +657,10 @@ function drawHerbBundle(ctx: CanvasRoomContext, tieX: number, tieY: number): voi
 
 function drawFramedPicture(
   ctx: CanvasRoomContext,
-  x: number, y: number, w: number, h: number
+  x: number,
+  y: number,
+  w: number,
+  h: number
 ): void {
   // Amateur Highland landscape, unfinished. Sky + mountains painted;
   // foreground left as bare cream canvas. Frame is warm wood.
@@ -641,7 +668,7 @@ function drawFramedPicture(
   // Outer shadow (deepest ink — shadow side of frame, correct for left-wall
   // placement where the window source is to the right)
   ctx.fillStyle = PX.void;
-  ctx.fillRect(x - 2, y, 2, h + 2);     // left shadow
+  ctx.fillRect(x - 2, y, 2, h + 2); // left shadow
   ctx.fillRect(x - 2, y + h, w + 4, 2); // bottom shadow
 
   // Frame body — warm wood (PX.woodWarm tokens)
@@ -660,7 +687,10 @@ function drawFramedPicture(
 
   // Inner canvas — cream ground (tatties-cream from PX.eyeWhite)
   const bord = 3;
-  const cx = x + bord, cy = y + bord, cw = w - bord * 2, ch = h - bord * 2;
+  const cx = x + bord,
+    cy = y + bord,
+    cw = w - bord * 2,
+    ch = h - bord * 2;
   ctx.fillStyle = PX.eyeWhite;
   ctx.fillRect(cx, cy, cw, ch);
 
@@ -690,7 +720,7 @@ function drawFramedPicture(
   // Right ridge (taller, overlaps left)
   ctx.beginPath();
   ctx.moveTo(cx + Math.round(cw * 0.44), mBase);
-  ctx.lineTo(cx + Math.round(cw * 0.72), cy + Math.round(ch * 0.30));
+  ctx.lineTo(cx + Math.round(cw * 0.72), cy + Math.round(ch * 0.3));
   ctx.lineTo(cx + cw, mBase);
   ctx.closePath();
   ctx.fill();
@@ -710,7 +740,7 @@ function drawAmbientParticles(
   // Ember sparks rising from the fire — small bright orange specks
   // that fade fast. Sells the fire as "active" not painted-on.
   for (let i = 0; i < 5; i += 1) {
-    const life = ((phase * 0.5 + i * 0.31) % 1);
+    const life = (phase * 0.5 + i * 0.31) % 1;
     if (life < 0.05 || life > 0.85) continue;
     const sway = Math.sin(phase * 3.1 + i * 1.7) * 4;
     const sx = fireCenter.x + sway + (i - 2) * 2;
@@ -729,7 +759,7 @@ function drawAmbientParticles(
   // larger + fading as they rise. Two-tone (warm at base → cool grey
   // higher). Phase 3-coherent: no pixel rects.
   for (let i = 0; i < 8; i += 1) {
-    const life = ((phase * 0.3 + i * 0.22) % 1);
+    const life = (phase * 0.3 + i * 0.22) % 1;
     if (life < 0.05) continue;
     const sway = Math.sin(phase * 1.7 + i * 2.1) * 8;
     const sx = fireCenter.x + sway;
@@ -982,14 +1012,19 @@ function drawDioramaRunner(
 // mullion shadows. Replaced 160+ lines of pixel-art per-zone dither
 // (Phase 2b) with WHS-quality smooth planks + simple translucent
 // beam ellipse. Keeps signature dawn-light-from-window flourish.
-function drawFloor(ctx: CanvasRoomContext, surface: CanvasRoomSurface, phase: number, reducedMotion: boolean): void {
+function drawFloor(
+  ctx: CanvasRoomContext,
+  surface: CanvasRoomSurface,
+  phase: number,
+  reducedMotion: boolean
+): void {
   const env: BothyEnvelope = {
     left: WALL_THICK_SIDE,
     right: surface.width - WALL_THICK_SIDE,
     top: 0,
     wallBottom: WALL_THICK_BACK,
     floorBottom: surface.height - WALL_THICK_FRONT,
-    compact: surface.width < 600
+    compact: surface.width < 600,
   };
   drawWhsBothyFloor(ctx, env);
 
@@ -1017,16 +1052,21 @@ function drawSoftDawnBeam(
   const layers: readonly { expand: number; colour: string; alpha: number }[] = [
     { expand: 32, colour: PALETTE.edgePink, alpha: 0.07 },
     { expand: 16, colour: PALETTE.dawnPeach, alpha: 0.11 },
-    { expand: 0, colour: PALETTE.dawnGold, alpha: 0.13 }
+    { expand: 0, colour: PALETTE.dawnGold, alpha: 0.13 },
   ];
   for (const layer of layers) {
-    fillTrapezoidAlpha(ctx, {
-      cx: beam.cx,
-      topY: beam.topY,
-      length: beam.length,
-      topHalfWidth: beam.topHalfWidth + layer.expand,
-      bottomHalfWidth: beam.bottomHalfWidth + layer.expand
-    }, layer.colour, layer.alpha * dawnPulse);
+    fillTrapezoidAlpha(
+      ctx,
+      {
+        cx: beam.cx,
+        topY: beam.topY,
+        length: beam.length,
+        topHalfWidth: beam.topHalfWidth + layer.expand,
+        bottomHalfWidth: beam.bottomHalfWidth + layer.expand,
+      },
+      layer.colour,
+      layer.alpha * dawnPulse
+    );
   }
 }
 
@@ -1050,11 +1090,7 @@ function fillTrapezoidAlpha(
   ctx.restore();
 }
 
-function drawDoor(
-  ctx: CanvasRoomContext,
-  door: DoorLayout,
-  interactingId: string | null
-): void {
+function drawDoor(ctx: CanvasRoomContext, door: DoorLayout, interactingId: string | null): void {
   const { x, y, width, height } = door.rect;
   const isLaunchable = door.status === 'launchable';
 
@@ -1072,9 +1108,9 @@ function drawDoor(
     const cx = x + Math.round(width / 2);
     const cy = y + Math.round(height / 2);
     for (let i = 3; i >= 1; i--) {
-      const r = (width * 0.6) * (i / 3);
+      const r = width * 0.6 * (i / 3);
       ctx.save();
-      ctx.globalAlpha = 0.10 * i;
+      ctx.globalAlpha = 0.1 * i;
       ctx.fillStyle = glowColor;
       ctx.beginPath();
       ctx.ellipse(cx, cy, r * 1.1, r * 1.4, 0, 0, Math.PI * 2);
@@ -1114,7 +1150,7 @@ function drawDoorRecess(ctx: CanvasRoomContext, door: DoorLayout): void {
   ctx.fillRect(x - 8, y - 10, width + 16, height + 20);
   ctx.restore();
   ctx.save();
-  ctx.globalAlpha = door.status === 'launchable' ? 0.16 : 0.10;
+  ctx.globalAlpha = door.status === 'launchable' ? 0.16 : 0.1;
   ctx.fillStyle = door.status === 'launchable' ? PX.flameMid : PX.haloCool;
   ctx.fillRect(x - 2, y + 3, width + 4, height - 6);
   ctx.restore();
@@ -1148,7 +1184,10 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
   const cx = x + Math.round(width / 2);
   const lanternCy = y + 9;
   /* v8 ignore next — drawLantern only called for launchable doors (line 365) */
-  if (!isLit) { blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2); return; }
+  if (!isLit) {
+    blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2);
+    return;
+  }
   const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
   // Phase 3c: smooth translucent halo (dithered version read as
   // noise against the WHS substrate). Two layered ellipses fading
@@ -1189,7 +1228,14 @@ function drawSign(ctx: CanvasRoomContext, door: DoorLayout, label: string): void
   const scale = 1;
   const textW = measurePixelText(upper, scale);
   const textH = PIXEL_FONT_HEIGHT * scale;
-  renderPixelText(ctx, upper, cx - Math.round(textW / 2), signCy - Math.round(textH / 2) + 1, scale, PALETTE.bone);
+  renderPixelText(
+    ctx,
+    upper,
+    cx - Math.round(textW / 2),
+    signCy - Math.round(textH / 2) + 1,
+    scale,
+    PALETTE.bone
+  );
 }
 
 // Bothy haggis — the lobby inhabitant. Hub-original drawer in
@@ -1206,7 +1252,9 @@ function drawHaggis(
   storybookBackdropDrawn: boolean
 ): void {
   const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
-  const cy = Math.round((snapshot.playerY / room.worldHeight) * surface.height) + (storybookBackdropDrawn ? 56 : 0);
+  const cy =
+    Math.round((snapshot.playerY / room.worldHeight) * surface.height) +
+    (storybookBackdropDrawn ? 56 : 0);
   const bob = Math.round(Math.sin(phase * 2.6) * 1);
 
   // bothy-haggis design units: food body ~50 wide x ~30 tall,
@@ -1231,7 +1279,7 @@ function drawHaggis(
     breathY: Math.sin(phase * 1.4) * 0.4,
     facingLeft,
     frontLegY,
-    backLegY
+    backLegY,
   });
 }
 
@@ -1292,7 +1340,12 @@ function drawPrompt(
     const lineW = widths[i]!;
     const lx = x - Math.round(lineW / 2);
     const ly = plateY + 2 + i * (lineH + lineGap);
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as ReadonlyArray<readonly [number, number]>) {
+    for (const [dx, dy] of [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
+    ] as ReadonlyArray<readonly [number, number]>) {
       renderPixelText(ctx, line, lx + dx, ly + dy, scale, PALETTE.shadowDeep);
     }
     renderPixelText(ctx, line, lx, ly, scale, PALETTE.bone);
@@ -1337,7 +1390,7 @@ function scaleDoorBounds(
     x: Math.round((door.bounds.minX / room.worldWidth) * surface.width),
     y: Math.round((door.bounds.minY / room.worldHeight) * surface.height),
     width: Math.round((width / room.worldWidth) * surface.width),
-    height: Math.round((height / room.worldHeight) * surface.height)
+    height: Math.round((height / room.worldHeight) * surface.height),
   };
 }
 
@@ -1371,9 +1424,15 @@ function doorShortLabel(title: string): string {
   if (title.includes('Next Moon')) return 'SOON';
   const words = title.split(/\s+/).filter((w) => /[a-zA-Z]/.test(w));
   if (words.length >= 2) {
-    return words[0]!.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6);
+    return words[0]!
+      .replace(/[^a-zA-Z]/g, '')
+      .toUpperCase()
+      .slice(0, 6);
   }
-  return title.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6);
+  return title
+    .replace(/[^a-zA-Z]/g, '')
+    .toUpperCase()
+    .slice(0, 6);
 }
 
 function prettifyKebab(id: string): string {

@@ -19,7 +19,7 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
     id: WILD_HAGGIS_SURVIVORS_GAME_ID,
     title: 'Wild Haggis Survivors',
     status: 'playable',
-    launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' }
+    launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' },
   },
   {
     // Comin' wi' the next moon — placeholder for the next door in the
@@ -28,8 +28,8 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
     id: 'future-bothy',
     title: "Comin' Wi' The Next Moon",
     status: 'coming-soon',
-    launch: { kind: 'none' }
-  }
+    launch: { kind: 'none' },
+  },
 ];
 
 const GAME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

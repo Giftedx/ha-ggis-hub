@@ -26,13 +26,15 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
     title: 'ha.ggis Hub',
     async mount(_target: HTMLElement, options: GameMountOptions): Promise<GameInstance> {
       const seedParam = new URLSearchParams(window.location.search).get('seed');
-      const seed = seedParam !== null && /^\d+$/.test(seedParam)
-        ? BigInt(seedParam)
-        : BigInt(Date.now());
+      const seed =
+        seedParam !== null && /^\d+$/.test(seedParam) ? BigInt(seedParam) : BigInt(Date.now());
 
       const wasmInitStart = performance.now();
       const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
-      const roomRegistryErrors = validateRoomRegistryCoherence(boundary.room.doors, HUB_GAME_REGISTRY);
+      const roomRegistryErrors = validateRoomRegistryCoherence(
+        boundary.room.doors,
+        HUB_GAME_REGISTRY
+      );
       if (roomRegistryErrors.length > 0) {
         boundary.destroy();
         throw new Error(`Room/registry mismatch: ${roomRegistryErrors.join('; ')}`);
@@ -40,31 +42,43 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const wasmInitMs = performance.now() - wasmInitStart;
 
       const canvasSurface = {
-        get width() { return 540; },
-        get height() { return 360; },
+        get width() {
+          return 540;
+        },
+        get height() {
+          return 360;
+        },
         /* v8 ignore next — called by canvas-room.ts internals; mocked at createCanvasRoomRenderer boundary in tests */
-        getContext(kind: '2d') { return shell.canvas.getContext(kind); }
+        getContext(kind: '2d') {
+          return shell.canvas.getContext(kind);
+        },
       };
 
-      const fixedVisualGatePhase = new URLSearchParams(window.location.search).get('visualGatePhase');
-      const parsedVisualGatePhase = fixedVisualGatePhase !== null && /^\d+(?:\.\d+)?$/.test(fixedVisualGatePhase)
-        ? Number(fixedVisualGatePhase)
-        : undefined;
-      const fixedPhaseSeconds = parsedVisualGatePhase !== undefined &&
-        Number.isFinite(parsedVisualGatePhase) && parsedVisualGatePhase >= 0 && parsedVisualGatePhase <= 86_400
-        ? parsedVisualGatePhase
-        : undefined;
+      const fixedVisualGatePhase = new URLSearchParams(window.location.search).get(
+        'visualGatePhase'
+      );
+      const parsedVisualGatePhase =
+        fixedVisualGatePhase !== null && /^\d+(?:\.\d+)?$/.test(fixedVisualGatePhase)
+          ? Number(fixedVisualGatePhase)
+          : undefined;
+      const fixedPhaseSeconds =
+        parsedVisualGatePhase !== undefined &&
+        Number.isFinite(parsedVisualGatePhase) &&
+        parsedVisualGatePhase >= 0 &&
+        parsedVisualGatePhase <= 86_400
+          ? parsedVisualGatePhase
+          : undefined;
 
       const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, {
         reducedMotion: options.reducedMotion,
-        fixedPhaseSeconds
+        fixedPhaseSeconds,
       });
       const keyboard = createKeyboardInputSampler(window);
       const inputLog = new InputLogWriter({
         seed,
         coreApiVersion: boundary.apiVersion,
         startedAtUtcMs: BigInt(Date.now()),
-        initialStateHash: boundary.stateHash()
+        initialStateHash: boundary.stateHash(),
       });
 
       let pointerActive = false;
@@ -78,7 +92,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const announceDoorStatus = createDoorStatusAnnouncer({
         status: shell.status,
         registry: HUB_GAME_REGISTRY,
-        fallbackText: options.reducedMotion ? 'reduced motion · the bothy bides quiet' : ''
+        fallbackText: options.reducedMotion ? 'reduced motion · the bothy bides quiet' : '',
       });
 
       const logicalSurface = { width: 540, height: 360 } as const;
@@ -144,7 +158,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         const canvasY = ((event.clientY - rect.top) / rect.height) * shell.canvas.height;
         return {
           x: (canvasX / shell.canvas.width) * snapshot.worldWidth,
-          y: (canvasY / shell.canvas.height) * snapshot.worldHeight
+          y: (canvasY / shell.canvas.height) * snapshot.worldHeight,
         };
       }
 
@@ -159,8 +173,12 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           const doorSnap = snapshot.doors.find((d) => d.id === vb.id);
           /* v8 ignore next — visualDoorBounds always mirrors snapshot doors; registry coherence is validated at mount */
           if (doorSnap === undefined) continue;
-          if (logicalX >= vb.x && logicalX <= vb.x + vb.width &&
-              logicalY >= vb.y && logicalY <= vb.y + vb.height) {
+          if (
+            logicalX >= vb.x &&
+            logicalX <= vb.x + vb.width &&
+            logicalY >= vb.y &&
+            logicalY <= vb.y + vb.height
+          ) {
             if (doorSnap.status === 'launchable') {
               launchDoorById(vb.id);
             } else {
@@ -260,15 +278,17 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           const snapshot = room.lastSnapshot();
           const { fps, frameMs } = fpsTracker.record(delta);
           overlay.update({
-            fps, frameMs,
+            fps,
+            frameMs,
             tick: stepState.tick,
             playerX: snapshot.playerX,
             playerY: snapshot.playerY,
             interactionKind: snapshot.interactionKind,
-            interactionDoorId: snapshot.interactionKind !== 'none'
-              ? (snapshot.doors[snapshot.interactionDoorIndex]?.id ?? null)
-              : null,
-            wasmInitMs
+            interactionDoorId:
+              snapshot.interactionKind !== 'none'
+                ? (snapshot.doors[snapshot.interactionDoorIndex]?.id ?? null)
+                : null,
+            wasmInitMs,
           });
         }
       };
@@ -298,8 +318,8 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           delete winHooks.__stateHash;
           delete winHooks.__seed;
           overlay?.destroy();
-        }
+        },
       };
-    }
+    },
   };
 }

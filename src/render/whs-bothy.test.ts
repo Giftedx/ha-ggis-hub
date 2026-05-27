@@ -4,7 +4,7 @@ import {
   drawWhsDoor,
   drawWhsMantelpiece,
   drawWhsRug,
-  drawWhsWindowBay
+  drawWhsWindowBay,
 } from './whs-bothy';
 
 class RecordingWhsContext {
@@ -56,7 +56,7 @@ describe('WHS bothy fixture helpers', () => {
       top: 0,
       wallBottom: 96,
       floorBottom: 336,
-      compact: false
+      compact: false,
     });
     drawWhsBothyEnvelope(ctx, {
       left: 24,
@@ -64,7 +64,7 @@ describe('WHS bothy fixture helpers', () => {
       top: 0,
       wallBottom: 84,
       floorBottom: 260,
-      compact: true
+      compact: true,
     });
     drawWhsWindowBay(ctx, { x: 40, y: 14, w: 88, h: 58 }, false);
     drawWhsWindowBay(ctx, { x: 160, y: 14, w: 64, h: 44 }, true);

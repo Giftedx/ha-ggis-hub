@@ -4,7 +4,7 @@ import {
   createCanvasRoomRenderer,
   computeVisualDoorBounds,
   formatPromptText,
-  type CanvasRoomSurface
+  type CanvasRoomSurface,
 } from './canvas-room';
 import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
@@ -61,8 +61,13 @@ class RecordingCanvasContext {
     this.calls.push('restore');
   }
   ellipse(
-    cx: number, cy: number, rx: number, ry: number,
-    _rotation: number, _a0: number, _a1: number
+    cx: number,
+    cy: number,
+    rx: number,
+    ry: number,
+    _rotation: number,
+    _a0: number,
+    _a1: number
   ): void {
     this.calls.push(`ellipse:${cx},${cy},${rx},${ry}`);
   }
@@ -94,9 +99,9 @@ function recordingSurface(
       getContext(kind: '2d') {
         expect(kind).toBe('2d');
         return context;
-      }
+      },
     },
-    context
+    context,
   };
 }
 
@@ -107,14 +112,14 @@ const ROOM: RoomDefinition = {
     {
       id: 'wild-haggis-survivors',
       status: 'launchable',
-      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 }
-    }
-  ]
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+  ],
 };
 
 const SNAPSHOT_AT_LAUNCHABLE: DecodedSnapshot = {
@@ -129,20 +134,20 @@ const SNAPSHOT_AT_LAUNCHABLE: DecodedSnapshot = {
     {
       id: 'wild-haggis-survivors',
       status: 'launchable',
-      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 }
-    }
-  ]
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+  ],
 };
 
 const SNAPSHOT_NO_INTERACTION: DecodedSnapshot = {
   ...SNAPSHOT_AT_LAUNCHABLE,
   playerX: 500,
-  interactionKind: 'none'
+  interactionKind: 'none',
 };
 
 afterEach(() => {
@@ -217,7 +222,7 @@ describe('createCanvasRoomRenderer', () => {
     createCanvasRoomRenderer(surface, ROOM).render({
       ...SNAPSHOT_AT_LAUNCHABLE,
       interactionDoorIndex: 1,
-      interactionKind: 'locked'
+      interactionKind: 'locked',
     });
     expect(context.calls.length).toBeGreaterThan(100);
   });
@@ -268,14 +273,18 @@ describe('createCanvasRoomRenderer', () => {
 
   it('stages the Wee Chieftain as a room inhabitant instead of the dominant room mass', () => {
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
     expect(context.calls).not.toContain('ellipse:270,148.6,67.5,40.5');
     expect(context.calls).toContain('ellipse:270,166.05,38.75,23.25');
   });
 
   it('paints a structured woven hearth runner instead of a muddy oval patch', () => {
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
     expect(context.calls).toContain('moveTo:176,200');
     expect(context.calls).toContain('lineTo:354,282');
     expect(context.calls).toContain('fillRect:170,230,200,6');
@@ -285,14 +294,18 @@ describe('createCanvasRoomRenderer', () => {
 
   it('grounds side-wall doors with threshold stones instead of leaving them as flat blocks', () => {
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
     expect(context.calls).toContain('fillRect:18,213,73,6');
     expect(context.calls).toContain('fillRect:449,213,73,6');
   });
 
   it('uses a panoramic Highland dawn view as the primary wall composition', () => {
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
     expect(context.calls).toContain('fillRect:54,14,432,108');
     expect(context.calls).toContain('moveTo:54,102');
     expect(context.calls).toContain('lineTo:168,56');
@@ -302,7 +315,9 @@ describe('createCanvasRoomRenderer', () => {
 
   it('builds a stone inglenook mass behind the hearth so the room has a focal structure', () => {
     const { surface, context } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
     expect(context.calls).toContain('ellipse:270,198,66,30');
     expect(context.calls).toContain('fillRect:204,198,132,134');
     expect(context.calls).toContain('fillRect:224,205,92,116');
@@ -310,13 +325,19 @@ describe('createCanvasRoomRenderer', () => {
 
   it('can freeze animation phase for deterministic visual-gate captures', () => {
     const { surface: surfaceA, context: ctxA } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surfaceA, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surfaceA, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
 
     const { surface: surfaceB, context: ctxB } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surfaceB, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surfaceB, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
 
     const { surface: surfaceC, context: ctxC } = recordingSurface(540, 360);
-    createCanvasRoomRenderer(surfaceC, ROOM, { fixedPhaseSeconds: 1 }).render(SNAPSHOT_NO_INTERACTION);
+    createCanvasRoomRenderer(surfaceC, ROOM, { fixedPhaseSeconds: 1 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
 
     expect(ctxB.calls).toEqual(ctxA.calls);
     expect(ctxC.calls).not.toEqual(ctxA.calls);
@@ -326,9 +347,11 @@ describe('createCanvasRoomRenderer', () => {
     const surface: CanvasRoomSurface = {
       width: 1200,
       height: 800,
-      getContext: () => null
+      getContext: () => null,
     };
-    expect(() => createCanvasRoomRenderer(surface, ROOM)).toThrow('Canvas2D context is unavailable');
+    expect(() => createCanvasRoomRenderer(surface, ROOM)).toThrow(
+      'Canvas2D context is unavailable'
+    );
   });
 
   it('renders correctly on a compact surface (width < 600) — exercises compact viewport paths', () => {
@@ -350,7 +373,7 @@ describe('createCanvasRoomRenderer', () => {
     createCanvasRoomRenderer(surface, ROOM).render({
       ...SNAPSHOT_AT_LAUNCHABLE,
       // Index 99 is beyond the two-door ROOM array → door === undefined → early return.
-      interactionDoorIndex: 99
+      interactionDoorIndex: 99,
     });
     expect(context.calls.length).toBeGreaterThan(20);
   });
@@ -365,9 +388,9 @@ describe('createCanvasRoomRenderer', () => {
           status: 'launchable',
           // Center x=500, center y=45 → on a 1200×800 canvas: cx=600, cy=36.
           // distTop(36) < distLeft(600) → doorSide returns 'top'.
-          bounds: { minX: 350, minY: 10, maxX: 650, maxY: 80 }
-        }
-      ]
+          bounds: { minX: 350, minY: 10, maxX: 650, maxY: 80 },
+        },
+      ],
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, topDoorRoom).render(SNAPSHOT_NO_INTERACTION);
@@ -384,9 +407,9 @@ describe('createCanvasRoomRenderer', () => {
           status: 'launchable',
           // Center x=500, center y=955 → on a 1200×800 canvas: cx=600, cy=764.
           // distBottom(36) < distLeft(600) → doorSide returns 'bottom'.
-          bounds: { minX: 350, minY: 920, maxX: 650, maxY: 990 }
-        }
-      ]
+          bounds: { minX: 350, minY: 920, maxX: 650, maxY: 990 },
+        },
+      ],
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, bottomDoorRoom).render(SNAPSHOT_NO_INTERACTION);
@@ -403,9 +426,9 @@ describe('createCanvasRoomRenderer', () => {
           status: 'launchable',
           // prettifyKebab('next-moon-bothy') = 'Next Moon Bothy' → contains
           // 'Next Moon' → doorShortLabel returns 'SOON'.
-          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
-        }
-      ]
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
+        },
+      ],
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, nextMoonRoom).render(SNAPSHOT_NO_INTERACTION);
@@ -423,9 +446,9 @@ describe('createCanvasRoomRenderer', () => {
           // 'lighthouse' is not in HUB_GAME_REGISTRY → doorTitleForId calls
           // prettifyKebab('lighthouse') = 'Lighthouse' (1 word) →
           // doorShortLabel returns the title as-is (single-word path).
-          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
-        }
-      ]
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
+        },
+      ],
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, unknownDoorRoom).render(SNAPSHOT_NO_INTERACTION);
@@ -465,9 +488,9 @@ describe('createCanvasRoomRenderer', () => {
           id: 'north--gate',
           status: 'launchable',
           // split('-') → ['north', '', 'gate']: empty part hits part.length > 0 false branch.
-          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
-        }
-      ]
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
+        },
+      ],
     };
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, doubleHyphenRoom).render(SNAPSHOT_NO_INTERACTION);

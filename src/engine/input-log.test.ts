@@ -7,7 +7,7 @@ describe('InputLogWriter', () => {
       seed: 7n,
       coreApiVersion: 1,
       startedAtUtcMs: 0n,
-      initialStateHash: 0n
+      initialStateHash: 0n,
     });
     const bytes = writer.finish(0, 0n);
     expect(bytes[0]).toBe(0x48); // H
@@ -21,7 +21,7 @@ describe('InputLogWriter', () => {
       seed: 0n,
       coreApiVersion: 1,
       startedAtUtcMs: 0n,
-      initialStateHash: 0n
+      initialStateHash: 0n,
     });
     writer.recordIfChanged(0, 0b0001);
     writer.recordIfChanged(1, 0b0001); // same — should not append
@@ -36,7 +36,7 @@ describe('InputLogWriter', () => {
       seed: 0n,
       coreApiVersion: 1,
       startedAtUtcMs: 0n,
-      initialStateHash: 0n
+      initialStateHash: 0n,
     });
     writer.recordIfChanged(0, 0b0001);
     writer.recordIfChanged(1, 0b0001 | 0b1_0000);
@@ -49,7 +49,7 @@ describe('InputLogWriter', () => {
       seed: 0n,
       coreApiVersion: 1,
       startedAtUtcMs: 0n,
-      initialStateHash: 0n
+      initialStateHash: 0n,
     });
     writer.recordIfChanged(0, 0); // idle == initial assumption, do not append
     writer.recordIfChanged(1, 0);

@@ -18,7 +18,9 @@ class FakeKeyboardTarget {
     let preventedDefault = false;
     const event = {
       code,
-      preventDefault: () => { preventedDefault = true; }
+      preventDefault: () => {
+        preventedDefault = true;
+      },
     } as unknown as Event;
     for (const listener of this.listeners.get(type) ?? []) {
       listener(event);
@@ -34,7 +36,10 @@ describe('input sampling', () => {
     expect(inputVectorFromPressedKeys(new Set(['ArrowUp']))).toEqual({ x: 0, y: -1 });
     expect(inputVectorFromPressedKeys(new Set(['ArrowDown']))).toEqual({ x: 0, y: 1 });
     expect(inputVectorFromPressedKeys(new Set(['KeyD', 'KeyW']))).toEqual({ x: 1, y: -1 });
-    expect(inputVectorFromPressedKeys(new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS']))).toEqual({ x: 0, y: 0 });
+    expect(inputVectorFromPressedKeys(new Set(['KeyA', 'KeyD', 'KeyW', 'KeyS']))).toEqual({
+      x: 0,
+      y: 0,
+    });
   });
 
   it('ignores unrelated keys and tracks keyup cleanup', () => {
@@ -136,7 +141,9 @@ describe('input sampling', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
     sampler.destroy();
-    expect(() => { sampler.destroy(); }).not.toThrow();
+    expect(() => {
+      sampler.destroy();
+    }).not.toThrow();
   });
 
   it('ignores events without a code property (keyCodeFromEvent fallback)', () => {
@@ -144,16 +151,20 @@ describe('input sampling', () => {
     const sampler = createKeyboardInputSampler(target);
     // Dispatch a bare event with no `code` property — the fallback returns ''
     // which is not in any key set, so snapshot stays neutral.
-    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> })
+      .listeners;
     const bare = {} as Event;
-    for (const listener of listeners.get('keydown') ?? []) { listener(bare); }
+    for (const listener of listeners.get('keydown') ?? []) {
+      listener(bare);
+    }
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
 
   it('destroyed guard fires in keydown/keyup when handler is invoked directly after destroy', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
-    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> })
+      .listeners;
     // Save handler refs BEFORE destroy removes them from the target.
     const kdListeners = [...(listeners.get('keydown') ?? [])];
     const kuListeners = [...(listeners.get('keyup') ?? [])];
@@ -164,8 +175,12 @@ describe('input sampling', () => {
     // (bypassing removeEventListener) exercises the `if (destroyed) return`
     // guard at lines 68 (keydown) and 79 (keyup) — both must be no-ops.
     const fakeEvent = { code: 'KeyA' } as unknown as Event;
-    for (const fn of kdListeners) { fn(fakeEvent); }
-    for (const fn of kuListeners) { fn(fakeEvent); }
+    for (const fn of kdListeners) {
+      fn(fakeEvent);
+    }
+    for (const fn of kuListeners) {
+      fn(fakeEvent);
+    }
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
 
@@ -174,9 +189,12 @@ describe('input sampling', () => {
     const sampler = createKeyboardInputSampler(target);
     // Dispatch ArrowLeft as a raw event WITHOUT preventDefault — exercises
     // the `typeof candidate.preventDefault !== 'function'` false branch.
-    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> }).listeners;
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> })
+      .listeners;
     const noPD = { code: 'ArrowLeft' } as unknown as Event;
-    for (const listener of listeners.get('keydown') ?? []) { listener(noPD); }
+    for (const listener of listeners.get('keydown') ?? []) {
+      listener(noPD);
+    }
     expect(sampler.snapshot().x).toBe(-1);
     sampler.destroy();
   });

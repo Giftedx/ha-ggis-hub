@@ -24,12 +24,12 @@ import { PALETTE } from '../palette';
 
 const DOOR_PALETTE = {
   '.': null,
-  'k': PALETTE.ink,
-  'd': PALETTE.shadowWoodMid,
-  'm': PALETTE.litWoodMid,
-  'h': PALETTE.litWoodHi,
-  'b': PALETTE.whisky,
-  'B': PALETTE.brassDark
+  k: PALETTE.ink,
+  d: PALETTE.shadowWoodMid,
+  m: PALETTE.litWoodMid,
+  h: PALETTE.litWoodHi,
+  b: PALETTE.whisky,
+  B: PALETTE.brassDark,
 } as const;
 
 // 28 wide × 50 tall. Four vertical planks separated by 1px dark grain.
@@ -92,8 +92,8 @@ export const DOOR_OPEN: Sprite = defineSprite({
     'kmddddddddddddddddddddddddhk', // 46  threshold shadow band
     'kdddddddddddddddddddddddddhk', // 47
     'kkkkkkkkkkkkkkkkkkkkkkkkkkkk', // 48  ink base line
-    '............................'  // 49  base padding
-  ]
+    '............................', // 49  base padding
+  ],
 });
 
 // =============================================================
@@ -133,17 +133,17 @@ export const DOOR_OPEN: Sprite = defineSprite({
 
 const SIGN_PALETTE = {
   '.': null,
-  'k': PALETTE.ink,
-  'K': PALETTE.shadowDeep,
-  'D': PALETTE.shadowWoodHi,
-  'm': PALETTE.litWoodMid,
-  'h': PALETTE.litWoodHi,
-  'd': PALETTE.shadowWoodMid,
-  'b': PALETTE.whisky,
-  'B': PALETTE.brassDark,
-  'r': PALETTE.edgeTan,
-  'R': PALETTE.edgeBrown,
-  'g': PALETTE.ink
+  k: PALETTE.ink,
+  K: PALETTE.shadowDeep,
+  D: PALETTE.shadowWoodHi,
+  m: PALETTE.litWoodMid,
+  h: PALETTE.litWoodHi,
+  d: PALETTE.shadowWoodMid,
+  b: PALETTE.whisky,
+  B: PALETTE.brassDark,
+  r: PALETTE.edgeTan,
+  R: PALETTE.edgeBrown,
+  g: PALETTE.ink,
 } as const;
 
 // 64 wide × 22 tall. Layout (top to bottom):
@@ -188,8 +188,8 @@ export const DOOR_SIGN: Sprite = defineSprite({
     'bBKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBb', // 18  shadowDeep inner border + brass top row
     'bbkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkbb', // 19  ink bottom edge + brass corners
     '................................................................', // 20  padding
-    '................................................................'  // 21  padding
-  ]
+    '................................................................', // 21  padding
+  ],
 });
 
 // =============================================================
@@ -211,12 +211,12 @@ export const DOOR_SIGN: Sprite = defineSprite({
 
 const LANTERN_PALETTE = {
   '.': null,
-  'k': PALETTE.ink,
-  'r': PALETTE.whisky,
-  'g': PALETTE.dawnGold,
-  'G': PALETTE.dawnHighlight,
-  'p': PALETTE.dawnPeach,
-  'e': PALETTE.brassDark
+  k: PALETTE.ink,
+  r: PALETTE.whisky,
+  g: PALETTE.dawnGold,
+  G: PALETTE.dawnHighlight,
+  p: PALETTE.dawnPeach,
+  e: PALETTE.brassDark,
 } as const;
 
 // 18 wide × 28 tall. Bracket arm extends up-left from the cage hanger
@@ -255,6 +255,6 @@ export const LANTERN_LIT: Sprite = defineSprite({
     '....krrrrrrk......', // 24  brass base
     '....kkkkkkkk......', // 25  base ink
     '......kkkk........', // 26  drop finial
-    '.......kk.........'  // 27  drop spike
-  ]
+    '.......kk.........', // 27  drop spike
+  ],
 });

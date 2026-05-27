@@ -27,8 +27,13 @@ export interface BothyHaggisContext {
   lineTo(x: number, y: number): void;
   arc(x: number, y: number, r: number, a0: number, a1: number): void;
   ellipse(
-    cx: number, cy: number, rx: number, ry: number,
-    rotation: number, a0: number, a1: number
+    cx: number,
+    cy: number,
+    rx: number,
+    ry: number,
+    rotation: number,
+    a0: number,
+    a1: number
   ): void;
   quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void;
   fill(): void;
@@ -82,7 +87,7 @@ export const BOTHY_HAGGIS_PALETTE: BothyHaggisPalette = {
   tartanRed: '#9c2018',
   tartanGreen: '#1f4628',
   heatherShadow: '#28182c',
-  heatherBloom: '#7a4a9c'
+  heatherBloom: '#7a4a9c',
 };
 
 export interface BothyHaggisFrame {
@@ -127,7 +132,7 @@ export function drawBothyHaggis(
     { x: -14, long: true, lift: backLift },
     { x: -6, long: true, lift: frontLift },
     { x: 7, long: false, lift: backLift },
-    { x: 15, long: false, lift: frontLift }
+    { x: 15, long: false, lift: frontLift },
   ];
   for (const leg of legs) {
     const lx = ax(leg.x);
@@ -157,7 +162,18 @@ export function drawBothyHaggis(
 
   // Asymmetric tied casing. One small pucker and trailing string reads
   // as food packaging; two large side blobs read as ears.
-  strokeCurve(ctx, palette.casingSeam, 0.52, 0.9 * s, mx(-21), my(-3), mx(-19), my(1), mx(-21), my(5));
+  strokeCurve(
+    ctx,
+    palette.casingSeam,
+    0.52,
+    0.9 * s,
+    mx(-21),
+    my(-3),
+    mx(-19),
+    my(1),
+    mx(-21),
+    my(5)
+  );
   fillEllipseRaw(ctx, palette.outline, 1, mx(23), my(4), 2.4 * s, 3.5 * s);
   fillEllipseRaw(ctx, palette.casingDeep, 1, mx(22.5), my(4), 1.45 * s, 2.5 * s);
   fillRect(ctx, palette.twineShadow, 0.9, mx(20.2), my(-0.9), 1.15 * s, 8 * s);
@@ -167,20 +183,75 @@ export function drawBothyHaggis(
   fillCircle(ctx, palette.twine, 0.76, mx(24.2), my(2.8), 0.72 * s);
   fillCircle(ctx, palette.tartanRed, 0.95, mx(21.85), my(2.1), 0.52 * s);
   fillCircle(ctx, palette.tartanGreen, 0.95, mx(21.95), my(4.2), 0.48 * s);
-  strokeCurve(ctx, palette.twine, 0.8, 0.7 * s, mx(22.6), my(1.6), mx(24.4), my(1.1), mx(25.4), my(3.2));
+  strokeCurve(
+    ctx,
+    palette.twine,
+    0.8,
+    0.7 * s,
+    mx(22.6),
+    my(1.6),
+    mx(24.4),
+    my(1.1),
+    mx(25.4),
+    my(3.2)
+  );
 
   // Casing seams and cooked wrinkles.
   strokeCurve(ctx, palette.casingSeam, 0.55, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
-  strokeCurve(ctx, palette.casingSeam, 0.35, 0.7 * s, mx(-14), my(-8), mx(0), my(-11), mx(15), my(-5));
-  strokeCurve(ctx, palette.casingHighlight, 0.38, 0.8 * s, mx(-16), my(-5), mx(-8), my(-8), mx(2), my(-7));
+  strokeCurve(
+    ctx,
+    palette.casingSeam,
+    0.35,
+    0.7 * s,
+    mx(-14),
+    my(-8),
+    mx(0),
+    my(-11),
+    mx(15),
+    my(-5)
+  );
+  strokeCurve(
+    ctx,
+    palette.casingHighlight,
+    0.38,
+    0.8 * s,
+    mx(-16),
+    my(-5),
+    mx(-8),
+    my(-8),
+    mx(2),
+    my(-7)
+  );
 
   // Pale oat cutaway: one loud food cue, kept low on the casing so it
   // does not read as a third eye or accidental facial feature.
   const cutawayY = 7;
   fillTornCutaway(ctx, palette.casingSeam, 0.64, mx, my, 0, cutawayY);
   fillTornCutaway(ctx, palette.crumbLight, 1, mx, my, 0.8, cutawayY + 0.45);
-  strokeCurve(ctx, palette.casingSeam, 0.72, 0.9 * s, mx(-22.2), my(cutawayY - 5), mx(-18.9), my(cutawayY - 8.4), mx(-12.2), my(cutawayY - 6));
-  strokeCurve(ctx, palette.casingHighlight, 0.42, 0.7 * s, mx(-20.7), my(cutawayY + 1.2), mx(-15.8), my(cutawayY + 2), mx(-12.6), my(cutawayY - 0.6));
+  strokeCurve(
+    ctx,
+    palette.casingSeam,
+    0.72,
+    0.9 * s,
+    mx(-22.2),
+    my(cutawayY - 5),
+    mx(-18.9),
+    my(cutawayY - 8.4),
+    mx(-12.2),
+    my(cutawayY - 6)
+  );
+  strokeCurve(
+    ctx,
+    palette.casingHighlight,
+    0.42,
+    0.7 * s,
+    mx(-20.7),
+    my(cutawayY + 1.2),
+    mx(-15.8),
+    my(cutawayY + 2),
+    mx(-12.6),
+    my(cutawayY - 0.6)
+  );
   fillCircle(ctx, palette.crumbDark, 0.45, mx(-19.2), my(cutawayY - 4.7), 0.5 * s);
   fillCircle(ctx, palette.oatFleck, 0.95, mx(-18.8), my(cutawayY - 4.4), 0.95 * s);
   fillCircle(ctx, palette.oatFleck, 0.9, mx(-15.8), my(cutawayY - 2.2), 1.05 * s);
@@ -192,7 +263,7 @@ export function drawBothyHaggis(
     [-4, 8, 0.58],
     [10, 4, 0.62],
     [15, -3, 0.52],
-    [6, -8, 0.48]
+    [6, -8, 0.48],
   ];
   for (const [fx, fy, fr] of flecks) {
     fillCircle(ctx, palette.oatFleck, 0.72, mx(fx), my(fy), fr * s);
@@ -210,16 +281,93 @@ export function drawBothyHaggis(
   fillCircle(ctx, palette.eyePupil, 1, mx(8), my(-2.35), 0.85 * s);
   fillCircle(ctx, palette.eyeGlint, 0.92, mx(-5.75), my(-3.05), 0.34 * s);
   fillCircle(ctx, palette.eyeGlint, 0.92, mx(7.8), my(-3.05), 0.34 * s);
-  strokeCurve(ctx, palette.outline, 0.34, 0.36 * s, mx(-8.6), my(-3.9), mx(-5.8), my(-3.9), mx(-3.4), my(-3.7));
-  strokeCurve(ctx, palette.outline, 0.34, 0.36 * s, mx(4.8), my(-3.9), mx(7.2), my(-3.9), mx(10.2), my(-3.7));
-  strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(-10.4), my(-4.4), mx(-7.3), my(-5), mx(-3.8), my(-4.7));
-  strokeCurve(ctx, palette.outline, 0.32, 0.48 * s, mx(4.1), my(-4.4), mx(8.4), my(-5), mx(11.9), my(-4.7));
-  strokeCurve(ctx, palette.casingSeam, 0.64, 0.65 * s, mx(-12.2), my(-6.9), mx(-8), my(-8.2), mx(-3.6), my(-6.8));
-  strokeCurve(ctx, palette.casingSeam, 0.64, 0.65 * s, mx(4.3), my(-6.9), mx(8.6), my(-8.2), mx(13.6), my(-6.8));
-  fillEllipseRaw(ctx, palette.casingHighlight, 0.20, mx(5.4), my(4.8), 5.6 * s, 1.4 * s);
+  strokeCurve(
+    ctx,
+    palette.outline,
+    0.34,
+    0.36 * s,
+    mx(-8.6),
+    my(-3.9),
+    mx(-5.8),
+    my(-3.9),
+    mx(-3.4),
+    my(-3.7)
+  );
+  strokeCurve(
+    ctx,
+    palette.outline,
+    0.34,
+    0.36 * s,
+    mx(4.8),
+    my(-3.9),
+    mx(7.2),
+    my(-3.9),
+    mx(10.2),
+    my(-3.7)
+  );
+  strokeCurve(
+    ctx,
+    palette.outline,
+    0.32,
+    0.48 * s,
+    mx(-10.4),
+    my(-4.4),
+    mx(-7.3),
+    my(-5),
+    mx(-3.8),
+    my(-4.7)
+  );
+  strokeCurve(
+    ctx,
+    palette.outline,
+    0.32,
+    0.48 * s,
+    mx(4.1),
+    my(-4.4),
+    mx(8.4),
+    my(-5),
+    mx(11.9),
+    my(-4.7)
+  );
+  strokeCurve(
+    ctx,
+    palette.casingSeam,
+    0.64,
+    0.65 * s,
+    mx(-12.2),
+    my(-6.9),
+    mx(-8),
+    my(-8.2),
+    mx(-3.6),
+    my(-6.8)
+  );
+  strokeCurve(
+    ctx,
+    palette.casingSeam,
+    0.64,
+    0.65 * s,
+    mx(4.3),
+    my(-6.9),
+    mx(8.6),
+    my(-8.2),
+    mx(13.6),
+    my(-6.8)
+  );
+  fillEllipseRaw(ctx, palette.casingHighlight, 0.2, mx(5.4), my(4.8), 5.6 * s, 1.4 * s);
 
   // Tiny content smile, low-contrast enough not to become a snout.
-  strokeCurve(ctx, palette.mouth, 0.55, 0.8 * s, mx(-2.5), my(3.2), mx(0), my(4.8), mx(3.2), my(3.2));
+  strokeCurve(
+    ctx,
+    palette.mouth,
+    0.55,
+    0.8 * s,
+    mx(-2.5),
+    my(3.2),
+    mx(0),
+    my(4.8),
+    mx(3.2),
+    my(3.2)
+  );
 }
 
 // ── Canvas2D helpers ───────────────────────────────────────────────
@@ -238,17 +386,41 @@ function fillTornCutaway(
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(mx(-22.2 + offsetX), my(-5 + offsetY));
-  ctx.quadraticCurveTo(mx(-18.9 + offsetX), my(-8.4 + offsetY), mx(-12.2 + offsetX), my(-6 + offsetY));
-  ctx.quadraticCurveTo(mx(-10.8 + offsetX), my(-3.2 + offsetY), mx(-12.6 + offsetX), my(-0.6 + offsetY));
-  ctx.quadraticCurveTo(mx(-15.2 + offsetX), my(2.2 + offsetY), mx(-20.7 + offsetX), my(1.2 + offsetY));
-  ctx.quadraticCurveTo(mx(-23.4 + offsetX), my(-1.4 + offsetY), mx(-22.2 + offsetX), my(-5 + offsetY));
+  ctx.quadraticCurveTo(
+    mx(-18.9 + offsetX),
+    my(-8.4 + offsetY),
+    mx(-12.2 + offsetX),
+    my(-6 + offsetY)
+  );
+  ctx.quadraticCurveTo(
+    mx(-10.8 + offsetX),
+    my(-3.2 + offsetY),
+    mx(-12.6 + offsetX),
+    my(-0.6 + offsetY)
+  );
+  ctx.quadraticCurveTo(
+    mx(-15.2 + offsetX),
+    my(2.2 + offsetY),
+    mx(-20.7 + offsetX),
+    my(1.2 + offsetY)
+  );
+  ctx.quadraticCurveTo(
+    mx(-23.4 + offsetX),
+    my(-1.4 + offsetY),
+    mx(-22.2 + offsetX),
+    my(-5 + offsetY)
+  );
   ctx.fill();
   ctx.restore();
 }
 
 function fillCircle(
-  ctx: BothyHaggisContext, color: string, alpha: number,
-  x: number, y: number, r: number
+  ctx: BothyHaggisContext,
+  color: string,
+  alpha: number,
+  x: number,
+  y: number,
+  r: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -260,8 +432,13 @@ function fillCircle(
 }
 
 function fillEllipseRaw(
-  ctx: BothyHaggisContext, color: string, alpha: number,
-  cx: number, cy: number, rx: number, ry: number
+  ctx: BothyHaggisContext,
+  color: string,
+  alpha: number,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -273,8 +450,13 @@ function fillEllipseRaw(
 }
 
 function fillRect(
-  ctx: BothyHaggisContext, color: string, alpha: number,
-  x: number, y: number, w: number, h: number
+  ctx: BothyHaggisContext,
+  color: string,
+  alpha: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -284,8 +466,16 @@ function fillRect(
 }
 
 function strokeCurve(
-  ctx: BothyHaggisContext, color: string, alpha: number, lineWidth: number,
-  x0: number, y0: number, cpx: number, cpy: number, x1: number, y1: number
+  ctx: BothyHaggisContext,
+  color: string,
+  alpha: number,
+  lineWidth: number,
+  x0: number,
+  y0: number,
+  cpx: number,
+  cpy: number,
+  x1: number,
+  y1: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;

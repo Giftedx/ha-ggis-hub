@@ -51,7 +51,9 @@ export function defineSprite(def: SpriteDefinition): Sprite {
     for (let x = 0; x < width; x += 1) {
       const ch = row[x]!;
       if (!Object.prototype.hasOwnProperty.call(def.palette, ch)) {
-        throw new Error(`Sprite uses character '${ch}' at (${x}, ${y}) which is not in the palette`);
+        throw new Error(
+          `Sprite uses character '${ch}' at (${x}, ${y}) which is not in the palette`
+        );
       }
       pixelColours[y * width + x] = def.palette[ch] ?? null;
     }

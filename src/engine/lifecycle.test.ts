@@ -14,7 +14,7 @@ function testInstance(): GameInstance & { calls: string[] } {
     },
     destroy: () => {
       calls.push('destroy');
-    }
+    },
   };
 }
 
@@ -31,7 +31,7 @@ describe('game lifecycle host', () => {
       mount: async () => {
         calls.push('mount');
         return instance;
-      }
+      },
     };
     const host = createGameLifecycleHost({} as HTMLElement);
 
@@ -52,7 +52,7 @@ describe('game lifecycle host', () => {
     const firstModule: GameModule = {
       id: 'first',
       title: 'First',
-      mount: async () => first
+      mount: async () => first,
     };
     const secondModule: GameModule = {
       id: 'second',
@@ -61,7 +61,7 @@ describe('game lifecycle host', () => {
         expect(mountTarget).toBe(target);
         expect(first.calls).toEqual(['destroy']);
         return second;
-      }
+      },
     };
     const host = createGameLifecycleHost(target);
 
@@ -90,7 +90,7 @@ describe('game lifecycle host', () => {
         mount: async () => {
           calls.push('first mount');
           return first;
-        }
+        },
       },
       { launchSource: 'route', reducedMotion: false }
     );
@@ -101,7 +101,7 @@ describe('game lifecycle host', () => {
         mount: async () => {
           calls.push('second mount');
           return second;
-        }
+        },
       },
       { launchSource: 'route', reducedMotion: false }
     );
@@ -121,7 +121,10 @@ describe('game lifecycle host', () => {
   it('keeps an existing instance running when replacement preload fails', async () => {
     const current = testInstance();
     const host = createGameLifecycleHost({} as HTMLElement);
-    await host.launch({ id: 'current', title: 'Current', mount: async () => current }, { launchSource: 'route', reducedMotion: false });
+    await host.launch(
+      { id: 'current', title: 'Current', mount: async () => current },
+      { launchSource: 'route', reducedMotion: false }
+    );
 
     await expect(
       host.launch(
@@ -131,7 +134,7 @@ describe('game lifecycle host', () => {
           preload: async () => {
             throw new Error('preload failed');
           },
-          mount: async () => testInstance()
+          mount: async () => testInstance(),
         },
         { launchSource: 'route', reducedMotion: false }
       )
@@ -150,7 +153,8 @@ describe('game lifecycle host', () => {
         {
           id: 'partial',
           title: 'Partial',
-          mount: () => Promise.reject(Object.assign(new Error('mount failed'), { instance: partial }))
+          mount: () =>
+            Promise.reject(Object.assign(new Error('mount failed'), { instance: partial })),
         },
         { launchSource: 'route', reducedMotion: false }
       )
@@ -169,7 +173,7 @@ describe('game lifecycle host', () => {
         {
           id: 'plain-fail',
           title: 'Plain fail',
-          mount: () => Promise.reject(new Error('plain mount error'))
+          mount: () => Promise.reject(new Error('plain mount error')),
         },
         { launchSource: 'route', reducedMotion: false }
       )
@@ -201,7 +205,7 @@ describe('game lifecycle host', () => {
           id: 'undef-instance',
           title: 'Undefined instance',
           mount: () =>
-            Promise.reject(Object.assign(new Error('mount failed'), { instance: undefined }))
+            Promise.reject(Object.assign(new Error('mount failed'), { instance: undefined })),
         },
         { launchSource: 'route', reducedMotion: false }
       )

@@ -43,7 +43,7 @@ describe('decodeSnapshot', () => {
     expect(decoded.doors[0]).toEqual({
       id: 'wild-haggis-survivors',
       status: 'launchable',
-      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     });
   });
 

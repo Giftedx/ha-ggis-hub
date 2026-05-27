@@ -13,7 +13,15 @@ interface FakeEl {
 }
 
 function makeFakeEl(tag: string): FakeEl {
-  const el: FakeEl = { tag, className: '', textContent: null, removed: false, remove() { el.removed = true; } };
+  const el: FakeEl = {
+    tag,
+    className: '',
+    textContent: null,
+    removed: false,
+    remove() {
+      el.removed = true;
+    },
+  };
   return el;
 }
 
@@ -26,8 +34,12 @@ interface FakeContainer {
 function makeFakeContainer(): FakeContainer {
   const c: FakeContainer = {
     children: [],
-    appendChild(el) { c.children.push(el); },
-    lastChild() { return c.children[c.children.length - 1]; },
+    appendChild(el) {
+      c.children.push(el);
+    },
+    lastChild() {
+      return c.children[c.children.length - 1];
+    },
   };
   return c;
 }

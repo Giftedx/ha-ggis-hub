@@ -49,8 +49,13 @@ export interface WhsBothyContext {
   lineTo(x: number, y: number): void;
   arc(x: number, y: number, r: number, a0: number, a1: number): void;
   ellipse(
-    cx: number, cy: number, rx: number, ry: number,
-    rotation: number, a0: number, a1: number
+    cx: number,
+    cy: number,
+    rx: number,
+    ry: number,
+    rotation: number,
+    a0: number,
+    a1: number
   ): void;
   fill(): void;
   stroke(): void;
@@ -77,10 +82,7 @@ export interface BothyEnvelope {
  * Draw walls + timber beams ONLY (no floor). Called when the hub wants
  * to replace its pixel wall substrate but keep its own floor renderer.
  */
-export function drawWhsBothyWalls(
-  ctx: WhsBothyContext,
-  env: BothyEnvelope
-): void {
+export function drawWhsBothyWalls(ctx: WhsBothyContext, env: BothyEnvelope): void {
   const { left, right, top, wallBottom, floorBottom, compact } = env;
   const w = right - left;
 
@@ -101,10 +103,7 @@ export function drawWhsBothyWalls(
  * bands), with darker seams between, light grain lines on each plank,
  * and a scatter of knots. Hub overlays its dawn beam on top.
  */
-export function drawWhsBothyFloor(
-  ctx: WhsBothyContext,
-  env: BothyEnvelope
-): void {
+export function drawWhsBothyFloor(ctx: WhsBothyContext, env: BothyEnvelope): void {
   const { left, right, wallBottom, floorBottom, compact } = env;
   const w = right - left;
   const floorH = floorBottom - wallBottom;
@@ -122,7 +121,7 @@ export function drawWhsBothyFloor(
     const t = i / Math.max(1, plankCount - 1);
     // Plank height grows with t (foreshortening — boards farther away
     // look thinner). Range: 14% → 24% of floorH.
-    const plankH = Math.round(floorH * (0.14 + t * 0.10));
+    const plankH = Math.round(floorH * (0.14 + t * 0.1));
     const bodyColor = i % 2 === 0 ? PEAT_MID : PEAT_DARK;
     fillRectA(ctx, bodyColor, 1, left + 4, yCursor, w - 8, plankH);
     // Top edge highlight (catches the dawn).
@@ -130,9 +129,8 @@ export function drawWhsBothyFloor(
     // Grain lines along the plank length — three faint streaks.
     for (let g = 0; g < 3; g++) {
       const gy = yCursor + Math.round(plankH * (0.22 + g * 0.26));
-      const alpha = 0.18 + (g % 2) * 0.10;
-      strokeLine(ctx, PEAT_SHADOW, alpha, 1,
-        left + 6, gy, right - 6, gy);
+      const alpha = 0.18 + (g % 2) * 0.1;
+      strokeLine(ctx, PEAT_SHADOW, alpha, 1, left + 6, gy, right - 6, gy);
     }
     // Bottom seam — a darker line between this plank and the next.
     const seamY = yCursor + plankH;
@@ -153,7 +151,7 @@ export function drawWhsBothyFloor(
     { x: 0.62, y: 0.38, rx: 6, ry: 4 },
     { x: 0.34, y: 0.58, rx: 7, ry: 5 },
     { x: 0.82, y: 0.71, rx: 5, ry: 3 },
-    { x: 0.12, y: 0.84, rx: 8, ry: 5 }
+    { x: 0.12, y: 0.84, rx: 8, ry: 5 },
   ];
   for (const k of knots) {
     const kx = left + w * k.x;
@@ -164,48 +162,82 @@ export function drawWhsBothyFloor(
   }
 
   // Warm wash across the centre floor (hearth-glow catch).
-  fillEllipseA(ctx, WHISKY_LIGHT, 0.045,
-    left + w * 0.58, wallBottom + floorH * 0.34, w * 0.46, floorH);
+  fillEllipseA(
+    ctx,
+    WHISKY_LIGHT,
+    0.045,
+    left + w * 0.58,
+    wallBottom + floorH * 0.34,
+    w * 0.46,
+    floorH
+  );
 }
 
 /**
  * Full envelope (walls + floor). Convenience wrapper.
  */
-export function drawWhsBothyEnvelope(
-  ctx: WhsBothyContext,
-  env: BothyEnvelope
-): void {
+export function drawWhsBothyEnvelope(ctx: WhsBothyContext, env: BothyEnvelope): void {
   drawWhsBothyWalls(ctx, env);
   drawWhsBothyFloor(ctx, env);
 }
 
 function drawBackWall(
   ctx: WhsBothyContext,
-  left: number, right: number, top: number, wallBottom: number, compact: boolean
+  left: number,
+  right: number,
+  top: number,
+  wallBottom: number,
+  compact: boolean
 ): void {
   const w = right - left;
   fillRectA(ctx, INK, 1, left, top, w, wallBottom - top);
   fillRectA(ctx, PLASTER_DARK, 1, left + 2, top + 2, w - 4, wallBottom - top - 3);
   fillRectA(ctx, PLASTER_MID, 1, left + 4, top + 5, w - 8, wallBottom - top - 8);
   // Warm wash across the wall (catches firelight).
-  fillEllipseA(ctx, WHISKY_LIGHT, 0.055,
-    left + w * 0.54, top + (wallBottom - top) * 0.58, w * 0.78, (wallBottom - top) * 0.72);
+  fillEllipseA(
+    ctx,
+    WHISKY_LIGHT,
+    0.055,
+    left + w * 0.54,
+    top + (wallBottom - top) * 0.58,
+    w * 0.78,
+    (wallBottom - top) * 0.72
+  );
   // Plaster horizontal lines — wall texture.
   for (let y = top + 18; y < wallBottom - 16; y += compact ? 34 : 42) {
     fillRectA(ctx, PLASTER_LIGHT, 0.12, left + 8, y, w - 16, 1);
   }
   // Lower-wall darker band (wainscot / soot line).
-  fillRectA(ctx, PEAT_DARK, 0.18, left + 5, wallBottom - (compact ? 54 : 72), w - 10, compact ? 51 : 69);
+  fillRectA(
+    ctx,
+    PEAT_DARK,
+    0.18,
+    left + 5,
+    wallBottom - (compact ? 54 : 72),
+    w - 10,
+    compact ? 51 : 69
+  );
   fillRectA(ctx, WOOD_LIGHT, 0.16, left + 8, wallBottom - (compact ? 51 : 69), w - 16, 2);
 
   // Hearth glow across the wall (warm wash low-mid).
-  fillEllipseA(ctx, WHISKY_LIGHT, 0.11,
-    left + w * 0.48, wallBottom - (wallBottom - top) * 0.24, w * 0.34, (wallBottom - top) * 0.42);
+  fillEllipseA(
+    ctx,
+    WHISKY_LIGHT,
+    0.11,
+    left + w * 0.48,
+    wallBottom - (wallBottom - top) * 0.24,
+    w * 0.34,
+    (wallBottom - top) * 0.42
+  );
 }
 
 function drawTimberFrame(
   ctx: WhsBothyContext,
-  left: number, right: number, top: number, wallBottom: number, compact: boolean
+  left: number,
+  right: number,
+  top: number,
+  wallBottom: number,
+  compact: boolean
 ): void {
   const w = right - left;
   // Ceiling beam + wall-floor seam beam.
@@ -224,7 +256,10 @@ function drawTimberFrame(
 
 function drawBeam(
   ctx: WhsBothyContext,
-  x: number, y: number, w: number, h: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   horizontal: boolean,
   alpha = 1
 ): void {
@@ -260,48 +295,70 @@ export function drawWhsWindowBay(
   // (peach) band sits where the mountain ridge meets the sky.
   fillRectA(ctx, HEATHER_PURPLE, 1, x, y, w, h);
   fillRectA(ctx, HEATHER_DARK, 0.55, x, y, w, h * 0.18);
-  fillRectA(ctx, DAWN_PINK, 0.78, x, y + h * 0.30, w, h * 0.20);
+  fillRectA(ctx, DAWN_PINK, 0.78, x, y + h * 0.3, w, h * 0.2);
   fillRectA(ctx, DAWN_PINK, 0.92, x, y + h * 0.42, w, h * 0.18);
   fillRectA(ctx, DAWN_PEACH, 0.95, x, y + h * 0.52, w, h * 0.18);
-  fillRectA(ctx, '#ffd6b8', 0.85, x, y + h * 0.60, w, h * 0.10);
+  fillRectA(ctx, '#ffd6b8', 0.85, x, y + h * 0.6, w, h * 0.1);
 
   // Soft sun glow — broad warm halo behind where dawn breaks.
   const sunCx = x + w * 0.68;
   const sunCy = y + h * 0.55;
-  fillEllipseA(ctx, '#ffe0c0', 0.32,
-    sunCx, sunCy, w * 0.85, h * 0.30);
-  fillEllipseA(ctx, '#ffe8c8', 0.45,
-    sunCx, sunCy, compact ? 22 : 30, compact ? 10 : 14);
-  fillEllipseA(ctx, '#fff4d8', 0.65,
-    sunCx, sunCy, compact ? 10 : 14, compact ? 5 : 7);
+  fillEllipseA(ctx, '#ffe0c0', 0.32, sunCx, sunCy, w * 0.85, h * 0.3);
+  fillEllipseA(ctx, '#ffe8c8', 0.45, sunCx, sunCy, compact ? 22 : 30, compact ? 10 : 14);
+  fillEllipseA(ctx, '#fff4d8', 0.65, sunCx, sunCy, compact ? 10 : 14, compact ? 5 : 7);
 
   // Distant Highland silhouette — two layered ridges in deep peat
   // purple, anchoring the horizon. Far ridge softer, near ridge
   // darker and lower.
-  fillTriangleA(ctx, MOUNTAIN_FAR, 0.85,
-    x, y + h * 0.78,
-    x + w * 0.38, y + h * 0.56,
-    x + w * 0.66, y + h * 0.80);
-  fillTriangleA(ctx, MOUNTAIN_FAR, 0.85,
-    x + w * 0.50, y + h * 0.82,
-    x + w * 0.78, y + h * 0.58,
-    x + w * 1.0,  y + h * 0.84);
-  fillTriangleA(ctx, MOUNTAIN_NEAR, 1,
-    x - 2,           y + h - 2,
-    x + w * 0.28,    y + h * 0.74,
-    x + w * 0.54,    y + h - 2);
-  fillTriangleA(ctx, MOUNTAIN_NEAR, 1,
-    x + w * 0.42,    y + h - 2,
-    x + w * 0.72,    y + h * 0.72,
-    x + w + 2,       y + h - 2);
+  fillTriangleA(
+    ctx,
+    MOUNTAIN_FAR,
+    0.85,
+    x,
+    y + h * 0.78,
+    x + w * 0.38,
+    y + h * 0.56,
+    x + w * 0.66,
+    y + h * 0.8
+  );
+  fillTriangleA(
+    ctx,
+    MOUNTAIN_FAR,
+    0.85,
+    x + w * 0.5,
+    y + h * 0.82,
+    x + w * 0.78,
+    y + h * 0.58,
+    x + w * 1.0,
+    y + h * 0.84
+  );
+  fillTriangleA(
+    ctx,
+    MOUNTAIN_NEAR,
+    1,
+    x - 2,
+    y + h - 2,
+    x + w * 0.28,
+    y + h * 0.74,
+    x + w * 0.54,
+    y + h - 2
+  );
+  fillTriangleA(
+    ctx,
+    MOUNTAIN_NEAR,
+    1,
+    x + w * 0.42,
+    y + h - 2,
+    x + w * 0.72,
+    y + h * 0.72,
+    x + w + 2,
+    y + h - 2
+  );
 
   // A wee scatter of dawn-cloud streaks across the warm band.
-  fillEllipseA(ctx, DAWN_PINK, 0.45,
-    x + w * 0.30, y + h * 0.42, w * 0.30, 2);
-  fillEllipseA(ctx, DAWN_PEACH, 0.45,
-    x + w * 0.55, y + h * 0.35, w * 0.22, 2);
-  fillEllipseA(ctx, DAWN_PINK, 0.40,
-    x + w * 0.15, y + h * 0.28, w * 0.18, 2);
+  fillEllipseA(ctx, DAWN_PINK, 0.45, x + w * 0.3, y + h * 0.42, w * 0.3, 2);
+  fillEllipseA(ctx, DAWN_PEACH, 0.45, x + w * 0.55, y + h * 0.35, w * 0.22, 2);
+  fillEllipseA(ctx, DAWN_PINK, 0.4, x + w * 0.15, y + h * 0.28, w * 0.18, 2);
 
   // Cross mullion.
   fillRectA(ctx, WOOD_DARK, 1, x + w * 0.5 - 2, y, 4, h);
@@ -320,7 +377,10 @@ export function drawWhsWindowBay(
 
 function drawCurtain(
   ctx: WhsBothyContext,
-  x: number, y: number, w: number, h: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   leftSide: boolean
 ): void {
   fillRectA(ctx, INK, 1, x, y, w, h);
@@ -376,7 +436,10 @@ const CREAM = '#d6b878';
 
 export function drawWhsRug(
   ctx: WhsBothyContext,
-  x: number, y: number, w: number, h: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
   compact: boolean
 ): void {
   // Drop shadow.
@@ -384,8 +447,8 @@ export function drawWhsRug(
   // Base layered ellipses — DAWN BOTHY register (warm peat + dawn
   // gold + warm wood). Replaced heather-purple per hub palette.
   fillEllipseA(ctx, INK, 1, x + w / 2, y + h * 0.52, w, h);
-  fillEllipseA(ctx, PEAT_DARK, 1, x + w / 2, y + h * 0.50, w - 4, h - 4);
-  fillEllipseA(ctx, '#6a3818', 1, x + w / 2, y + h * 0.49, w - 10, h - 8);   // warm wood mid
+  fillEllipseA(ctx, PEAT_DARK, 1, x + w / 2, y + h * 0.5, w - 4, h - 4);
+  fillEllipseA(ctx, '#6a3818', 1, x + w / 2, y + h * 0.49, w - 10, h - 8); // warm wood mid
   fillEllipseA(ctx, '#8a5828', 0.3, x + w / 2 - w * 0.08, y + h * 0.42, w * 0.44, h * 0.34);
 
   // Tartan-style cross-stripes — dawn ember + whisky-gold instead of
@@ -394,9 +457,9 @@ export function drawWhsRug(
   const stripeW = compact ? 3 : 5;
   fillRectA(ctx, PEAT_DARK, 0.78, x + w * 0.08, y + h * 0.42, w * 0.84, stripeH);
   fillRectA(ctx, PEAT_DARK, 0.78, x + w * 0.08, y + h * 0.57, w * 0.84, Math.max(2, stripeH - 1));
-  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.18, y + h * 0.24, stripeW, h * 0.50);  // ember red
-  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.70, y + h * 0.24, stripeW, h * 0.50);
-  fillRectA(ctx, WHISKY, 0.78, x + w * 0.10, y + h * 0.51, w * 0.8, Math.max(2, stripeH - 2));
+  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.18, y + h * 0.24, stripeW, h * 0.5); // ember red
+  fillRectA(ctx, '#9a3818', 0.7, x + w * 0.7, y + h * 0.24, stripeW, h * 0.5);
+  fillRectA(ctx, WHISKY, 0.78, x + w * 0.1, y + h * 0.51, w * 0.8, Math.max(2, stripeH - 2));
   fillRectA(ctx, WHISKY, 0.78, x + w * 0.36, y + h * 0.28, Math.max(2, stripeW - 1), h * 0.44);
 
   // Cream fringe along the front edge.
@@ -505,8 +568,13 @@ function drawPhoto(ctx: WhsBothyContext, cx: number, cy: number): void {
 // ── Canvas2D helpers ──
 
 function fillRectA(
-  ctx: WhsBothyContext, color: string, alpha: number,
-  x: number, y: number, w: number, h: number
+  ctx: WhsBothyContext,
+  color: string,
+  alpha: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -516,8 +584,13 @@ function fillRectA(
 }
 
 function fillEllipseA(
-  ctx: WhsBothyContext, color: string, alpha: number,
-  cx: number, cy: number, w: number, h: number
+  ctx: WhsBothyContext,
+  color: string,
+  alpha: number,
+  cx: number,
+  cy: number,
+  w: number,
+  h: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -529,8 +602,15 @@ function fillEllipseA(
 }
 
 function fillTriangleA(
-  ctx: WhsBothyContext, color: string, alpha: number,
-  x1: number, y1: number, x2: number, y2: number, x3: number, y3: number
+  ctx: WhsBothyContext,
+  color: string,
+  alpha: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x3: number,
+  y3: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -544,8 +624,12 @@ function fillTriangleA(
 }
 
 function fillCircleA(
-  ctx: WhsBothyContext, color: string, alpha: number,
-  x: number, y: number, r: number
+  ctx: WhsBothyContext,
+  color: string,
+  alpha: number,
+  x: number,
+  y: number,
+  r: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -557,8 +641,14 @@ function fillCircleA(
 }
 
 function strokeLine(
-  ctx: WhsBothyContext, color: string, alpha: number, lineW: number,
-  x1: number, y1: number, x2: number, y2: number
+  ctx: WhsBothyContext,
+  color: string,
+  alpha: number,
+  lineW: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
 ): void {
   ctx.save();
   ctx.globalAlpha = alpha;

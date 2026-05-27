@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  canLaunchGame,
-  createDirectPlayPlan,
-  createLaunchPlan,
-  performLaunch
-} from './launch';
+import { canLaunchGame, createDirectPlayPlan, createLaunchPlan, performLaunch } from './launch';
 import { HUB_GAME_REGISTRY } from '../games/registry';
 
 describe('launch planning', () => {
@@ -14,7 +9,7 @@ describe('launch planning', () => {
       gameId: 'wild-haggis-survivors',
       title: 'Wild Haggis Survivors',
       target: 'https://wild-haggis-survivors.pages.dev/',
-      targetKind: 'external-url'
+      targetKind: 'external-url',
     });
   });
 
@@ -24,14 +19,14 @@ describe('launch planning', () => {
         id: 'external-game',
         title: 'External Game',
         status: 'playable',
-        launch: { kind: 'external-url', target: 'https://example.com/game/' }
+        launch: { kind: 'external-url', target: 'https://example.com/game/' },
       })
     ).toEqual({
       kind: 'launchable',
       gameId: 'external-game',
       title: 'External Game',
       target: 'https://example.com/game/',
-      targetKind: 'external-url'
+      targetKind: 'external-url',
     });
 
     const future = HUB_GAME_REGISTRY.find((game) => game.id === 'future-bothy');
@@ -40,7 +35,7 @@ describe('launch planning', () => {
       kind: 'unavailable',
       gameId: 'future-bothy',
       title: "Comin' Wi' The Next Moon",
-      reason: 'coming-soon'
+      reason: 'coming-soon',
     });
   });
 
@@ -53,7 +48,7 @@ describe('launch planning', () => {
     expect(createDirectPlayPlan([])).toEqual({
       kind: 'missing-game',
       gameId: 'wild-haggis-survivors',
-      reason: 'Game is not registered'
+      reason: 'Game is not registered',
     });
   });
 
@@ -63,13 +58,13 @@ describe('launch planning', () => {
         id: 'unsafe',
         title: 'Unsafe',
         status: 'playable',
-        launch: { kind: 'external-url', target: 'javascript:alert(1)' }
+        launch: { kind: 'external-url', target: 'javascript:alert(1)' },
       })
     ).toEqual({
       kind: 'unavailable',
       gameId: 'unsafe',
       title: 'Unsafe',
-      reason: 'unsafe: External launch target must use https: javascript:alert(1)'
+      reason: 'unsafe: External launch target must use https: javascript:alert(1)',
     });
   });
 
@@ -93,7 +88,7 @@ describe('launch planning', () => {
         id: 'mounted-game',
         title: 'Mounted Game',
         status: 'playable',
-        launch: { kind: 'route', target: '/wild-haggis-survivors/' }
+        launch: { kind: 'route', target: '/wild-haggis-survivors/' },
       }),
       { navigate }
     );

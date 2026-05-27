@@ -8,7 +8,7 @@ vi.mock('../navigation/launch', async (importOriginal) => {
   const plan: LaunchPlan = {
     kind: 'missing-game',
     gameId: 'wild-haggis-survivors',
-    reason: 'Game is not registered'
+    reason: 'Game is not registered',
   };
   return { ...original, createDirectPlayPlan: () => plan };
 });

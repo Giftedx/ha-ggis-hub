@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 tooling: prettier formatting gate
+
+Prettier added as a devDependency and wired into `pnpm verify` via a new `pnpm fmt:check` step.
+Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. All `src/**/*.ts` files formatted
+in the same commit. 100% TS coverage confirmed held after reformatting. The formatting check now runs
+between `pnpm lint` and `pnpm test` in the verify chain so any drift is caught before test execution.
+
+### Added
+
+- **`.prettierrc`** — prettier config (`singleQuote`, `trailingComma: "es5"`, `printWidth: 100`).
+- **`package.json`** — `fmt:check` script (`prettier --check "src/**/*.ts"`); wired into `verify`.
+- **`src/**/*.ts`** — all files formatted; no semantics changed.
+
+---
+
 ## [Unreleased] — 2026-05-27 test: Rust property + boundary tests; TS coverage to 100%
 
 ### Added

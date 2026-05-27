@@ -17,7 +17,11 @@ export interface MusicController {
 
 const MUSIC_VOLUME = 0.38;
 
-export function createMusicController({ button, audio, tracks }: MusicControllerOptions): MusicController {
+export function createMusicController({
+  button,
+  audio,
+  tracks,
+}: MusicControllerOptions): MusicController {
   let currentIndex = 0;
   let wantsPlayback = false;
 
@@ -39,7 +43,10 @@ export function createMusicController({ button, audio, tracks }: MusicController
     button.className = 'scene-music';
     button.textContent = 'music';
     const track = currentTrack();
-    button.setAttribute('aria-label', track === undefined ? 'Hub music unavailable' : `Play hub music: ${track.title}`);
+    button.setAttribute(
+      'aria-label',
+      track === undefined ? 'Hub music unavailable' : `Play hub music: ${track.title}`
+    );
     button.disabled = track === undefined;
   }
 
@@ -109,6 +116,6 @@ export function createMusicController({ button, audio, tracks }: MusicController
       audio.removeEventListener('ended', onEnded);
       wantsPlayback = false;
       audio.pause();
-    }
+    },
   };
 }

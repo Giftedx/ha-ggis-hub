@@ -30,7 +30,7 @@ export function pumpFixedStep(
     ticksToAdvance,
     state: {
       tick: state.tick + ticksToAdvance,
-      accumulatorMs: carriedAccum
-    }
+      accumulatorMs: carriedAccum,
+    },
   };
 }

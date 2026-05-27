@@ -76,7 +76,7 @@ cargo +nightly fuzz run <target> -- -max_total_time=1800
 cargo bench --workspace
 
 # TypeScript deepening
-pnpm exec prettier . --check
+# (prettier promoted to gate — see below)
 
 # Multi-browser + lab-perf
 pnpm exec playwright test --project=firefox
@@ -88,9 +88,11 @@ osv-scanner --recursive .
 gitleaks detect --source . -v
 ```
 
-Why they're deferred: each adds either a non-trivial dependency (prettier config), or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
+Why they're deferred: each adds either a non-trivial dependency, or a non-deterministic / cost-sensitive surface (cargo-fuzz nightly, multi-browser Playwright matrix). They get added when the project is genuinely insufficient without them.
 
 ESLint (`eslint` + `typescript-eslint`) was promoted out of this list and into the PR gate on 2026-05-24 — `pnpm lint` now runs as part of `pnpm verify`. Five code issues were surfaced and fixed: untyped array allocation, an unnecessary type cast, and three confusing-void-expression patterns in event-listener callbacks.
+
+Prettier was promoted on 2026-05-27 — `pnpm fmt:check` (`prettier --check "src/**/*.ts"`) now runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. All source files formatted in the same commit; 100% TS coverage held after reformatting.
 
 ## Technical bar
 

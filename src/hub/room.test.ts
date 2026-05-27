@@ -16,7 +16,7 @@ function snapshotAt(x: number, y: number): DecodedSnapshot {
     worldHeight: 1_000,
     interactionKind: 'none',
     interactionDoorIndex: 0,
-    doors: []
+    doors: [],
   };
 }
 
@@ -39,7 +39,7 @@ function makeStubBoundary(initial: DecodedSnapshot): StubBoundaryHandle {
     snapshot,
     tick,
     stateHash: () => 0n,
-    destroy
+    destroy,
   };
   return {
     boundary,
@@ -48,7 +48,7 @@ function makeStubBoundary(initial: DecodedSnapshot): StubBoundaryHandle {
     destroy,
     setNext(next: DecodedSnapshot): void {
       nextSnapshot = next;
-    }
+    },
   };
 }
 
@@ -60,7 +60,7 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render }
+      renderer: { render },
     });
 
     expect(stub.snapshot).toHaveBeenCalledTimes(1);
@@ -77,7 +77,7 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render }
+      renderer: { render },
     });
 
     stub.setNext(moved);
@@ -97,7 +97,7 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render }
+      renderer: { render },
     });
 
     controller.render();
@@ -112,7 +112,7 @@ describe('createHubRoomController', () => {
 
     const controller = createHubRoomController({
       boundary: stub.boundary,
-      renderer: { render: vi.fn() }
+      renderer: { render: vi.fn() },
     });
 
     controller.destroy();

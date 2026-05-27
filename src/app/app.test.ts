@@ -21,7 +21,7 @@ describe('createAppModel', () => {
       directPlay: {
         label: 'Play Wild Haggis Survivors',
         target: 'https://wild-haggis-survivors.pages.dev/',
-        title: 'Wild Haggis Survivors'
+        title: 'Wild Haggis Survivors',
       },
       music: {
         tracks: [
@@ -29,16 +29,16 @@ describe('createAppModel', () => {
             title: 'Flower of Scotland',
             src: '/music/flower-of-scotland.mp3',
             midiSrc: '/music/flower-of-scotland.mid',
-            sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
+            sourceUrl: 'https://www.wario.style/s/7u0vk4ok',
           },
           {
             title: 'Scotland the Brave',
             src: '/music/scotland-the-brave.mp3',
             midiSrc: '/music/scotland-the-brave.mid',
-            sourceUrl: 'https://www.wario.style/s/tw6IWdAL'
-          }
-        ]
-      }
+            sourceUrl: 'https://www.wario.style/s/tw6IWdAL',
+          },
+        ],
+      },
     });
   });
 
@@ -51,8 +51,10 @@ describe('createAppModel', () => {
     vi.mocked(createDirectPlayPlan).mockReturnValueOnce({
       kind: 'missing-game',
       gameId: 'wild-haggis-survivors',
-      reason: 'Game is not registered'
+      reason: 'Game is not registered',
     });
-    expect(() => createAppModel()).toThrow('Direct play target is unavailable: Game is not registered');
+    expect(() => createAppModel()).toThrow(
+      'Direct play target is unavailable: Game is not registered'
+    );
   });
 });

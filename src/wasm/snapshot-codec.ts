@@ -54,7 +54,7 @@ export function decodeSnapshot(bytes: Uint8Array): DecodedSnapshot {
     doors.push({
       id,
       status: statusInt === 1 ? 'launchable' : 'locked',
-      bounds: { minX, minY, maxX, maxY }
+      bounds: { minX, minY, maxX, maxY },
     });
   }
 
@@ -66,7 +66,7 @@ export function decodeSnapshot(bytes: Uint8Array): DecodedSnapshot {
     worldHeight,
     interactionKind,
     interactionDoorIndex,
-    doors
+    doors,
   };
 }
 

@@ -38,15 +38,7 @@ describe('measurePixelText', () => {
 });
 
 describe('glyph validation', () => {
-  const validRows = [
-    'X....',
-    'X....',
-    'X....',
-    'X....',
-    'X....',
-    'X....',
-    'XXXXX'
-  ];
+  const validRows = ['X....', 'X....', 'X....', 'X....', 'X....', 'X....', 'XXXXX'];
 
   it('throws when row count is not 7', () => {
     expect(() => glyph(['XXXXX'])).toThrow('Glyph must be 7 rows, got 1');

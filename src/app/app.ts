@@ -21,14 +21,14 @@ const HUB_MUSIC_TRACKS: readonly MusicTrackModel[] = [
     title: 'Flower of Scotland',
     src: '/music/flower-of-scotland.mp3',
     midiSrc: '/music/flower-of-scotland.mid',
-    sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
+    sourceUrl: 'https://www.wario.style/s/7u0vk4ok',
   },
   {
     title: 'Scotland the Brave',
     src: '/music/scotland-the-brave.mp3',
     midiSrc: '/music/scotland-the-brave.mid',
-    sourceUrl: 'https://www.wario.style/s/tw6IWdAL'
-  }
+    sourceUrl: 'https://www.wario.style/s/tw6IWdAL',
+  },
 ];
 
 export function createAppModel(): AppModel {
@@ -48,10 +48,10 @@ export function createAppModel(): AppModel {
     directPlay: {
       label: `Play ${directPlayPlan.title}`,
       target: directPlayPlan.target,
-      title: directPlayPlan.title
+      title: directPlayPlan.title,
     },
     music: {
-      tracks: HUB_MUSIC_TRACKS
-    }
+      tracks: HUB_MUSIC_TRACKS,
+    },
   };
 }

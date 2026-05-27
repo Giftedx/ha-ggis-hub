@@ -6,11 +6,8 @@ import type { LaunchNavigator } from './launch';
  *  build at the target path; external URLs leave the hub origin per ADR-0003. */
 export function createBrowserLaunchNavigator(): LaunchNavigator {
   return {
-    navigate(
-      target: string,
-      _targetKind: Exclude<HubGameLaunchTarget['kind'], 'none'>
-    ): void {
+    navigate(target: string, _targetKind: Exclude<HubGameLaunchTarget['kind'], 'none'>): void {
       window.location.assign(target);
-    }
+    },
   };
 }

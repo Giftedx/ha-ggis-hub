@@ -18,7 +18,7 @@ describe('defineSprite', () => {
     expect(() =>
       defineSprite({
         palette: { '.': null, '#': '#000' },
-        pixels: ['##', '###']
+        pixels: ['##', '###'],
       })
     ).toThrow(/same width/);
   });
@@ -27,7 +27,7 @@ describe('defineSprite', () => {
     expect(() =>
       defineSprite({
         palette: { '.': null },
-        pixels: ['.x.']
+        pixels: ['.x.'],
       })
     ).toThrow(/not in the palette/);
   });
@@ -35,14 +35,20 @@ describe('defineSprite', () => {
   it('parses a simple 3x3 sprite with transparent corners', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#abc' },
-      pixels: ['.#.', '###', '.#.']
+      pixels: ['.#.', '###', '.#.'],
     });
     expect(sprite.width).toBe(3);
     expect(sprite.height).toBe(3);
     expect(sprite.pixelColours).toEqual([
-      null, '#abc', null,
-      '#abc', '#abc', '#abc',
-      null, '#abc', null
+      null,
+      '#abc',
+      null,
+      '#abc',
+      '#abc',
+      '#abc',
+      null,
+      '#abc',
+      null,
     ]);
   });
 });
@@ -51,7 +57,7 @@ describe('blitSprite', () => {
   it('skips transparent pixels and emits one fillRect per opaque pixel at integer scale', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#fff' },
-      pixels: ['.#.', '###', '.#.']
+      pixels: ['.#.', '###', '.#.'],
     });
     const ctx = new RecordingBlitContext();
     blitSprite(ctx, sprite, 10, 10, 1);
@@ -67,7 +73,7 @@ describe('blitSprite', () => {
   it('scales pixel-perfect at integer scale', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#000' },
-      pixels: ['##']
+      pixels: ['##'],
     });
     const ctx = new RecordingBlitContext();
     blitSprite(ctx, sprite, 4, 4, 2);
@@ -80,7 +86,7 @@ describe('blitSprite', () => {
   it('rounds non-integer scales up to the nearest integer to keep pixels crisp', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#000' },
-      pixels: ['#']
+      pixels: ['#'],
     });
     const ctx = new RecordingBlitContext();
     blitSprite(ctx, sprite, 0, 0, 1.4);
@@ -93,7 +99,7 @@ describe('blitSpriteTL', () => {
   it('uses top-left as the placement anchor instead of centre', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#000' },
-      pixels: ['##', '##']
+      pixels: ['##', '##'],
     });
     const ctx = new RecordingBlitContext();
     blitSpriteTL(ctx, sprite, 100, 200, 1);
@@ -105,7 +111,7 @@ describe('blitSpriteTL', () => {
   it('skips transparent (null) pixels', () => {
     const sprite = defineSprite({
       palette: { '.': null, '#': '#000' },
-      pixels: ['.#', '#.']
+      pixels: ['.#', '#.'],
     });
     const ctx = new RecordingBlitContext();
     blitSpriteTL(ctx, sprite, 10, 20, 1);

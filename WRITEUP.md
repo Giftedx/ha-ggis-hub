@@ -108,7 +108,7 @@ This is not strong cryptography — anyone can re-sign an edited report. It's a 
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 36 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
-There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool, that's it.
+There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool; Prettier enforces consistent formatting. That's it.
 
 ### Strict security posture
 

@@ -163,7 +163,7 @@ describe('drawBothyHaggis', () => {
       breathY: 0.4,
       facingLeft: true,
       frontLegY: 1.5,
-      backLegY: -1.5
+      backLegY: -1.5,
     });
     expect(ctx.calls).toContain('ellipse:100,102.8,50,30');
     expect(ctx.calls).toContain('fillRect:125.3,119.8,5.4,11');

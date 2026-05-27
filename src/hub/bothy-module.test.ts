@@ -11,37 +11,37 @@ const mocks = vi.hoisted(() => ({
   createKeyboardInputSampler: vi.fn(),
   createBrowserLaunchNavigator: vi.fn(),
   createDebugOverlay: vi.fn(),
-  createFpsTracker: vi.fn()
+  createFpsTracker: vi.fn(),
 }));
 
 vi.mock('../wasm/boundary', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../wasm/boundary')>();
   return {
     ...actual,
-    initializeHubBoundaryV2: mocks.initializeHubBoundaryV2
+    initializeHubBoundaryV2: mocks.initializeHubBoundaryV2,
   };
 });
 
 vi.mock('../wasm/generated-loader', () => ({
-  loadGeneratedHubWasm: mocks.loadGeneratedHubWasm
+  loadGeneratedHubWasm: mocks.loadGeneratedHubWasm,
 }));
 
 vi.mock('../render/canvas-room', () => ({
   createCanvasRoomRenderer: mocks.createCanvasRoomRenderer,
-  computeVisualDoorBounds: mocks.computeVisualDoorBounds
+  computeVisualDoorBounds: mocks.computeVisualDoorBounds,
 }));
 
 vi.mock('../engine/input', () => ({
-  createKeyboardInputSampler: mocks.createKeyboardInputSampler
+  createKeyboardInputSampler: mocks.createKeyboardInputSampler,
 }));
 
 vi.mock('../navigation/browser-navigator', () => ({
-  createBrowserLaunchNavigator: mocks.createBrowserLaunchNavigator
+  createBrowserLaunchNavigator: mocks.createBrowserLaunchNavigator,
 }));
 
 vi.mock('../debug/overlay', () => ({
   createDebugOverlay: mocks.createDebugOverlay,
-  createFpsTracker: mocks.createFpsTracker
+  createFpsTracker: mocks.createFpsTracker,
 }));
 
 const ROOM: RoomDefinition = {
@@ -51,14 +51,14 @@ const ROOM: RoomDefinition = {
     {
       id: 'wild-haggis-survivors',
       status: 'launchable',
-      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 }
+      bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 }
-    }
-  ]
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+  ],
 };
 
 const SNAPSHOT: DecodedSnapshot = {
@@ -69,7 +69,7 @@ const SNAPSHOT: DecodedSnapshot = {
   worldHeight: 1_000,
   interactionKind: 'none',
   interactionDoorIndex: 0,
-  doors: ROOM.doors
+  doors: ROOM.doors,
 };
 
 interface FakeCanvas {
@@ -95,7 +95,10 @@ function makeCanvas(): FakeCanvas {
       this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
     },
     removeEventListener(type, listener) {
-      this.listeners.set(type, (this.listeners.get(type) ?? []).filter((candidate) => candidate !== listener));
+      this.listeners.set(
+        type,
+        (this.listeners.get(type) ?? []).filter((candidate) => candidate !== listener)
+      );
     },
     dispatch(type, event) {
       for (const listener of this.listeners.get(type) ?? []) {
@@ -110,7 +113,7 @@ function makeCanvas(): FakeCanvas {
     },
     setPointerCapture: vi.fn(),
     hasPointerCapture: vi.fn(() => true),
-    releasePointerCapture: vi.fn()
+    releasePointerCapture: vi.fn(),
   };
 }
 
@@ -121,7 +124,7 @@ function makeShell(): SceneElements {
     status: { textContent: '' } as HTMLElement,
     fallback: {} as HTMLElement,
     musicButton: {} as HTMLButtonElement,
-    musicAudio: {} as HTMLAudioElement
+    musicAudio: {} as HTMLAudioElement,
   };
 }
 
@@ -144,7 +147,7 @@ function installBrowserGlobals(search = ''): {
       rafId += 1;
       return rafId;
     },
-    cancelAnimationFrame: vi.fn()
+    cancelAnimationFrame: vi.fn(),
   };
   const docAddEventListener = vi.fn();
   vi.stubGlobal('window', fakeWindow);
@@ -152,11 +155,11 @@ function installBrowserGlobals(search = ''): {
   vi.stubGlobal('document', {
     visibilityState: 'visible',
     addEventListener: docAddEventListener,
-    removeEventListener: vi.fn()
+    removeEventListener: vi.fn(),
   });
   vi.stubGlobal('performance', {
     now: vi.fn(() => 0),
-    mark: vi.fn()
+    mark: vi.fn(),
   });
   return {
     docAddEventListener,
@@ -167,7 +170,7 @@ function installBrowserGlobals(search = ''): {
       for (const callback of pending) {
         callback(now);
       }
-    }
+    },
   };
 }
 
@@ -185,7 +188,7 @@ function makeBoundary(snapshot: DecodedSnapshot = SNAPSHOT, room = ROOM): MockHu
     snapshot: vi.fn(() => snapshot),
     tick: vi.fn(() => snapshot),
     stateHash: vi.fn(() => 123n),
-    destroy: vi.fn()
+    destroy: vi.fn(),
   };
 }
 
@@ -203,14 +206,14 @@ async function mountHarness(options?: {
     snapshot: vi.fn(() => ({ x: 0, y: 0 })),
     interactHeld: vi.fn(() => false),
     consumeInteract: vi.fn(() => false),
-    destroy: vi.fn()
+    destroy: vi.fn(),
   };
   const navigator = { navigate: vi.fn() };
   mocks.initializeHubBoundaryV2.mockResolvedValue(boundary);
   mocks.createCanvasRoomRenderer.mockReturnValue(renderer);
   mocks.computeVisualDoorBounds.mockReturnValue([
     { id: 'wild-haggis-survivors', x: 450, y: 150, width: 70, height: 85 },
-    { id: 'future-bothy', x: 20, y: 150, width: 70, height: 85 }
+    { id: 'future-bothy', x: 20, y: 150, width: 70, height: 85 },
   ]);
   mocks.createKeyboardInputSampler.mockReturnValue(keyboard);
   mocks.createBrowserLaunchNavigator.mockReturnValue(navigator);
@@ -221,9 +224,19 @@ async function mountHarness(options?: {
   const module = createBothyGameModule(shell);
   const instance = await module.mount({} as HTMLElement, {
     launchSource: 'door',
-    reducedMotion: options?.reducedMotion ?? false
+    reducedMotion: options?.reducedMotion ?? false,
   });
-  return { browser, boundary, renderer, keyboard, navigator, shell, instance, docAddEventListener: browser.docAddEventListener, winAddEventListener: browser.winAddEventListener };
+  return {
+    browser,
+    boundary,
+    renderer,
+    keyboard,
+    navigator,
+    shell,
+    instance,
+    docAddEventListener: browser.docAddEventListener,
+    winAddEventListener: browser.winAddEventListener,
+  };
 }
 
 beforeEach(() => {
@@ -238,7 +251,7 @@ describe('createBothyGameModule', () => {
   it('mounts the bothy with deterministic seed and fixed visual-gate phase', async () => {
     const { browser, renderer, instance } = await mountHarness({
       search: '?seed=42&visualGatePhase=2.5',
-      reducedMotion: true
+      reducedMotion: true,
     });
     expect(mocks.initializeHubBoundaryV2).toHaveBeenCalledWith(mocks.loadGeneratedHubWasm, 42n);
     expect(mocks.createCanvasRoomRenderer).toHaveBeenCalledWith(
@@ -259,7 +272,7 @@ describe('createBothyGameModule', () => {
     (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
       clientX: 460,
       clientY: 160,
-      pointerId: 7
+      pointerId: 7,
     });
     expect(navigator.navigate).toHaveBeenCalledWith(
       'https://wild-haggis-survivors.pages.dev/',
@@ -272,7 +285,7 @@ describe('createBothyGameModule', () => {
     (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
       clientX: 30,
       clientY: 160,
-      pointerId: 8
+      pointerId: 8,
     });
     expect(navigator.navigate).not.toHaveBeenCalled();
     expect(shell.status.textContent).toBe("Comin' Wi' The Next Moon door — comin’ soon.");
@@ -284,12 +297,12 @@ describe('createBothyGameModule', () => {
     canvas.dispatch('pointerdown', {
       clientX: 390,
       clientY: 180,
-      pointerId: 9
+      pointerId: 9,
     });
     canvas.dispatch('pointermove', {
       clientX: 420,
       clientY: 180,
-      pointerId: 9
+      pointerId: 9,
     });
     browser.flushRaf(100);
     const tick = vi.mocked(boundary.tick);
@@ -303,7 +316,7 @@ describe('createBothyGameModule', () => {
     const activeSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 0
+      interactionDoorIndex: 0,
     };
     const { browser, keyboard, navigator } = await mountHarness({ snapshot: activeSnapshot });
     keyboard.interactHeld.mockReturnValue(true);
@@ -380,7 +393,9 @@ describe('createBothyGameModule', () => {
     browser.flushRaf(100);
     expect(mocks.createDebugOverlay).toHaveBeenCalled();
     expect(mocks.createFpsTracker).toHaveBeenCalled();
-    const overlay = vi.mocked(mocks.createDebugOverlay).mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    const overlay = vi.mocked(mocks.createDebugOverlay).mock.results[0]?.value as {
+      update: ReturnType<typeof vi.fn>;
+    };
     expect(overlay.update).toHaveBeenCalled();
   });
 
@@ -392,7 +407,7 @@ describe('createBothyGameModule', () => {
     vi.stubGlobal('document', {
       visibilityState: 'hidden',
       addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
+      removeEventListener: vi.fn(),
     });
     // Should not throw or reset accumulator — just a no-op guard
     handler(new Event('visibilitychange'));
@@ -478,7 +493,7 @@ describe('createBothyGameModule', () => {
       ...SNAPSHOT,
       interactionKind: 'launchable',
       interactionDoorIndex: 0,
-      doors: [{ id: 'phantom-game', status: 'launchable', bounds: SNAPSHOT.doors[0]!.bounds }]
+      doors: [{ id: 'phantom-game', status: 'launchable', bounds: SNAPSHOT.doors[0]!.bounds }],
     };
     const { browser, keyboard, shell } = await mountHarness({ snapshot: phantomSnapshot });
     keyboard.consumeInteract.mockReturnValue(true);
@@ -491,7 +506,7 @@ describe('createBothyGameModule', () => {
     const lockedDoorSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 1
+      interactionDoorIndex: 1,
     };
     const { browser, keyboard, shell } = await mountHarness({ snapshot: lockedDoorSnapshot });
     keyboard.consumeInteract.mockReturnValue(true);
@@ -503,7 +518,7 @@ describe('createBothyGameModule', () => {
     const outOfBoundsSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 99
+      interactionDoorIndex: 99,
     };
     const { browser, keyboard, navigator } = await mountHarness({ snapshot: outOfBoundsSnapshot });
     keyboard.consumeInteract.mockReturnValue(true);
@@ -515,11 +530,13 @@ describe('createBothyGameModule', () => {
     const activeSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 0
+      interactionDoorIndex: 0,
     };
     const { browser } = await mountHarness({ search: '?debug', snapshot: activeSnapshot });
     browser.flushRaf(100);
-    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as {
+      update: ReturnType<typeof vi.fn>;
+    };
     expect(overlay.update).toHaveBeenCalledWith(
       expect.objectContaining({ interactionDoorId: 'wild-haggis-survivors' })
     );
@@ -529,11 +546,13 @@ describe('createBothyGameModule', () => {
     const badIndexSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 99
+      interactionDoorIndex: 99,
     };
     const { browser } = await mountHarness({ search: '?debug', snapshot: badIndexSnapshot });
     browser.flushRaf(100);
-    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as { update: ReturnType<typeof vi.fn> };
+    const overlay = mocks.createDebugOverlay.mock.results[0]?.value as {
+      update: ReturnType<typeof vi.fn>;
+    };
     expect(overlay.update).toHaveBeenCalledWith(
       expect.objectContaining({ interactionDoorId: null })
     );
@@ -554,14 +573,17 @@ describe('createBothyGameModule', () => {
     installBrowserGlobals();
     const badRoom: RoomDefinition = {
       ...ROOM,
-      doors: [{ ...ROOM.doors[0]!, id: 'missing-door' }]
+      doors: [{ ...ROOM.doors[0]!, id: 'missing-door' }],
     };
     const boundary = makeBoundary(SNAPSHOT, badRoom);
     mocks.initializeHubBoundaryV2.mockResolvedValue(boundary);
     const shell = makeShell();
     const { createBothyGameModule } = await import('./bothy-module');
     await expect(
-      createBothyGameModule(shell).mount({} as HTMLElement, { launchSource: 'door', reducedMotion: false })
+      createBothyGameModule(shell).mount({} as HTMLElement, {
+        launchSource: 'door',
+        reducedMotion: false,
+      })
     ).rejects.toThrow('Room/registry mismatch');
     const destroy = vi.mocked(boundary.destroy);
     expect(destroy).toHaveBeenCalled();

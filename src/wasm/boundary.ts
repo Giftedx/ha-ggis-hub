@@ -18,7 +18,10 @@ export interface RoomDefinition {
 }
 
 export class HubBoundaryError extends Error {
-  constructor(public readonly tag: number, message: string) {
+  constructor(
+    public readonly tag: number,
+    message: string
+  ) {
     super(message);
     this.name = 'HubBoundaryError';
   }
@@ -114,7 +117,7 @@ export async function initializeHubBoundaryV2(
     },
     destroy(): void {
       handle.free();
-    }
+    },
   };
 }
 
@@ -137,7 +140,7 @@ function parseRoomDefinition(json: string): RoomDefinition {
     doors: parsed.doors.map((d) => ({
       id: d.id,
       status: d.status === 1 ? 'launchable' : 'locked',
-      bounds: { minX: d.boundsMinX, minY: d.boundsMinY, maxX: d.boundsMaxX, maxY: d.boundsMaxY }
-    }))
+      bounds: { minX: d.boundsMinX, minY: d.boundsMinY, maxX: d.boundsMaxX, maxY: d.boundsMaxY },
+    })),
   };
 }

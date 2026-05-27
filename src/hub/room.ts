@@ -38,6 +38,6 @@ export function createHubRoomController(options: HubRoomControllerOptions): HubR
     },
     destroy(): void {
       options.boundary.destroy();
-    }
+    },
   };
 }

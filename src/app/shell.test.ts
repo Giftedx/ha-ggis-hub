@@ -42,7 +42,7 @@ const MODEL: AppModel = {
   directPlay: {
     label: 'Play Wild Haggis Survivors',
     target: 'https://wild-haggis-survivors.pages.dev/',
-    title: 'Wild Haggis Survivors'
+    title: 'Wild Haggis Survivors',
   },
   music: {
     tracks: [
@@ -50,17 +50,20 @@ const MODEL: AppModel = {
         title: 'Flower of Scotland',
         src: '/music/flower-of-scotland.mp3',
         midiSrc: '/music/flower-of-scotland.mid',
-        sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
-      }
-    ]
-  }
+        sourceUrl: 'https://www.wario.style/s/7u0vk4ok',
+      },
+    ],
+  },
 };
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function stubDom(devicePixelRatio = 1): { created: FakeElement[]; resizeListeners: EventListenerOrEventListenerObject[] } {
+function stubDom(devicePixelRatio = 1): {
+  created: FakeElement[];
+  resizeListeners: EventListenerOrEventListenerObject[];
+} {
   const created: FakeElement[] = [];
   const resizeListeners: EventListenerOrEventListenerObject[] = [];
   vi.stubGlobal('document', {
@@ -68,40 +71,49 @@ function stubDom(devicePixelRatio = 1): { created: FakeElement[]; resizeListener
       const el = new FakeElement(tag);
       created.push(el);
       return el;
-    }
+    },
   });
   vi.stubGlobal('window', {
     devicePixelRatio,
     addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
       if (type === 'resize') resizeListeners.push(listener);
-    }
+    },
   });
   return { created, resizeListeners };
 }
 
 function childWithClass(parent: FakeElement, className: string): FakeElement {
-  const found = parent.children.find((child) => child instanceof FakeElement && child.className === className);
+  const found = parent.children.find(
+    (child) => child instanceof FakeElement && child.className === className
+  );
   expect(found).toBeInstanceOf(FakeElement);
   return found as FakeElement;
 }
 
 function childByTag(parent: FakeElement, tagName: string): FakeElement {
-  const found = parent.children.find((child) => child instanceof FakeElement && child.tagName === tagName);
+  const found = parent.children.find(
+    (child) => child instanceof FakeElement && child.tagName === tagName
+  );
   expect(found).toBeInstanceOf(FakeElement);
   return found as FakeElement;
 }
 
 function recursiveText(node: FakeElement): string {
-  return [node.textContent, ...node.children.map((child) => (
-    typeof child === 'string' ? child : recursiveText(child)
-  ))].join(' ');
+  return [
+    node.textContent,
+    ...node.children.map((child) => (typeof child === 'string' ? child : recursiveText(child))),
+  ].join(' ');
 }
 
 describe('createShell', () => {
   it('creates the playable scene shell with a named canvas and direct-play link', () => {
     const { resizeListeners } = stubDom();
 
-    const shell = createShell(MODEL) as unknown as { scene: FakeElement; canvas: FakeElement; status: FakeElement };
+    const shell = createShell(MODEL) as unknown as {
+      scene: FakeElement;
+      canvas: FakeElement;
+      status: FakeElement;
+    };
 
     expect(shell.scene.tagName).toBe('section');
     expect(shell.scene.className).toBe('scene');
@@ -132,9 +144,15 @@ describe('createShell', () => {
       musicAudio: FakeElement;
     };
 
-    const directIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-direct');
-    const fallbackIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-fallback');
-    const musicIndex = shell.scene.children.findIndex((child) => child instanceof FakeElement && child.className === 'scene-music');
+    const directIndex = shell.scene.children.findIndex(
+      (child) => child instanceof FakeElement && child.className === 'scene-direct'
+    );
+    const fallbackIndex = shell.scene.children.findIndex(
+      (child) => child instanceof FakeElement && child.className === 'scene-fallback'
+    );
+    const musicIndex = shell.scene.children.findIndex(
+      (child) => child instanceof FakeElement && child.className === 'scene-music'
+    );
 
     expect(directIndex).toBeGreaterThan(-1);
     expect(fallbackIndex).toBe(directIndex + 1);
@@ -153,7 +171,7 @@ describe('createShell', () => {
 
     const emptyModel: AppModel = {
       ...MODEL,
-      music: { tracks: [] }
+      music: { tracks: [] },
     };
     const shell = createShell(emptyModel) as unknown as {
       musicButton: FakeElement;
@@ -200,7 +218,9 @@ describe('createShell', () => {
     expect(text).toContain('chap a door');
     expect(text).toContain('No canvas controls?');
 
-    const directParagraph = fallback.children.filter((child) => child instanceof FakeElement && child.tagName === 'p')[1] as FakeElement;
+    const directParagraph = fallback.children.filter(
+      (child) => child instanceof FakeElement && child.tagName === 'p'
+    )[1] as FakeElement;
     const link = childByTag(directParagraph, 'a');
     expect(link.href).toBe('https://wild-haggis-survivors.pages.dev/');
     expect(link.rel).toBe('noopener noreferrer');

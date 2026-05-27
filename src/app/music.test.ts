@@ -71,14 +71,14 @@ const TRACKS: MusicTrackModel[] = [
     title: 'Flower of Scotland',
     src: '/music/flower-of-scotland.mp3',
     midiSrc: '/music/flower-of-scotland.mid',
-    sourceUrl: 'https://www.wario.style/s/7u0vk4ok'
+    sourceUrl: 'https://www.wario.style/s/7u0vk4ok',
   },
   {
     title: 'Scotland the Brave',
     src: '/music/scotland-the-brave.mp3',
     midiSrc: '/music/scotland-the-brave.mid',
-    sourceUrl: 'https://www.wario.style/s/tw6IWdAL'
-  }
+    sourceUrl: 'https://www.wario.style/s/tw6IWdAL',
+  },
 ];
 
 afterEach(() => {
@@ -93,7 +93,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     expect(audio.preload).toBe('none');
@@ -117,7 +117,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     button.click();
@@ -138,7 +138,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     button.click();
@@ -159,7 +159,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: []
+      tracks: [],
     });
 
     expect(button.disabled).toBe(true);
@@ -178,7 +178,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     audio.end();
@@ -195,7 +195,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: []
+      tracks: [],
     });
 
     button.click();
@@ -216,7 +216,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     button.click();
@@ -237,7 +237,7 @@ describe('createMusicController', () => {
     createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     button.click();
@@ -255,7 +255,7 @@ describe('createMusicController', () => {
     const controller = createMusicController({
       button: button as unknown as HTMLButtonElement,
       audio: audio as unknown as HTMLAudioElement,
-      tracks: TRACKS
+      tracks: TRACKS,
     });
 
     button.click();

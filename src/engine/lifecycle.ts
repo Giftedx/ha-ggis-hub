@@ -55,7 +55,7 @@ export function createGameLifecycleHost(target: HTMLElement): GameLifecycleHost 
     },
     current(): GameInstance | null {
       return currentInstance;
-    }
+    },
   };
 }
 

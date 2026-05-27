@@ -48,13 +48,17 @@ const INTERACT_KEYS = new Set(['Enter', 'Space', 'KeyE']);
 // All keys the hub claims — used to preventDefault so arrow keys
 // don't scroll the page and Space doesn't trigger button activations.
 const HUB_KEYS = new Set<string>([
-  ...LEFT_KEYS, ...RIGHT_KEYS, ...UP_KEYS, ...DOWN_KEYS, ...INTERACT_KEYS
+  ...LEFT_KEYS,
+  ...RIGHT_KEYS,
+  ...UP_KEYS,
+  ...DOWN_KEYS,
+  ...INTERACT_KEYS,
 ]);
 
 export function inputVectorFromPressedKeys(pressedKeys: ReadonlySet<string>): HubInputVector {
   return {
     x: axisValue(pressedKeys, LEFT_KEYS, RIGHT_KEYS),
-    y: axisValue(pressedKeys, UP_KEYS, DOWN_KEYS)
+    y: axisValue(pressedKeys, UP_KEYS, DOWN_KEYS),
   };
 }
 
@@ -129,7 +133,7 @@ export function createKeyboardInputSampler(target: KeyboardEventSource): Keyboar
       consumedInteractKeys.clear();
       target.removeEventListener('keydown', keydown);
       target.removeEventListener('keyup', keyup);
-    }
+    },
   };
 }
 

@@ -57,9 +57,9 @@ function makeStubModule(): {
       // memory directly.
       default: async () => ({ memory }),
       HubHandle,
-      hub_core_api_version: () => 1
+      hub_core_api_version: () => 1,
     }),
-    memory
+    memory,
   };
 }
 
@@ -99,19 +99,33 @@ describe('initializeHubBoundaryV2', () => {
     const memory = new WebAssembly.Memory({ initial: 1 });
     const HubHandle = class {
       constructor(_seed: bigint) {}
-      tick(): number { return 0; }
-      snapshot_ptr(): number { return 0; }
-      snapshot_len(): number { return 1; } // wrong — should be SNAPSHOT_BYTES
-      state_hash(): bigint { return 0n; }
-      room_definition(): string { return '{"worldWidth":1,"worldHeight":1,"doors":[]}'; }
-      error_message_ptr(): number { return 0; }
-      error_message_len(): number { return 0; }
+      tick(): number {
+        return 0;
+      }
+      snapshot_ptr(): number {
+        return 0;
+      }
+      snapshot_len(): number {
+        return 1;
+      } // wrong — should be SNAPSHOT_BYTES
+      state_hash(): bigint {
+        return 0n;
+      }
+      room_definition(): string {
+        return '{"worldWidth":1,"worldHeight":1,"doors":[]}';
+      }
+      error_message_ptr(): number {
+        return 0;
+      }
+      error_message_len(): number {
+        return 0;
+      }
       free(): void {}
     };
     const loader = async () => ({
       default: async () => ({ memory }),
       HubHandle,
-      hub_core_api_version: () => 1
+      hub_core_api_version: () => 1,
     });
     await expect(initializeHubBoundaryV2(loader, 0n)).rejects.toThrow(HubBoundaryError);
   });
@@ -127,22 +141,39 @@ describe('initializeHubBoundaryV2', () => {
     view.setInt32(28, 0, true);
     const HubHandle = class {
       constructor(_seed: bigint) {}
-      tick(): number { return 0; }
-      snapshot_ptr(): number { return 0; }
-      snapshot_len(): number { return SNAPSHOT_BYTES; }
-      state_hash(): bigint { return 42n; }
+      tick(): number {
+        return 0;
+      }
+      snapshot_ptr(): number {
+        return 0;
+      }
+      snapshot_len(): number {
+        return SNAPSHOT_BYTES;
+      }
+      state_hash(): bigint {
+        return 42n;
+      }
       room_definition(): string {
         return JSON.stringify({
-          worldWidth: 540, worldHeight: 360,
-          doors: [{ id: 'whs', status: 1, boundsMinX: 0, boundsMinY: 0, boundsMaxX: 10, boundsMaxY: 10 }]
+          worldWidth: 540,
+          worldHeight: 360,
+          doors: [
+            { id: 'whs', status: 1, boundsMinX: 0, boundsMinY: 0, boundsMaxX: 10, boundsMaxY: 10 },
+          ],
         });
       }
-      error_message_ptr(): number { return 0; }
-      error_message_len(): number { return 0; }
+      error_message_ptr(): number {
+        return 0;
+      }
+      error_message_len(): number {
+        return 0;
+      }
       free(): void {}
     };
     const loader = async () => ({
-      default: async () => ({ memory }), HubHandle, hub_core_api_version: () => 2
+      default: async () => ({ memory }),
+      HubHandle,
+      hub_core_api_version: () => 2,
     });
     const boundary = await initializeHubBoundaryV2(loader, 0n);
     expect(boundary.room.doors).toHaveLength(1);
@@ -159,22 +190,48 @@ describe('initializeHubBoundaryV2', () => {
     view.setInt32(28, 0, true); // door count in snapshot (independent of room def)
     const HubHandle = class {
       constructor(_seed: bigint) {}
-      tick(): number { return 0; }
-      snapshot_ptr(): number { return 0; }
-      snapshot_len(): number { return SNAPSHOT_BYTES; }
-      state_hash(): bigint { return 0n; }
+      tick(): number {
+        return 0;
+      }
+      snapshot_ptr(): number {
+        return 0;
+      }
+      snapshot_len(): number {
+        return SNAPSHOT_BYTES;
+      }
+      state_hash(): bigint {
+        return 0n;
+      }
       room_definition(): string {
         return JSON.stringify({
-          worldWidth: 1000, worldHeight: 1000,
+          worldWidth: 1000,
+          worldHeight: 1000,
           // status=0 → parseRoomDefinition maps to 'locked' (the d.status !== 1 branch)
-          doors: [{ id: 'locked-door', status: 0, boundsMinX: 0, boundsMinY: 0, boundsMaxX: 10, boundsMaxY: 10 }]
+          doors: [
+            {
+              id: 'locked-door',
+              status: 0,
+              boundsMinX: 0,
+              boundsMinY: 0,
+              boundsMaxX: 10,
+              boundsMaxY: 10,
+            },
+          ],
         });
       }
-      error_message_ptr(): number { return 0; }
-      error_message_len(): number { return 0; }
+      error_message_ptr(): number {
+        return 0;
+      }
+      error_message_len(): number {
+        return 0;
+      }
       free(): void {}
     };
-    const loader = async () => ({ default: async () => ({ memory }), HubHandle, hub_core_api_version: () => 1 });
+    const loader = async () => ({
+      default: async () => ({ memory }),
+      HubHandle,
+      hub_core_api_version: () => 1,
+    });
     const boundary = await initializeHubBoundaryV2(loader, 0n);
     expect(boundary.room.doors[0]?.status).toBe('locked');
   });
@@ -186,8 +243,10 @@ describe('initializeHubBoundaryV2', () => {
     const patchedLoader = async () => ({
       ...origLoader,
       HubHandle: class extends origLoader.HubHandle {
-        free(): void { freed.push(1); }
-      }
+        free(): void {
+          freed.push(1);
+        }
+      },
     });
     const boundary = await initializeHubBoundaryV2(patchedLoader, 0n);
     boundary.destroy();

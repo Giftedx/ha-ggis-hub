@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  makeBeamGeometry,
-  lightZoneAt,
-} from './palette';
+import { makeBeamGeometry, lightZoneAt } from './palette';
 
 // ---------------------------------------------------------------------------
 // makeBeamGeometry + lightZoneAt

@@ -1,7 +1,7 @@
 import {
   validateGameRegistry,
   WILD_HAGGIS_SURVIVORS_GAME_ID,
-  getGameById
+  getGameById,
 } from '../games/registry';
 import type { HubGameDefinition, HubGameLaunchTarget } from '../games/registry';
 
@@ -26,10 +26,7 @@ export type LaunchPlan =
     };
 
 export interface LaunchNavigator {
-  navigate(
-    target: string,
-    targetKind: Exclude<HubGameLaunchTarget['kind'], 'none'>
-  ): void;
+  navigate(target: string, targetKind: Exclude<HubGameLaunchTarget['kind'], 'none'>): void;
 }
 
 export function canLaunchGame(
@@ -45,7 +42,7 @@ export function createDirectPlayPlan(registry: readonly HubGameDefinition[]): La
     return {
       kind: 'missing-game',
       gameId: WILD_HAGGIS_SURVIVORS_GAME_ID,
-      reason: 'Game is not registered'
+      reason: 'Game is not registered',
     };
   }
 
@@ -59,7 +56,7 @@ export function createLaunchPlan(game: HubGameDefinition): LaunchPlan {
       kind: 'unavailable',
       gameId: game.id,
       title: game.title,
-      reason: validationErrors.join('; ')
+      reason: validationErrors.join('; '),
     };
   }
 
@@ -68,7 +65,7 @@ export function createLaunchPlan(game: HubGameDefinition): LaunchPlan {
       kind: 'unavailable',
       gameId: game.id,
       title: game.title,
-      reason: game.status
+      reason: game.status,
     };
   }
 
@@ -77,7 +74,7 @@ export function createLaunchPlan(game: HubGameDefinition): LaunchPlan {
     gameId: game.id,
     title: game.title,
     target: game.launch.target,
-    targetKind: game.launch.kind
+    targetKind: game.launch.kind,
   };
 }
 

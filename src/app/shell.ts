@@ -20,7 +20,13 @@ export function createShell(model: AppModel): SceneElements {
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-describedby', 'scene-fallback-instructions');
   sizeCanvasToViewport(canvas);
-  window.addEventListener('resize', () => { sizeCanvasToViewport(canvas); }, { passive: true });
+  window.addEventListener(
+    'resize',
+    () => {
+      sizeCanvasToViewport(canvas);
+    },
+    { passive: true }
+  );
 
   // Domain wordmark — makes the ha + ggis = haggis pun visible on the
   // page itself, not just in the browser tab or address bar.
@@ -54,7 +60,10 @@ function createMusicButton(model: AppModel): HTMLButtonElement {
   button.type = 'button';
   button.textContent = 'music';
   button.disabled = firstTrack === undefined;
-  button.setAttribute('aria-label', firstTrack === undefined ? 'Hub music unavailable' : `Play hub music: ${firstTrack.title}`);
+  button.setAttribute(
+    'aria-label',
+    firstTrack === undefined ? 'Hub music unavailable' : `Play hub music: ${firstTrack.title}`
+  );
   return button;
 }
 
@@ -80,7 +89,8 @@ function createFallbackHelp(model: AppModel): HTMLElement {
 
   const instructions = document.createElement('p');
   instructions.id = 'scene-fallback-instructions';
-  instructions.textContent = 'Walk wi’ arrows or WASD, then press Enter, Space, or E tae chap a door. On touch, drag tae walk or tap a door.';
+  instructions.textContent =
+    'Walk wi’ arrows or WASD, then press Enter, Space, or E tae chap a door. On touch, drag tae walk or tap a door.';
 
   const directText = document.createElement('p');
   const link = document.createElement('a');
