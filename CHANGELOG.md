@@ -2,6 +2,24 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 gate: expand prettier fmt:check to scripts/**/*.mjs
+
+`pnpm fmt:check` glob extended from `src/**/*.ts` to also cover
+`scripts/**/*.mjs`. 21 script files were not prettier-clean; formatted
+in the same commit. `.prettierignore` added to exclude `src/generated/`
+(wasm-bindgen output) and `dist/`. `pnpm verify` now enforces consistent
+style across both source and script surfaces.
+
+### Added
+- **`.prettierignore`** — excludes `src/generated/` and `dist/`.
+
+### Changed
+- **`package.json`** — `fmt:check` glob: `"src/**/*.ts" "scripts/**/*.mjs"`.
+- **21 `scripts/*.mjs` files** — prettier-formatted.
+- **`docs/foundation/07-quality-gates.md`** — prettier promotion note updated to reflect expanded glob.
+
+---
+
 ## [Unreleased] — 2026-05-27 ci: wire haggis-eval Go lint + test into CI; gofmt two pre-existing files
 
 `gofmt -l .`, `go vet ./...`, and `go test ./... -timeout 120s` added as
