@@ -141,6 +141,7 @@ export function drawWhsBothyFloor(
     yCursor = seamY + 1;
   }
   // Fill any remainder so the floor reaches floorBottom.
+  /* v8 ignore next — plank proportions sum to >1.0×floorH; yCursor always overshoots floorBottom */
   if (yCursor < floorBottom - 1) {
     fillRectA(ctx, PEAT_DARK, 1, left + 4, yCursor, w - 8, floorBottom - yCursor - 2);
   }
