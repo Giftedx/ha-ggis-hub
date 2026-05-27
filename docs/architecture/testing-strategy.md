@@ -28,7 +28,6 @@ Test:
 - door proximity
 - launch eligibility
 - registry validation
-- save migration when saves exist
 - locked-door interaction kind and door index
 - all four world-boundary clamping directions (left/right/top/bottom)
 
