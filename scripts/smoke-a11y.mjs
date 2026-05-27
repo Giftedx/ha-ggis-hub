@@ -29,6 +29,11 @@
 //      reads as a text+plate combination clears 4.5:1 for normal text.
 //      Pairs declared inline — keep this in sync with the palette in
 //      src/render/canvas-room.ts and the noscript style in index.html.
+//   12. Font load — self-hosted Old Standard TT italic woff2 is present
+//      after font-display:swap settles; verifies the preload + @font-face
+//      pipeline without a visual regression diff.
+//   13. Runtime errors — any unhandled page error during the walk is
+//      itself a user-facing defect; captured via page.on('pageerror').
 //
 // Exit 0: all checks pass. Exit 1: at least one violation.
 //

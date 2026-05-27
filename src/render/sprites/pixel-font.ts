@@ -34,7 +34,7 @@ const GLYPH_SPACING = 1; // 1px between glyphs at scale 1
 // '.' (transparent) and 'X' (painted). Returns a Sprite where X is a
 // sentinel colour the renderer overrides per-call.
 const PAINT = '#ffffff'; // sentinel — renderer swaps this for the call colour
-function glyph(rows: readonly string[]): Sprite {
+export function glyph(rows: readonly string[]): Sprite {
   if (rows.length !== GLYPH_HEIGHT) {
     throw new Error(`Glyph must be ${GLYPH_HEIGHT} rows, got ${rows.length}`);
   }

@@ -39,7 +39,7 @@ node scripts/perf-budgets.mjs                         # per-asset budgets
 node scripts/run-paint-gate.mjs                       # paint-timing budgets (FCP/LCP/DCL/load)
 
 # Browser-driven (vite preview internally)
-node scripts/run-browser-smokes.mjs    # 3 chromium smokes
+node scripts/run-browser-smokes.mjs    # 5 chromium smokes
 node scripts/run-determinism-smoke.mjs # state-hash equality
 node scripts/run-visual-gate.mjs verify # perceptual aHash
 node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
@@ -167,7 +167,7 @@ Programmer art is allowed during internal iteration. Public-facing placeholder s
 - Initial WASM gzip: <= 300 KB lean / <= 500 KB substantial.
 - Total initial critical-path gzip: <= 750 KB.
 - Performance (paint timing): asserted via the hand-rolled `haggis-eval perf paint-timing` gate (`scripts/run-paint-gate.mjs`) reading the W3C Paint Timing API + a `hub:firstFrame` user-mark. Budgets in `perf-budgets.json paint.max_ms` calibrated against Linux CI medians.
-- Accessibility: asserted via the hand-rolled `haggis-eval a11y` gate (`scripts/run-a11y-gate.mjs` → `scripts/smoke-a11y.mjs`), 22 WCAG 2.2 AA spot-checks covering page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name and fallback help (1.1.1), live door status (4.1.3), interactive element accessible name (4.1.2), label-in-name (2.5.3), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), and computed contrast ratio (1.4.3) on every declared text pair. No axe-core dep; the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic 80-rule engine.
+- Accessibility: asserted via the hand-rolled `haggis-eval a11y` gate (`scripts/run-a11y-gate.mjs` → `scripts/smoke-a11y.mjs`), 26 WCAG 2.2 AA spot-checks covering page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name and fallback help (1.1.1), live door status (4.1.3), interactive element accessible name (4.1.2), label-in-name (2.5.3), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), computed contrast ratio (1.4.3) on every declared text pair, self-hosted font load verification, and a runtime page-error check. No axe-core dep; the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic 80-rule engine.
 - Lighthouse best practices: the signal this score provides is covered by existing gates without the Lighthouse dependency — security gate (CSP, HSTS, X-Frame-Options, COOP, CORP, Permissions-Policy), browser smoke (JS errors[] checked on every run), and `verify-dist.mjs` (doctype, charset, lang attribute, favicon, manifest). The bundle has no third-party JS libraries, so the "vulnerable library version" check is N/A. Not adding the Lighthouse dep per the hand-roll-over-library policy.
 - LCP: <= 2.5s.
 - CLS: <= 0.05.

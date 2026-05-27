@@ -15,6 +15,7 @@ class FakeElement {
   preload = '';
   width = 0;
   height = 0;
+  disabled = false;
 
   constructor(readonly tagName: string) {}
 

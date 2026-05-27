@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderPixelText, measurePixelText } from './pixel-font';
+import { renderPixelText, measurePixelText, glyph } from './pixel-font';
 import type { SpriteBlitContext } from '../sprite';
 
 class MinimalBlitContext implements SpriteBlitContext {
@@ -34,5 +34,33 @@ describe('measurePixelText', () => {
   it('substitutes unknown character with space — exercises GLYPHS fallback branch', () => {
     // '@' is not in GLYPHS → substituted with ' '.
     expect(measurePixelText('@', 1)).toBeGreaterThan(0);
+  });
+});
+
+describe('glyph validation', () => {
+  const validRows = [
+    'X....',
+    'X....',
+    'X....',
+    'X....',
+    'X....',
+    'X....',
+    'XXXXX'
+  ];
+
+  it('throws when row count is not 7', () => {
+    expect(() => glyph(['XXXXX'])).toThrow('Glyph must be 7 rows, got 1');
+  });
+
+  it('throws when a row is not 5 chars wide', () => {
+    const badRows = [...validRows];
+    badRows[0] = 'XX';
+    expect(() => glyph(badRows)).toThrow("Glyph row must be 5 chars, got 'XX'");
+  });
+
+  it('throws when a row contains a character other than . or X', () => {
+    const badRows = [...validRows];
+    badRows[0] = 'X.Z..';
+    expect(() => glyph(badRows)).toThrow("Glyph rows must contain only '.' or 'X'; got 'Z'");
   });
 });

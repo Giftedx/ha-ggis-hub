@@ -125,7 +125,10 @@ function makeShell(): SceneElements {
   };
 }
 
-function installBrowserGlobals(search = ''): { flushRaf(now: number): void } {
+function installBrowserGlobals(search = ''): {
+  flushRaf(now: number): void;
+  docAddEventListener: ReturnType<typeof vi.fn>;
+} {
   let rafId = 0;
   let callbacks: Array<(now: number) => void> = [];
   const addEventListener = vi.fn();
@@ -142,11 +145,12 @@ function installBrowserGlobals(search = ''): { flushRaf(now: number): void } {
     },
     cancelAnimationFrame: vi.fn()
   };
+  const docAddEventListener = vi.fn();
   vi.stubGlobal('window', fakeWindow);
   vi.stubGlobal('requestAnimationFrame', fakeWindow.requestAnimationFrame);
   vi.stubGlobal('document', {
     visibilityState: 'visible',
-    addEventListener: vi.fn(),
+    addEventListener: docAddEventListener,
     removeEventListener: vi.fn()
   });
   vi.stubGlobal('performance', {
@@ -154,6 +158,7 @@ function installBrowserGlobals(search = ''): { flushRaf(now: number): void } {
     mark: vi.fn()
   });
   return {
+    docAddEventListener,
     flushRaf(now: number): void {
       const pending = callbacks;
       callbacks = [];
@@ -216,7 +221,7 @@ async function mountHarness(options?: {
     launchSource: 'door',
     reducedMotion: options?.reducedMotion ?? false
   });
-  return { browser, boundary, renderer, keyboard, navigator, shell, instance };
+  return { browser, boundary, renderer, keyboard, navigator, shell, instance, docAddEventListener: browser.docAddEventListener };
 }
 
 beforeEach(() => {
@@ -309,13 +314,13 @@ describe('createBothyGameModule', () => {
   });
 
   it('resets the fixed-step accumulator when the page returns to visible', async () => {
-    await mountHarness();
+    const { docAddEventListener } = await mountHarness();
 
-    const docCalls = vi.mocked(document.addEventListener).mock.calls;
-    const visEntry = docCalls.find(([type]) => type === 'visibilitychange');
+    const calls = docAddEventListener.mock.calls as [string, EventListener][];
+    const visEntry = calls.find(([type]) => type === 'visibilitychange');
     expect(visEntry).toBeDefined();
 
-    const handler = visEntry![1] as EventListener;
+    const handler = visEntry![1];
     handler(new Event('visibilitychange'));
   });
 
