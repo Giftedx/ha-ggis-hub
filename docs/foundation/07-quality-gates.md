@@ -2,7 +2,7 @@
 
 Status: canonical foundation policy
 Scope: technical bar, required validation before PR/main/release milestones, and release definition
-Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-craft-commitments.md), [Deployment foundation](../deployment/cloudflare-pages.md)
+Related: [Quality manifesto](11-quality-manifesto.md), [Craft commitments](12-craft-commitments.md), [Deployment runbook](../DEPLOYMENT.md), [Deployment foundation](../deployment/cloudflare-pages.md)
 
 ## Current repo status
 

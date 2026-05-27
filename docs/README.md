@@ -108,7 +108,8 @@ Archived foundation docs (provenance only — content distilled into the keepers
 
 ### Deployment
 
-- [Cloudflare Pages deployment foundation](deployment/cloudflare-pages.md)
+- [Deployment runbook](DEPLOYMENT.md) — live-ops operator reference: DNS, dashboard config, rollback procedure, WHS integration decision
+- [Cloudflare Pages deployment foundation](deployment/cloudflare-pages.md) — in-repo config: headers, redirects, CSP, source-map policy
 
 ### Research
 
