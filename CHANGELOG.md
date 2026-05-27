@@ -2,6 +2,28 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 fix: code-review findings (dead fields, tests, comment hygiene)
+
+Fixed 10 issues from post-merge code review across Rust + TypeScript layers:
+- **`crates/hub-wasm/src/handle.rs`**: removed dead `log_writer` field (`Option<LogWriter>`, always `None`),
+  stale `new()` initialiser, and unreachable `if let Some(writer)` block in `tick()`.
+  Stale module-doc migration comment removed.
+- **`crates/hub-core/src/sim.rs`**: pinned `render_snapshot_has_stable_repr_c_layout` const assertion
+  to exact byte count (`== 444`); renamed `tick_cardinal_movement_advances_one_fixed_unit` to
+  `tick_cardinal_movement_advances_player_speed_per_tick_world_units` (name matched the assertion, not the concept).
+- **`crates/hub-wasm/src/snapshot_view.rs`**: added compile-time `assert!(SNAPSHOT_BYTES == 448)` to
+  `snapshot_buffer_length_is_constant` — previously the only assertion was trivially true.
+- **`src/hub/bothy-module.ts`**: fixed `samplePackedInput` early `return bits` in keyboard branch that
+  dropped the `interactHeld()` bit when any axis was set; changed to `else if (pointerActive)` making
+  both branches symmetric. Simplified `pointerToWorld` double-normalisation (intermediate `canvasX/Y`
+  variables cancelled out; removed).
+- **`src/debug/overlay.ts`**: replaced "what" comment on `createFpsTracker` with "why" comment.
+- **`src/hub/bothy-module.test.ts`**: strengthened `visibilitychange` test — previously fired the handler
+  but made no assertions; now verifies the accumulator actually resets by checking tick count after a
+  17ms RAF following a 100_000_000ms delta fill.
+
+219 tests pass; bundle 54.86 kB JS / 27.95 kB WASM.
+
 ## [Unreleased] — 2026-05-27 chore: whs-bothy Rule 5 compliance + dead DOOR_OPEN removal
 
 Completed palette discipline sweep across the three remaining render files:

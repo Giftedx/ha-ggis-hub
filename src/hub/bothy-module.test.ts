@@ -329,14 +329,22 @@ describe('createBothyGameModule', () => {
   });
 
   it('resets the fixed-step accumulator when the page returns to visible', async () => {
-    const { docAddEventListener } = await mountHarness();
+    const { browser, boundary, docAddEventListener } = await mountHarness();
 
     const calls = docAddEventListener.mock.calls as [string, EventListener][];
     const visEntry = calls.find(([type]) => type === 'visibilitychange');
     expect(visEntry).toBeDefined();
 
+    // Huge delta fills the accumulator; last becomes 100_000_000.
+    browser.flushRaf(100_000_000);
+    vi.mocked(boundary.tick).mockClear();
+
     const handler = visEntry![1];
-    handler(new Event('visibilitychange'));
+    handler(new Event('visibilitychange')); // resets last=performance.now()=0, accumulatorMs=0
+
+    // With reset: delta=17ms → 1 tick. Without reset: delta=17-100_000_000 → negative → 0 ticks.
+    browser.flushRaf(17);
+    expect(vi.mocked(boundary.tick).mock.calls.length).toBe(1);
   });
 
   it('releases pointer capture on pointercancel when a drag is active', async () => {

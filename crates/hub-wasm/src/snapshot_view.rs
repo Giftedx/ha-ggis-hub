@@ -86,6 +86,8 @@ mod tests {
 
     #[test]
     fn snapshot_buffer_length_is_constant() {
+        // Pin the exact byte count so any struct or formula change breaks loudly.
+        const _: () = assert!(SNAPSHOT_BYTES == 448); // 8 header words + 8 × 52-byte door slots
         let mut buffer = vec![0u8; SNAPSHOT_BYTES];
         let snapshot = Sim::new(0).render_snapshot();
         write_snapshot(&mut buffer, &snapshot);

@@ -430,7 +430,9 @@ mod tests {
         // Compile-time guarantee that the snapshot is plain-old-data so the
         // WASM boundary can memcpy it without serialization.
         const _: () = {
-            assert!(core::mem::size_of::<RenderSnapshot>() > 0);
+            let header = 5 * 4 + 4 + 4; // 5×i32 + interaction_kind/index/pad + door_count/pad = 28
+            let slot = 32 + 4 * 4 + 4;  // id[32] + 4×i32 bounds + status+pad = 52
+            assert!(core::mem::size_of::<RenderSnapshot>() == header + 8 * slot); // 444
         };
 
         let mut snapshot = RenderSnapshot::zero();
@@ -462,7 +464,7 @@ mod tests {
     }
 
     #[test]
-    fn tick_cardinal_movement_advances_one_fixed_unit() {
+    fn tick_cardinal_movement_advances_player_speed_per_tick_world_units() {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, 0, false));
         assert_eq!(snapshot.player_x, 440);

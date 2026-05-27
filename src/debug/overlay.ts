@@ -34,8 +34,7 @@ export function createDebugOverlay(container: HTMLElement): DebugOverlay {
   };
 }
 
-// Rolling FPS tracker. Keeps a sliding window of the last `windowSize`
-// frame deltas and returns the mean FPS + current frame time each record.
+// Sliding window smooths single-frame spikes that would make the FPS display unreadable.
 export function createFpsTracker(windowSize = 30): {
   record(deltaMs: number): { fps: number; frameMs: number };
 } {

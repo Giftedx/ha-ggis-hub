@@ -107,9 +107,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           else if (v.x < 0) bits |= 0b10;
           if (v.y > 0) bits |= 0b01 << 2;
           else if (v.y < 0) bits |= 0b10 << 2;
-          return bits;
-        }
-        if (pointerActive) {
+        } else if (pointerActive) {
           const snapshot = room.lastSnapshot();
           const dx = pointerWorldX - snapshot.playerX;
           const dy = pointerWorldY - snapshot.playerY;
@@ -154,11 +152,9 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       function pointerToWorld(event: PointerEvent): { x: number; y: number } {
         const snapshot = room.lastSnapshot();
         const rect = shell.canvas.getBoundingClientRect();
-        const canvasX = ((event.clientX - rect.left) / rect.width) * shell.canvas.width;
-        const canvasY = ((event.clientY - rect.top) / rect.height) * shell.canvas.height;
         return {
-          x: (canvasX / shell.canvas.width) * snapshot.worldWidth,
-          y: (canvasY / shell.canvas.height) * snapshot.worldHeight,
+          x: ((event.clientX - rect.left) / rect.width) * snapshot.worldWidth,
+          y: ((event.clientY - rect.top) / rect.height) * snapshot.worldHeight,
         };
       }
 

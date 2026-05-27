@@ -1,7 +1,5 @@
 //! Owns a `Sim` plus the byte buffers the WASM boundary publishes to the
-//! TypeScript host. Replaces the legacy per-tick allocating boundary; old
-//! exports remain in `lib.rs` during the migration plan and are removed
-//! once consumers move.
+//! TypeScript host.
 
 use wasm_bindgen::prelude::*;
 
@@ -31,7 +29,6 @@ pub struct HubHandle {
     sim: Sim,
     snapshot_buffer: Vec<u8>,
     last_error: String,
-    log_writer: Option<hub_core::log::LogWriter>,
 }
 
 #[wasm_bindgen]
@@ -48,7 +45,6 @@ impl HubHandle {
             sim,
             snapshot_buffer,
             last_error: String::new(),
-            log_writer: None,
         }
     }
 
@@ -75,14 +71,6 @@ impl HubHandle {
         }
         let snapshot = self.sim.tick(input);
         write_snapshot(&mut self.snapshot_buffer, &snapshot);
-
-        if let Some(writer) = self.log_writer.as_mut() {
-            // The handle does not know the current tick index — caller
-            // tracks it. For now the writer is opt-in and the caller writes
-            // records directly through `LogWriter::append`; the embedded
-            // writer is reserved for future symmetric in-WASM capture.
-            let _ = writer;
-        }
         HubErrorTag::Ok
     }
 
