@@ -2,6 +2,10 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 chore: fix stale smoke count in evaluation-strategy.md
+
+docs/architecture/evaluation-strategy.md: "5 chromium smokes" → "7 chromium smokes — 6 core + a11y".
+
 ## [Unreleased] — 2026-05-27 chore: fix stale smoke counts + a11y check count in CI + haggis-eval docs
 
 ci.yml: 6→7 chromium smokes, 5→6 firefox/webkit core smokes.
