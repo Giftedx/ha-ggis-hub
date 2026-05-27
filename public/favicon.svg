@@ -1,8 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ha.ggis — The Wee Chieftain haggis icon">
   <!--
-    ha.ggis favicon - close-cropped Wee Chieftain mark. This is not the
-    full in-game mascot: at 32px the food cue wins through the oval
-    casing, cream eyes, pale oat cutaway, and tied-end knot.
+    ha.ggis favicon - close-cropped Wee Chieftain mark. This is NOT the
+    full in-game mascot — it is a separate icon-format design.
+    The oat cutaway (left) and tied-end knot (right) are intentional
+    here: at 32px no visitor can identify them as specific features;
+    they read as food-body texture that distinguishes the icon from a
+    plain brown oval. The walking bothy mascot omits both because
+    visitors CAN study it and found them confusing at room scale.
   -->
   <rect width="32" height="32" fill="#24170f"/>
 
