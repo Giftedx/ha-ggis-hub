@@ -93,14 +93,14 @@ describe('drawBothyHaggis', () => {
     drawBothyHaggis(ctx, 100, 100, 1, {});
     expect(ctx.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.crumbLight}`);
     expect(ctx.calls).not.toContain('moveTo:77.8,95');
-    expect(ctx.calls).toContain('moveTo:77.8,102');
-    expect(ctx.calls).toContain('quadraticCurveTo:81.1,98.6,87.8,101');
-    expect(ctx.calls).toContain('quadraticCurveTo:89.2,103.8,87.4,106.4');
-    expect(ctx.calls).toContain('quadraticCurveTo:84.8,109.2,79.3,108.2');
-    expect(ctx.calls).toContain('arc:81.2,102.6,0.95');
-    expect(ctx.calls).toContain('arc:84.2,104.8,1.05');
-    expect(ctx.calls).toContain('arc:87.2,101.9,0.85');
-    expect(ctx.calls.indexOf('moveTo:77.8,102')).toBeLessThan(
+    expect(ctx.calls).toContain('moveTo:80.8,102');
+    expect(ctx.calls).toContain('quadraticCurveTo:84.1,98.6,90.8,101');
+    expect(ctx.calls).toContain('quadraticCurveTo:92.2,103.8,90.4,106.4');
+    expect(ctx.calls).toContain('quadraticCurveTo:87.8,109.2,82.3,108.2');
+    expect(ctx.calls).toContain('arc:84.2,102.6,0.95');
+    expect(ctx.calls).toContain('arc:87.2,104.8,1.05');
+    expect(ctx.calls).toContain('arc:90.2,101.9,0.85');
+    expect(ctx.calls.indexOf('moveTo:80.8,102')).toBeLessThan(
       ctx.calls.indexOf('arc:93.8,97.7,2.1')
     );
     expect(ctx.calls).not.toContain('quadraticCurveTo:91.4,96.6,89.5,99.8');
