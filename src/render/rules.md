@@ -53,7 +53,7 @@ No nested shrinking ellipses with varying alpha for shadows (that is the prohibi
 
 **Protagonist (bothy haggis):**
 - The Wee Chieftain body uses a slightly-larger `outline` oval beneath the cooked-casing fill. This reads as the body-edge line in low-key dim bothy lighting and is correct — the haggis is the hero element and earns a full-perimeter ink ring at this scale.
-- Tied casing end, tartan-twine collar, oat patch, eyes, smile, and legs: no independent cartoon outline except where an ink underlayer is required for low-size readability. The layering of ink-dark under lighter fills provides the depth.
+- Eyes, smile, surface oat flecks, casing seams, and legs: no independent cartoon outline except where an ink underlayer is required for low-size readability. The layering of ink-dark under lighter fills provides the depth.
 
 ## 5. Palette discipline — DESIGN.md tokens, not invented hex
 

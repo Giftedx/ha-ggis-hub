@@ -99,7 +99,7 @@ const PX = {
   flameMid: '#e4a020', // neeps-orange
   flameOuter: '#c8842a', // whisky-amber
   ember: '#c44218', // ember-red
-  // The Wee Chieftain — cooked-casing body with a pale oat cutaway
+  // The Wee Chieftain — cooked-casing body with oat flecks and seam texture
   hagOutline: '#1a0e08',
   hagDark: '#3a2418',
   hagBody: '#5a3a20',

@@ -80,6 +80,6 @@ The hub's visual direction is **Highland Dawn Bothy** — a painterly storybook 
 
 - `src/style.css` — replace WHS CSS variables with `--hub-*` tokens from the palette table; replace monospace `font-family` with the humanist serif stack.
 - `src/render/canvas-room.ts` — replace the `PX` palette object with new token values; rewrite `drawTopWallWindow` to render dawn sky (not night sky); rewrite `drawWallHanging` to use domestic motifs (drop crossed claymores + tartan banner); swap rug colours in `drawFloorRug`; swap sign + prompt typography to serif; keep the player scale readable without overpowering the bothy.
-- `src/render/bothy-haggis.ts` — render The Wee Chieftain as a glossy whole-haggis food mascot: squat oval casing, asymmetric tied end with tartan-twine collar, oat flecks, warm off-centre oat patch, big directed cream eyes, and tiny uneven legs.
+- `src/render/bothy-haggis.ts` — render The Wee Chieftain as a glossy whole-haggis food mascot: squat oval casing with surface oat flecks and seam texture, big directed cream eyes with eyelid arcs, bold authored brows, wide confident smile, and tiny asymmetric uneven legs.
 - `src/main.ts` — copy stays Scots-tinted; existing strings ("the bothy bides quiet", "the bothy wouldnae load", "awa' in →") match the new lobby register and stay.
 - Tests in `src/render/canvas-room.test.ts` assert text content and call order, not font value or colour values, so they should continue to pass.
