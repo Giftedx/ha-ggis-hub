@@ -2,6 +2,16 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 design: Wee Chieftain storybook scale + face completion
+
+Root cause: storybook HAGGIS_SCALE was 1.18 — body only 59 px wide against the painted room,
+essentially invisible. Raised to 1.6; body now 80 px wide and legible as a character.
+Shadow radius 36→52 to match the larger footprint.
+Added nose dot (mx(0), my(3), r=1.2×s) so the face reads as a face rather than two isolated circles.
+Widened smile from ±4 to ±5.5 design units, deepened cpy from my(5.8) to my(7.5) — joyful not flat.
+Lower casing seam alpha 0.18→0.32 — more visible food-body texture below the face zone.
+Visual golden re-captured; all 219 vitest pass.
+
 ## [Unreleased] — 2026-05-27 design: Redesign Wee Chieftain for room-scale character readability
 
 Root-cause fix: HAGGIS_SCALE was 1.55 (stale comment said 2.7) — body only 68 px wide on a 540 px canvas.

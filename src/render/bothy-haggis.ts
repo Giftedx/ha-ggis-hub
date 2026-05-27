@@ -186,7 +186,7 @@ export function drawBothyHaggis(
 
   // Casing seams: bottom wrinkle kept very faint so it doesn't compete
   // with the smile; upper seam and highlight nearly invisible in face zone.
-  strokeCurve(ctx, palette.casingSeam, 0.18, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
+  strokeCurve(ctx, palette.casingSeam, 0.32, 0.9 * s, mx(-18), my(2), mx(-7), my(9), mx(7), my(8));
   strokeCurve(ctx, palette.casingSeam, 0.08, 0.7 * s, mx(-14), my(-8), mx(0), my(-11), mx(15), my(-5));
   strokeCurve(ctx, palette.casingHighlight, 0.08, 0.8 * s, mx(-16), my(-5), mx(-8), my(-8), mx(2), my(-7));
 
@@ -274,18 +274,21 @@ export function drawBothyHaggis(
   );
   fillEllipseRaw(ctx, palette.casingHighlight, 0.2, mx(5.4), my(4.8), 5.6 * s, 1.4 * s);
 
-  // Smile reads clearly at room scale without dominating the food body.
+  // Tiny nose dot — anchors the face so it reads as a face not just two circles.
+  fillCircle(ctx, palette.casingSeam, 0.72, mx(0), my(3), 1.2 * s);
+
+  // Smile — wider and deeper than a simple arc so it reads joyful at room scale.
   strokeCurve(
     ctx,
     palette.mouth,
-    0.82,
-    1.6 * s,
-    mx(-4),
-    my(2.8),
+    0.88,
+    1.8 * s,
+    mx(-5.5),
+    my(4),
     mx(0),
-    my(5.8),
-    mx(4),
-    my(2.8)
+    my(7.5),
+    mx(5.5),
+    my(4)
   );
 }
 
