@@ -2,6 +2,22 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-27 design: sync og.svg social card with current Wee Chieftain
+
+og.svg had accumulated significant drift from bothy-haggis.ts across multiple mascot redesign rounds:
+- Right pupil wall-eyed (cx=9.7) — fixed to converging gaze (cx=6.4, matching code fix)
+- Eyes undersized: outline 4.2→4.8, white 3.4→4.0, pupil 1.45→2.2
+- Eye centres shifted to match code: left -7.2→-6.2, right +8.3→+7.2
+- Eyelids missing — added (rx=4.2, ry=1.2, casingLight, 82% alpha)
+- Brows invisible (0.32 alpha, 0.48 width) → bold 0.86 alpha 0.80 width arcs
+- Nose dot missing — added (r=1.2, 72% alpha)
+- Smile narrow (±2.5/cpy=4.8, 0.8 width) → wide+deep (±5.5/cpy=7.5, 1.8 width)
+- Cutaway in old position (no offset) → current position (offsetX≈3, cutawayY=7)
+- 3 stale oat flecks removed from casing group; crumb dark corrected to code positions
+- Left-end pucker stroke removed; casing seam alphas corrected to match code
+DESIGN.md: face-zone rule updated; pupil convergence rule + social-card sync rule added.
+og.png regenerated via pnpm rasterize:og.
+
 ## [Unreleased] — 2026-05-27 design: Wee Chieftain storybook scale + face completion
 
 Root cause: storybook HAGGIS_SCALE was 1.18 — body only 59 px wide against the painted room,

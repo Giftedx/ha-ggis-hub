@@ -311,8 +311,14 @@ mascot:
       position: "left-of-centre (offsetX=3 design units from body centre)"
       rationale: "centred cutaway read as wound; left-of-centre reads as cross-section window into stuffing"
     face-zone:
-      rule: "casing seam strokes crossing the face area use alpha ≤ 0.18"
-      rationale: "high-alpha seams competed with eyes and smile at room scale"
+      rule: "seam strokes in the upper face area (above my(2)) use alpha ≤ 0.08; the lower-body seam (my(2)→my(9)) may use up to 0.32 — below the eye zone, it reads as food texture not face clutter"
+      rationale: "high-alpha seams in the eye zone competed with pupils and brows; the lower seam at 0.32 adds haggis-casing texture without crossing the face"
+    pupils:
+      rule: "both pupils offset 0.7–0.8 design units toward centre (left: mx(-5.5) vs eye cx mx(-6.2); right: mx(6.4) vs eye cx mx(7.2))"
+      rationale: "outward pupils create a wall-eyed divergent gaze; inward pupils make the mascot look at the viewer"
+    social-card:
+      asset: "public/og.svg + public/og.png (rasterize:og)"
+      sync-rule: "og.svg must be kept in sync with bothy-haggis.ts; regenerate og.png via pnpm rasterize:og after any mascot design change"
 ```
 
 ## Motion
