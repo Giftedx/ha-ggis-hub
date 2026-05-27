@@ -271,6 +271,7 @@ ornament:
   floor-runner-spent: 1         # fallback structured heather runner between Wee Chieftain and hearth — revised 2026-05-27
   hearth-inglenook-spent: 1     # fallback stone focal mass behind hearth — shipped 2026-05-27
   inscriptions-max: 2          # mantel + lintel
+  inscriptions-spent: 2        # hearth lintel + mantel — both shipped
   quiet-zone-policy: "upper-left and lower-right of the floor stay empty"
 ```
 
@@ -344,7 +345,7 @@ voice:
 
   # — Open voice budget (free to author) —
   open:
-    mantel-inscription: "A wee place tae rest before ye ge'awa'."  # deferred — too long for pixel-font on available shelf geometry
+    mantel-inscription: "Hame's best."  # shipped 2026-05-27 — shortened to fit pixel-font (64 px at scale 1); drawMantelInscription in canvas-room.ts (fallback path only; archY−9 px above inglenook arch)
     hearth-lintel-motto: "Bide a while."  # shipped 2026-05-24 — rendered in canvas-room.ts drawHearthLintelMotto
     coming-soon-door:   "Comin' wi' the next moon."
     framed-painting-caption: "(unfinished)"  # in-painting content shipped 2026-05-24; caption not rendered (pixel-font space too tight at this scale)

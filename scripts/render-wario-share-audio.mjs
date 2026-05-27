@@ -1,3 +1,17 @@
+// One-shot music regeneration tool — pnpm rasterize:music
+//
+// Renders Flower of Scotland and Scotland the Brave to WAV by driving the
+// Wario Synth (wario.style) Game Boy engine in a headless Chromium page.
+// Output: .tmp/wario-audio/*.wav — convert to MP3 manually: ffmpeg -i foo.wav -q:a 2 foo.mp3
+//
+// FRAGILE: imports two content-hashed Vite assets from wario.style by their
+// build-time paths (/assets/audioUnlock-*.js, /assets/MotifEngine-*.js).
+// These hashes change on every wario.style deploy. If the script errors with
+// 404s, inspect wario.style's network tab to find the current asset paths and
+// update the import() calls below.
+//
+// MIDI sources: bitmidi.com (proxied via wario.style /api/midi/fetch).
+// Not wired into CI — run manually when tracks need to be regenerated.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { chromium } from 'playwright';

@@ -421,6 +421,7 @@ function renderRoom(
     const hearthFrameIdx = reducedMotion ? 0 : Math.floor(phase * 7) % HEARTH_FRAME_COUNT;
     drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
     drawHearthLintelMotto(ctx, fireCenter.x, hearthOriginY, HEARTH_SCALE);
+    drawMantelInscription(ctx, surface);
   }
 
   // 8. Haggis player
@@ -1368,6 +1369,21 @@ function drawHearthLintelMotto(
   const bandCenterY = hearthOriginY + 15 * hearthScale;
   const textX = Math.round(fireCenterX - textW / 2);
   const textY = Math.round(bandCenterY - PIXEL_FONT_HEIGHT / 2);
+  renderPixelText(ctx, text, textX, textY, scale, PX.stoneLight);
+}
+
+// "Hame's best." — hearth mantel inscription (DESIGN.md voice.open.mantel-inscription).
+// Carved into the stone band above the inglenook arch crown, centred on
+// the chimney breast. Only drawn in the procedural fallback path.
+function drawMantelInscription(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void {
+  if (surface.width < 400) return;
+  const cx = Math.round(surface.width / 2);
+  const archY = WALL_THICK_BACK + 102; // matches drawHearthInglenook archY
+  const text = "HAME'S BEST.";
+  const scale = 1;
+  const textW = measurePixelText(text, scale);
+  const textX = Math.round(cx - textW / 2);
+  const textY = archY - PIXEL_FONT_HEIGHT * scale - 2;
   renderPixelText(ctx, text, textX, textY, scale, PX.stoneLight);
 }
 

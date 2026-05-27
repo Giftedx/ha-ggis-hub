@@ -19,6 +19,7 @@
     "fmt:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.mjs\"",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run build:verified",
     "rasterize:og": "node scripts/rasterize-og.mjs",
+    "rasterize:music": "node scripts/render-wario-share-audio.mjs",
     "visual:capture": "node scripts/run-visual-gate.mjs capture",
     "visual:verify": "node scripts/run-visual-gate.mjs verify",
     "coverage": "vitest run --coverage"

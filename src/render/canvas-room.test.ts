@@ -496,4 +496,25 @@ describe('createCanvasRoomRenderer', () => {
     createCanvasRoomRenderer(surface, doubleHyphenRoom).render(SNAPSHOT_NO_INTERACTION);
     expect(context.calls.length).toBeGreaterThan(20);
   });
+
+  it('renders the mantel inscription in the fallback path above the inglenook arch', () => {
+    // drawMantelInscription: archY=198, textY=189, textX=238 on 540×360 surface.
+    // "HAME'S BEST." — H top-left pixel at (238,189), right pixel of H row-0 at (242,189).
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+    expect(context.calls).toContain('fillRect:238,189,1,1');
+    expect(context.calls).toContain('fillRect:242,189,1,1');
+  });
+
+  it('omits the mantel inscription on narrow surfaces (width < 400)', () => {
+    const { surface, context } = recordingSurface(300, 200);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+    // Width guard in drawMantelInscription: inscription at textY=189 must be absent.
+    const mantelCalls = context.calls.filter((c) => c === 'fillRect:238,189,1,1');
+    expect(mantelCalls).toHaveLength(0);
+  });
 });
