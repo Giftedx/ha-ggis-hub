@@ -507,6 +507,57 @@ mod tests {
     }
 
     #[test]
+    fn tick_clamps_player_at_right_wall() {
+        let mut sim = Sim::new(0);
+        for _ in 0..20 {
+            sim.tick(InputSnapshot::from_axes(1, 0, false));
+        }
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.player_x, WORLD_W - PLAYER_HALF);
+    }
+
+    #[test]
+    fn tick_clamps_player_at_top_wall() {
+        let mut sim = Sim::new(0);
+        for _ in 0..20 {
+            sim.tick(InputSnapshot::from_axes(0, -1, false));
+        }
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.player_y, PLAYER_HALF);
+    }
+
+    #[test]
+    fn tick_clamps_player_at_bottom_wall() {
+        let mut sim = Sim::new(0);
+        for _ in 0..20 {
+            sim.tick(InputSnapshot::from_axes(0, 1, false));
+        }
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.player_y, WORLD_H - PLAYER_HALF);
+    }
+
+    #[test]
+    fn locked_door_returns_locked_interaction_kind() {
+        let mut sim = Sim::new(0);
+        // future-bothy is at x: 80–200, y: 420–580; body center is feet_y - 42.
+        // Position so body center overlaps: player_x=140, player_y=540 → center_y=498.
+        sim.player_x = 140;
+        sim.player_y = 540;
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.interaction_kind, InteractionKind::Locked as u8);
+        assert_eq!(snapshot.interaction_door_index, 1);
+    }
+
+    #[test]
+    fn no_interaction_when_player_is_not_near_any_door() {
+        let sim = Sim::new(0);
+        // Spawn position (340, 540) is well clear of both doors.
+        let snapshot = sim.render_snapshot();
+        assert_eq!(snapshot.interaction_kind, InteractionKind::None as u8);
+        assert_eq!(snapshot.interaction_door_index, 0);
+    }
+
+    #[test]
     fn state_hash_changes_after_tick_with_input() {
         let mut sim = Sim::new(0);
         let hash_before = sim.state_hash();
