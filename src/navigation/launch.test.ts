@@ -8,8 +8,8 @@ describe('launch planning', () => {
       kind: 'launchable',
       gameId: 'wild-haggis-survivors',
       title: 'Wild Haggis Survivors',
-      target: 'https://wild-haggis-survivors.pages.dev/',
-      targetKind: 'external-url',
+      target: '/wild/',
+      targetKind: 'route',
     });
   });
 
@@ -75,10 +75,7 @@ describe('launch planning', () => {
     performLaunch({ kind: 'missing-game', gameId: 'missing', reason: 'missing' }, { navigate });
 
     expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith(
-      'https://wild-haggis-survivors.pages.dev/',
-      'external-url'
-    );
+    expect(navigate).toHaveBeenCalledWith('/wild/', 'route');
   });
 
   it('passes route target kind through to the navigator', () => {

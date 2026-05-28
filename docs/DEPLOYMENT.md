@@ -138,25 +138,42 @@ pnpm run build:verified
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main
 ```
 
-## WHS Integration Decision (2026-05-23)
+## WHS Integration Decision (Option B shipped 2026-05-28)
 
-**Chosen: Option A — hub links to the separate WHS deployment.**
+**Chosen: Option B — WHS mounted under this Pages project at `/wild/`.** The
+canonical home is **`https://ha.ggis.xyz/wild`**. There is no separate
+standalone WHS deployment any more. See [ADR-0003](decisions/0003-whs-integration-strategy.md)
+for the decision record (Option A was the 2026-05-23 first-release stopgap).
 
-Rationale:
-- WHS is already live and deploys independently to `https://wild-haggis-survivors.pages.dev/`.
-- No base path changes needed in WHS.
-- Fastest path to a working `ha.ggis.xyz`.
-- Option B (hub owns `/wild-haggis-survivors/` path) is the end-state but requires WHS Vite base reconfiguration and a combined build pipeline. Deferred until `ha.ggis.xyz` is established.
+Why a sub-path of *this* project: a Cloudflare Pages custom domain binds a whole
+hostname, so `ha.ggis.xyz/wild` cannot point at a second Pages project — the
+`/wild/` build must live inside this deploy.
 
-**Current WHS URL:** `https://wild-haggis-survivors.pages.dev/`
+`src/games/registry.ts`: `launch: { kind: 'route', target: '/wild/' }`.
 
-Configured in `src/games/registry.ts`: `launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' }`
+### Combined build + deploy
 
-### Switching to Option B (future)
+WHS is a sibling repo (`../wild-haggis-survivors`) built with Vite `base: '/wild/'`,
+so every asset/manifest/SW URL it emits is already `/wild/`-rooted.
 
-If the canonical URL should move to `ha.ggis.xyz/wild-haggis-survivors`:
+```bash
+# From ha-ggis-hub/. Builds the hub, then WHS, then mounts WHS into dist/wild/.
+pnpm run build:all
+#   = pnpm run build            (hub: wasm + vite)
+#     pnpm run build:whs        (npm --prefix ../wild-haggis-survivors run build)
+#     pnpm run copy:whs         (scripts/copy-whs-build.mjs → dist/wild/)
 
-1. In WHS repo: set `base: '/wild-haggis-survivors/'` in `vite.config.ts`
-2. Build WHS; copy `dist/` to `ha-ggis-hub dist/wild-haggis-survivors/`
-3. Update `launch-target` in `src/games/registry.ts` to `{ kind: 'route', target: '/wild-haggis-survivors/' }`
-4. Add combined build script (e.g. `npm run build:all`) to ha-ggis-hub package.json
+# Then deploy the combined dist (interactive auth the first time):
+wrangler login
+wrangler pages deploy dist --project-name ha-ggis-hub
+```
+
+The Cloudflare-dashboard production **Build command must be `pnpm run build:all`**
+(not `pnpm run build`) so CI/Pages builds include the mounted WHS. If the Pages
+build image can't run the sibling-repo build (WHS isn't checked out there),
+build + deploy from GitHub Actions or locally with Wrangler instead.
+
+Routing/caching for the sub-path lives in `public/_redirects`
+(`/wild/* → /wild/index.html 200`, **before** the hub wildcard) and
+`public/_headers` (`/wild/assets/*` immutable, `/wild/sw.js` revalidate); both
+are locked by `scripts/deploy-config.test.ts`.

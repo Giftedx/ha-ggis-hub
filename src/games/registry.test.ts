@@ -16,7 +16,7 @@ describe('game registry', () => {
       id: 'wild-haggis-survivors',
       title: 'Wild Haggis Survivors',
       status: 'playable',
-      launch: { kind: 'external-url', target: 'https://wild-haggis-survivors.pages.dev/' },
+      launch: { kind: 'route', target: '/wild/' },
     });
   });
 

@@ -1,1 +1,7 @@
+# Wild Haggis Survivors is mounted under /wild/ (its own Vite base build, copied
+# into dist/wild/). Its deep links + query-string routes must fall back to the
+# WHS shell, NOT the hub shell — so this specific rule MUST precede the hub
+# wildcard. Real files (assets, sw.js) are served directly and bypass redirects.
+/wild/*  /wild/index.html  200
+# Hub SPA fallback.
 /*  /index.html  200

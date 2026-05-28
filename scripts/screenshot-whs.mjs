@@ -3,7 +3,7 @@
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
-const url = 'https://wild-haggis-survivors.pages.dev/';
+const url = 'https://ha.ggis.xyz/wild/';
 const out = '.tmp/whs-live.png';
 
 await mkdir('.tmp', { recursive: true });

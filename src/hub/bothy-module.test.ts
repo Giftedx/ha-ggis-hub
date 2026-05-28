@@ -274,10 +274,7 @@ describe('createBothyGameModule', () => {
       clientY: 160,
       pointerId: 7,
     });
-    expect(navigator.navigate).toHaveBeenCalledWith(
-      'https://wild-haggis-survivors.pages.dev/',
-      'external-url'
-    );
+    expect(navigator.navigate).toHaveBeenCalledWith('/wild/', 'route');
   });
 
   it('announces coming soon when pointer-down lands on a locked door', async () => {
@@ -322,10 +319,7 @@ describe('createBothyGameModule', () => {
     keyboard.interactHeld.mockReturnValue(true);
     keyboard.consumeInteract.mockReturnValue(true);
     browser.flushRaf(100);
-    expect(navigator.navigate).toHaveBeenCalledWith(
-      'https://wild-haggis-survivors.pages.dev/',
-      'external-url'
-    );
+    expect(navigator.navigate).toHaveBeenCalledWith('/wild/', 'route');
   });
 
   it('resets the fixed-step accumulator when the page returns to visible', async () => {

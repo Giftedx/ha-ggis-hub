@@ -48,6 +48,16 @@ describe('public/_headers', () => {
     expect(headers).toMatch(/\/\*\.html[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
   });
 
+  it('mounted WHS (/wild/) hashed assets get immutable cache; its SW revalidates', () => {
+    // WHS is served from the /wild/ sub-path of this project (ADR-0003 Option B).
+    // Its chunks are content-hashed → immutable; its service worker must
+    // revalidate so deploys propagate without a stale-SW trap.
+    expect(headers).toMatch(
+      /\/wild\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
+    );
+    expect(headers).toMatch(/\/wild\/sw\.js[\s\S]*?Cache-Control: no-cache, no-store, must-revalidate/);
+  });
+
   it('self-hosted font files get immutable cache so FOUT does not recur after first load', () => {
     expect(headers).toMatch(/\/fonts\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/);
   });
@@ -65,5 +75,16 @@ describe('public/_redirects', () => {
 
   it('has SPA fallback so deep links resolve to index.html', () => {
     expect(redirects).toMatch(/^\/\*\s+\/index\.html\s+200/m);
+  });
+
+  it('rewrites /wild/* to the WHS shell, BEFORE the hub wildcard', () => {
+    // WHS is mounted at /wild/ (ADR-0003 Option B). Cloudflare Pages applies
+    // the first matching rule, so the WHS sub-path rewrite must precede the
+    // hub catch-all or WHS deep links would fall through to the hub shell.
+    const wildRule = redirects.search(/^\/wild\/\*\s+\/wild\/index\.html\s+200/m);
+    const hubWildcard = redirects.search(/^\/\*\s+\/index\.html\s+200/m);
+    expect(wildRule).toBeGreaterThanOrEqual(0);
+    expect(hubWildcard).toBeGreaterThanOrEqual(0);
+    expect(wildRule).toBeLessThan(hubWildcard);
   });
 });

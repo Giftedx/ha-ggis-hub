@@ -20,7 +20,7 @@ describe('createAppModel', () => {
       projectName: 'ha.ggis Hub',
       directPlay: {
         label: 'Play Wild Haggis Survivors',
-        target: 'https://wild-haggis-survivors.pages.dev/',
+        target: '/wild/',
         title: 'Wild Haggis Survivors',
       },
       music: {

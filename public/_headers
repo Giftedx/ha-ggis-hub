@@ -15,6 +15,18 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Wild Haggis Survivors (mounted at /wild/). Its hashed chunks are immutable;
+# the SW + manifest must revalidate so deploys propagate. The /* security
+# headers above already apply to /wild/* (CSP, HSTS, etc. inherited).
+/wild/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/wild/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/wild/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 

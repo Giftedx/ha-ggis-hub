@@ -35,6 +35,8 @@ Preview deployments: enabled
 
 If Rust/WASM tooling is awkward in the Cloudflare build image, prefer GitHub Actions to install toolchains, run gates, build `dist`, and deploy with Wrangler.
 
+**`build` vs `build:all`.** The dashboard build command above (`pnpm run build`) builds the **hub only** — correct for git-integration previews, where only this repo is checked out. The canonical production deploy also mounts Wild Haggis Survivors under `/wild/`, which needs the WHS sibling repo present and runs `pnpm run build:all`. Because the Pages build image has no WHS checkout, that combined build + `wrangler pages deploy dist` is done **locally or from GitHub Actions**, not by the dashboard build. See [`../DEPLOYMENT.md`](../DEPLOYMENT.md) §WHS Integration Decision.
+
 ## Shipped `public/_headers`
 
 ```text
@@ -71,18 +73,18 @@ Notes:
 
 ## Shipped `public/_redirects`
 
-WHS is a separate deployment (not mounted under the hub build), so only the SPA fallback is present:
+WHS is mounted under this project at `/wild/` (ADR-0003 Option B), so its
+sub-path rewrite precedes the hub SPA fallback. Cloudflare Pages applies the
+first matching rule; real files (`/wild/assets/*`, `/wild/sw.js`) are served
+directly and bypass redirects.
 
 ```text
+/wild/*  /wild/index.html  200
 /*  /index.html  200
 ```
 
-If WHS is ever served from a sub-path of this Pages project, add its specific route **before** the wildcard:
-
-```text
-/wild-haggis-survivors/*  /wild-haggis-survivors/index.html  200
-/*  /index.html  200
-```
+`scripts/deploy-config.test.ts` asserts the `/wild/*` rule exists **and**
+precedes the hub wildcard.
 
 ## Cache policy
 
