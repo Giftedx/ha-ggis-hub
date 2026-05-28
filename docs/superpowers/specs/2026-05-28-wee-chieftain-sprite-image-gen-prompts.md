@@ -260,13 +260,15 @@ transition — load the image, if loaded draw sprite, else draw procedural.
 
 ---
 
-## Integration status — 2026-05-28 (asset deferred, procedural stays live)
+## Integration status — 2026-05-29 (SHIPPED — sprite is the live render)
 
-**Decision:** The first generated asset (`public/art/wee-chieftain-idle.png`) is **not yet
-shippable**, so it is **not committed** — the hand-rolled procedural `drawBothyHaggis()`
-remains the live render. The rejected PNG is retained only in the local working tree as the
-reference to beat. The integration code below is preserved so re-enabling is copy-paste once
-a bar-meeting asset is generated to this spec and saved to that path.
+**Decision:** Shipped per owner direction on 2026-05-29. The generated asset
+(`public/art/wee-chieftain-idle.png`) is committed and wired into `drawHaggis` (canvas-room.ts)
+as the **primary render**; the hand-rolled procedural `drawBothyHaggis()` stays as the no-image
+fallback. Visual golden re-captured (gate distance 0); built via `build:all` and deployed to
+ha.ggis.xyz. The earlier review flagged this asset as off-brief vs the gouache backdrop (glossy
+sheen, missing brows/nose) — that critique and the v2 regen strategy above stand for a future
+matte-gouache replacement, but the owner's call is to ship this asset now.
 
 **Why the current PNG misses the brief (checklist failures):**
 

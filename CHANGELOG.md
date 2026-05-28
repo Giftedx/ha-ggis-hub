@@ -2,6 +2,17 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Painted Wee Chieftain sprite is now the live mascot.** `public/art/wee-chieftain-idle.png`
+  is committed and wired into `drawHaggis` as the primary render (centred on the body anchor,
+  horizontal-flip for facing, contact shadow at the sprite's foot line). The hand-rolled
+  procedural `drawBothyHaggis` stays as the no-image fallback (and the path tests take, where
+  the image never reports `complete`). Visual golden re-captured (gate distance 0); 228 vitest
+  green; built with `build:all` and deployed to ha.ggis.xyz.
+
 ## [0.2.1] — 2026-05-28 · Wild Haggis Survivors on-origin + movement & grounding
 
 **Live at <https://ha.ggis.xyz/> — Wild Haggis Survivors now mounted at <https://ha.ggis.xyz/wild>** (same origin; the door no longer leaves for `wild-haggis-survivors.pages.dev`).

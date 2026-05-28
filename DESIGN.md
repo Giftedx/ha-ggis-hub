@@ -284,7 +284,7 @@ mascot:
     cased in stomach) before it was adopted as the name of a mythical creature.
     The Wee Chieftain reads as the food artefact: squat oval casing, cooked
     surface texture, oat flecks — then secondarily as a mascot with face and legs.
-  renderer: "src/render/bothy-haggis.ts — drawBothyHaggis(ctx, cx, cy, scale, frame)"
+  renderer: "primary (shipped 2026-05-29): painted sprite public/art/wee-chieftain-idle.png blitted in canvas-room.ts drawHaggis; fallback: procedural src/render/bothy-haggis.ts — drawBothyHaggis(ctx, cx, cy, scale, frame) when the PNG has not loaded (also the path tests take)"
   design-units: "body outline ~50 wide × ~30 tall; legs ~7 below baseline"
   render-scale: 2.0   # HAGGIS_SCALE in canvas-room.ts — body 100 px wide on 540 px canvas
   storybook-scale: 1.6    # used when painted backdrop is loaded — body 80 px wide, halfWidth-32 contact shadow
