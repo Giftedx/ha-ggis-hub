@@ -4,7 +4,45 @@
 visually belongs in the same storybook world as the `bothy-storybook-backdrop.webp`.
 
 **Date:** 2026-05-28  
-**Status:** prompts ready for testing
+**Status:** v2 (revised 2026-05-29) — the v1 text-only generation failed (came out a glossy
+3D-render potato: no brows, no nose, off-centre googly eyes; see § Integration status). v2
+mandates **image-conditioning on the backdrop** + a **face-feature acceptance gate**.
+
+---
+
+## v2 strategy — READ FIRST (why v1 failed, and the fix)
+
+The v1 prompt below is *spec-complete* — it already says "gouache on toned paper", "no 3D
+render", "no photorealism", "bold expressive brows", "tiny nose dot". The model produced a
+glossy, airbrushed 3D-render potato with no brows, no nose, and off-centre googly eyes
+**anyway**. Lesson: **text alone does not enforce medium or face detail** for this subject —
+the model latches onto "brown oval pudding" and falls back to its stock render. v2 therefore
+changes the *method*, not just the words.
+
+1. **Condition on the backdrop image — now mandatory, not an optional reinforcer.** Plain
+   text-to-image is exactly what failed. Use the painted backdrop
+   (`public/art/bothy-storybook-backdrop.webp`, exported to JPEG) as a hard style lock:
+   - **Midjourney:** `--sref <backdrop.jpg> --sw 100 --style raw` (max style weight; do not
+     trust the word "gouache" to carry the medium on its own).
+   - **DALL-E / ChatGPT:** upload the backdrop, instruct "paint this character in *exactly*
+     this medium, palette, and edge quality", then **inpaint the face** to add the brows +
+     nose dot if the first pass drops them (it will).
+   - **Stable Diffusion / FLUX:** img2img or IP-Adapter/style-transfer off the backdrop at
+     moderate denoise, or a gouache/illustration LoRA — never plain txt2img.
+
+2. **Run the face-feature gate before accepting (see § Checklist).** v1 would have *passed*
+   the old checklist (it had eyes, an oval, legs, a warm palette) — the checklist never tested
+   the things v1 actually missed. The tightened gate now leads with them. If matte gouache
+   surface / bold brows / nose dot / centred focused eyes are not ALL present → inpaint or
+   regenerate. **Do not accept.**
+
+3. **Deliver the animation set, not just one idle.** The hub bobs (breath), walks, and flips
+   the sprite for facing. Generate the idle **plus** the two walk-lean variations (below) in
+   the same style and seed so the walk-cycle works; a lone idle is adoptable but flat.
+
+Context: the procedural-vs-sprite comparison (2026-05-28) found the procedural haggis clears
+the bar as the live stand-in, and the sprite's *only* genuine edge is painted surface/volume —
+which is exactly what the medium-match in step 1 must capture, or there is no reason to swap.
 
 ---
 
@@ -100,10 +138,12 @@ no background elements, suitable for compositing over a painted scene
 
 ```
 no background, no scenery, no shadow under character, no pixel art, 
-no anime, no manga, no chibi, no photorealism, no 3D render, 
-no Halloween or horror tone, no sharp outlines, no vector style, 
-no flat colours, not cute in a generic way — this is specifically 
-a haggis pudding that has come alive
+no anime, no manga, no chibi, no photorealism, no 3D render, no CGI, 
+no glossy or plastic or waxy surface, no airbrushed sheen, no specular 
+highlights, no smooth 3D shading, no Halloween or horror tone, no sharp 
+outlines, no vector style, no flat colours, no stock cute potato, no 
+off-centre face, no googly eyes — this is specifically a matte 
+gouache-painted haggis pudding that has come alive, centred and front-facing
 ```
 
 ---
@@ -177,6 +217,17 @@ Good for a circular icon crop.
 ---
 
 ## Checklist before using a generated sprite
+
+**Face-feature gate — these are exactly what v1 failed; check them FIRST, and reject on any miss:**
+
+- [ ] **Matte gouache surface** — chalky/painterly like the backdrop; NOT glossy, airbrushed, plastic, or 3D-rendered
+- [ ] **Bold brow arc over each eye** — present and expressive (v1 had none)
+- [ ] **Tiny nose dot** below and between the eyes (v1 had none)
+- [ ] **Face centred & front-facing** — eyes on the vertical centreline, symmetric (v1's were shoved to one side)
+- [ ] **Eyes focused** — eyelid arc over the top of each white, pupils angled slightly inward (not blank googly eyes)
+- [ ] **Reads as a haggis** — tied casing ends + embedded oat flecks, not a bare potato
+
+**General:**
 
 - [ ] Body reads as a haggis pudding shape (wider than tall, cooked oval)
 - [ ] Eyes are front-facing and have personality (not side-facing, not blank)
