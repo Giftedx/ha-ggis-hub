@@ -2,6 +2,18 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 fix(lifecycle): keep old instance alive when mount fails after successful preload
+
+- **`src/engine/lifecycle.ts`**: old-instance destruction is now deferred until after `mount()`
+  succeeds. Previously `launch()` destroyed the running game before calling `mount()`; if `mount`
+  threw, `host.current()` returned null with no game running and no way to recover. Now if `mount`
+  throws, `currentInstance` is restored to the previous value — matching the existing behaviour for
+  preload failures (an existing game survives a failed launch attempt regardless of which phase
+  fails).
+- Tests: +1 new case ("keeps an existing instance running when mount fails after a successful
+  preload"); updated "destroys the previous instance" test to reflect deferred-destroy ordering;
+  total 225 vitest cases; 100% coverage.
+
 ## [Unreleased] — 2026-05-28 fix: music double-click race, stale button on destroy, render-per-tick waste, input-log finish() mutation
 
 - **`src/app/music.ts`**: add `inFlight` flag — a second button click while `audio.play()` is pending
