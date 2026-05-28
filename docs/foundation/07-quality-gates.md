@@ -86,6 +86,10 @@ cargo bench --workspace
 
 # Multi-browser + lab-perf
 # firefox + webkit promoted to multi-browser gate on 2026-05-27 — see above
+# memory-growth soak IS covered: the hand-rolled scripts/run-soak-gate.mjs
+# (RAF loop with a heap-growth budget) is wired into the release matrix. The
+# playwright @soak-tagged variant below was the originally-sketched approach
+# and was not pursued — the custom gate supersedes it.
 pnpm exec playwright test --grep @soak
 
 # Supply-chain scanners
