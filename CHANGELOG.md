@@ -2,6 +2,26 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 fix: second code-review pass (music src guard, dead lantern branch, trivial assertions)
+
+- **`src/app/music.ts`**: removed broken `audio.src !== track.src` equality guard in
+  `applyCurrentTrack`. `HTMLAudioElement.src` getter returns the fully-resolved absolute URL while
+  `track.src` is a relative path — the strings can never compare equal in a browser, so the guard
+  never short-circuited and `audio.src` was always assigned. The test double stored raw strings so
+  tests masked the bug. Guard removed; assignment is now unconditional when track is defined.
+- **`src/render/canvas-room.ts`**: fixed dead `!isLit` branch in `drawLantern` that incorrectly called
+  `blitSprite(LANTERN_LIT, ...)` — it would have rendered the lit sprite for an unlit door if ever
+  reached. Replaced with `return`. Fixed `imageSmoothingEnabled` comment — it only affects `drawImage`
+  (sprite blits), not `fillRect`/`arc`/`ellipse`; previous comment said "fills stay crisp" which was
+  incorrect.
+- **`crates/hub-core/src/sim.rs`**: removed trivially-true runtime body of
+  `render_snapshot_has_stable_repr_c_layout` (set field → immediately assert same value — cannot fail).
+  The compile-time const assertion is the real test. Renamed `render_snapshot_carries_first_room_doors`
+  → `render_snapshot_zero_has_empty_door_table` and removed `doors.len() == MAX_DOORS_PER_SNAPSHOT`
+  (trivially true for `[T; N].len()`).
+
+219 tests pass; Rust clippy clean.
+
 ## [Unreleased] — 2026-05-27 fix: code-review findings (dead fields, tests, comment hygiene)
 
 Fixed 10 issues from post-merge code review across Rust + TypeScript layers:

@@ -434,19 +434,11 @@ mod tests {
             let slot = 32 + 4 * 4 + 4;  // id[32] + 4×i32 bounds + status+pad = 52
             assert!(core::mem::size_of::<RenderSnapshot>() == header + 8 * slot); // 444
         };
-
-        let mut snapshot = RenderSnapshot::zero();
-        snapshot.player_x = 500;
-        snapshot.player_y = 500;
-        snapshot.interaction_kind = InteractionKind::None as u8;
-        assert_eq!(snapshot.player_x, 500);
-        assert_eq!(snapshot.player_y, 500);
     }
 
     #[test]
-    fn render_snapshot_carries_first_room_doors() {
+    fn render_snapshot_zero_has_empty_door_table() {
         let snapshot = RenderSnapshot::zero();
-        assert_eq!(snapshot.doors.len(), MAX_DOORS_PER_SNAPSHOT);
         assert_eq!(snapshot.door_count, 0);
     }
 

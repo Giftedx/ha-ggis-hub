@@ -187,7 +187,7 @@ export function createCanvasRoomRenderer(
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
   }
-  // Pixel-art: disable smoothing so fills stay crisp at integer boundaries.
+  // Prevent bicubic interpolation when blitting sprites at non-1:1 scale (has no effect on fillRect/arc/ellipse).
   const smoothable = context as unknown as { imageSmoothingEnabled?: boolean };
   /* v8 ignore next — imageSmoothingEnabled absent only in ancient browsers; dead in any runtime we target */
   if ('imageSmoothingEnabled' in smoothable) {
@@ -1169,10 +1169,7 @@ function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): v
   const cx = x + Math.round(width / 2);
   const lanternCy = y + 9;
   /* v8 ignore next — drawLantern only called for launchable doors (line 365) */
-  if (!isLit) {
-    blitSprite(ctx, LANTERN_LIT, cx, lanternCy, 2);
-    return;
-  }
+  if (!isLit) return;
   const pulse = 0.5 + Math.sin(phase * 4) * 0.1 + Math.sin(phase * 9.1) * 0.05;
   // Phase 3c: smooth translucent halo (dithered version read as
   // noise against the WHS substrate). Two layered ellipses fading

@@ -34,7 +34,7 @@ export function createMusicController({
 
   function applyCurrentTrack(): void {
     const track = currentTrack();
-    if (track !== undefined && audio.src !== track.src) {
+    if (track !== undefined) {
       audio.src = track.src;
     }
   }
