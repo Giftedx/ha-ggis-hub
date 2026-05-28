@@ -29,16 +29,19 @@ export function createGameLifecycleHost(target: HTMLElement): GameLifecycleHost 
     launch(module: GameModule, options: GameMountOptions): Promise<GameInstance> {
       return enqueue(async () => {
         await module.preload?.();
-        await destroyInstance(currentInstance);
+        const previous = currentInstance;
         currentInstance = null;
 
         try {
           currentInstance = await module.mount(target, options);
-          return currentInstance;
         } catch (error: unknown) {
+          currentInstance = previous;
           await destroyPartialInstance(error);
           throw error;
         }
+
+        await destroyInstance(previous);
+        return currentInstance;
       });
     },
     pause(): void {

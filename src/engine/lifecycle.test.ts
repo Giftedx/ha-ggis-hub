@@ -45,7 +45,7 @@ describe('game lifecycle host', () => {
     expect(host.current()).toBeNull();
   });
 
-  it('destroys the previous instance before launching a replacement', async () => {
+  it('destroys the previous instance after the replacement mounts successfully', async () => {
     const first = testInstance();
     const second = testInstance();
     const target = {} as HTMLElement;
@@ -59,7 +59,6 @@ describe('game lifecycle host', () => {
       title: 'Second',
       mount: async (mountTarget) => {
         expect(mountTarget).toBe(target);
-        expect(first.calls).toEqual(['destroy']);
         return second;
       },
     };
@@ -69,7 +68,36 @@ describe('game lifecycle host', () => {
     await host.launch(secondModule, { launchSource: 'door', reducedMotion: true });
 
     expect(host.current()).toBe(second);
+    expect(first.calls).toEqual(['destroy']);
     expect(second.calls).toEqual([]);
+  });
+
+  it('keeps an existing instance running when mount fails after a successful preload', async () => {
+    const current = testInstance();
+    const host = createGameLifecycleHost({} as HTMLElement);
+    await host.launch(
+      { id: 'current', title: 'Current', mount: async () => current },
+      { launchSource: 'route', reducedMotion: false }
+    );
+
+    await expect(
+      host.launch(
+        {
+          id: 'failing',
+          title: 'Failing',
+          preload: async () => {
+            /* succeeds */
+          },
+          mount: async () => {
+            throw new Error('mount failed');
+          },
+        },
+        { launchSource: 'route', reducedMotion: false }
+      )
+    ).rejects.toThrow('mount failed');
+
+    expect(host.current()).toBe(current);
+    expect(current.calls).toEqual([]);
   });
 
   it('serializes overlapping launches so stale work cannot replace a newer active instance', async () => {
