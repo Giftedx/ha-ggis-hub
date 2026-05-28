@@ -287,8 +287,8 @@ mascot:
   renderer: "src/render/bothy-haggis.ts — drawBothyHaggis(ctx, cx, cy, scale, frame)"
   design-units: "body outline ~50 wide × ~30 tall; legs ~7 below baseline"
   render-scale: 2.0   # HAGGIS_SCALE in canvas-room.ts — body 100 px wide on 540 px canvas
-  storybook-scale: 1.6    # used when painted backdrop is loaded — body 80 px wide, r=52 shadow
-  placement: "doorway centre, 10×scale px above floor contact point; hard-contact shadow r=68 (fallback) / r=52 (storybook)"
+  storybook-scale: 1.6    # used when painted backdrop is loaded — body 80 px wide, halfWidth-32 contact shadow
+  placement: "doorway centre, 10×scale px above floor contact point; hard-contact shadow halfWidth 48 (fallback) / 32 (storybook), seated at the body base (bodyCy + 17×scale) with the heather grounding patch raised to my(15.5) so the mascot rests on its shadow rather than floating above a low detached puddle"
   animation: "breathY bob (sine, ~4.5s period — Math.sin(phase*1.4)), frontLegY / backLegY walk swing (3 Hz — Math.sin(phase*6π))"
 
   design-decisions:
