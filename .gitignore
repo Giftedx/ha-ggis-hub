@@ -12,6 +12,7 @@ Thumbs.db
 # JavaScript / TypeScript dependencies and build output
 node_modules/
 dist/
+.wrangler/
 coverage/
 playwright-report/
 test-results/
