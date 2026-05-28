@@ -115,6 +115,9 @@ const DIORAMA_RUNNER_BASE = '#4f2c46'; // dark reddish-purple — heather-berry
 export const STORYBOOK_BACKDROP_SRC = '/art/bothy-storybook-backdrop.webp';
 let storybookBackdropImage: HTMLImageElement | undefined;
 
+export const WEE_CHIEFTAIN_SPRITE_SRC = '/art/wee-chieftain-idle.png';
+let weeChieftainSprite: HTMLImageElement | undefined;
+
 // Wall thickness — 3/4 OBLIQUE PROJECTION (committed after reviewer
 // diagnosed mixed-projection as root cause of "sloped up" feeling).
 // The BACK wall (top of screen) is the dominant feature in 3/4
@@ -289,6 +292,16 @@ function loadStorybookBackdrop(): HTMLImageElement | null {
     storybookBackdropImage.src = STORYBOOK_BACKDROP_SRC;
   }
   return storybookBackdropImage;
+}
+
+function loadWeeChieftainSprite(): HTMLImageElement | null {
+  if (typeof Image === 'undefined') return null;
+  if (weeChieftainSprite === undefined) {
+    weeChieftainSprite = new Image();
+    weeChieftainSprite.decoding = 'async';
+    weeChieftainSprite.src = WEE_CHIEFTAIN_SPRITE_SRC;
+  }
+  return weeChieftainSprite;
 }
 
 function drawStorybookBackdrop(ctx: CanvasRoomContext, surface: CanvasRoomSurface): boolean {
@@ -1260,6 +1273,50 @@ function drawHaggis(
   const FEET_OFFSET = 10 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
+
+  // Painted Wee Chieftain sprite is the primary render when its PNG has loaded;
+  // the procedural drawer below stays as the no-image fallback (and the path
+  // tests/SSR take, where the image never reports complete).
+  const sprite = loadWeeChieftainSprite();
+  if (
+    sprite !== null &&
+    sprite.complete &&
+    sprite.naturalWidth > 0 &&
+    typeof ctx.drawImage === 'function'
+  ) {
+    const SPRITE_W = Math.round(60 * HAGGIS_SCALE);
+    const SPRITE_H = Math.round(SPRITE_W * (sprite.naturalHeight / sprite.naturalWidth));
+    // Feet sit ~92% down the sprite PNG; shadow hugs that level, not the bbox bottom.
+    hardContactShadow(
+      ctx,
+      cx,
+      cy + bob - Math.round(SPRITE_H * 0.08),
+      Math.round(SPRITE_W * 0.3),
+      2
+    );
+    const xform = ctx as unknown as {
+      translate(x: number, y: number): void;
+      scale(x: number, y: number): void;
+    };
+    const smooth = ctx as unknown as { imageSmoothingEnabled?: boolean };
+    smooth.imageSmoothingEnabled = true;
+    ctx.save();
+    if (facingLeft) {
+      xform.translate(bodyCx, 0);
+      xform.scale(-1, 1);
+      xform.translate(-bodyCx, 0);
+    }
+    ctx.drawImage(
+      sprite,
+      bodyCx - Math.round(SPRITE_W / 2),
+      cy + bob - SPRITE_H,
+      SPRITE_W,
+      SPRITE_H
+    );
+    ctx.restore();
+    smooth.imageSmoothingEnabled = false;
+    return;
+  }
 
   // Contact shadow sits at the body's painted base (bodyCy + body half-height)
   // so the mascot reads as resting on the floor, not floating above a low
