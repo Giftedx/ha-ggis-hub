@@ -213,7 +213,7 @@ const PLAYER_HALF: i32 = 56;
 /// Door proximity uses a center shifted up from the feet anchor so overlap
 /// matches the painted body rather than the sprite's full leg footprint.
 const INTERACTION_CENTER_ABOVE_FEET: i32 = 42;
-const PLAYER_SPEED_PER_TICK: i32 = 100;
+const PLAYER_SPEED_PER_TICK: i32 = 10;
 const DIAGONAL_SCALE_PER_MILLE: i32 = 707;
 
 /// First-room door layout. Kept identical to the current
@@ -459,7 +459,7 @@ mod tests {
     fn tick_cardinal_movement_advances_player_speed_per_tick_world_units() {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, 0, false));
-        assert_eq!(snapshot.player_x, 440);
+        assert_eq!(snapshot.player_x, 350);
         assert_eq!(snapshot.player_y, 540);
     }
 
@@ -467,8 +467,8 @@ mod tests {
     fn tick_diagonal_movement_is_normalised() {
         let mut sim = Sim::new(0);
         let snapshot = sim.tick(InputSnapshot::from_axes(1, -1, false));
-        assert_eq!(snapshot.player_x, 410);
-        assert_eq!(snapshot.player_y, 470);
+        assert_eq!(snapshot.player_x, 347);
+        assert_eq!(snapshot.player_y, 533);
     }
 
     #[test]
@@ -493,7 +493,7 @@ mod tests {
     fn tick_clamps_player_inside_world_bounds() {
         let mut sim = Sim::new(0);
         // Walk hard left for enough ticks to hit the wall.
-        for _ in 0..20 {
+        for _ in 0..100 {
             sim.tick(InputSnapshot::from_axes(-1, 0, false));
         }
         let snapshot = sim.render_snapshot();
@@ -503,7 +503,7 @@ mod tests {
     #[test]
     fn tick_clamps_player_at_right_wall() {
         let mut sim = Sim::new(0);
-        for _ in 0..20 {
+        for _ in 0..100 {
             sim.tick(InputSnapshot::from_axes(1, 0, false));
         }
         let snapshot = sim.render_snapshot();
@@ -513,7 +513,7 @@ mod tests {
     #[test]
     fn tick_clamps_player_at_top_wall() {
         let mut sim = Sim::new(0);
-        for _ in 0..20 {
+        for _ in 0..100 {
             sim.tick(InputSnapshot::from_axes(0, -1, false));
         }
         let snapshot = sim.render_snapshot();
@@ -523,7 +523,7 @@ mod tests {
     #[test]
     fn tick_clamps_player_at_bottom_wall() {
         let mut sim = Sim::new(0);
-        for _ in 0..20 {
+        for _ in 0..100 {
             sim.tick(InputSnapshot::from_axes(0, 1, false));
         }
         let snapshot = sim.render_snapshot();
