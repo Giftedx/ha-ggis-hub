@@ -388,6 +388,16 @@ describe('createBothyGameModule', () => {
     expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(8);
   });
 
+  it('includes the interact bit when keyboard axis and interact are both active', async () => {
+    const { browser, boundary, keyboard } = await mountHarness();
+    keyboard.snapshot.mockReturnValue({ x: 1, y: 0 });
+    keyboard.interactHeld.mockReturnValue(true);
+    browser.flushRaf(100);
+    // right = 0b00001 = 1, interact = 0b10000 = 16, total = 17
+    // Before fix: early return on axis input dropped the interact bit (tick called with 1)
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledWith(17);
+  });
+
   it('skips launch when consumeInteract fires but interaction is not launchable', async () => {
     const { browser, keyboard, navigator } = await mountHarness();
     // SNAPSHOT has interactionKind: 'none' — consumeInteract=true should hit the early return

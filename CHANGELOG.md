@@ -2,6 +2,17 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 test: regression guard for interact bit + faithful FakeAudio src getter
+
+- **`src/hub/bothy-module.test.ts`**: added `includes the interact bit when keyboard axis and interact
+  are both active` — the exact case the `samplePackedInput` early-return bug (fixed in ed418fa) would
+  have silently broken. Verifies packed bits = 17 (right=0b00001 + interact=0b10000).
+- **`src/app/music.test.ts`**: updated `FakeAudio.src` to simulate the browser
+  `HTMLAudioElement.src` getter behaviour: assignment stores relative path, getter returns
+  fully-resolved absolute URL (`https://ha.ggis.test/<path>`). Prevents test doubles from masking
+  any future reintroduction of a src-equality guard. Updated 3 assertions to expect absolute URLs.
+  Test count: 219 → 220.
+
 ## [Unreleased] — 2026-05-28 fix: second code-review pass (music src guard, dead lantern branch, trivial assertions)
 
 - **`src/app/music.ts`**: removed broken `audio.src !== track.src` equality guard in

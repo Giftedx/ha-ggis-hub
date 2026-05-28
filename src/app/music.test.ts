@@ -33,7 +33,15 @@ class FakeButton {
 
 class FakeAudio {
   readonly listeners = new Map<string, EventListener>();
-  src = '';
+  // Simulate HTMLAudioElement.src: the browser resolves relative paths to absolute URLs.
+  // Faithful getter prevents test doubles from masking src-comparison bugs.
+  #src = '';
+  get src(): string {
+    return this.#src ? `https://ha.ggis.test${this.#src}` : '';
+  }
+  set src(v: string) {
+    this.#src = v;
+  }
   preload = '';
   volume = 1;
   paused = true;
@@ -97,7 +105,7 @@ describe('createMusicController', () => {
     });
 
     expect(audio.preload).toBe('none');
-    expect(audio.src).toBe('/music/flower-of-scotland.mp3');
+    expect(audio.src).toBe('https://ha.ggis.test/music/flower-of-scotland.mp3');
     expect(audio.volume).toBe(0.38);
     expect(button.textContent).toBe('music');
     expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
@@ -125,7 +133,7 @@ describe('createMusicController', () => {
     audio.end();
     await Promise.resolve();
 
-    expect(audio.src).toBe('/music/scotland-the-brave.mp3');
+    expect(audio.src).toBe('https://ha.ggis.test/music/scotland-the-brave.mp3');
     expect(audio.playCalls).toBe(2);
     expect(button.textContent).toBe('music on');
     expect(button.getAttribute('aria-label')).toBe('Pause hub music');
@@ -184,7 +192,7 @@ describe('createMusicController', () => {
     audio.end();
 
     expect(audio.playCalls).toBe(0);
-    expect(audio.src).toBe('/music/scotland-the-brave.mp3');
+    expect(audio.src).toBe('https://ha.ggis.test/music/scotland-the-brave.mp3');
     expect(button.textContent).toBe('music');
   });
 
