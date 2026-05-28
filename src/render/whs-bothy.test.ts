@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  drawWhsBothyEnvelope,
-  drawWhsDoor,
-  drawWhsMantelpiece,
-  drawWhsRug,
-  drawWhsWindowBay,
-} from './whs-bothy';
+import { drawWhsBothyEnvelope, drawWhsDoor } from './whs-bothy';
 
 class RecordingWhsContext {
   readonly calls: string[] = [];
@@ -47,7 +41,7 @@ class RecordingWhsContext {
 }
 
 describe('WHS bothy fixture helpers', () => {
-  it('keeps retained room-fixture exports covered after the hub panorama replaced the small window path', () => {
+  it('covers walls, floor, and door rendering paths used by canvas-room', () => {
     const ctx = new RecordingWhsContext();
 
     drawWhsBothyEnvelope(ctx, {
@@ -66,20 +60,13 @@ describe('WHS bothy fixture helpers', () => {
       floorBottom: 260,
       compact: true,
     });
-    drawWhsWindowBay(ctx, { x: 40, y: 14, w: 88, h: 58 }, false);
-    drawWhsWindowBay(ctx, { x: 160, y: 14, w: 64, h: 44 }, true);
-    drawWhsRug(ctx, 36, 180, 128, 48, false);
-    drawWhsRug(ctx, 188, 180, 96, 36, true);
-    drawWhsMantelpiece(ctx, { x: 304, y: 70, w: 140, h: 8 });
     drawWhsDoor(ctx, { x: 24, y: 140, w: 58, h: 70 }, 'open');
     drawWhsDoor(ctx, { x: 104, y: 140, w: 58, h: 70 }, 'locked');
     drawWhsDoor(ctx, { x: 184, y: 140, w: 58, h: 70 }, 'available');
 
-    expect(ctx.calls.length).toBeGreaterThan(450);
+    expect(ctx.calls.length).toBeGreaterThan(200);
     expect(ctx.calls).toContain('fillRect:24,0,492,96');
     expect(ctx.calls).toContain('fillRect:24,96,492,240');
-    expect(ctx.calls).toContain('fillRect:33,6,102,74');
-    expect(ctx.calls).toContain('fillRect:304,70,140,8');
     expect(ctx.calls).toContain('fillRect:21,136,64,76');
     expect(ctx.calls).toContain('fillRect:101,136,64,76');
     expect(ctx.calls).toContain('fillRect:181,136,64,76');

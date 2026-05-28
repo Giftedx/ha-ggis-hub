@@ -902,14 +902,15 @@ function drawVignette(ctx: CanvasRoomContext, surface: CanvasRoomSurface): void 
   for (let i = 0; i < layers; i += 1) {
     const fade = 0.018 + i * 0.012;
     const thickness = Math.round(((i + 1) / layers) * 24);
+    ctx.save();
     ctx.fillStyle = PX.vignette;
     ctx.globalAlpha = fade;
     ctx.fillRect(0, 0, w, thickness);
     ctx.fillRect(0, h - thickness, w, thickness);
     ctx.fillRect(0, 0, thickness, h);
     ctx.fillRect(w - thickness, 0, thickness, h);
+    ctx.restore();
   }
-  ctx.globalAlpha = 1;
 }
 
 function drawDioramaRunner(
@@ -1325,6 +1326,8 @@ function drawPrompt(
   const plateX = x - Math.round(plateW / 2);
   const plateY = baseY - plateH;
 
+  ctx.save();
+  ctx.globalAlpha = 1;
   // Dark background plate so text reads on the busy floor.
   ctx.fillStyle = PX.promptShadow;
   ctx.fillRect(plateX, plateY, plateW, plateH);
@@ -1345,6 +1348,7 @@ function drawPrompt(
     }
     renderPixelText(ctx, line, lx, ly, scale, PALETTE.bone);
   }
+  ctx.restore();
 }
 
 // "Bide a while." — hearth lintel motto (DESIGN.md voice.open.hearth-lintel-motto).
