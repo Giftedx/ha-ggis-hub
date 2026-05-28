@@ -2,6 +2,51 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+Post-0.2.0: Wild Haggis Survivors brought on-origin, plus a movement and mascot-grounding pass.
+
+### Changed
+
+- **Wild Haggis Survivors mounted at `ha.ggis.xyz/wild` (ADR-0003 Option B, supersedes Option A).**
+  WHS no longer launches to a separate `wild-haggis-survivors.pages.dev` deployment — the registry
+  entry is now a same-origin `{ kind: 'route', target: '/wild/' }`. WHS (sibling repo, Vite
+  `base: '/wild/'`) is built and copied into `dist/wild/` by the new `pnpm run build:all`
+  (`build` → `build:whs` → `copy:whs` via `scripts/copy-whs-build.mjs`). `public/_redirects` rewrites
+  `/wild/*` to the WHS shell **before** the hub wildcard; `public/_headers` adds immutable caching for
+  `/wild/assets/*` and revalidation for the WHS SW/manifest, with the root `/*` security headers (CSP,
+  HSTS) inherited. `scripts/deploy-config.test.ts` locks the route ordering and cache rules. A
+  Cloudflare Pages custom domain binds a whole hostname, so `ha.ggis.xyz/wild` can only be served from
+  this deploy — hence the combined build. (228 vitest cases.)
+- **Player-speed retune — `PLAYER_SPEED_PER_TICK` 100 → 10.** A full 1000-unit room crossing now
+  takes ~100 ticks (~1.6 s at 60 Hz) instead of ~10 ticks (~0.16 s) — a believable walk for the
+  Wee Chieftain rather than a blink across the floor. The diagonal stays normalised at 707‰.
+- **Contact shadow re-grounded.** The mascot read as floating above a detached shadow puddle: the
+  `hardContactShadow` was pinned at a fixed `cy+bob+6` (above the body's painted base, so it drew
+  behind the body and was invisible) while the character's own heather grounding patch dangled at
+  `my(19)`. The shadow now seats at the body base (`bodyCy + 17×scale`), sized to the body footprint
+  (halfWidth 48 fallback / 32 storybook), and the heather patch is raised to `my(15.5)` so the
+  haggis rests on its shadow. Visual golden re-captured (`bothy-idle-seed-42`).
+
+### Fixed
+
+- **Rust suite was red after the speed retune.** Only the cardinal-movement test had been updated to
+  the new speed; the diagonal-normalisation assertion and four wall-clamp loop counts still encoded
+  speed=100 (the clamp loops no longer reached a wall at speed 10). Corrected all five and rebuilt
+  the wasm so the shipped kernel matches source. `cargo test` 45/45, `pnpm verify` green.
+
+### Docs
+
+- **Wee Chieftain sprite deferred; procedural haggis stays live.** The first image-gen sprite
+  (`public/art/wee-chieftain-idle.png`) missed the brief — glossy 3D-render potato rather than
+  gouache painted to match the backdrop, and lacking the brief's bold brows + nose dot. The
+  in-flight canvas sprite-swap was reverted; the assessment and the exact integration code are
+  preserved in `docs/superpowers/specs/2026-05-28-wee-chieftain-sprite-image-gen-prompts.md` so
+  re-enabling is copy-paste once a bar-meeting asset is generated. The rejected PNG is not committed.
+- **`DESIGN.md` mascot contact-shadow spec synced to code** — the `placement`/`storybook-scale`
+  lines described the pre-grounding `r=68 / r=52` shadow; updated to the shipped half-widths and
+  body-base seating.
+
 ## [0.2.0] — 2026-05-28 · Wee Chieftain redesign + quality hardening
 
 **Live at <https://ha.ggis.xyz/>.**
