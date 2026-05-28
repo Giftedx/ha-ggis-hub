@@ -2,6 +2,23 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 fix: music double-click race, stale button on destroy, render-per-tick waste, input-log finish() mutation
+
+- **`src/app/music.ts`**: add `inFlight` flag — a second button click while `audio.play()` is pending
+  no longer races with the first. The previous guard (`wantsPlayback && !audio.paused`) evaluated
+  false during the async gap (paused stays true until the promise resolves), allowing two concurrent
+  play promises. Also: `destroy()` now calls `setPausedState()` so the button text/aria-label reset
+  correctly after teardown rather than staying in the "music on / Pause hub music" playing state.
+- **`src/hub/room.ts`** + **`src/hub/bothy-module.ts`**: `tick()` no longer renders. The game loop
+  now renders exactly once per animation frame after all ticks complete. Previously up to 8 canvas
+  redraws fired before a single browser composite on catch-up frames.
+- **`src/engine/input-log.ts`**: `finish()` now works on a local copy of the byte buffer. Previously
+  the trailer (finalStateHash + totalTicks + digest) was pushed onto `this.bytes`, corrupting the
+  writer for any subsequent `finish()` call (double-trailer) or `recordIfChanged()` call (body after
+  trailer). Makes `finish()` safe to call multiple times (e.g. beforeunload + pagehide both firing).
+- Tests: +2 new cases (music inFlight guard; input-log idempotency); updated room.test.ts tick
+  assertion (render no longer fires during tick); total 224 vitest cases; 100% coverage.
+
 ## [Unreleased] — 2026-05-28 refactor(render): harden canvas state isolation + strip dead bothy fixtures
 
 - **`src/render/canvas-room.ts`**: `drawVignette` now wraps each fill layer in `save()`/`restore()`
