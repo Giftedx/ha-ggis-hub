@@ -58,4 +58,18 @@ describe('InputLogWriter', () => {
     // Header 34 + 0 records + trailer 20 = 54 bytes.
     expect(bytes.byteLength).toBe(54);
   });
+
+  it('finish() is idempotent — calling it twice produces identical output without double-trailer corruption', () => {
+    const writer = new InputLogWriter({
+      seed: 42n,
+      coreApiVersion: 1,
+      startedAtUtcMs: 0n,
+      initialStateHash: 0n,
+    });
+    writer.recordIfChanged(0, 0b0001);
+    const first = writer.finish(1, 0xdeadbeefn);
+    const second = writer.finish(1, 0xdeadbeefn);
+    expect(first.byteLength).toBe(second.byteLength);
+    expect(Array.from(first)).toEqual(Array.from(second));
+  });
 });

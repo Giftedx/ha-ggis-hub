@@ -37,13 +37,16 @@ export class InputLogWriter {
 
   /** Finalize with trailer fields (final_state_hash, total_ticks, digest)
    *  and return the assembled buffer. Digest is FNV-1a 64-bit over header
-   *  + body + final_state_hash + total_ticks, matching the spec. */
+   *  + body + final_state_hash + total_ticks, matching the spec.
+   *  Non-destructive: this.bytes is unchanged, so finish() is idempotent
+   *  and safe to call multiple times (e.g. beforeunload + pagehide). */
   finish(totalTicks: number, finalStateHash: bigint): Uint8Array {
-    pushU64(this.bytes, finalStateHash);
-    pushU32(this.bytes, totalTicks);
-    const digest = fnv1a64(this.bytes);
-    pushU64(this.bytes, digest);
-    return Uint8Array.from(this.bytes);
+    const buf = [...this.bytes];
+    pushU64(buf, finalStateHash);
+    pushU32(buf, totalTicks);
+    const digest = fnv1a64(buf);
+    pushU64(buf, digest);
+    return Uint8Array.from(buf);
   }
 }
 
