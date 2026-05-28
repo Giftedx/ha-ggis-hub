@@ -2,9 +2,11 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.1] — 2026-05-28 · Wild Haggis Survivors on-origin + movement & grounding
 
-Post-0.2.0: Wild Haggis Survivors brought on-origin, plus a movement and mascot-grounding pass.
+**Live at <https://ha.ggis.xyz/> — Wild Haggis Survivors now mounted at <https://ha.ggis.xyz/wild>** (same origin; the door no longer leaves for `wild-haggis-survivors.pages.dev`).
+
+Wild Haggis Survivors brought on-origin, plus a movement and mascot-grounding pass.
 
 ### Changed
 
