@@ -2,6 +2,21 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 refactor(render): harden canvas state isolation + strip dead bothy fixtures
+
+- **`src/render/canvas-room.ts`**: `drawVignette` now wraps each fill layer in `save()`/`restore()`
+  (was leaking `globalAlpha` and `fillStyle` after the loop). `drawPrompt` now opens its own
+  `save(); ctx.globalAlpha = 1` block rather than relying on `drawVignette`'s exit side-effect —
+  the two functions are now fully decoupled.
+- **`src/render/whs-bothy.ts`**: removed ~255 lines of dead code — `drawWhsWindowBay`,
+  `drawWhsRug`, `drawWhsMantelpiece` and their private helpers (`drawCurtain`, `drawCandle`,
+  `drawPhoto`) plus 27 constants only referenced by those functions, and the unreachable
+  `fillTriangleA` helper. The painted WebP backdrop replaced these draws; `canvas-room.ts`
+  only imports walls, floor, and door.
+- **`src/render/whs-bothy.test.ts`**: updated to cover the retained surface only (walls, floor,
+  door); removed dead imports and assertions for deleted functions.
+- 24/24 gates PASS; 100% TS coverage; visual hash unchanged.
+
 ## [Unreleased] — 2026-05-28 chore: update generated WASM + doc test-count accuracy
 
 - **`src/generated/hub-wasm/hub_wasm_bg.wasm`**: rebuilt after `snapshot_view.rs` tail-slot fix
