@@ -439,6 +439,14 @@ describe('createBothyGameModule', () => {
     browser.flushRaf(200);
   });
 
+  it('cancels both the animation loop and the first-frame mark RAF on destroy', async () => {
+    const { instance } = await mountHarness();
+    await instance.destroy();
+    // Two distinct RAF handles are registered on mount: firstFrameRafId (id=1) and the loop (id=2).
+    // Both must be cancelled so that post-destroy callbacks never fire in a real browser.
+    expect(window.cancelAnimationFrame).toHaveBeenCalledTimes(2);
+  });
+
   it('is safe to call destroy twice', async () => {
     const { instance } = await mountHarness();
     await instance.destroy();

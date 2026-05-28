@@ -86,6 +86,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       let pointerWorldY = 0;
       let paused = false;
       let rafId = 0;
+      let firstFrameRafId = 0;
       let destroyed = false;
 
       const room = createHubRoomController({ boundary, renderer });
@@ -221,7 +222,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
 
       room.render();
       announceDoorStatus(room.lastSnapshot());
-      requestAnimationFrame(() => {
+      firstFrameRafId = requestAnimationFrame(() => {
         performance.mark('hub:firstFrame');
       });
 
@@ -301,6 +302,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           if (destroyed) return;
           destroyed = true;
           window.cancelAnimationFrame(rafId);
+          window.cancelAnimationFrame(firstFrameRafId);
           shell.canvas.removeEventListener('pointerdown', onPointerDown);
           shell.canvas.removeEventListener('pointermove', onPointerMove);
           shell.canvas.removeEventListener('pointerup', endPointer);
