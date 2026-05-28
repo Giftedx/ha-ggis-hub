@@ -35,7 +35,8 @@ fn write_door(out: &mut String, door: &DoorSlot) {
         .unwrap_or(door.id.len());
     let id = core::str::from_utf8(&door.id[..nul]).unwrap_or("");
     debug_assert!(
-        id.bytes().all(|b| b.is_ascii() && b != b'"' && b != b'\\' && b >= 0x20),
+        id.bytes()
+            .all(|b| b.is_ascii() && b != b'"' && b != b'\\' && b >= 0x20),
         "door id must be printable ASCII without JSON special characters"
     );
     out.push_str(id);

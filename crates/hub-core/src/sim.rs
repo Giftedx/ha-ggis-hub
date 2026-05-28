@@ -431,7 +431,7 @@ mod tests {
         // WASM boundary can memcpy it without serialization.
         const _: () = {
             let header = 5 * 4 + 4 + 4; // 5×i32 + interaction_kind/index/pad + door_count/pad = 28
-            let slot = 32 + 4 * 4 + 4;  // id[32] + 4×i32 bounds + status+pad = 52
+            let slot = 32 + 4 * 4 + 4; // id[32] + 4×i32 bounds + status+pad = 52
             assert!(core::mem::size_of::<RenderSnapshot>() == header + 8 * slot); // 444
         };
     }
