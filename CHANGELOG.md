@@ -2,6 +2,29 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 fix: third review pass — boundary clamp, room_def assert, registry reverse-check, snapshot tail slots
+
+- **`src/wasm/snapshot-codec.ts`**: clamp `doorCount` from WASM buffer to `[0, MAX_DOORS_PER_SNAPSHOT]`
+  before the loop. Without the clamp a malformed snapshot could drive the loop past the end of the
+  448-byte buffer (DataView bounds check would throw, but trust was extended first).
+- **`crates/hub-wasm/src/room_def.rs`**: add `debug_assert!` in `write_door` that the door id
+  contains only printable ASCII without `"` or `\`. The hand-rolled JSON formatter has no escaping;
+  the invariant is already maintained by kebab-case ids but was undocumented. Fires in debug/test
+  builds only.
+- **`crates/hub-wasm/src/handle.rs`**: replaced misleading comment on `tick()` rejection passes.
+  Old comment said "reserved bits" for the axis encoding check, but `0b11` axis values are within
+  the mask and pass the reserved-bit check — the issue is a reserved encoding that `x()/y()` returns 0
+  for, causing silent no-movement.
+- **`src/games/registry.ts`**: `validateRoomRegistryCoherence` now checks both directions. Previously
+  only caught room-door → registry drift; now also catches playable registry entries with no room door.
+  Updated doc comment.
+- **`crates/hub-wasm/src/snapshot_view.rs`**: `write_snapshot` now iterates only `door_count` slots
+  rather than all 8. Zero-initialised path is safe now and will remain safe if future code ever reuses
+  non-zeroed snapshot buffers.
+- **Tests**: added `doorCount` clamp test in snapshot-codec.test.ts; added reverse-coherence test in
+  registry.test.ts; updated two existing coherence tests to supply the full door table so they test
+  only their intended forward-direction error. Test count: 220 → 222.
+
 ## [Unreleased] — 2026-05-28 test: regression guard for interact bit + faithful FakeAudio src getter
 
 - **`src/hub/bothy-module.test.ts`**: added `includes the interact bit when keyboard axis and interact

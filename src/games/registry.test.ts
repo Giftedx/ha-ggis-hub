@@ -116,14 +116,20 @@ describe('game registry', () => {
   it('rejects room doors missing from the registry or with mismatched launchability', () => {
     expect(
       validateRoomRegistryCoherence(
-        [{ id: 'missing-door', status: 'launchable' }],
+        [
+          { id: 'wild-haggis-survivors', status: 'launchable' }, // satisfies reverse check
+          { id: 'missing-door', status: 'launchable' },
+        ],
         HUB_GAME_REGISTRY
       )
     ).toEqual(['Room door "missing-door" has no registry entry']);
 
     expect(
       validateRoomRegistryCoherence(
-        [{ id: 'future-bothy', status: 'launchable' }],
+        [
+          { id: 'wild-haggis-survivors', status: 'launchable' }, // satisfies reverse check
+          { id: 'future-bothy', status: 'launchable' },
+        ],
         HUB_GAME_REGISTRY
       )
     ).toEqual(['Launchable room door "future-bothy" maps to non-playable registry entry']);
@@ -134,5 +140,11 @@ describe('game registry', () => {
         HUB_GAME_REGISTRY
       )
     ).toEqual(['Locked room door "wild-haggis-survivors" maps to playable registry entry']);
+  });
+
+  it('rejects a playable registry game that has no room door', () => {
+    expect(
+      validateRoomRegistryCoherence([{ id: 'future-bothy', status: 'locked' }], HUB_GAME_REGISTRY)
+    ).toContain('Playable registry game "wild-haggis-survivors" has no room door');
   });
 });

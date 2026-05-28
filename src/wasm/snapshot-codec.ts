@@ -40,7 +40,7 @@ export function decodeSnapshot(bytes: Uint8Array): DecodedSnapshot {
   const worldHeight = view.getInt32(16, true);
   const interactionKind = interactionKindFromU8(view.getInt32(20, true));
   const interactionDoorIndex = view.getInt32(24, true);
-  const doorCount = view.getInt32(28, true);
+  const doorCount = Math.min(Math.max(0, view.getInt32(28, true)), MAX_DOORS_PER_SNAPSHOT);
 
   const doors: DecodedDoor[] = [];
   for (let i = 0; i < doorCount; i += 1) {

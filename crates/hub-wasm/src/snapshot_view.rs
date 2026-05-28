@@ -58,7 +58,8 @@ pub fn write_snapshot(buffer: &mut [u8], snapshot: &RenderSnapshot) {
     buffer[header::DOOR_COUNT..][..4]
         .copy_from_slice(&i32::from(snapshot.door_count).to_le_bytes());
 
-    for (i, door) in snapshot.doors.iter().enumerate() {
+    let count = usize::from(snapshot.door_count).min(MAX_DOORS_PER_SNAPSHOT);
+    for (i, door) in snapshot.doors[..count].iter().enumerate() {
         let base = header::DOOR_TABLE_START + i * DOOR_SLOT_LEN;
         write_door(&mut buffer[base..base + DOOR_SLOT_LEN], door);
     }

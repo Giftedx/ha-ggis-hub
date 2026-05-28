@@ -68,4 +68,16 @@ describe('decodeSnapshot', () => {
     const decoded = decodeSnapshot(buf);
     expect(decoded.interactionKind).toBe('locked');
   });
+
+  it('clamps out-of-range doorCount to [0, MAX_DOORS_PER_SNAPSHOT] without throwing', () => {
+    const overflowBuf = emptyBuffer();
+    writeI32LE(overflowBuf, 28, 999); // doorCount far above max
+    expect(() => decodeSnapshot(overflowBuf)).not.toThrow();
+    expect(decodeSnapshot(overflowBuf).doors).toHaveLength(8); // clamped to MAX
+
+    const negativeBuf = emptyBuffer();
+    writeI32LE(negativeBuf, 28, -1); // negative doorCount
+    expect(() => decodeSnapshot(negativeBuf)).not.toThrow();
+    expect(decodeSnapshot(negativeBuf).doors).toHaveLength(0); // clamped to 0
+  });
 });

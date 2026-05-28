@@ -51,10 +51,12 @@ impl HubHandle {
     /// Advance one tick. Writes the post-tick render snapshot into the
     /// snapshot buffer in place. Returns `HubErrorTag::Ok` on success.
     pub fn tick(&mut self, input_packed: u32) -> HubErrorTag {
-        // Lower 16 bits are the InputSnapshot raw; anything above that
-        // or outside the current InputSnapshot mask is reserved. Reject
-        // reserved bits here rather than silently letting the core mask them,
-        // so boundary callers get a stable error for malformed packed input.
+        // Lower 16 bits are the InputSnapshot raw. Two rejection passes:
+        // 1. `u16::try_from` rejects anything with high bits set (> 0xFFFF).
+        // 2. `input.raw() != raw` rejects bits 5–15 (outside the axis+interact mask).
+        // 3. The axis encoding check below rejects 0b11 in the X or Y field — these
+        //    bits are within the mask so pass check 2, but the encoding is reserved
+        //    and `InputSnapshot::x()/y()` returns 0 for it, causing silent no-movement.
         let Ok(raw) = u16::try_from(input_packed) else {
             self.last_error = format!("input_packed has reserved high bits: {input_packed:#010x}");
             return HubErrorTag::InvalidInput;

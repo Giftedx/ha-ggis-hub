@@ -42,8 +42,8 @@ export function getGameById(
 }
 
 /** Room door ids and launchability must match the static game registry.
- *  Catches drift when a new door lands in hub-core before the TS registry
- *  is updated (or vice versa). */
+ *  Catches drift in both directions: a new door without a registry entry,
+ *  and a playable registry entry with no room door. */
 export function validateRoomRegistryCoherence(
   roomDoors: ReadonlyArray<{ readonly id: string; readonly status: 'launchable' | 'locked' }>,
   registry: readonly HubGameDefinition[]
@@ -61,6 +61,13 @@ export function validateRoomRegistryCoherence(
     }
     if (door.status === 'locked' && game.status === 'playable') {
       errors.push(`Locked room door "${door.id}" maps to playable registry entry`);
+    }
+  }
+
+  const roomDoorIds = new Set(roomDoors.map((d) => d.id));
+  for (const game of registry) {
+    if (game.status === 'playable' && !roomDoorIds.has(game.id)) {
+      errors.push(`Playable registry game "${game.id}" has no room door`);
     }
   }
 
