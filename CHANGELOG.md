@@ -2,6 +2,16 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 fix(bothy): cancel first-frame mark RAF on destroy
+
+- **`src/hub/bothy-module.ts`**: the `hub:firstFrame` `performance.mark` RAF handle was previously
+  discarded, making it impossible to cancel via `cancelAnimationFrame`. If `destroy()` fired before
+  the first browser paint (rapid navigation, rapid remount in tests), the mark fired against a
+  destroyed instance — contaminating the performance timeline and poisoning any in-process test that
+  reuses the same page context. Handle is now saved to `firstFrameRafId` and cancelled in
+  `destroy()` alongside the main loop handle.
+- Tests: +1 case confirming both RAF handles are cancelled on destroy; total 226 vitest cases.
+
 ## [Unreleased] — 2026-05-28 fix(lifecycle): keep old instance alive when mount fails after successful preload
 
 - **`src/engine/lifecycle.ts`**: old-instance destruction is now deferred until after `mount()`
