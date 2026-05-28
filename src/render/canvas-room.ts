@@ -1261,7 +1261,17 @@ function drawHaggis(
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
 
-  hardContactShadow(ctx, cx, cy + bob + 6, storybookBackdropDrawn ? 52 : 68, 2);
+  // Contact shadow sits at the body's painted base (bodyCy + body half-height)
+  // so the mascot reads as resting on the floor, not floating above a low
+  // detached puddle. Width tracks the body footprint, not the full leg span.
+  const baseY = Math.round(bodyCy + 17 * HAGGIS_SCALE);
+  hardContactShadow(
+    ctx,
+    cx,
+    baseY,
+    Math.round((storybookBackdropDrawn ? 20 : 24) * HAGGIS_SCALE),
+    2
+  );
 
   // Walking leg cycle: front + back pairs alternate at a gentle trot.
   // The Wee Chieftain stays front-facing; motion stays breath + legs.

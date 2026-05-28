@@ -102,10 +102,12 @@ export function drawBothyHaggis(
   const my = (dy: number): number => cy + dy * s + breathY;
   const ax = (dx: number): number => cx + dx * dir * s;
 
-  // Heather-purple grounding patch.
-  fillEllipseRaw(ctx, palette.heatherShadow, 0.58, cx, my(19), 34 * s, 3.7 * s);
-  fillCircle(ctx, palette.heatherBloom, 0.72, mx(-12), my(19.5), 1.0 * s);
-  fillCircle(ctx, palette.heatherBloom, 0.58, mx(11), my(20), 0.9 * s);
+  // Heather-purple grounding patch. Sits just under the body base (my ~15.5)
+  // so it reads as the haggis's own contact shadow rather than a detached
+  // puddle below the feet.
+  fillEllipseRaw(ctx, palette.heatherShadow, 0.58, cx, my(15.5), 28 * s, 3.4 * s);
+  fillCircle(ctx, palette.heatherBloom, 0.72, mx(-12), my(16), 1.0 * s);
+  fillCircle(ctx, palette.heatherBloom, 0.58, mx(11), my(16.5), 0.9 * s);
 
   // Tiny asymmetric legs. Draw first so casing covers their tops.
   const legW = 2.7 * s;
