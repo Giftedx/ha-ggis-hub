@@ -2,6 +2,17 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 chore: update generated WASM + doc test-count accuracy
+
+- **`src/generated/hub-wasm/hub_wasm_bg.wasm`**: rebuilt after `snapshot_view.rs` tail-slot fix
+  (27.95 kB → 28.01 kB; added bounds slice adds a small range check; within all budgets).
+- **`WRITEUP.md`**: bundle table updated to current build measurements (JS 54.93→54.99 kB,
+  WASM 28.05→28.01 kB, total 91.83→91.85 kB / gzip 34.12→34.11 kB); `pnpm verify` comment
+  updated to 222 vitest cases.
+- **`docs/architecture/testing-strategy.md`**: updated vitest count from 219 to 222 in two places
+  (implementation-status paragraph and testing-pyramid table).
+- 222 vitest (was 219); 100% coverage; Rust clippy clean.
+
 ## [Unreleased] — 2026-05-28 fix: third review pass — boundary clamp, room_def assert, registry reverse-check, snapshot tail slots
 
 - **`src/wasm/snapshot-codec.ts`**: clamp `doorCount` from WASM buffer to `[0, MAX_DOORS_PER_SNAPSHOT]`

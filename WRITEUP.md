@@ -102,10 +102,10 @@ This is not strong cryptography — anyone can re-sign an edited report. It's a 
 | Asset | Size | Gzip |
 |---|---|---|
 | `dist/index.html` | 3.60 kB | 1.29 kB |
-| `dist/assets/index-*.js` | 54.93 kB | 18.57 kB |
-| `dist/assets/hub_wasm_bg-*.wasm` | 28.05 kB | 12.71 kB |
+| `dist/assets/index-*.js` | 54.99 kB | 18.58 kB |
+| `dist/assets/hub_wasm_bg-*.wasm` | 28.01 kB | 12.69 kB |
 | `dist/assets/index-*.css` | 5.25 kB | 1.55 kB |
-| **Total** | **91.83 kB** | **34.12 kB** |
+| **Total** | **91.85 kB** | **34.11 kB** |
 
 For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 35 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
@@ -142,7 +142,7 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → eslint → prettier --check → vitest 219 cases → vite build → verify-dist
+pnpm verify          # tsc --noEmit → eslint → prettier --check → vitest 222 cases → vite build → verify-dist
 pnpm run coverage    # vitest v8 coverage (100% lines/stmts/fns/branches — enforced by threshold)
 
 # Rust workspace
