@@ -11,7 +11,7 @@ export interface HubRoomControllerOptions {
 }
 
 export interface HubRoomController {
-  /** Advance one fixed simulation tick with the given packed input. */
+  /** Advance one fixed simulation tick with the given packed input. Does not render. */
   tick(packedInput: number): void;
   /** Re-render the most recent snapshot without advancing. */
   render(): void;
@@ -28,7 +28,6 @@ export function createHubRoomController(options: HubRoomControllerOptions): HubR
   return {
     tick(packedInput: number): void {
       last = options.boundary.tick(packedInput);
-      options.renderer.render(last);
     },
     render(): void {
       options.renderer.render(last);

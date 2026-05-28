@@ -24,6 +24,7 @@ export function createMusicController({
 }: MusicControllerOptions): MusicController {
   let currentIndex = 0;
   let wantsPlayback = false;
+  let inFlight = false;
 
   audio.preload = 'none';
   audio.volume = MUSIC_VOLUME;
@@ -63,6 +64,7 @@ export function createMusicController({
       setPausedState();
       return;
     }
+    inFlight = true;
     wantsPlayback = true;
     applyCurrentTrack();
     try {
@@ -74,6 +76,8 @@ export function createMusicController({
       wantsPlayback = false;
       audio.pause();
       setPausedState();
+    } finally {
+      inFlight = false;
     }
   }
 
@@ -84,6 +88,7 @@ export function createMusicController({
   }
 
   const onClick = (): void => {
+    if (inFlight) return;
     if (wantsPlayback && !audio.paused) {
       pauseCurrent();
       return;
@@ -116,6 +121,7 @@ export function createMusicController({
       audio.removeEventListener('ended', onEnded);
       wantsPlayback = false;
       audio.pause();
+      setPausedState();
     },
   };
 }

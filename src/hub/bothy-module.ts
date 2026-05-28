@@ -265,9 +265,8 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
             room.tick(packed);
           }
           maybeLaunchFromInteract();
-        } else {
-          room.render();
         }
+        room.render();
         stepState = pumped.state;
         announceDoorStatus(room.lastSnapshot());
         if (overlay !== null && fpsTracker !== null) {

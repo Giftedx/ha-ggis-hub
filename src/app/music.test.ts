@@ -273,5 +273,36 @@ describe('createMusicController', () => {
     expect(audio.pauseCalls).toBe(1);
     expect(button.listeners.size).toBe(0);
     expect(audio.listeners.size).toBe(0);
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+  });
+
+  it('ignores a second click while a play call is in flight', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    let playCalls = 0;
+    let resolvePlay!: () => void;
+    audio.play = (): Promise<void> =>
+      new Promise((resolve) => {
+        playCalls += 1;
+        resolvePlay = (): void => {
+          audio.paused = false;
+          resolve();
+        };
+      });
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+    });
+
+    button.click();
+    button.click();
+    resolvePlay();
+    await Promise.resolve();
+
+    expect(playCalls).toBe(1);
+    expect(button.textContent).toBe('music on');
   });
 });

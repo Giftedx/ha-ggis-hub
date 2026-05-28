@@ -69,7 +69,7 @@ describe('createHubRoomController', () => {
     expect(render).not.toHaveBeenCalled();
   });
 
-  it('advances the snapshot through the boundary on each tick and renders it', () => {
+  it('advances the snapshot through the boundary on each tick without rendering', () => {
     const initial = snapshotAt(500, 500);
     const moved = snapshotAt(600, 500);
     const stub = makeStubBoundary(initial);
@@ -85,8 +85,7 @@ describe('createHubRoomController', () => {
 
     expect(stub.tick).toHaveBeenCalledTimes(1);
     expect(stub.tick).toHaveBeenLastCalledWith(0b0001);
-    expect(render).toHaveBeenCalledTimes(1);
-    expect(render).toHaveBeenCalledWith(moved);
+    expect(render).not.toHaveBeenCalled();
     expect(controller.lastSnapshot()).toBe(moved);
   });
 
