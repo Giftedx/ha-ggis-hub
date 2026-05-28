@@ -2,6 +2,63 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] — 2026-05-28 · Wee Chieftain redesign + quality hardening
+
+**Live at <https://ha.ggis.xyz/>.**
+
+A post-launch quality and character pass. The Wee Chieftain was redesigned from scratch for
+room-scale readability; the locked door gained its own dimmed sign; the bundle shrank by ~4 KB;
+and a systematic code-review pass fixed eight correctness issues across the music, render, lifecycle,
+and input-log subsystems.
+
+### What ships
+
+- **Wee Chieftain redesign.** The haggis mascot was rebuilt for room-scale character readability:
+  cooked-casing shape language, oat-fleck texture, large cream eyes with a confident brow,
+  wide smile, and four asymmetric drift legs. Close-cropped in `favicon.svg`; social card
+  `og.svg` synced to the same design. The tied-casing and oat-cutaway silhouette from v0.1.0
+  has been retired.
+- **Locked-door sign.** The future-bothy door now renders its own heather-purple sign at 0.65
+  opacity — same sprite as the launchable door, distinct colour and alpha so the distinction reads
+  immediately without the door disappearing.
+- **Mantel inscription.** "BIDE A WHILE." lettered in pixel font on the hearth lintel.
+- **7 browser smokes** (was 5 in v0.1.0): locked-door smoke and reduced-motion smoke added
+  to the chromium suite. All 7 run on Firefox and WebKit (6 core each).
+- **Expanded gates.** Prettier fmt:check extended to `scripts/**/*.mjs`; ESLint extended to
+  `scripts/`; `haggis-eval` Go lint and test wired into CI; osv-scanner cross-ecosystem CVE scan
+  and gitleaks secret scan added to the supply-chain gate.
+
+### Bug fixes
+
+- **Music double-click race** — `inFlight` guard prevents two concurrent `audio.play()` promises.
+  `destroy()` now resets the button state correctly.
+- **Render-per-tick waste** — `tick()` no longer redraws; one draw per animation frame.
+  Previously up to 8 canvas redraws fired before a single browser composite on catch-up frames.
+- **Input-log `finish()` mutation** — trailer bytes written to a local copy; `finish()` is now
+  idempotent and safe to call from both `beforeunload` and `pagehide`.
+- **Lifecycle recovery** — `launch()` no longer destroys the running game before `mount()`
+  succeeds; a failed mount restores the previous instance rather than leaving the hub dark.
+- **First-frame RAF handle** — `hub:firstFrame` mark RAF handle saved and cancelled on `destroy()`;
+  prevents performance timeline contamination on rapid navigation.
+- **Canvas state isolation** — `drawVignette` wraps each fill layer in `save()`/`restore()`;
+  `drawPrompt` opens its own `save()` block; no state leaks between draw functions.
+- **Snapshot boundary clamp** — `doorCount` clamped before DataView loop; `snapshot_view.rs`
+  iterates only `door_count` slots.
+- **Registry bidirectional coherence** — `validateRoomRegistryCoherence` now checks both
+  directions (room→registry and registry→room).
+
+### Engineering receipts
+
+- **~92 KB total client** (55 KB JS + 28 KB WASM + 3.6 KB HTML + 5.25 KB CSS, ~34 KB gzipped) —
+  down from ~96 KB at v0.1.0 after dead-code removal from `whs-bothy.ts` (~255 lines) and
+  palette token pruning.
+- **226 vitest cases** (was 218 at v0.1.0), 100% coverage on all four metrics.
+- **7 Chromium smokes** (was 5); 6 core smokes on Firefox and WebKit.
+
+The detailed development log for this release is below.
+
+---
+
 ## [Unreleased] — 2026-05-28 chore(docs): update vitest count and bundle measurements
 
 - **`WRITEUP.md`**: `pnpm verify` comment updated 222 → 226 vitest cases; bundle table updated
