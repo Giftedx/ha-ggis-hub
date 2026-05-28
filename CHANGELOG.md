@@ -2,7 +2,9 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.2] — 2026-05-29 · Wee Chieftain painted sprite
+
+**Live at <https://ha.ggis.xyz/>** — the lobby mascot is now the painted sprite (procedural fallback retained).
 
 ### Changed
 
