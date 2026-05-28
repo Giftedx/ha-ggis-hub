@@ -206,3 +206,64 @@ Once the generated sprite is approved and cleaned up:
 
 The procedural fallback (`drawBothyHaggis`) can live alongside the sprite path during
 transition — load the image, if loaded draw sprite, else draw procedural.
+
+---
+
+## Integration status — 2026-05-28 (asset deferred, procedural stays live)
+
+**Decision:** The first generated asset (`public/art/wee-chieftain-idle.png`) is **not yet
+shippable**, so it is **not committed** — the hand-rolled procedural `drawBothyHaggis()`
+remains the live render. The rejected PNG is retained only in the local working tree as the
+reference to beat. The integration code below is preserved so re-enabling is copy-paste once
+a bar-meeting asset is generated to this spec and saved to that path.
+
+**Why the current PNG misses the brief (checklist failures):**
+
+- **Style does not match the backdrop** — the #1 requirement. It reads as a glossy,
+  airbrushed/3D-rendered potato, not gouache-on-toned-paper painted by the same hand. The
+  backdrop is soft, chalky, painterly; the sprite is smooth and photoreal-ish. They clash.
+- **Missing the bold expressive brows** — the brief makes the brows carry personality; the
+  asset has none.
+- **Missing the tiny nose dot** that anchors the face.
+- Eyes read as generic googly-eyes rather than the focused, slightly-inward gaze with
+  eyelid arc described in the brief.
+
+For a portfolio centerpiece this is a downgrade from the procedural haggis, which clears the
+bar. Regenerate with stronger style-reference weighting on the backdrop (`--sref` of the
+actual backdrop JPEG) and explicit brows/nose, then re-run the checklist above before
+swapping.
+
+**Preserved integration code** (drop into `drawBothyHaggis()` in `src/render/canvas-room.ts`,
+just after `const bodyCy = ...`; restore the module-level `WEE_CHIEFTAIN_SPRITE_SRC` const +
+`loadWeeChieftainSprite()` loader alongside the storybook-backdrop loader):
+
+```ts
+const sprite = loadWeeChieftainSprite();
+if (
+  sprite !== null &&
+  sprite.complete &&
+  sprite.naturalWidth > 0 &&
+  typeof ctx.drawImage === 'function'
+) {
+  const SPRITE_W = Math.round(60 * HAGGIS_SCALE);
+  const SPRITE_H = Math.round(SPRITE_W * (sprite.naturalHeight / sprite.naturalWidth));
+  // Feet sit at ~92% down the sprite PNG; shadow hugs that level, not the bbox bottom.
+  hardContactShadow(ctx, cx, cy + bob - Math.round(SPRITE_H * 0.08), Math.round(SPRITE_W * 0.3), 2);
+  const xform = ctx as unknown as {
+    translate(x: number, y: number): void;
+    scale(x: number, y: number): void;
+  };
+  const smooth = ctx as unknown as { imageSmoothingEnabled?: boolean };
+  smooth.imageSmoothingEnabled = true;
+  ctx.save();
+  if (facingLeft) {
+    xform.translate(bodyCx, 0);
+    xform.scale(-1, 1);
+    xform.translate(-bodyCx, 0);
+  }
+  ctx.drawImage(sprite, bodyCx - Math.round(SPRITE_W / 2), cy + bob - SPRITE_H, SPRITE_W, SPRITE_H);
+  ctx.restore();
+  smooth.imageSmoothingEnabled = false;
+  return;
+}
+```
