@@ -2,6 +2,14 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — 2026-05-28 chore(docs): update vitest count and bundle measurements
+
+- **`WRITEUP.md`**: `pnpm verify` comment updated 222 → 226 vitest cases; bundle table updated
+  (JS 54.99 → 55.06 kB / 18.58 → 18.62 kB gzip, total 91.85 → 91.92 kB / 34.11 → 34.15 kB gzip)
+  to reflect accumulated lifecycle fixes adding ~0.07 kB of code.
+- **`docs/architecture/testing-strategy.md`**: implementation-status paragraph and testing-pyramid
+  table both updated 222 → 226 vitest cases.
+
 ## [Unreleased] — 2026-05-28 fix(bothy): cancel first-frame mark RAF on destroy
 
 - **`src/hub/bothy-module.ts`**: the `hub:firstFrame` `performance.mark` RAF handle was previously
