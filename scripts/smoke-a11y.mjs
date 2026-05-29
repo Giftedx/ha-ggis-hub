@@ -313,7 +313,17 @@ try {
     window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
     );
-    await new Promise((resolve) => window.setTimeout(resolve, 1500));
+    // Hold right and poll until the haggis is in the launchable door's overlap
+    // zone, rather than holding for a fixed wall-clock duration. The fixed-step
+    // loop advances a runner-dependent number of ticks per frame, so a fixed
+    // hold can under-walk on a loaded runner (the same fragility fixed across
+    // the door smokes). interactionKind flips to 'launchable' at the door (the
+    // precondition for the status mirror), so poll for that (10 s budget).
+    const reachedDeadline = Date.now() + 10_000;
+    const atLaunchableDoor = () => window.__roomSnapshot?.()?.interactionKind === 'launchable';
+    while (!atLaunchableDoor() && Date.now() < reachedDeadline) {
+      await new Promise((resolve) => window.setTimeout(resolve, 50));
+    }
     window.dispatchEvent(
       new KeyboardEvent('keyup', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
     );
