@@ -243,10 +243,33 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         __roomSnapshot?: () => unknown;
         __stateHash?: () => bigint;
         __seed?: bigint;
+        __setPaused?: (paused: boolean) => void;
+        __advance?: (ticks: number) => number;
       };
       /* v8 ignore start — browser-only dev hooks; called by smoke-determinism.mjs, not unit tests */
       winHooks.__roomSnapshot = () => room.lastSnapshot();
       winHooks.__stateHash = () => boundary.stateHash();
+      // Deterministic drive for the determinism gate. The production tick
+      // loop advances a wall-clock-derived, variable number of ticks per
+      // frame, so a smoke that holds a key for a fixed *duration* applies a
+      // run-to-run-variable number of movement ticks. That non-determinism
+      // used to be hidden because the player slammed into the wall clamp;
+      // the v0.2.1 speed retune (100->10 units/tick) left it mid-field, so
+      // the jitter leaked into player_x/player_y and the state hash. These
+      // hooks let the gate pause the loop and step an EXACT tick count with
+      // the currently-sampled input — the same path real frames use, minus
+      // the clock. __advance returns the packed input it sampled so the
+      // caller can assert the key actually registered.
+      winHooks.__setPaused = (nextPaused: boolean) => {
+        paused = nextPaused;
+      };
+      winHooks.__advance = (ticks: number): number => {
+        const packed = samplePackedInput();
+        for (let i = 0; i < ticks; i += 1) {
+          room.tick(packed);
+        }
+        return packed;
+      };
       /* v8 ignore stop */
       winHooks.__seed = seed;
 
@@ -327,6 +350,8 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           delete winHooks.__roomSnapshot;
           delete winHooks.__stateHash;
           delete winHooks.__seed;
+          delete winHooks.__setPaused;
+          delete winHooks.__advance;
           overlay?.destroy();
         },
       };
