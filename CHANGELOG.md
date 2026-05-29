@@ -2,7 +2,7 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — CI wiring repaired + determinism gate restored
+## [Unreleased] — CI wiring repaired; determinism + music-resume fixes
 
 ### Fixed
 
@@ -40,6 +40,12 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
   loop and step an exact tick count with the real sampled input, and rewrote
   `scripts/smoke-determinism.mjs` to drive through them. Same seed + same fixed tick sequence
   now yields a byte-identical hash across independent runs (verified 3×).
+- **Hub music restarted instead of resuming.** The music controller re-assigned `audio.src`
+  on every play — including a resume after pause. Assigning `src` re-runs the media load
+  algorithm, resetting `currentTime` to 0 and re-fetching the file, so pausing and un-pausing
+  snapped the track back to its start. `applyCurrentTrack` now sets `src` only when the
+  selected track actually changes, so a resume continues from where it paused. Regression
+  test added (`src` is not re-assigned across a pause/resume of the same track).
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
