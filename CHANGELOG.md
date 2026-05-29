@@ -4,6 +4,8 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
+**Live at <https://ha.ggis.xyz/>** — the coming-soon door now answers when ye chap it.
+
 ### Added
 
 - **Chap the bolted door.** The hint banner trains every visitor to "chap a door tae go in",
