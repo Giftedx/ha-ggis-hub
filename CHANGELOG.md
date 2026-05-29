@@ -2,6 +2,41 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — CI wiring repaired + determinism gate restored
+
+### Fixed
+
+- **Made CI green for real.** v0.2.4 fixed the release-gate _logic_ (coverage back to 100%,
+  the a11y host, the door smokes) but the badge stayed red because the CI _wiring_ could
+  never execute those gates — both jobs were broken at the infrastructure level, so the
+  full gate had in fact never run end to end on a runner:
+  - **Fast PR gate (`pnpm verify`)** died at `build:verified → build → build:wasm` with
+    `wasm-pack: not found`. The job set up Node but no Rust toolchain, yet `pnpm verify` —
+    the exact command developers run locally — builds the WASM crate. Added
+    `dtolnay/rust-toolchain@stable` (with the `wasm32-unknown-unknown` target),
+    `Swatinem/rust-cache`, and a prebuilt `wasm-pack`, so CI runs the identical command
+    rather than a divergent subset.
+  - **Release gate (`haggis-eval all`)** never started: it referenced
+    `google/osv-scanner-action/osv-installer@v2`, which does not resolve — there is no `v2`
+    tag and no `osv-installer` sub-action in that repo. Switched to `taiki-e/install-action`
+    (the mechanism the job already used for `cargo-llvm-cov` and `gitleaks`). Making the job
+    runnable surfaced two further latent gaps it had always masked: the supply-chain gate
+    shells out to `cargo deny` and `cargo machete`, and the ts/perf/browser/a11y/visual/soak
+    gates run `pnpm run build`, but none of `cargo-deny`, `cargo-machete`, or `wasm-pack`
+    were installed. All three added.
+- **Restored the determinism gate, broken since the v0.2.1 speed retune.** The browser
+  determinism smoke drove input by wall-clock duration (`keyboard.down` → `waitForTimeout`
+  → `keyboard.up`), so the number of movement ticks applied per hold varied run to run with
+  RAF scheduling. That jitter was harmless while the player slammed into the wall clamp
+  within a few ticks; the v0.2.1 retune (100 → 10 world-units/tick) left it mid-field at the
+  end of each hold, so the tick-count jitter leaked into `player_x`/`player_y` and the state
+  hash diverged. The core sim was always deterministic — the Rust replay tests prove it; the
+  smoke was measuring _through_ a non-deterministic clock. Added browser-only `__setPaused`
+  and `__advance` dev hooks (alongside the existing `__stateHash`) that pause the wall-clock
+  loop and step an exact tick count with the real sampled input, and rewrote
+  `scripts/smoke-determinism.mjs` to drive through them. Same seed + same fixed tick sequence
+  now yields a byte-identical hash across independent runs (verified 3×).
+
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
 **Live at <https://ha.ggis.xyz/>** — the coming-soon door now answers when ye chap it.

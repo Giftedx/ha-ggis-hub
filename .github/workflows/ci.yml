@@ -14,9 +14,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Fast PR gate — runs the TS verify chain alone. Keeps PR feedback
-  # under 30s on typical changes. Chain: tsc → eslint → prettier --check
-  # → vitest → vite build → verify-dist.
+  # Fast PR gate — runs the `pnpm verify` chain alone (the exact command
+  # developers run locally, so CI and local stay in lockstep). Chain:
+  # tsc → eslint → prettier --check → vitest → build:verified. Note that
+  # build:verified → build → build:wasm shells out to wasm-pack, so this
+  # job needs the Rust toolchain + wasm32 target + wasm-pack even though
+  # its focus is the TypeScript surface. wasm-pack is a prebuilt binary
+  # and hub-wasm is tiny, so rust-cache keeps warm runs quick.
   ts-verify:
     name: pnpm verify (fast PR gate)
     runs-on: ubuntu-latest
@@ -29,6 +33,14 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
       - run: pnpm install --frozen-lockfile
       - run: pnpm verify
 
@@ -64,6 +76,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
+          targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
@@ -73,8 +86,31 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: gitleaks
+      # osv-scanner: the google/osv-scanner-action/osv-installer@v2 path
+      # never resolved — there is no v2 tag and no osv-installer subaction
+      # in that repo. Install the binary directly via taiki-e, matching
+      # the other release-gate tools.
       - name: Install osv-scanner
-        uses: google/osv-scanner-action/osv-installer@v2
+        uses: taiki-e/install-action@v2
+        with:
+          tool: osv-scanner
+      # The supply-chain gate also shells out to `cargo deny` and `cargo
+      # machete`; neither was installed. Latent because the job always
+      # failed earlier at osv-scanner action resolution.
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+      - name: Install cargo-machete
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-machete
+      # wasm-pack: the ts, perf, browser, a11y, visual, and soak gates all
+      # run `pnpm run build`, which builds the WASM crate first.
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
       - uses: actions/setup-go@v6
         with:
           go-version: '1.24'
