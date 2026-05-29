@@ -2,7 +2,9 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.3] — 2026-05-29 · Mobile letterbox fill
+
+**Live at <https://ha.ggis.xyz/>** — portrait phones now fill with scene instead of dead letterbox bars.
 
 ### Changed
 
