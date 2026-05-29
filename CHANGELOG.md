@@ -18,12 +18,16 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
     rather than a divergent subset.
   - **Release gate (`haggis-eval all`)** never started: it referenced
     `google/osv-scanner-action/osv-installer@v2`, which does not resolve — there is no `v2`
-    tag and no `osv-installer` sub-action in that repo. Switched to `taiki-e/install-action`
-    (the mechanism the job already used for `cargo-llvm-cov` and `gitleaks`). Making the job
-    runnable surfaced two further latent gaps it had always masked: the supply-chain gate
-    shells out to `cargo deny` and `cargo machete`, and the ts/perf/browser/a11y/visual/soak
-    gates run `pnpm run build`, but none of `cargo-deny`, `cargo-machete`, or `wasm-pack`
-    were installed. All three added.
+    tag and no `osv-installer` sub-action in that repo. Pointed osv-scanner at
+    `taiki-e/install-action` (the mechanism the job already used for `cargo-llvm-cov`).
+    Because the job had always died at action resolution before any step ran, making it
+    runnable surfaced four further latent gaps: the supply-chain gate shells out to
+    `cargo deny` and `cargo machete` (never installed — both added via `taiki-e`); the
+    ts/perf/browser/a11y/visual/soak gates run `pnpm run build`, so `wasm-pack` was needed
+    here too (added); and the pre-existing `gitleaks` step used `taiki-e/install-action`,
+    which does not actually support gitleaks (a Go binary, not a crate) — its
+    cargo-binstall fallback errors with `gitleaks is not found`. Replaced that with a
+    pinned release-tarball download onto `PATH`.
 - **Restored the determinism gate, broken since the v0.2.1 speed retune.** The browser
   determinism smoke drove input by wall-clock duration (`keyboard.down` → `waitForTimeout`
   → `keyboard.up`), so the number of movement ticks applied per hold varied run to run with
