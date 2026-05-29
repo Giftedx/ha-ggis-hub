@@ -23,6 +23,7 @@ export function createMusicController({
   tracks,
 }: MusicControllerOptions): MusicController {
   let currentIndex = 0;
+  let loadedIndex = -1;
   let wantsPlayback = false;
   let inFlight = false;
 
@@ -33,10 +34,19 @@ export function createMusicController({
     return tracks[currentIndex];
   }
 
+  // Set audio.src only when the selected track actually changes. Re-assigning
+  // src (even to the same value) re-runs the media load algorithm, resetting
+  // currentTime to 0 and re-fetching the file — which would restart the track
+  // on every resume. Tracking the loaded index keeps pause/resume on the same
+  // track from touching src.
   function applyCurrentTrack(): void {
+    if (currentIndex === loadedIndex) {
+      return;
+    }
     const track = currentTrack();
     if (track !== undefined) {
       audio.src = track.src;
+      loadedIndex = currentIndex;
     }
   }
 

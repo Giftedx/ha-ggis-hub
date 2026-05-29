@@ -41,12 +41,14 @@ class FakeAudio {
   }
   set src(v: string) {
     this.#src = v;
+    this.srcSetCount += 1;
   }
   preload = '';
   volume = 1;
   paused = true;
   playCalls = 0;
   pauseCalls = 0;
+  srcSetCount = 0;
 
   addEventListener(type: string, listener: EventListener): void {
     this.listeners.set(type, listener);
@@ -158,6 +160,32 @@ describe('createMusicController', () => {
     expect(audio.pauseCalls).toBe(1);
     expect(button.textContent).toBe('music');
     expect(button.getAttribute('aria-label')).toBe('Play hub music: Flower of Scotland');
+  });
+
+  it('resumes a paused track without reloading its source (no restart)', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+    });
+
+    button.click();
+    await Promise.resolve();
+    button.click(); // pause
+    const setsWhilePaused = audio.srcSetCount;
+
+    button.click(); // resume the same track
+    await Promise.resolve();
+
+    // Re-assigning audio.src re-runs the media load algorithm, resetting
+    // currentTime to 0 and re-fetching. Resuming the same track must leave
+    // src untouched so playback continues from where it paused.
+    expect(audio.srcSetCount).toBe(setsWhilePaused);
+    expect(audio.playCalls).toBe(2);
+    expect(button.textContent).toBe('music on');
   });
 
   it('shows unavailable state when the track-ended event fires with an empty playlist', async () => {
