@@ -192,7 +192,7 @@ spacing:
   canvas:
     internalWidth: 540
     internalHeight: 360
-    aspect: "3:2"               # Locked. Letterbox over stretch.
+    aspect: "3:2"               # Locked. Letterbox over stretch. On portrait/tall viewports (< 3:2) the letterbox bars are filled with a blurred, dimmed blow-up of the backdrop (style.css .scene::before) so the scene fills the phone without cropping the side doors or distorting the room; widescreen keeps the clean framed border.
     coordPolicy: "integer pixels — every fillRect snaps"
     backWallThick: 96
     sideWallThick: 24

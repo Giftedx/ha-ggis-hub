@@ -2,6 +2,18 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Mobile letterbox now fills the phone.** A 3:2 painted room can't fill a portrait phone
+  without cropping the side-wall doors (`cover`) or distorting the painting (`stretch`), so on
+  viewports narrower than 3:2 the top/bottom letterbox bars are filled with a blurred, dimmed
+  blow-up of the backdrop (`style.css` `.scene::before`, `@media (max-aspect-ratio: 3/2)`); the
+  crisp room sits centred over it. The phone reads as full of scene instead of floating in dead
+  peat-brown. Widescreen keeps the clean framed-picture border (landscape visual golden
+  unaffected). CSS-only — 0 CSP violations, verify green.
+
 ## [0.2.2] — 2026-05-29 · Wee Chieftain painted sprite
 
 **Live at <https://ha.ggis.xyz/>** — the lobby mascot is now the painted sprite (procedural fallback retained).

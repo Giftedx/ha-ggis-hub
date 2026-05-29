@@ -81,18 +81,42 @@ body {
   position: absolute;
   inset: 0;
   display: block;
+  background: var(--hub-peat-brown);
+  /* Contain ::before's negative z-index fill within this element. */
+  isolation: isolate;
 }
 
 .scene-canvas {
   display: block;
-  /* 3:2 playfield is centred on the viewport. Any extra viewport area
-     (on widescreens) shows the deeper peat-brown background, framing
-     the bothy like a picture rather than stretching it sideways. */
+  /* 3:2 playfield is centred on the viewport. On widescreens the extra
+     area is the deep peat-brown frame (bothy as a framed picture). On
+     portrait / tall viewports the letterbox bars are filled by a blurred
+     blow-up of the backdrop (.scene::before) so the scene fills the phone
+     instead of floating in dead brown. Transparent so that fill shows. */
   width: 100vw;
   height: 100vh;
   object-fit: contain;
-  background: var(--hub-peat-brown);
+  background: transparent;
   image-rendering: auto;
+}
+
+/* Portrait / tall viewports (narrower than the 3:2 playfield): a 3:2 painted
+   room cannot fill a tall phone without cropping the side-wall doors or
+   distorting the painting, so fill the top/bottom letterbox with a blurred,
+   dimmed blow-up of the backdrop. The crisp room sits centred over it; the
+   phone reads as full of scene. Widescreen (aspect >= 3:2) keeps the clean
+   framed border, so the landscape visual golden is unaffected. */
+@media (max-aspect-ratio: 3 / 2) {
+  .scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: url('/art/bothy-storybook-backdrop.webp') center center / cover no-repeat;
+    filter: blur(28px) brightness(0.5) saturate(0.85);
+    transform: scale(1.12);
+    pointer-events: none;
+  }
 }
 
 .scene-brand {
