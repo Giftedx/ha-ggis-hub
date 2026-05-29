@@ -82,10 +82,16 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
+      # gitleaks is a Go binary published only via GitHub Releases (not on
+      # crates.io), so taiki-e/install-action does not provide it and its
+      # cargo-binstall fallback errors with "gitleaks is not found". Pull
+      # the pinned release tarball straight onto PATH instead.
       - name: Install gitleaks
-        uses: taiki-e/install-action@v2
-        with:
-          tool: gitleaks
+        run: |
+          GITLEAKS_VERSION=8.30.1
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
       # osv-scanner: the google/osv-scanner-action/osv-installer@v2 path
       # never resolved — there is no v2 tag and no osv-installer subaction
       # in that repo. Install the binary directly via taiki-e, matching
