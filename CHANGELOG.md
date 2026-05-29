@@ -59,6 +59,12 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
   door sits nearer spawn than the launchable one, so it was less exposed than `door-launch`, but
   it carried the identical wall-clock fragility. It now polls `window.__roomSnapshot()` until the
   haggis is standing at the locked door before asserting the status copy and chap retort.
+- **Closed the same flake in the `a11y` gate's live-door-status check.** WCAG 4.1.3 walked the
+  haggis to the launchable door with a fixed ~1500 ms hold (itself a v0.2.4 bump up from a
+  too-short 140 ms) before reading the polite status region. That bump lengthened the hold but
+  kept the wall-clock dependence, so a loaded chromium runner could still under-walk and read an
+  empty status. It now polls `window.__roomSnapshot()` until the haggis reaches the launchable
+  door, then reads the announcement — the last wall-clock walk in the smoke/gate suite.
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
