@@ -48,14 +48,23 @@ try {
   // Let the WASM boundary boot + haggis spawn.
   await page.waitForTimeout(800);
 
-  // Spawn at world (340, 540). The LAUNCHABLE WHS door is at world
-  // x∈[820,940] (right-side wall). Walk right ~1.5s to overshoot into
-  // the WHS door's interaction zone. Locked future-bothy door is on
-  // the left (skip it).
+  // Spawn at world (340, 540). The LAUNCHABLE WHS door is on the right
+  // wall; the locked future-bothy door is on the left (skip it). Hold right
+  // and poll the dev snapshot until the haggis is actually standing at the
+  // launchable door, rather than trusting a fixed wall-clock hold: the
+  // fixed-step loop advances a browser-dependent number of ticks per frame,
+  // so a fixed duration under-walks on a slow/throttled engine (webkit on
+  // CI), leaving the haggis short of the door and the launch un-fired.
+  // Polling the arrival condition makes the smoke speed-agnostic.
   await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(1500);
-  await page.keyboard.up('ArrowRight');
-  await page.waitForTimeout(200);
+  try {
+    await page.waitForFunction(() => window.__roomSnapshot?.()?.interactionKind === 'launchable', {
+      timeout: 10_000,
+    });
+  } finally {
+    await page.keyboard.up('ArrowRight');
+  }
+  await page.waitForTimeout(120);
 
   // Fire Enter — should launch.
   await page.keyboard.down('Enter');
