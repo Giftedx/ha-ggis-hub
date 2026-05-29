@@ -2,7 +2,7 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — CI wiring repaired; determinism + music-resume fixes
+## [Unreleased] — CI restored to green + correctness fixes
 
 ### Fixed
 
@@ -46,6 +46,14 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
   snapped the track back to its start. `applyCurrentTrack` now sets `src` only when the
   selected track actually changes, so a resume continues from where it paused. Regression
   test added (`src` is not re-assigned across a pause/resume of the same track).
+- **De-flaked the `door-launch` browser smoke on slow engines.** It walked the haggis to the
+  launchable door by holding `ArrowRight` for a fixed 1500 ms, then pressed Enter. Because the
+  fixed-step loop advances a browser-dependent number of ticks per frame, that hold under-walks
+  on a throttled engine — webkit on CI intermittently left the haggis short of the door, so no
+  launch fired and the multi-browser gate flaked red (the same wall-clock-fragility class as the
+  determinism gate above). It now holds `ArrowRight` and polls `window.__roomSnapshot()` until
+  the haggis is standing at the launchable door (10 s budget) before pressing Enter, so the
+  smoke is speed-agnostic.
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
