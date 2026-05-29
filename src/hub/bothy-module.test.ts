@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SceneElements } from '../app/shell';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import type { HubBoundary, RoomDefinition } from '../wasm/boundary';
+import { CHAP_RETORTS } from './chap';
 
 const mocks = vi.hoisted(() => ({
   initializeHubBoundaryV2: vi.fn(),
@@ -201,7 +202,7 @@ async function mountHarness(options?: {
   vi.resetModules();
   const browser = installBrowserGlobals(options?.search ?? '');
   const boundary = makeBoundary(options?.snapshot ?? SNAPSHOT, options?.room ?? ROOM);
-  const renderer = { render: vi.fn() };
+  const renderer = { render: vi.fn(), notifyChap: vi.fn() };
   const keyboard = {
     snapshot: vi.fn(() => ({ x: 0, y: 0 })),
     interactHeld: vi.fn(() => false),
@@ -277,15 +278,18 @@ describe('createBothyGameModule', () => {
     expect(navigator.navigate).toHaveBeenCalledWith('/wild/', 'route');
   });
 
-  it('announces coming soon when pointer-down lands on a locked door', async () => {
-    const { shell, navigator } = await mountHarness();
+  it('chaps the locked door when pointer-down lands on it, without launching', async () => {
+    const { shell, navigator, renderer } = await mountHarness();
     (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
       clientX: 30,
       clientY: 160,
       pointerId: 8,
     });
     expect(navigator.navigate).not.toHaveBeenCalled();
-    expect(shell.status.textContent).toBe("Comin' Wi' The Next Moon door — comin’ soon.");
+    // Tapping a coming-soon door is a deliberate chap: it answers with a
+    // rotating Scots retort (status line) + the canvas sign (renderer).
+    expect(shell.status.textContent).toBe(CHAP_RETORTS[0]!.spoken);
+    expect(renderer.notifyChap).toHaveBeenCalledWith(CHAP_RETORTS[0]!.sign);
   });
 
   it('samples pointer-drive input during the fixed-step loop and releases pointer capture', async () => {
@@ -532,6 +536,37 @@ describe('createBothyGameModule', () => {
     keyboard.consumeInteract.mockReturnValue(true);
     browser.flushRaf(100);
     expect(shell.status.textContent).toContain('soon.');
+  });
+
+  it('chaps the locked door on keyboard interact, answering instead of staying silent', async () => {
+    const atLockedDoor: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'locked',
+      interactionDoorIndex: 1,
+    };
+    const { browser, keyboard, navigator, shell, renderer } = await mountHarness({
+      snapshot: atLockedDoor,
+    });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(navigator.navigate).not.toHaveBeenCalled();
+    expect(shell.status.textContent).toBe(CHAP_RETORTS[0]!.spoken);
+    expect(renderer.notifyChap).toHaveBeenCalledWith(CHAP_RETORTS[0]!.sign);
+  });
+
+  it('rotates the chap retort on repeated chaps so the door feels alive', async () => {
+    const atLockedDoor: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'locked',
+      interactionDoorIndex: 1,
+    };
+    const { browser, keyboard, shell } = await mountHarness({ snapshot: atLockedDoor });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    expect(shell.status.textContent).toBe(CHAP_RETORTS[0]!.spoken);
+    // Advancing time gives the fixed-step loop fresh ticks for a second chap.
+    browser.flushRaf(200);
+    expect(shell.status.textContent).toBe(CHAP_RETORTS[1]!.spoken);
   });
 
   it('does not navigate when interact fires but door index is out of bounds', async () => {

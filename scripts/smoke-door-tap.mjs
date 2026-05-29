@@ -15,7 +15,14 @@ try {
   const navigations = [];
   await page.route('**/*', (route) => {
     const reqUrl = route.request().url();
-    if (reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')) {
+    // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
+    // + abort that navigation (the WHS build is absent from the hub-only
+    // preview). The legacy pages.dev guard stays so a stray external launch is
+    // still caught.
+    if (
+      reqUrl.includes('/wild/') ||
+      reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')
+    ) {
       navigations.push(reqUrl);
       route.abort();
     } else {

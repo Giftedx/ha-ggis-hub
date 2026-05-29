@@ -251,7 +251,8 @@ elevation:
   door-fixtures:
     launchable: "lit lantern (PALETTE.dawnGold halo, pulsed) + full-opacity bone sign — drawLantern + blitSprite(LANTERN_LIT) + drawSign in canvas-room.ts — shipped 2026-05-27"
     locked: "dimmed sign only — 0.65 opacity, PX.haloCool label text — drawLockedDoorSign in canvas-room.ts — shipped 2026-05-27"
-    rationale: "launchable door is the primary CTA; locked door reads 'coming' without competing — opacity + colour signal the distinction, not absence"
+    locked-chap: "chapping the locked door (Enter/Space/E adjacent, or tap) answers instead of staying silent — shipped 2026-05-29. The over-door prompt's second line swaps COMIN' SOON. for a rotating Scots retort sign for CHAP_PROMPT_WINDOW_MS (2200) then settles back (renderer.notifyChap in canvas-room.ts); the live status region mirrors a fuller spoken retort. Content swap only — no positional motion, so the quiet register and reduced-motion both hold; the idle visual golden is untouched. Retorts in voice.open.chap-retorts."
+    rationale: "launchable door is the primary CTA; locked door reads 'coming' without competing — opacity + colour signal the distinction, not absence. But the hint banner trains 'chap a door tae go in', so the locked door must answer that verb, not dead-end."
 
 ornament:
   # Ornament budget per scene: at most 3 framed objects, 2 dried-herb
@@ -383,7 +384,12 @@ voice:
   open:
     mantel-inscription: "Hame's best."  # shipped 2026-05-27 — shortened to fit pixel-font (64 px at scale 1); drawMantelInscription in canvas-room.ts (fallback path only; archY−9 px above inglenook arch)
     hearth-lintel-motto: "Bide a while."  # shipped 2026-05-24 — rendered in canvas-room.ts drawHearthLintelMotto
-    coming-soon-door:   "Comin' wi' the next moon."
+    coming-soon-door:   "Comin' wi' the next moon."  # passive proximity/prompt line (door-status.ts + formatPromptText locked default)
+    chap-retorts:        # shipped 2026-05-29 — rotating answer to a chap on the locked door (src/hub/chap.ts, CHAP_RETORTS). Deterministic index rotation, no RNG. Canvas signs are uppercase pixel-font (charset A-Z space apostrophe period, tested); spoken lines feed the .scene-status live region.
+      - sign: "NAE HAME YET."  spoken: "Ye chap, but naught stirs — there's nae hame ahint this door yet."
+      - sign: "BOLTED FAST."   spoken: "Bolted fast, this yin. The neist bothy's no' ready — comin' wi' the next moon."
+      - sign: "BIDE A WEE."    spoken: "Haud on a wee — this door opens wi' the next moon, no' afore."
+      - sign: "NO' THE NOO."   spoken: "No' the noo, friend — but bide a while. This yin's comin' wi' the next moon."
     framed-painting-caption: "(unfinished)"  # in-painting content shipped 2026-05-24; caption not rendered (pixel-font space too tight at this scale)
 ```
 

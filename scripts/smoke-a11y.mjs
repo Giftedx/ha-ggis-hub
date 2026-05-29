@@ -282,8 +282,9 @@ try {
     /chap a door/i.test(helpText) &&
     /tap a door/i.test(helpText);
   const hasDirectFallback =
-    fallbackHelp.linkHref === 'https://wild-haggis-survivors.pages.dev/' &&
-    /Wild Haggis Survivors/i.test(fallbackHelp.linkName);
+    // WHS is on-origin since v0.2.1 (ADR-0003 Option B): the direct-play link
+    // resolves to the same-origin /wild/ route, not the old pages.dev host.
+    fallbackHelp.linkHref === '/wild/' && /Wild Haggis Survivors/i.test(fallbackHelp.linkName);
   record(
     '1.1.1',
     'persistent fallback/help instructions',
@@ -302,15 +303,17 @@ try {
 
   // 6. Live status: the visual canvas prompt is mirrored in the polite
   //    status region when the haggis reaches a door, so proximity is not
-  //    visual-only. Drive briefly right from the deterministic spawn into
-  //    the WHS door's overlap zone; do not press an interact key.
+  //    visual-only. Drive right from the deterministic spawn (world x 340)
+  //    into the WHS door's overlap zone (x≈760–940); do not press interact.
+  //    Hold ~1.5s — at PLAYER_SPEED_PER_TICK=10 (retuned in v0.2.1) the
+  //    crossing takes far longer than the old 100/tick speed did.
   const liveDoorStatus = await page.evaluate(async () => {
     const status = document.querySelector('.scene-status');
     const before = status?.textContent?.trim() ?? '';
     window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
     );
-    await new Promise((resolve) => window.setTimeout(resolve, 140));
+    await new Promise((resolve) => window.setTimeout(resolve, 1500));
     window.dispatchEvent(
       new KeyboardEvent('keyup', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
     );

@@ -2,6 +2,41 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Chap the bolted door.** The hint banner trains every visitor to "chap a door tae go in",
+  yet chapping the coming-soon door did nothing on keyboard (silent no-op) and only printed a
+  static line on tap. It now answers. Pressing Enter/Space/E at the locked door — or tapping it —
+  fires a deterministic, rotating Scots retort: the live status region (visible chrome +
+  screen-reader) gets a fuller spoken line, and the over-door prompt's second line swaps
+  `COMIN' SOON.` for a terse pixel-font sign for `CHAP_PROMPT_WINDOW_MS` (2200 ms) before settling
+  back. Content swap only — no positional motion — so the quiet register and reduced-motion both
+  hold, and the idle visual golden is untouched (gate distance 0). New `src/hub/chap.ts`
+  (`CHAP_RETORTS` + `chapRetortAt`, index rotation, no RNG); `renderer.notifyChap` in
+  `canvas-room.ts`; wiring in `bothy-module.ts`. Retorts registered in `DESIGN.md`
+  voice.open.chap-retorts. Verified across chromium + firefox + webkit smokes.
+
+### Fixed
+
+- **Restored the release gate, which had been red since v0.2.1.** Closing the chap loop surfaced
+  that several release-gate checks had silently rotted when WHS moved on-origin (`/wild/`) and the
+  player speed was retuned (100 → 10 per tick) in v0.2.1, plus the Wee Chieftain sprite shipped in
+  v0.2.2/0.2.3 without full coverage. None were app bugs — the app behaviour was correct; the gates
+  encoded stale expectations:
+  - **vitest coverage** was below the enforced 100% threshold (branches 99.56%): the painted-sprite
+    flip branch and the backdrop-loaded-but-sprite-pending procedural fallback were untested. Added
+    focused tests; back to 100% lines/statements/branches/functions.
+  - **a11y gate**: the persistent direct-play link check still expected the old
+    `wild-haggis-survivors.pages.dev` host (now `/wild/`), and the live-door-status check walked the
+    haggis for only 140 ms — far too short at the retuned speed to reach the door, so it read an
+    empty status. Both corrected; 26/26 WCAG 2.2 AA checks pass.
+  - **door-tap / door-launch smokes** recorded navigation only to the old pages.dev host, so the
+    on-origin `/wild/` launch went undetected (tap smoke failed outright; launch smoke passed only
+    because it warned instead of asserting). Both now detect the `/wild/` launch, and door-launch
+    asserts it.
+
 ## [0.2.3] — 2026-05-29 · Mobile letterbox fill
 
 **Live at <https://ha.ggis.xyz/>** — portrait phones now fill with scene instead of dead letterbox bars.

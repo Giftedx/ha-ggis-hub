@@ -30,7 +30,13 @@ try {
   });
   await page.route('**/*', (route) => {
     const reqUrl = route.request().url();
-    if (reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')) {
+    // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
+    // + abort it (the WHS build is absent from the hub-only preview); keep the
+    // legacy pages.dev guard for a stray external launch.
+    if (
+      reqUrl.includes('/wild/') ||
+      reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')
+    ) {
       navigations.push(reqUrl);
       route.abort();
     } else {
@@ -65,7 +71,8 @@ try {
     console.error('page errors during smoke');
   }
   if (navigations.length === 0) {
-    console.warn('no navigation fired — haggis may not have reached a launchable door');
+    process.exitCode = 1;
+    console.error('no navigation fired — haggis did not reach the launchable WHS door');
   } else {
     console.log(`smoke OK — ${navigations.length} navigation(s) fired`);
   }

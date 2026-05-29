@@ -60,6 +60,10 @@ export interface CanvasRoomSurface extends SurfaceDimensions {
 
 export interface CanvasRoomRenderer {
   render(snapshot: DecodedSnapshot): void;
+  /** Acknowledge a chap on the locked door: the over-door prompt shows the
+   *  given pixel-font sign for CHAP_PROMPT_WINDOW_MS, then reverts to its
+   *  passive line. Host-driven; never fires during a fixed-phase capture. */
+  notifyChap(sign: string): void;
 }
 
 // Palette — Hub Dawn Bothy tokens locked in
@@ -128,6 +132,10 @@ let weeChieftainSprite: HTMLImageElement | undefined;
 const WALL_THICK_BACK = 96; // back wall — dominant, holds window/decor
 const WALL_THICK_SIDE = 24; // side walls — thin trim
 const WALL_THICK_FRONT = 24; // front wall — thin trim
+
+// How long a chap retort holds on the locked-door prompt before it settles
+// back to the passive "COMIN' SOON." line. Quiet-register dwell, not a flash.
+const CHAP_PROMPT_WINDOW_MS = 2200;
 
 interface ScaledRect {
   readonly x: number;
@@ -203,8 +211,13 @@ export function createCanvasRoomRenderer(
   let prevPlayerY: number | null = null;
   let haggisFacingLeft = false;
   let haggisIsMoving = false;
+  // Transient chap acknowledgement for the locked door (see notifyChap).
+  let chap: { readonly sign: string; readonly at: number } | null = null;
 
   return {
+    notifyChap(sign: string): void {
+      chap = { sign, at: nowMillis() };
+    },
     render(snapshot: DecodedSnapshot): void {
       /* v8 ignore next — window always defined in browser; node test env skips the true arm */
       const dpr = typeof window !== 'undefined' ? Math.round(window.devicePixelRatio || 1) : 1;
@@ -240,6 +253,14 @@ export function createCanvasRoomRenderer(
         };
       });
       const phase = fixedPhaseSeconds ?? (nowMillis() - startedAt) / 1000;
+      let chapSign: string | null = null;
+      if (chap !== null) {
+        if (nowMillis() - chap.at < CHAP_PROMPT_WINDOW_MS) {
+          chapSign = chap.sign;
+        } else {
+          chap = null;
+        }
+      }
       renderRoom(
         context,
         surface,
@@ -249,7 +270,8 @@ export function createCanvasRoomRenderer(
         phase,
         haggisFacingLeft,
         haggisIsMoving,
-        reducedMotion
+        reducedMotion,
+        chapSign
       );
     },
   };
@@ -327,7 +349,8 @@ function renderRoom(
   phase: number,
   haggisFacingLeft: boolean,
   haggisIsMoving: boolean,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  chapSign: string | null
 ): void {
   // 1. Void backdrop (frames the room)
   ctx.fillStyle = PX.void;
@@ -444,7 +467,7 @@ function renderRoom(
   drawVignette(ctx, surface);
 
   // 10. Prompt (only when at a door)
-  drawPrompt(ctx, surface, doors, snapshot);
+  drawPrompt(ctx, surface, doors, snapshot, chapSign);
 }
 
 // ── Wall ornaments ─────────────────────────────────────────────────────────
@@ -1351,7 +1374,8 @@ function drawHaggis(
 // case (the pixel font is uppercase-only).
 export function formatPromptText(
   interactionKind: 'launchable' | 'locked' | 'none',
-  doorTitle: string
+  doorTitle: string,
+  lockedChapSign?: string | null
 ): string {
   if (interactionKind === 'launchable') {
     // Two-line prompt: title on top, interact/tap hint below. Joined
@@ -1359,7 +1383,13 @@ export function formatPromptText(
     return `AWA' IN — ${doorTitle.toUpperCase()}\nENTER SPACE E TAP`;
   }
   if (interactionKind === 'locked') {
-    return `${doorTitle.toUpperCase()}\nCOMIN' SOON.`;
+    // Second line is the passive "comin' soon" by default; a fresh chap
+    // swaps it for the retort sign (uppercased for the single-case font).
+    const second =
+      lockedChapSign != null && lockedChapSign.length > 0
+        ? lockedChapSign.toUpperCase()
+        : "COMIN' SOON.";
+    return `${doorTitle.toUpperCase()}\n${second}`;
   }
   return '';
 }
@@ -1368,7 +1398,8 @@ function drawPrompt(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
   doors: readonly DoorLayout[],
-  snapshot: DecodedSnapshot
+  snapshot: DecodedSnapshot,
+  chapSign: string | null
 ): void {
   if (snapshot.interactionKind === 'none') {
     return;
@@ -1378,7 +1409,7 @@ function drawPrompt(
     return;
   }
 
-  const text = formatPromptText(snapshot.interactionKind, door.title);
+  const text = formatPromptText(snapshot.interactionKind, door.title, chapSign);
   const x = Math.round(surface.width / 2);
   const baseY = surface.height - 12;
 

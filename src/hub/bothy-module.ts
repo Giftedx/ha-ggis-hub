@@ -5,6 +5,7 @@ import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from '../engine/fixed-step';
 import type { GameInstance, GameModule, GameMountOptions } from '../engine/game-module';
 import { InputLogWriter } from '../engine/input-log';
 import { HUB_GAME_REGISTRY, getGameById, validateRoomRegistryCoherence } from '../games/registry';
+import { chapRetortAt } from './chap';
 import { createHubRoomController } from './room';
 import { createLaunchPlan, performLaunch } from '../navigation/launch';
 import { createBrowserLaunchNavigator } from '../navigation/browser-navigator';
@@ -84,6 +85,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       let pointerActive = false;
       let pointerWorldX = 0;
       let pointerWorldY = 0;
+      let chapCount = 0;
       let paused = false;
       let rafId = 0;
       let firstFrameRafId = 0;
@@ -141,13 +143,27 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         performLaunch(plan, launchNavigator);
       }
 
+      // Answer a chap on the coming-soon door. The hint banner trains every
+      // visitor to "chap a door tae go in"; the locked door must respond to
+      // that verb, not sit silent. Rotates a Scots retort through the status
+      // line (visible + screen-reader) and the over-door canvas sign.
+      function chapLockedDoor(): void {
+        const retort = chapRetortAt(chapCount);
+        chapCount += 1;
+        shell.status.textContent = retort.spoken;
+        renderer.notifyChap(retort.sign);
+      }
+
       function maybeLaunchFromInteract(): void {
         if (!keyboard.consumeInteract()) return;
         const snapshot = room.lastSnapshot();
-        if (snapshot.interactionKind !== 'launchable') return;
         const door = snapshot.doors[snapshot.interactionDoorIndex];
         if (door === undefined) return;
-        launchDoorById(door.id);
+        if (snapshot.interactionKind === 'launchable') {
+          launchDoorById(door.id);
+        } else if (snapshot.interactionKind === 'locked') {
+          chapLockedDoor();
+        }
       }
 
       function pointerToWorld(event: PointerEvent): { x: number; y: number } {
@@ -179,10 +195,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
             if (doorSnap.status === 'launchable') {
               launchDoorById(vb.id);
             } else {
-              const game = getGameById(HUB_GAME_REGISTRY, vb.id);
-              /* v8 ignore next — registry coherence validated at mount; game always found for locked door ids */
-              const title = game?.title ?? vb.id;
-              shell.status.textContent = `${title} door — comin’ soon.`;
+              chapLockedDoor();
             }
             return;
           }

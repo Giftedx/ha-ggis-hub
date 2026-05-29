@@ -84,6 +84,12 @@ class RecordingCanvasContext {
   clip(): void {
     this.calls.push('clip');
   }
+  translate(x: number, y: number): void {
+    this.calls.push(`translate:${x},${y}`);
+  }
+  scale(x: number, y: number): void {
+    this.calls.push(`scale:${x},${y}`);
+  }
 }
 
 class LoadedImage {
@@ -276,6 +282,46 @@ describe('createCanvasRoomRenderer', () => {
     renderer.render(SNAPSHOT_NO_INTERACTION);
     expect(context.calls).toContain(`drawImage:${STORYBOOK_BACKDROP_SRC}@0,0,540,360`);
     expect(context.calls).not.toContain('fillRect:54,14,432,108');
+  });
+
+  it('draws the procedural haggis at storybook scale when the backdrop loads before the sprite', async () => {
+    // The backdrop WebP and the Wee Chieftain PNG are separate files that can
+    // finish loading at different times. When the backdrop is painted but the
+    // sprite is not yet ready, the procedural haggis must render over the
+    // backdrop at the storybook scale (storybookBackdropDrawn=true branch),
+    // not be skipped. Fresh module so the image singletons start unloaded.
+    vi.resetModules();
+    class SelectiveImage {
+      complete = false;
+      naturalWidth = 0;
+      naturalHeight = 0;
+      decoding = 'async';
+      srcValue = '';
+      get src(): string {
+        return this.srcValue;
+      }
+      set src(value: string) {
+        this.srcValue = value;
+        // Only the backdrop reports loaded; the sprite stays pending.
+        if (value.includes('storybook-backdrop')) {
+          this.complete = true;
+          this.naturalWidth = 1080;
+          this.naturalHeight = 720;
+        }
+      }
+    }
+    vi.stubGlobal('Image', SelectiveImage);
+    const fresh = await import('./canvas-room');
+    const { surface, context } = recordingSurface(540, 360);
+    fresh
+      .createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 })
+      .render(SNAPSHOT_NO_INTERACTION);
+    // Backdrop painted...
+    expect(context.calls).toContain('drawImage:/art/bothy-storybook-backdrop.webp@0,0,540,360');
+    // ...but the haggis fell back to the procedural drawer (no sprite blit).
+    expect(context.calls.some((c) => c.startsWith('drawImage:/art/wee-chieftain-idle.png'))).toBe(
+      false
+    );
   });
 
   it('stages the Wee Chieftain as a room inhabitant instead of the dominant room mass', () => {
@@ -475,6 +521,20 @@ describe('createCanvasRoomRenderer', () => {
     expect(ctxDefault.calls.length).toBeGreaterThan(callsDefault);
   });
 
+  it('flips the painted sprite horizontally when the haggis faces left (sprite path)', () => {
+    vi.stubGlobal('Image', LoadedImage);
+    const { surface, context } = recordingSurface(540, 360);
+    const renderer = createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 });
+    // First render establishes prevPlayerX with the painted sprite loaded.
+    renderer.render(SNAPSHOT_NO_INTERACTION);
+    // Second render: playerX drops 30 units → facingLeft → sprite flip branch.
+    renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: SNAPSHOT_NO_INTERACTION.playerX - 30 });
+    expect(context.calls).toContain('scale:-1,1');
+    expect(context.calls.some((c) => c.startsWith('drawImage:/art/wee-chieftain-idle.png'))).toBe(
+      true
+    );
+  });
+
   it('does not flip facing direction when playerX changes by ≤ 2 units — exercises small-dx guard', () => {
     const { surface, context } = recordingSurface(1200, 800);
     const renderer = createCanvasRoomRenderer(surface, ROOM);
@@ -552,5 +612,91 @@ describe('createCanvasRoomRenderer', () => {
     const saves = context.calls.filter((c) => c === 'save').length;
     const restores = context.calls.filter((c) => c === 'restore').length;
     expect(saves).toBe(restores);
+  });
+});
+
+const SNAPSHOT_AT_LOCKED: DecodedSnapshot = {
+  ...SNAPSHOT_AT_LAUNCHABLE,
+  playerX: 140,
+  interactionKind: 'locked',
+  interactionDoorIndex: 1,
+};
+
+describe('formatPromptText chap variant', () => {
+  it('swaps the locked second line to the chap sign when one is supplied', () => {
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon", 'NAE HAME YET.')).toBe(
+      `COMIN' WI' THE NEXT MOON\nNAE HAME YET.`
+    );
+  });
+
+  it('uppercases the chap sign so it renders in the single-case pixel font', () => {
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon", "no' the noo.")).toBe(
+      `COMIN' WI' THE NEXT MOON\nNO' THE NOO.`
+    );
+  });
+
+  it('keeps the passive COMIN SOON line when the chap sign is null or empty', () => {
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon", null)).toBe(
+      `COMIN' WI' THE NEXT MOON\nCOMIN' SOON.`
+    );
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon", '')).toBe(
+      `COMIN' WI' THE NEXT MOON\nCOMIN' SOON.`
+    );
+  });
+
+  it('ignores a chap sign for a launchable door', () => {
+    expect(formatPromptText('launchable', 'Wild Haggis Survivors', 'NAE HAME YET.')).toBe(
+      `AWA' IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
+    );
+  });
+});
+
+describe('createCanvasRoomRenderer chap acknowledgement', () => {
+  it('changes the locked prompt glyphs after a chap so the chap reads on the door', () => {
+    const before = recordingSurface(540, 360);
+    createCanvasRoomRenderer(before.surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LOCKED
+    );
+
+    const after = recordingSurface(540, 360);
+    const renderer = createCanvasRoomRenderer(after.surface, ROOM, { fixedPhaseSeconds: 0 });
+    renderer.notifyChap('NAE HAME YET.');
+    renderer.render(SNAPSHOT_AT_LOCKED);
+
+    // Same frozen phase + snapshot → the only thing that can differ is the
+    // prompt's second line, so a chap must move the recorded glyph draws.
+    expect(after.context.calls).not.toEqual(before.context.calls);
+  });
+
+  it('reverts the locked prompt to its passive line once the chap window passes', () => {
+    let now = 9_000;
+    vi.stubGlobal('performance', { now: () => now });
+
+    const baseline = recordingSurface(540, 360);
+    createCanvasRoomRenderer(baseline.surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LOCKED
+    );
+
+    const chapped = recordingSurface(540, 360);
+    const renderer = createCanvasRoomRenderer(chapped.surface, ROOM, { fixedPhaseSeconds: 0 });
+    renderer.notifyChap('NAE HAME YET.');
+    now = 9_000 + 10_000; // far past any sane prompt window
+    renderer.render(SNAPSHOT_AT_LOCKED);
+
+    expect(chapped.context.calls).toEqual(baseline.context.calls);
+  });
+
+  it('leaves the launchable prompt untouched after a chap on the locked door', () => {
+    const baseline = recordingSurface(540, 360);
+    createCanvasRoomRenderer(baseline.surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LAUNCHABLE
+    );
+
+    const after = recordingSurface(540, 360);
+    const renderer = createCanvasRoomRenderer(after.surface, ROOM, { fixedPhaseSeconds: 0 });
+    renderer.notifyChap('NAE HAME YET.');
+    renderer.render(SNAPSHOT_AT_LAUNCHABLE);
+
+    expect(after.context.calls).toEqual(baseline.context.calls);
   });
 });
