@@ -1,16 +1,35 @@
-// Determinism smoke: load the hub twice with the same fixed seed,
-// apply the same scripted input sequence, assert the final state
-// hashes match byte-for-byte. Validates the core promise that the
-// hub-core sim is fully deterministic — a release-gate-grade claim.
+// Determinism smoke: load the hub twice with the same fixed seed, apply
+// the same scripted input for the same EXACT number of ticks, assert the
+// final state hashes match byte-for-byte. Validates the core promise that
+// the hub-core sim is fully deterministic — a release-gate-grade claim.
 //
-// Uses the `?seed=N` URL param + `window.__stateHash()` dev hook
-// added 2026-05-23.
+// Why fixed tick counts instead of `waitForTimeout` holds: the production
+// loop advances a wall-clock-derived, variable number of ticks per frame
+// (delta -> fixed-step accumulator). Driving input by real time therefore
+// applies a run-to-run-variable number of movement ticks. That jitter was
+// masked while the player slammed into the wall clamp within a few ticks;
+// the v0.2.1 speed retune (100 -> 10 units/tick) left the player mid-field
+// at the end of the hold, so the tick-count jitter leaked straight into
+// player_x/player_y and the hash, and the gate began failing. We instead
+// pause the loop and step an exact tick count via the `__advance` dev hook
+// (added 2026-05-29) — the same tick path real frames use, minus the clock.
+//
+// Uses the `?seed=N` URL param + `window.__stateHash()` / `window.__seed`
+// dev hooks (added 2026-05-23) and `window.__setPaused` / `window.__advance`
+// (added 2026-05-29).
 
 import { chromium } from 'playwright';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:5173/';
 const SEED = 0xfeedf00dcafebeefn; // fixed test seed; any value works
 const URL = `${URL_BASE}?seed=${SEED}`;
+
+// Fixed tick budgets per scripted key. Chosen to keep the player mid-field
+// (start 340,540 in a 1000x1000 world at 10 units/tick) so movement is
+// genuinely exercised rather than absorbed by a wall clamp — the exact
+// condition that unmasked the original non-determinism.
+const RIGHT_TICKS = 30;
+const DOWN_TICKS = 18;
 
 async function captureFinalHash(browser) {
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
@@ -27,15 +46,23 @@ async function captureFinalHash(browser) {
     throw new Error(`seed mismatch: page=${seedSeen} expected=${SEED}`);
   }
 
-  // Scripted input: walk right ~500ms, down ~300ms, release. Same
-  // sequence both runs.
+  // Pause the wall-clock tick loop so the only ticks applied are the exact
+  // counts we step below. Same scripted sequence both runs.
+  await page.evaluate(() => window.__setPaused(true));
+
   await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(500);
+  const rightPacked = await page.evaluate((ticks) => window.__advance(ticks), RIGHT_TICKS);
   await page.keyboard.up('ArrowRight');
+  if (rightPacked === 0) {
+    throw new Error('ArrowRight did not register — sampled packed input was 0 (no movement)');
+  }
+
   await page.keyboard.down('ArrowDown');
-  await page.waitForTimeout(300);
+  const downPacked = await page.evaluate((ticks) => window.__advance(ticks), DOWN_TICKS);
   await page.keyboard.up('ArrowDown');
-  await page.waitForTimeout(300);
+  if (downPacked === 0) {
+    throw new Error('ArrowDown did not register — sampled packed input was 0 (no movement)');
+  }
 
   const hash = await page.evaluate(() => String(window.__stateHash()));
   await ctx.close();
