@@ -54,6 +54,11 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
   determinism gate above). It now holds `ArrowRight` and polls `window.__roomSnapshot()` until
   the haggis is standing at the launchable door (10 s budget) before pressing Enter, so the
   smoke is speed-agnostic.
+- **De-flaked the `locked-door` browser smoke the same way.** It walked the haggis to the
+  left-wall locked door with a fixed 500 ms hold before asserting the approach copy. The locked
+  door sits nearer spawn than the launchable one, so it was less exposed than `door-launch`, but
+  it carried the identical wall-clock fragility. It now polls `window.__roomSnapshot()` until the
+  haggis is standing at the locked door before asserting the status copy and chap retort.
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 

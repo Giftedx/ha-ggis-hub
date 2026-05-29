@@ -43,13 +43,21 @@ try {
   // Let WASM boot and the haggis spawn at world (340, 540).
   await page.waitForTimeout(800);
 
-  // Walk LEFT. The locked future-bothy door is at world x: 80–200. At
-  // PLAYER_SPEED_PER_TICK=10 (retuned in v0.2.1), ~500 ms of left movement
-  // carries the haggis from spawn (340) well into the door's interaction box.
+  // Walk LEFT to the locked future-bothy door (left wall). Hold ArrowLeft and
+  // poll the dev snapshot until the haggis is standing at the locked door,
+  // rather than trusting a fixed wall-clock hold: the fixed-step loop advances
+  // a browser-dependent number of ticks per frame, so a fixed duration can
+  // under-walk on a slow/throttled engine (the same wall-clock fragility fixed
+  // in smoke-door-launch.mjs).
   await page.keyboard.down('ArrowLeft');
-  await page.waitForTimeout(500);
-  await page.keyboard.up('ArrowLeft');
-  await page.waitForTimeout(200);
+  try {
+    await page.waitForFunction(() => window.__roomSnapshot?.()?.interactionKind === 'locked', {
+      timeout: 10_000,
+    });
+  } finally {
+    await page.keyboard.up('ArrowLeft');
+  }
+  await page.waitForTimeout(120);
 
   const statusText = await page.evaluate(
     () => document.querySelector('.scene-status')?.textContent?.trim() ?? null
