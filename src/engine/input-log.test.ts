@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { InputLogWriter } from './input-log';
+import { InputLogWriter, fnv1a64 } from './input-log';
 
 describe('InputLogWriter', () => {
   it('writes a HGLG header', () => {
@@ -71,5 +71,21 @@ describe('InputLogWriter', () => {
     const second = writer.finish(1, 0xdeadbeefn);
     expect(first.byteLength).toBe(second.byteLength);
     expect(Array.from(first)).toEqual(Array.from(second));
+  });
+});
+
+describe('fnv1a64', () => {
+  // The .haggislog digest is a fourth hand-rolled FNV-1a 64, alongside Rust
+  // (hub-core), C (hub-hardlang), and Go (haggis-eval). Pin it to the published
+  // Fowler/Noll/Vo reference vectors — the same external truth that
+  // crates/hub-core/src/hash.rs asserts — so all four implementations are
+  // proven to agree byte-for-byte, not merely assumed to.
+  const bytesOf = (s: string): number[] => Array.from(s, (c) => c.charCodeAt(0));
+
+  it('matches the published FNV-1a 64 reference vectors', () => {
+    expect(fnv1a64([])).toBe(0xcbf29ce484222325n);
+    expect(fnv1a64(bytesOf('a'))).toBe(0xaf63dc4c8601ec8cn);
+    expect(fnv1a64(bytesOf('foobar'))).toBe(0x85944171f73967e8n);
+    expect(fnv1a64(bytesOf('chongo was here!\n'))).toBe(0x46810940eff5f915n);
   });
 });

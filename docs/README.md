@@ -14,11 +14,11 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a procedural Canvas2D bothy renderer (hub-original haggis + WHS croft-derived room fixtures + pixel sprites). Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR; the full `haggis-eval all` release gate on push to main, emitting a cryptographically signed JSON report. Deployment headers, manifest, OG card, and SPA redirects under `public/`.
+The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a Canvas2D bothy renderer with painted WebP backdrop, painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR; the full `haggis-eval all` release gate on push to main, emitting a cryptographically signed JSON report. Deployment headers, manifest, OG card, and SPA redirects under `public/`.
 
 ## Recommended reading order
 
-The list below is the full sequence. The root [`README.md`](../README.md) highlights a shorter "load-bearing four" if you have less time.
+The list below is the full sequence. The root [`README.md`](../README.md) highlights a shorter "load-bearing five" if you have less time.
 
 Foundation (read in numeric order):
 
@@ -134,7 +134,7 @@ Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports 
 - [Slice 5 Canvas2D first room report](archive/2026-05-23-slice-5-canvas2d-first-room-report.md) — superseded by `haggis-eval`
 - Foundation docs 01, 02, 03, 06, 08, 09, 10 archived in the foundation prune — see the Foundation section above for direct links and distillation targets.
 
-## Current executable foundation files
+## Historical executable foundation snapshot (2026-05-23)
 
 These files exist now and form the current executable foundation:
 

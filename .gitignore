@@ -46,6 +46,9 @@ yarn-error.log*
 # Serena MCP plugin local state (project cache, memories, machine config).
 .serena/
 
+# Superpowers brainstorm scratch (transient local server state, pids, html shells).
+.superpowers/
+
 # Research image references (large, local-only; tracked separately if needed).
 docs/research/refs/
 docs/research/*.zip

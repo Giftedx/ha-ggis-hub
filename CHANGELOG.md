@@ -65,6 +65,14 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
   kept the wall-clock dependence, so a loaded chromium runner could still under-walk and read an
   empty status. It now polls `window.__roomSnapshot()` until the haggis reaches the launchable
   door, then reads the announcement — the last wall-clock walk in the smoke/gate suite.
+- **Cross-validated the fourth FNV-1a 64 implementation; corrected the README count.** The
+  `.haggislog` writer (`src/engine/input-log.ts`) hand-rolls its own FNV-1a 64 for the log
+  digest — a fourth implementation alongside Rust, C, and Go — but its tests only checked buffer
+  lengths and idempotency, never the digest itself, so it was the one impl of the signature
+  primitive not pinned to the published reference vectors (a real gap behind the README's
+  "every claim resolves to code" pledge). Exported `fnv1a64` and asserted it against the same
+  Fowler/Noll/Vo vectors `hub-core` uses — it agrees byte-for-byte. The portfolio receipt said
+  "three" implementations; it is four.
 
 ## [0.2.4] — 2026-05-29 · Chap the bolted door + release-gate restore
 
