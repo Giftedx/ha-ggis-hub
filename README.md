@@ -1,16 +1,28 @@
-# ha.ggis Hub
+<div align="center">
 
-`ha.ggis Hub` is the playable front door for haggis-themed games at `https://ha.ggis.xyz`.
+<img src="./assets/banner.svg" alt="ha.ggis Hub - a playable Highland-games arcade lobby" width="100%" />
 
-The name is the joke and the product promise:
+# ha&middot;ggis Hub
 
-```text
-ha + ggis = haggis
-ha.ggis.xyz = say it without the dot
-```
+**A playable Highland-games arcade lobby.** Walk up to a door, tap, and you are in a game.
+*ha + ggis = haggis &mdash; say it without the dot.*
 
-This repository has moved from documentation-only foundation into a working executable hub. The current state: a Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement and door proximity; `hub-wasm` exposes a typed boundary the browser consumes; a strict TypeScript/Vite host owns lifecycle, input, registry, direct-play launch seams, and a hand-rolled Canvas2D first-room renderer. The room is rendered as a Canvas2D composite: a painted WebP bothy backdrop, a painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Door interaction is wired both via keyboard (walk + Enter) and pointer (tap), each launching the matching game from the registry. Deployment is hardened (CSP, security headers, source map policy, build verification). Browser smoke tests cover the keyboard and tap launch paths.
+![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
+![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Canvas](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)
 
+🎮 **Live at [ha.ggis.xyz](https://ha.ggis.xyz)**
+
+</div>
+
+A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic
+movement and door proximity; a strict TypeScript/Vite host owns lifecycle, input, the game
+registry, direct-play launch seams, and a hand-rolled Canvas2D renderer. Deployment is
+hardened (CSP, security headers, source-map policy, build verification) and browser smoke
+tests cover both the keyboard and tap launch paths.
+
+---
 ## Start here
 
 Begin with the [Documentation index](docs/README.md). It catalogues every doc and gives the full recommended reading order.
@@ -127,3 +139,4 @@ Future contributors and agents must read:
 - [First public release requirements](docs/foundation/07-quality-gates.md#first-public-release-requirements)
 
 Do not scaffold from the archived original plan. It is preserved only as historical input.
+
