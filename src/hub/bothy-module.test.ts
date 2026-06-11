@@ -73,6 +73,30 @@ const SNAPSHOT: DecodedSnapshot = {
   doors: ROOM.doors,
 };
 
+const HAGGIS_LOG_HEADER_LEN = 34;
+const HAGGIS_LOG_RECORD_LEN = 8;
+const HAGGIS_LOG_INTERACT_EDGE_FLAG = 0x0001_0000;
+
+function readU32(bytes: Uint8Array, offset: number): number {
+  return (
+    (bytes[offset]! |
+      (bytes[offset + 1]! << 8) |
+      (bytes[offset + 2]! << 16) |
+      (bytes[offset + 3]! << 24)) >>>
+    0
+  );
+}
+
+function finishCapturedInputLog(winAddEventListener: ReturnType<typeof vi.fn>): Uint8Array {
+  const calls = winAddEventListener.mock.calls as [string, EventListener][];
+  const entry = calls.find(([type]) => type === 'beforeunload');
+  expect(entry).toBeDefined();
+  entry![1](new Event('beforeunload'));
+  const log = (window as { __lastHaggisLog?: Uint8Array }).__lastHaggisLog;
+  expect(log).toBeInstanceOf(Uint8Array);
+  return log!;
+}
+
 interface FakeCanvas {
   width: number;
   height: number;
@@ -353,6 +377,25 @@ describe('createBothyGameModule', () => {
     keyboard.consumeInteract.mockReturnValue(true);
     browser.flushRaf(100);
     expect(navigator.navigate).toHaveBeenCalledWith('/wild/', 'route');
+  });
+
+  it('serialises keyboard interact edges as replay-grade input-log intent pulses', async () => {
+    const activeSnapshot: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'launchable',
+      interactionDoorIndex: 0,
+    };
+    const { browser, keyboard, winAddEventListener } = await mountHarness({
+      snapshot: activeSnapshot,
+    });
+    keyboard.interactHeld.mockReturnValue(true);
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+
+    const bytes = finishCapturedInputLog(winAddEventListener);
+    const packedInput = readU32(bytes, HAGGIS_LOG_HEADER_LEN + 4);
+    expect(packedInput).toBe(HAGGIS_LOG_INTERACT_EDGE_FLAG | 0b1_0000);
+    expect(bytes.byteLength).toBe(HAGGIS_LOG_HEADER_LEN + HAGGIS_LOG_RECORD_LEN + 20);
   });
 
   it('resets the fixed-step accumulator when the page returns to visible', async () => {

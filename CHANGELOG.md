@@ -6,6 +6,14 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Fixed
 
+- **Made `.haggislog` replay-grade for keyboard launch intent.** The v1 body record stays
+  `(tick_index: u32, input_packed: u32)`, but `input_packed` now has a documented high-half
+  record-local interact-edge pulse (bit 16) while the low 16 bits remain the core movement
+  `InputSnapshot`. Native movement replay keeps masking to the low half, so movement-only
+  determinism is unchanged, while host replay tooling can now reproduce the Enter/Space/E edge
+  that fired a door launch or chap. `InputLogWriter.recordTick` emits an intent record even when
+  movement is unchanged, the bothy loop passes the consumed interact edge into the log, and the
+  kernel spec / Rust log comments document the backward-compatible layout.
 - **Made CI green for real.** v0.2.4 fixed the release-gate _logic_ (coverage back to 100%,
   the a11y host, the door smokes) but the badge stayed red because the CI _wiring_ could
   never execute those gates — both jobs were broken at the infrastructure level, so the

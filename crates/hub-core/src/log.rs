@@ -1,6 +1,9 @@
 //! `.haggislog` binary input log format. See the kernel design spec §2.5 for
 //! the byte layout. The writer assembles a header, appends sparse body
-//! records, and finalises a trailer. The reader parses the same.
+//! records, and finalises a trailer. The reader parses the same. Body
+//! `input_packed` records store the core `InputSnapshot` in the low 16 bits;
+//! high bits are browser-only record-local intent pulses ignored by native
+//! deterministic movement replay.
 
 use crate::hash::Fnv1a64;
 use crate::sim::InputSnapshot;
@@ -90,7 +93,9 @@ pub const HEADER_LEN: usize = 4   // magic
     + 8 // initial_state_hash
     ;
 
-/// Byte length of one body record (`tick_index` + packed input as `u32`).
+/// Byte length of one body record (`tick_index` + packed input as `u32`). The
+/// low 16 bits of the packed input are the core input snapshot; high bits are
+/// host-only intent pulses ignored by `parse_body` for native replay.
 pub const RECORD_LEN: usize = 4 + 4;
 /// Byte length of the trailer (`final_state_hash` + `total_ticks` + digest).
 pub const TRAILER_LEN: usize = 8 + 4 + 8;
@@ -244,7 +249,10 @@ fn parse_header(bytes: &[u8], running_core_api_version: u32) -> Result<ParsedHea
     })
 }
 
-/// Decode the variable-length body into typed records.
+/// Decode the variable-length body into typed records. Browser-only high-half
+/// intent pulses are deliberately masked away here; native replay consumes only
+/// the low 16-bit core `InputSnapshot` and leaves launch side effects to host
+/// replay tooling.
 fn parse_body(body: &[u8]) -> Result<Vec<LogRecord>, LogError> {
     if !body.len().is_multiple_of(RECORD_LEN) {
         return Err(LogError::Truncated);
@@ -295,9 +303,9 @@ fn parse_trailer(trailer: &[u8]) -> ParsedTrailer {
 }
 
 /// Low 16 bits of a `u32`, expressed as a masked `try_from` so clippy can
-/// prove the conversion is lossless. The body stores each
-/// `InputSnapshot::raw()` (a `u16`) widened to `u32` for 4-byte alignment, so
-/// the high half is always zero by construction.
+/// prove the conversion is lossless. Native replay consumes this low half as
+/// the core `InputSnapshot`; browser hosts may use high bits for record-local
+/// intent pulses that are ignored here.
 fn low_u16(value: u32) -> u16 {
     u16::try_from(value & u32::from(u16::MAX)).expect("masked u32 fits in u16")
 }
@@ -391,6 +399,31 @@ mod tests {
         bytes[HEADER_LEN] ^= 1;
         let result = Log::decode(&bytes, crate::CORE_API_VERSION);
         assert!(matches!(result, Err(LogError::DigestMismatch { .. })));
+    }
+
+    #[test]
+    fn decode_masks_browser_intent_high_bits_from_core_input() {
+        let mut writer = LogWriter::new(WriterConfig {
+            seed: 1,
+            core_api_version: crate::CORE_API_VERSION,
+            started_at_utc_ms: 1,
+            initial_state_hash: 0,
+        });
+        writer.append(0, InputSnapshot::from_axes(1, 0, false));
+        let mut bytes = writer.finish(1, 0);
+
+        // Body layout: tick_index u32, then input_packed u32. Set bit 16 in
+        // input_packed to simulate the TypeScript host's record-local
+        // interact-edge pulse, then refresh the trailer digest so decode() can
+        // reach parse_body.
+        let input_packed_offset = HEADER_LEN + 4;
+        bytes[input_packed_offset + 2] |= 0x01;
+        let digest_offset = bytes.len() - 8;
+        let digest = digest_of_header_and_body(&bytes[..digest_offset]);
+        bytes[digest_offset..].copy_from_slice(&digest.to_le_bytes());
+
+        let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+        assert_eq!(log.records[0].input, InputSnapshot::from_axes(1, 0, false));
     }
 
     fn sample_log_bytes() -> Vec<u8> {

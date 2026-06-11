@@ -118,12 +118,22 @@ Binary, append-only, versioned. Layout:
 | Header | seed | `u64` | RNG seed for the session |
 | Header | started_at_utc_ms | `u64` | informational; not part of replay verification |
 | Header | initial_state_hash | `u64` | `state_hash(&Sim)` immediately after `init(seed)` |
-| Body | record | `(u32 tick_index, u32 input_packed)` per entry | omitted when input unchanged from prior frame |
+| Body | record | `(u32 tick_index, u32 input_packed)` per entry | omitted when core input unchanged and no browser intent pulse fires |
 | Trailer | final_state_hash | `u64` | `state_hash(&Sim)` after the last tick |
 | Trailer | total_ticks | `u32` | |
 | Trailer | log_digest | `u64` | FNV-1a of (header + body + final_state_hash + total_ticks) — covers everything except the digest itself, so tampering with the final hash or tick count is also detected |
 
-Reader/writer implemented in Rust, callable from both native and WASM. TS host writes the log to a `Uint8Array` in memory; Playwright extracts the buffer and hands it to `haggis-eval determinism`.
+`input_packed` is intentionally wider than `InputSnapshot::raw()`:
+
+| Bits | Meaning | Replay semantics |
+|---|---|---|
+| 0..=15 | Core `InputSnapshot` (`x`, `y`, held interact, reserved low bits) | Held across omitted frames; native deterministic replay masks to this low half. |
+| 16 | Browser interact-edge / launch-intent pulse | Record-local only; emitted on the tick where the host consumes a fresh Enter/Space/E interact edge, so a host replay can reproduce door-launch side effects after replaying movement to that tick. |
+| 17..=31 | Reserved | Must be zero until a documented extension claims them. |
+
+This is a backward-compatible format-v1 extension: v1 movement-only replay remains deterministic because `hub_core::log` already converts each body `u32` through `InputSnapshot::from_raw(low_u16(input_packed))`, ignoring the high browser-intent half. A future change that alters record alignment, moves core bits, or makes high bits held state must bump `format_version` and `CORE_API_VERSION` together.
+
+Rust reader/writer exists for native replay and fixtures; the TS host mirrors the v1 writer to a `Uint8Array` in memory. Playwright extracts the browser buffer and hands it to `haggis-eval determinism`.
 
 **Version policy.** `replay::run` rejects any log whose `core_api_version` does not exactly match the running `hub_core::CORE_API_VERSION`. There is no automatic migration. Migration, when it becomes necessary, is its own ADR and lands behind an explicit version-bump in `CORE_API_VERSION` with golden fixtures per version.
 

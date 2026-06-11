@@ -158,8 +158,8 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         renderer.notifyChap(retort.sign);
       }
 
-      function maybeLaunchFromInteract(): void {
-        if (!keyboard.consumeInteract()) return;
+      function maybeLaunchFromInteract(interactEdge: boolean): void {
+        if (!interactEdge) return;
         const snapshot = room.lastSnapshot();
         const door = snapshot.doors[snapshot.interactionDoorIndex];
         if (door === undefined) return;
@@ -314,11 +314,12 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         const pumped = pumpFixedStep(config, stepState, delta);
         if (!paused && pumped.ticksToAdvance > 0) {
           const packed = samplePackedInput();
-          inputLog.recordIfChanged(stepState.tick, packed);
+          const interactEdge = keyboard.consumeInteract();
+          inputLog.recordTick(stepState.tick, packed, { interactEdge });
           for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
             room.tick(packed);
           }
-          maybeLaunchFromInteract();
+          maybeLaunchFromInteract(interactEdge);
         }
         room.render();
         stepState = pumped.state;
