@@ -32,36 +32,44 @@ try {
 
   await page.goto(URL_BASE, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);
+  await page.waitForFunction(() => typeof window.__launchableDoorVisualBounds === 'function', {
+    timeout: 5_000,
+  });
 
-  // WHS door world bounds: x∈[820,940], y∈[420,580]. World is roughly
-  // 1000×1000 mapped to 540×360 canvas. Tap world (880, 500) → canvas
-  // (~475, ~180). Canvas is centered + object-fit:contain at 960×540
-  // viewport (3:2 aspect, no letterboxing). Use the canvas bounding
-  // rect to compute the tap point exactly.
+  // The app exposes this read-only smoke/debug hook from the same
+  // visualDoorBounds array used by pointer tap hit-detection. The bounds are
+  // logical canvas pixels after renderer snapping, so this tap follows visual
+  // door drift instead of duplicating sim/world door coordinates here.
   const tap = await page.evaluate(() => {
     const canvas = document.querySelector('canvas.scene-canvas');
-    if (!canvas) return null;
+    const door = window
+      .__launchableDoorVisualBounds?.()
+      ?.find((candidate) => candidate.id === 'wild-haggis-survivors');
+    if (!canvas || !door) return null;
     const r = canvas.getBoundingClientRect();
-    const worldToCanvasX = 880 / 1000;
-    const worldToCanvasY = 500 / 1000;
+    const dpr = Math.round(window.devicePixelRatio || 1);
+    const logicalWidth = canvas.width / dpr;
+    const logicalHeight = canvas.height / dpr;
     return {
-      x: r.left + r.width * worldToCanvasX,
-      y: r.top + r.height * worldToCanvasY,
+      x: r.left + ((door.x + door.width / 2) / logicalWidth) * r.width,
+      y: r.top + ((door.y + door.height / 2) / logicalHeight) * r.height,
+      door,
     };
   });
-  if (!tap) throw new Error('canvas not found');
+  if (!tap) throw new Error('launchable WHS door visual bounds hook/canvas not found');
 
   await page.mouse.click(tap.x, tap.y);
   await page.waitForTimeout(400);
 
   console.log('tap at', tap, '→ navigations:', navigations, 'errors:', errors);
+  const wildNavigations = navigations.filter((url) => url.includes('/wild/'));
   if (errors.length > 0) {
     process.exitCode = 1;
-  } else if (navigations.length === 0) {
+  } else if (wildNavigations.length === 0) {
     process.exitCode = 1;
-    console.error('tap-launch did NOT fire');
+    console.error('tap-launch did NOT navigate to /wild/');
   } else {
-    console.log('smoke OK — tap-launch fired');
+    console.log('smoke OK — tap-launch fired /wild/ navigation');
   }
 } finally {
   await browser.close();

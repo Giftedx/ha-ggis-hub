@@ -9,7 +9,11 @@ import { chapRetortAt } from './chap';
 import { createHubRoomController } from './room';
 import { createLaunchPlan, performLaunch } from '../navigation/launch';
 import { createBrowserLaunchNavigator } from '../navigation/browser-navigator';
-import { createCanvasRoomRenderer, computeVisualDoorBounds } from '../render/canvas-room';
+import {
+  createCanvasRoomRenderer,
+  computeVisualDoorBounds,
+  type VisualDoorBounds,
+} from '../render/canvas-room';
 import { initializeHubBoundaryV2 } from '../wasm/boundary';
 import { loadGeneratedHubWasm } from '../wasm/generated-loader';
 import { createDebugOverlay, createFpsTracker } from '../debug/overlay';
@@ -241,13 +245,26 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
 
       const winHooks = window as unknown as {
         __roomSnapshot?: () => unknown;
+        __launchableDoorVisualBounds?: () => readonly VisualDoorBounds[];
         __stateHash?: () => bigint;
         __seed?: bigint;
         __setPaused?: (paused: boolean) => void;
         __advance?: (ticks: number) => number;
       };
-      /* v8 ignore start — browser-only dev hooks; called by smoke-determinism.mjs, not unit tests */
+      /* v8 ignore start — browser-only dev/smoke hooks; read-only and must not mutate normal play */
       winHooks.__roomSnapshot = () => room.lastSnapshot();
+      // Test/debug-only hook for browser smokes. It reports the launchable
+      // door bounds derived from the exact visualDoorBounds array used by
+      // pointer tap hit-detection, so smoke taps drift with the renderer.
+      winHooks.__launchableDoorVisualBounds = () => {
+        const snapshot = room.lastSnapshot();
+        return visualDoorBounds
+          .filter(
+            (bounds) =>
+              snapshot.doors.find((door) => door.id === bounds.id)?.status === 'launchable'
+          )
+          .map((bounds) => ({ ...bounds }));
+      };
       winHooks.__stateHash = () => boundary.stateHash();
       // Deterministic drive for the determinism gate. The production tick
       // loop advances a wall-clock-derived, variable number of ticks per
@@ -348,6 +365,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           keyboard.destroy();
           room.destroy();
           delete winHooks.__roomSnapshot;
+          delete winHooks.__launchableDoorVisualBounds;
           delete winHooks.__stateHash;
           delete winHooks.__seed;
           delete winHooks.__setPaused;

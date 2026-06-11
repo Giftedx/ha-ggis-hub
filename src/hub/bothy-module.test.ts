@@ -278,6 +278,35 @@ describe('createBothyGameModule', () => {
     expect(navigator.navigate).toHaveBeenCalledWith('/wild/', 'route');
   });
 
+  it('exposes launchable visual door bounds through a smoke/debug-only hook', async () => {
+    const { instance } = await mountHarness();
+    const hook = (
+      window as unknown as {
+        __launchableDoorVisualBounds?: () => ReadonlyArray<{
+          readonly id: string;
+          readonly x: number;
+          readonly y: number;
+          readonly width: number;
+          readonly height: number;
+        }>;
+      }
+    ).__launchableDoorVisualBounds;
+
+    expect(hook).toBeTypeOf('function');
+    expect(hook?.()).toEqual([
+      { id: 'wild-haggis-survivors', x: 450, y: 150, width: 70, height: 85 },
+    ]);
+
+    const firstBounds = hook?.()[0] as { x: number } | undefined;
+    if (firstBounds) firstBounds.x = -1;
+    expect(hook?.()[0]?.x).toBe(450);
+
+    await instance.destroy();
+    expect(
+      (window as unknown as { __launchableDoorVisualBounds?: unknown }).__launchableDoorVisualBounds
+    ).toBeUndefined();
+  });
+
   it('chaps the locked door when pointer-down lands on it, without launching', async () => {
     const { shell, navigator, renderer } = await mountHarness();
     (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
