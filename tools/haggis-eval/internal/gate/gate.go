@@ -48,7 +48,7 @@ const DefaultTimeout = 10 * time.Minute
 // Run executes the command with the default timeout and captures its
 // outcome.  Stdout and stderr are streamed live to the parent process
 // (so `haggis-eval all` shows progress in CI logs) *and* tailed into
-// the Result for the signed report.
+// the Result for the FNV-signed report.
 //
 // `category` and `name` are recorded in the result for grouping; `bin`
 // and `args` are passed straight to exec.CommandContext.

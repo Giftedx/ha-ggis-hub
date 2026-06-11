@@ -67,4 +67,4 @@ Open the current screenshot side-by-side with the golden PNG in this directory. 
 - **Drift was intentional** (you changed the haggis sprite / palette / layout on purpose) → re-capture.
 - **Drift is regression** (you didn't mean to change anything visible) → investigate the code change that caused it.
 
-The signed JSON report from `haggis-eval all` surfaces every visual-gate result (the `visual` subcommand is wired into `all` as of 2026-05-24); look in `target/haggis-eval/all-*.json` for the `visual` category entry.
+The FNV-signed JSON report from `haggis-eval all` surfaces every visual-gate result (the `visual` subcommand is wired into `all` as of 2026-05-24); look in `target/haggis-eval/all-*.json` for the `visual` category entry.

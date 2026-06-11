@@ -4,7 +4,7 @@
 
 > **For agentic workers (historical):** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal (historical, achieved):** Land the `haggis-eval` Go orchestrator CLI from [kernel design spec §2.7](../specs/2026-05-23-hub-determinism-kernel-design.md). Single binary that wraps the gates already implemented (cargo + pnpm + hardlang differentials), aggregates pass/fail with a signed JSON report, and stubs the not-yet-implemented gates (browser/perf/security) behind a clear "configure me" exit code rather than fake passes.
+**Goal (historical, achieved):** Land the `haggis-eval` Go orchestrator CLI from [kernel design spec §2.7](../specs/2026-05-23-hub-determinism-kernel-design.md). Single binary that wraps the gates already implemented (cargo + pnpm + hardlang differentials), aggregates pass/fail with an FNV-signed JSON report, and stubs the not-yet-implemented gates (browser/perf/security) behind a clear "configure me" exit code rather than fake passes.
 
 **Architecture:** Single Go module at `tools/haggis-eval/` with hand-rolled subcommand dispatch (no Cobra — per [Craft commitments §A](../../foundation/12-craft-commitments.md) we hand-roll central primitives). Subcommands shell out to existing tools (`cargo`, `pnpm`) and capture combined output. Each subcommand returns a structured `GateResult { name, status, duration_ms, stdout_tail, stderr_tail }`. The `all` subcommand runs every wired subcommand sequentially, collects results, and writes a `report.json` whose `signature` field is the FNV-1a 64-bit digest of the report payload — proves the bundle was not edited after the fact. MVP wires `rust`, `ts`, `differential rng`, `differential hash`. Stubs `browser`, `determinism`, `perf`, `security`, `slice` as `EX_CONFIG` (78) failures with a one-line "implemented in plan N" message.
 
@@ -24,7 +24,7 @@
 - `tools/haggis-eval/internal/cmd/differential.go` — `differential rng` and `differential hash` subcommands.
 - `tools/haggis-eval/internal/cmd/stub.go` — `EX_CONFIG`-returning placeholder for browser/determinism/perf/security/slice.
 - `tools/haggis-eval/internal/cmd/all.go` — `all` subcommand: runs the wired gates, aggregates.
-- `tools/haggis-eval/internal/report/report.go` — JSON report struct, FNV-1a signing, writer.
+- `tools/haggis-eval/internal/report/report.go` — JSON report struct, FNV-1a checksum, writer.
 - `tools/haggis-eval/internal/report/report_test.go` — tests JSON round-trip + signature verification.
 - `tools/haggis-eval/internal/fnv/fnv.go` — pure-Go FNV-1a 64-bit hash. Hand-rolled per the project's hand-roll-over-library bar, and so the Go report signature can be independently verified by reproducing the digest from the report payload bytes.
 - `tools/haggis-eval/internal/fnv/fnv_test.go` — reference vectors (same four the Rust and C sides test against).
@@ -131,7 +131,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")
-	fmt.Fprintln(w, "  all                        Every wired gate; signed JSON report")
+	fmt.Fprintln(w, "  all                        Every wired gate; FNV-signed JSON report")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Stubs (return exit 78 until implemented):")
 	fmt.Fprintln(w, "  browser determinism perf security slice")
@@ -689,9 +689,9 @@ Expected: stderr line `haggis-eval: "browser" is declared in spec §2.7 but not 
 
 ---
 
-## Phase 4 — Signed JSON report + `all` subcommand
+## Phase 4 — FNV-signed JSON report + `all` subcommand
 
-### Task 8: Report struct + signer
+### Task 8: Report struct + FNV checksum
 
 **Files:**
 - Create: `tools/haggis-eval/internal/report/report.go`
@@ -782,7 +782,7 @@ Expected: undefined references to `Build`, `Report`, `payload`.
 
 Create `tools/haggis-eval/internal/report/report.go`:
 ```go
-// Package report builds the signed JSON report that `haggis-eval all`
+// Package report builds the FNV-signed JSON report that `haggis-eval all`
 // emits. The signature is the FNV-1a 64-bit digest of the report payload
 // (every field except the signature itself) so tampering with the report
 // after writing is detectable.
@@ -962,7 +962,7 @@ Create `tools/haggis-eval/README.md`:
 # haggis-eval
 
 Go orchestrator CLI that wraps the existing project gates and produces a
-signed JSON report. Single binary, single source tree, standard library
+FNV-signed JSON report. Single binary, single source tree, standard library
 only.
 
 See [kernel design spec §2.7](../../docs/superpowers/specs/2026-05-23-hub-determinism-kernel-design.md) for the design.
@@ -984,7 +984,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `ts`                      | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`      |
 | `differential rng`        | `cargo test -p hub-hardlang --test differential_rng -- --include-ignored` |
 | `differential hash`       | `cargo test -p hub-hardlang --test differential_hash`         |
-| `all`                     | Every wired gate above, plus a signed JSON report             |
+| `all`                     | Every wired gate above, plus an FNV-signed JSON report             |
 | `browser`                 | Stub — exit 78, awaits Playwright config                      |
 | `determinism`             | Stub — exit 78, awaits Playwright capture pipeline            |
 | `perf`                    | Stub — exit 78, awaits size-limit + Lighthouse configs        |
@@ -1020,7 +1020,7 @@ target/haggis-eval/
 In `README.md` at workspace root, find the section "## Current executable gates" and append below the existing fenced gate list:
 ```markdown
 
-A Go-built orchestrator CLI bundles every gate above into one command with a signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+A Go-built orchestrator CLI bundles every gate above into one command with an FNV-signed JSON report. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
 ```
 
 ### Task 11: Final verification
@@ -1057,7 +1057,7 @@ Expected: `gofmt -l` prints nothing; `go vet` exits 0.
 Run from workspace root:
 ```
 git add tools/haggis-eval/ .gitignore README.md
-git commit -m "feat(haggis-eval): add Go orchestrator CLI with rust/ts/differential gates and signed JSON report"
+git commit -m "feat(haggis-eval): add Go orchestrator CLI with rust/ts/differential gates and FNV-signed JSON report"
 ```
 
 ---
@@ -1069,7 +1069,7 @@ The plan is complete when:
 1. `tools/haggis-eval/` exists with `go.mod`, hand-rolled subcommand dispatch in `main.go`, and the wired subcommands (`rust`, `ts`, `differential rng`, `differential hash`, `all`).
 2. The four not-yet-configured subcommands (`browser`, `determinism`, `perf`, `security`, `slice`) exist as stubs that exit 78 with a clear "not yet wired" message.
 3. `internal/fnv/` is a hand-rolled Go FNV-1a 64-bit hash; tests assert byte-equal agreement with the Rust and C reference vectors.
-4. `internal/report/` builds a signed JSON report; the `Signature` field is the FNV-1a digest of the report payload, verifiable independently.
+4. `internal/report/` builds an FNV-signed JSON report; the `Signature` field is the FNV-1a digest of the report payload, verifiable independently.
 5. `haggis-eval all` runs to completion and writes `target/haggis-eval/all-<timestamp>.json`.
 6. `cd tools/haggis-eval && go test ./...` passes all tests; `gofmt -l .` is silent; `go vet ./...` exits 0.
 7. Every existing workspace gate continues to pass.

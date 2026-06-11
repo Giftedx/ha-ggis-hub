@@ -1,6 +1,6 @@
 # haggis-eval
 
-Go orchestrator CLI that wraps the existing project gates and produces a signed JSON report. Single binary, single source tree, standard library only.
+Go orchestrator CLI that wraps the existing project gates and produces an FNV-signed tamper-evident JSON report. Single binary, single source tree, standard library only.
 
 See [kernel design spec §2.7](../../docs/superpowers/specs/2026-05-23-hub-determinism-kernel-design.md) for the design.
 
@@ -32,8 +32,8 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `a11y`                | `node scripts/run-a11y-gate.mjs` — hand-rolled WCAG 2.2 AA spot-checks via Playwright: page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name and persistent fallback (1.1.1), interactive element accessible name (4.1.2), live status messaging (4.1.3), label-in-name (2.5.3), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), computed contrast ratio (1.4.3) on every declared text pair, and self-hosted font load. 26 checks. No axe-core / pa11y dep. |
 | `soak`                | `node scripts/run-soak-gate.mjs` — memory-growth soak: loads hub on fixed seed, 15s RAF loop, CDP `HeapProfiler.collectGarbage` before/after, asserts heap growth < 5 MB. |
 | `supply-chain`        | `cargo deny check` — license compliance (allow list: MIT/Apache-2.0/BSD/ISC/Zlib/Unicode-3.0), RustSec advisory DB, duplicate version detection, source policy. Config: `deny.toml`. `cargo machete` — unused dependency detection. `gitleaks detect` — git history scan for secrets. `osv-scanner --recursive .` — cross-ecosystem CVE scan across Cargo.lock + pnpm-lock.yaml + go.mod; exceptions documented in `osv-scanner.toml`. |
-| `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the signed-report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
-| `all`                 | Every wired gate above, plus a signed JSON report                           |
+| `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the FNV-signed report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
+| `all`                 | Every wired gate above, plus an FNV-signed JSON report                           |
 
 ## Invocation cwd
 
@@ -48,7 +48,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 
 ## Reports
 
-`haggis-eval all` writes `target/haggis-eval/all-<utc>.json` containing every gate's structured result plus a `signature` field that is the FNV-1a 64-bit hash of the report payload (every field except the signature itself). Reproduce the signature by re-hashing the same payload — a divergent signature means the report was edited after writing.
+`haggis-eval all` writes `target/haggis-eval/all-<utc>.json` containing every gate's structured result plus a `signature` field. That field is a keyless, non-cryptographic FNV-1a 64-bit checksum of the report payload (every field except the signature itself), not a cryptographic signature. Re-hashing the same payload reproduces the checksum; a divergent checksum means the report bytes changed after writing unless someone deliberately recomputed it.
 
 The Go FNV-1a implementation at `internal/fnv/` is a third hand-rolled implementation of the algorithm, tested against the same four published reference vectors as `crates/hub-core/src/hash.rs` (Rust) and `c/fnv1a.c` (C). All three agree byte-for-byte:
 

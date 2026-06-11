@@ -145,7 +145,7 @@ Acceptance:
 
 ## Slice 9: `haggis-eval` CLI — fully wired (15 gate categories, 0 stubs)
 
-Go orchestration tool with FNV-1a-signed JSON reports.
+Go orchestration tool with FNV-signed tamper-evident JSON reports.
 
 Wired:
 
@@ -158,12 +158,12 @@ Wired:
 - `perf` — two halves: (a) `pnpm run build` + `node scripts/perf-budgets.mjs` enforces per-asset budgets declared in `perf-budgets.json` (index ≤64 KB, hub_wasm_bg ≤48 KB, total ≤200 KB; current 74 KB / 37% of total); (b) `node scripts/run-paint-gate.mjs` boots vite preview and asserts the median over 3 samples of W3C Paint Timing API metrics (first-contentful-paint, largest-contentful-paint via PerformanceObserver, domContentLoadedEventEnd, loadEventEnd) plus the `hub:firstFrame` User Timing mark fired from `src/main.ts` after the first canvas render (the canvas-aware paint metric — chrome's LCP heuristic collapses to FCP on this canvas-first app, so we mark the moment WASM has booted and the renderer has issued its first draw, scheduled inside a rAF so the compositor has posted). All five metrics asserted against `perf-budgets.json` `paint.max_ms`. Hand-rolled via existing Playwright + the W3C primitives directly — no Lighthouse npm dep. Shipped 2026-05-24.
 - `differential rng` — WAT vs Rust xoshiro128**.
 - `differential hash` — C vs Rust FNV-1a, 100k-case fuzz.
-- `slice <name>` — dispatches a named gate-set bundle from `tools/haggis-eval/slices.json` (pivoted from `slices.toml` in the original spec because haggis-eval is stdlib-only Go and `encoding/json` is stdlib while TOML is not). Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the signed-report write). `slice` with no argument (or `slice list`) prints available bundles. `HAGGIS_SLICES_PATH` overrides the config path. Shipped 2026-05-24.
+- `slice <name>` — dispatches a named gate-set bundle from `tools/haggis-eval/slices.json` (pivoted from `slices.toml` in the original spec because haggis-eval is stdlib-only Go and `encoding/json` is stdlib while TOML is not). Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the FNV-signed report write). `slice` with no argument (or `slice list`) prints available bundles. `HAGGIS_SLICES_PATH` overrides the config path. Shipped 2026-05-24.
 - `a11y` — `node scripts/run-a11y-gate.mjs` (build → vite preview → 26 WCAG 2.2 AA spot-checks via Playwright covering page language, viewport zoom, page title, canvas + interactive element accessible names, persistent fallback help, live door status, label-in-name, keyboard reachability, focus indicator visibility, computed contrast ratio on every declared text pair, self-hosted font load, and runtime page errors). No axe-core / pa11y dep — the hub's a11y surface is small + stable enough that focused asserts are more honest than a generic rule engine. Shipped 2026-05-24, drove a `outline: none` fix on `.scene-direct:focus-visible` (WCAG 2.4.7) found during bring-up; opt-in music button and font verification added 2026-05-27.
 - `soak` — `node scripts/run-soak-gate.mjs` (build → vite preview → 15-second RAF loop soak → CDP `HeapProfiler.collectGarbage` before/after → assert heap growth < 5 MB). Catches per-frame allocation leaks, RAF accumulator leaks, and event-listener stacking. No leak-detection lib dep. Shipped 2026-05-24.
 - `coverage` — `pnpm vitest --coverage` with V8 provider and package thresholds.
 - `supply-chain` — lightweight lockfile / dependency hygiene checks, wired into the release slice.
-- `all` — every wired gate + signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gate subcommands (24 individual checks), ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold; soak adds ~20s).
+- `all` — every wired gate + FNV-signed report under `target/haggis-eval/all-<utc>.json`. Current: 15 gate subcommands (24 individual checks), ~3.5 min end-to-end (warm Rust cache; ~5–6 min cold; soak adds ~20s).
 
 Outstanding stubs (`exit 78`):
 

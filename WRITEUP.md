@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, cryptographically signed eval reports, and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, FNV-signed tamper-evident eval reports (not cryptographic signatures), and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -45,7 +45,7 @@
 ┌─── Orchestration ──────────────────────────────────────┐
 │  haggis-eval  (Go, stdlib only)                        │
 │  - Wraps every project gate behind one CLI             │
-│  - Emits cryptographically signed JSON reports         │
+│  - Emits FNV-signed tamper-evident JSON reports       │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -59,7 +59,7 @@ The FNV-1a 64 hash is implemented three times, on purpose, in three languages, a
 |---|---|---|
 | Rust | `crates/hub-core/src/hash.rs` | Runtime state hash on every snapshot, used by the determinism smoke test |
 | C    | `c/fnv1a.c` (linked into `crates/hub-hardlang` via `cc` build-script) | Differential test target; demonstrates the Rust FFI seam |
-| Go   | `tools/haggis-eval/internal/fnv/` | Signs the orchestrator's JSON reports |
+| Go   | `tools/haggis-eval/internal/fnv/` | Computes the orchestrator's FNV report checksum |
 
 Reference vectors (agreed by all three impls):
 
@@ -91,11 +91,11 @@ Six proptest scenarios cover invariants that are hard to exhaust with example-ba
 - **Log round-trip** (`log.rs`): any set of records encodes and decodes with seed, record count, tick_indexes, input axes, and final hash all preserved exactly. Exercises the FNV-1a body digest for arbitrary payloads.
 - **Hash streaming** (`hash.rs`): `update()` in arbitrary chunk sizes produces the same digest as `update()` in one shot. The existing `rng.rs` scenarios add determinism and bounded-output coverage.
 
-### Cryptographically signed gate reports
+### FNV-signed tamper-evident gate reports
 
-`haggis-eval all` runs every wired gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is the FNV-1a 64 hash of the report's own payload (every other field). Re-hashing the payload reproduces the signature; any post-hoc edit changes the hash and the report no longer validates.
+`haggis-eval all` runs every wired gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`) and writes a single FNV-signed JSON report to `target/haggis-eval/all-<utc>.json`. The report has a `signature` field which is a keyless, non-cryptographic FNV-1a 64 checksum of the report's own payload (every other field). Re-hashing the payload reproduces the signature; accidental or post-hoc edits change the hash unless someone deliberately recomputes it.
 
-This is not strong cryptography — anyone can re-sign an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report was rewritten between gate execution and deploy capture.
+This is not cryptographic signing — anyone can recompute the checksum on an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report bytes no longer match the digest captured at gate execution/deploy time.
 
 ### ~92 KB total client bundle
 
@@ -153,7 +153,7 @@ RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 # Rust coverage (requires: rustup component add llvm-tools-preview; cargo install cargo-llvm-cov)
 cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
 
-# Single-binary orchestrator (runs everything above + signs a JSON report)
+# Single-binary orchestrator (runs everything above + writes an FNV-signed JSON report)
 cd tools/haggis-eval && go build .
 ./haggis-eval all
 cat target/haggis-eval/all-*.json | jq .
@@ -187,7 +187,7 @@ Opt-in hub music ships at [`public/music/`](public/music/) — two rendered MP3 
 
 ## Why MIT
 
-[The license](LICENSE). The engineering primitives — the C FNV-1a, the WAT xoshiro128\*\*, the signed-report orchestrator, the hand-rolled Canvas2D renderer scaffolding — are intended to be reused. If any of them helps you build your own thing, take them. The lobby brand belongs to ha.ggis.xyz; the techniques are yours.
+[The license](LICENSE). The engineering primitives — the C FNV-1a, the WAT xoshiro128\*\*, the FNV-signed report orchestrator, the hand-rolled Canvas2D renderer scaffolding — are intended to be reused. If any of them helps you build your own thing, take them. The lobby brand belongs to ha.ggis.xyz; the techniques are yours.
 
 ---
 

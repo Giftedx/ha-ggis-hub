@@ -7,7 +7,7 @@
       "gates": ["ts", "security", "perf", "browser", "determinism", "visual", "a11y"]
     },
     "release": {
-      "description": "Full release-gate matrix. Equivalent to `haggis-eval all` but invoked through the slice mechanism so a release script can name the bundle explicitly. Useful when you want the signed JSON report generated — note: only `all` writes the report; `slice release` runs the same gates but does NOT sign a report.",
+      "description": "Full release-gate matrix. Equivalent to `haggis-eval all` but invoked through the slice mechanism so a release script can name the bundle explicitly. Useful when you want the FNV-signed JSON report generated — note: only `all` writes the report; `slice release` runs the same gates but does NOT write the report.",
       "gates": ["rust", "rust-cov", "ts", "coverage", "security", "perf", "browser", "multi-browser", "determinism", "visual", "a11y", "soak", "supply-chain", "differential-hash", "differential-rng"]
     },
     "fast": {

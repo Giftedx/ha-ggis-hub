@@ -62,7 +62,7 @@ jobs:
   # secret scan; osv-scanner: cross-ecosystem CVE scan),
   # differential hash (C vs Rust FNV-1a,
   # 100k+ cases), differential rng (WAT vs Rust xoshiro128**, 100k+
-  # cases). Emits signed JSON report to target/haggis-eval/all-*.json.
+  # cases). Emits an FNV-signed JSON report to target/haggis-eval/all-*.json.
   haggis-eval-all:
     name: haggis-eval all (release gate)
     runs-on: ubuntu-latest
@@ -139,7 +139,7 @@ jobs:
         run: go build .
       - name: Run release gate
         run: ./tools/haggis-eval/haggis-eval all
-      - name: Upload signed report
+      - name: Upload haggis-eval report
         if: always()
         uses: actions/upload-artifact@v7
         with:

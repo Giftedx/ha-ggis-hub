@@ -1,7 +1,7 @@
-// Package report builds the signed JSON report that `haggis-eval all`
-// emits. The signature is the FNV-1a 64-bit digest of the report payload
-// (every field except the signature itself) so tampering with the report
-// after writing is detectable.
+// Package report builds the FNV-signed JSON report that `haggis-eval all`
+// emits. The signature is the FNV-1a 64-bit non-cryptographic digest of
+// the report payload (every field except the signature itself) so tampering
+// with the report after writing is detectable.
 package report
 
 import (
@@ -21,10 +21,10 @@ type Report struct {
 	GeneratedAt   time.Time     `json:"generated_at"`   //
 	OverallStatus gate.Status   `json:"overall_status"` //
 	Gates         []gate.Result `json:"gates"`          //
-	Signature     uint64        `json:"signature"`      // FNV-1a 64-bit of (Run, GeneratedAt, OverallStatus, Gates)
+	Signature     uint64        `json:"signature"`      // non-cryptographic FNV-1a 64-bit of (Run, GeneratedAt, OverallStatus, Gates)
 }
 
-// payloadShape mirrors Report minus the Signature field so the signed
+// payloadShape mirrors Report minus the Signature field so the checksummed
 // bytes are deterministic regardless of struct evolution.
 type payloadShape struct {
 	Run           string        `json:"run"`
@@ -33,7 +33,7 @@ type payloadShape struct {
 	Gates         []gate.Result `json:"gates"`
 }
 
-// Build assembles a Report from a list of gate results and signs it.
+// Build assembles a Report from a list of gate results and adds its FNV checksum.
 func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 	overall := gate.StatusPass
 	for _, g := range gates {
@@ -58,7 +58,7 @@ func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 	return r
 }
 
-// payload extracts the signable payload from a Report.
+// payload extracts the checksummed payload from a Report.
 func payload(r Report) payloadShape {
 	return payloadShape{
 		Run:           r.Run,

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Collapse the 13 numbered foundation docs to the five canonical ones from [kernel design spec §7](../specs/2026-05-23-hub-determinism-kernel-design.md): `00-project-charter`, `05-stack-decision-record`, `07-quality-gates`, `11-quality-manifesto`, `12-craft-commitments`. Distill load-bearing content from the 8 archived docs into the 5 kept docs (no information loss). Archive per-slice audit reports (slice 1–5) since `haggis-eval` signed JSON reports now replace them as the slice-level evidence per spec. Sweep every cross-reference in the repo so no link is broken.
+**Goal:** Collapse the 13 numbered foundation docs to the five canonical ones from [kernel design spec §7](../specs/2026-05-23-hub-determinism-kernel-design.md): `00-project-charter`, `05-stack-decision-record`, `07-quality-gates`, `11-quality-manifesto`, `12-craft-commitments`. Distill load-bearing content from the 8 archived docs into the 5 kept docs (no information loss). Archive per-slice audit reports (slice 1–5) since `haggis-eval` FNV-signed JSON reports now replace them as the slice-level evidence per spec. Sweep every cross-reference in the repo so no link is broken.
 
 **Architecture:** This is a pure docs reorganization. No code touched, no gates added, no tests changed. The work is mechanical but cross-cutting — ~94 references across 36 files. One subagent reads the 8 archive-target docs, distills unique content into the 5 keepers, moves the originals under `docs/archive/` with one-paragraph supersession notes, and runs a search-and-replace sweep over every cross-reference. Then runs a link-integrity grep to confirm zero dangling refs.
 
@@ -207,7 +207,7 @@ git mv docs/audit/2026-05-23-slice-5-canvas2d-first-room-report.md docs/archive/
 ```
 For each, prepend after the H1:
 ```markdown
-> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
+> **Archived 2026-05-23.** Per-slice audit reports are superseded by the `haggis-eval` FNV-signed JSON reports under `target/haggis-eval/` (see [tools/haggis-eval/README.md](../../tools/haggis-eval/README.md)). Preserved for provenance.
 ```
 
 ### Task 10: Commit phase 2

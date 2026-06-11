@@ -21,7 +21,7 @@ pnpm verify   # tsc --noEmit → eslint (src/ + scripts/) → prettier --check �
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 15 gate subcommands (24 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits a signed JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 15 gate subcommands (24 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace

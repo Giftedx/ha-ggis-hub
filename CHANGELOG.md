@@ -849,7 +849,7 @@ checklist is met.
   coverage, security, perf, browser (5 chromium), multi-browser (4 core on firefox + webkit),
   determinism, visual, a11y (26 WCAG 2.2 AA), soak (15s heap < 5 MB), supply-chain
   (cargo deny + machete + gitleaks + osv-scanner), differential rng, differential hash.
-  Emits a cryptographically signed JSON report.
+  Emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
 - **Mozilla Observatory A+** target: full CSP, HSTS preload, X-Frame-Options DENY,
   Permissions-Policy denying ~30 features, no `unsafe-eval`.
 
@@ -861,7 +861,7 @@ the development period; all became v0.1.0).
 ## [Unreleased] — 2026-05-27 docs: WRITEUP and AGENTS accuracy pass
 
 Gate list in WRITEUP/AGENTS updated to reflect the full promoted gate matrix:
-`rust-cov` and `multi-browser` added to the signed-report gate enumeration. Bundle
+`rust-cov` and `multi-browser` added to the FNV-signed report gate enumeration. Bundle
 table corrected (58.91/19.48 kB JS). Reproduce section in WRITEUP gains multi-browser
 smokes, `cargo machete`, `gitleaks`, `osv-scanner`. AGENTS current-phase paragraph
 rewritten to enumerate all active gates with 100% TS/Rust coverage and prettier in verify.
@@ -1881,7 +1881,7 @@ Closed the long-standing "a11y still planned" item from `docs/foundation/07-qual
 
 ### Changed
 
-- **`tools/haggis-eval/internal/cmd/all.go`** — `A11y()` appended between `Visual` and `Differential` so `haggis-eval all` (and the signed JSON report) now covers it. Gate count 15 → 16.
+- **`tools/haggis-eval/internal/cmd/all.go`** — `A11y()` appended between `Visual` and `Differential` so `haggis-eval all` (and the FNV-signed JSON report) now covers it. Gate count 15 → 16.
 - **`tools/haggis-eval/slices.json`** — `pre-merge` and `release` bundles now include `a11y`. `fast` deliberately stays just `ts + perf` (fast = no browser tier).
 - **`src/style.css`** — `.scene-direct:focus-visible` no longer sets `outline: none`. Replaced with a 2px solid `--hub-neeps-orange` outline + 3px offset + 2px border-radius. Colour-shift alone fails WCAG 2.4.7 in current AA guidance; the lantern-warm outline reads as part of the bothy palette. The hover style keeps the colour change without touching outline. Found by the new gate during bring-up.
 - **`docs/foundation/07-quality-gates.md`** — current PR/release-gate section now lists 16 gates and the `node scripts/run-a11y-gate.mjs` line. Released the "Accessibility" item from "still planned" into the shipped budgets list; removed the "Lighthouse accessibility: still planned" bullet (the hand-rolled gate is the equivalent). Status header now names the no-axe-core dep policy.
@@ -2020,7 +2020,7 @@ Two carry-forward items closed in one session: (1) the canvas-aware paint metric
 
 ### Added — `slice <name>` subcommand and bundle config
 
-- **`tools/haggis-eval/slices.json`** — schema-versioned bundle config. Three bundles shipped: `fast` (ts + perf, ~10s), `pre-merge` (ts + security + perf + browser + determinism + visual, ~40s), `release` (full release matrix minus the signed-report write). Filename note: spec called it `slices.toml`; pivoted to JSON because `haggis-eval` is stdlib-only Go and `encoding/json` is stdlib while TOML is not. Spec doc updated to reflect.
+- **`tools/haggis-eval/slices.json`** — schema-versioned bundle config. Three bundles shipped: `fast` (ts + perf, ~10s), `pre-merge` (ts + security + perf + browser + determinism + visual, ~40s), `release` (full release matrix minus the FNV-signed report write). Filename note: spec called it `slices.toml`; pivoted to JSON because `haggis-eval` is stdlib-only Go and `encoding/json` is stdlib while TOML is not. Spec doc updated to reflect.
 - **`tools/haggis-eval/internal/cmd/registry.go`** — `Registry()` returns the gate-ID → `GateRunner` map so the slice dispatcher can look gates up by name. New wired gates must be added here AND under main.go's subcommand switch — the two surfaces have separate use cases (CLI argv vs slice bundle membership).
 - **`tools/haggis-eval/internal/cmd/slice.go`** — `LoadSlices`, `Slice`, `ListSlices`. Unknown slice name OR unknown gate ID inside a slice each produce a single `ERROR` result so the existing `printAndExit` PASS/FAIL handling carries through unchanged.
 - **`tools/haggis-eval/internal/cmd/slice_test.go`** — 8 unit tests covering load (valid + missing file + bad schema + empty slices), dispatch (unknown slice + unknown gate + ordering + empty), and a Registry guard against silent drift (every gate ID referenced by shipped slices.json must exist in `Registry()`).
@@ -2155,11 +2155,11 @@ haggis-eval all (release gate)   ~3min   signed=0x8c802fa20b6996b4
 
 ## [Unreleased] — 2026-05-23 CI bring-up session
 
-First public push of the repository (private mirror at github.com/Giftedx/ha-ggis-hub). Initial CI was red four times in a row; sequenced fixes from "won't start" through "release gate hangs invisibly" to a fully green run with signed report `0xd6e4bda3f111a7cf`.
+First public push of the repository (private mirror at github.com/Giftedx/ha-ggis-hub). Initial CI was red four times in a row; sequenced fixes from "won't start" through "release gate hangs invisibly" to a fully green run with FNV report signature `0xd6e4bda3f111a7cf`.
 
 ### Added
 
-- **`LICENSE`** + **`.github/workflows/ci.yml`** — MIT, plus two-tier CI: `pnpm verify` as the sub-30s PR gate and `haggis-eval all` (cargo workspace + ts + security + perf + browser + determinism + differential hash/rng + signed JSON report) as the release gate on push-to-main. Concurrency: cancel-in-progress on the same ref.
+- **`LICENSE`** + **`.github/workflows/ci.yml`** — MIT, plus two-tier CI: `pnpm verify` as the sub-30s PR gate and `haggis-eval all` (cargo workspace + ts + security + perf + browser + determinism + differential hash/rng + FNV-signed JSON report) as the release gate on push-to-main. Concurrency: cancel-in-progress on the same ref.
 - **`tests/golden/bothy-idle-seed-42.png`** + **`visual-budgets.json`** — first capture of the perceptual visual-gate golden so `pnpm visual:verify` works from a cold clone. aHash `7c3cfc3ffc3f7c3e80398039e03bf033e033c003e00760066006e00740020000` at tolerance 18/256. Captured on Windows chromium; a Linux re-capture may be needed before wiring `visual` into `haggis-eval all`.
 - **`@types/node@22`** devDependency — required for clean `tsc --noEmit` on a frozen-lockfile install (the local node_modules had it hoisted; CI didn't).
 - **`gate.RunWithTimeout`** + per-gate `[gate]` streaming progress lines in `tools/haggis-eval/internal/gate/gate.go` — previous gate runs buffered all stdout/stderr and had no timeout, so a hung browser smoke was invisible until the whole CI job hit GitHub's 6-hour limit. Default budget 10min; 20min for `differential/wat-rust-rng` (100k-case proptest fuzz).
@@ -2198,9 +2198,9 @@ Cross-session foundation expansion. Every artifact passed `pnpm verify` (194/194
 
 ### Added
 
-- **`LICENSE`** — MIT, copyright Michael McMillan 2026. Unblocks engineer-audience forking; legalises `CONTRIBUTING.md`. Engineering primitives (C FNV-1a, WAT xoshiro128\*\*, signed-report orchestrator) now safe to reuse.
+- **`LICENSE`** — MIT, copyright Michael McMillan 2026. Unblocks engineer-audience forking; legalises `CONTRIBUTING.md`. Engineering primitives (C FNV-1a, WAT xoshiro128\*\*, FNV-signed report orchestrator) now safe to reuse.
 - **`DESIGN.md`** — full hub design system. Frame ported from sister project WHS's `DESIGN.md`; values are hub-specific. Namespaced colour tokens (surfaces / brand+action / semantic / art families / text family / narrative accents), typography (humanist serif default + pixel-font signage), grid (chrome rem + canvas integer pixel), motion, register policy (smooth default + pixel-font signage exception, deprecated Bayer-dither path noted), voice (locked phrases + open authorship budget), and a sister-comparison table showing the hub-vs-WHS family resemblance via shared canon nouns (peat, heather, whisky), not via shared hex.
-- **`WRITEUP.md`** — engineer-portfolio writeup ready for HN / lobste.rs / personal blog. Architecture diagram, three-language FNV-1a table with canonical reference vectors, WAT xoshiro128\*\* note, signed-report explainer, 76 KB bundle math, security posture summary, reproduce-locally commands, honest "what's not polished yet" section.
+- **`WRITEUP.md`** — engineer-portfolio writeup ready for HN / lobste.rs / personal blog. Architecture diagram, three-language FNV-1a table with canonical reference vectors, WAT xoshiro128\*\* note, FNV-signed report explainer, 76 KB bundle math, security posture summary, reproduce-locally commands, honest "what's not polished yet" section.
 - **`public/manifest.webmanifest`** — PWA manifest. `lang: en-GB`, theme-color matches `--hub-peat-brown`, name uses URL joke in description, inline SVG icon (matches existing favicon).
 - **`public/og.svg`** — 1200×630 Open Graph card. Title block delivers the URL joke; Scots invite `awa' in →` carries voice; canon-correct haggis silhouette (v2: low ginger-brown oval body, asymmetric cream mane drape with strands breaking outline, four leg stubs, tail tuft, forward snout, eye-with-catchlight). Doubles as visual reference for the future in-scene sprite rebuild.
 - **`public/og.png`** — generated 1200×630 PNG via `pnpm rasterize:og` (uses `sharp`). Twitter / X compatibility. Single source of truth: `og.svg`.
@@ -2213,7 +2213,7 @@ Cross-session foundation expansion. Every artifact passed `pnpm verify` (194/194
 
 ### Changed
 
-- **`README.md`** — added load-bearing-five reading list (DESIGN.md now item 4), an "Engineering portfolio summary" section that lists every receipt (76 KB bundle, three-language FNV-1a, WAT xoshiro128\*\*, signed reports, A+ headers, ADR + autopilot discipline) with paths to each, and `node scripts/run-visual-gate.mjs` added to the gate commands.
+- **`README.md`** — added load-bearing-five reading list (DESIGN.md now item 4), an "Engineering portfolio summary" section that lists every receipt (76 KB bundle, three-language FNV-1a, WAT xoshiro128\*\*, FNV-signed reports, A+ headers, ADR + autopilot discipline) with paths to each, and `node scripts/run-visual-gate.mjs` added to the gate commands.
 - **`index.html`** — full social meta block: Open Graph (type, site_name, title, description, url, locale, image at /og.png, dimensions, alt), Twitter card large-image, theme-color matching `--hub-peat-brown`, color-scheme, canonical URL, manifest link, author meta, JSON-LD `WebSite` schema with author and MIT license link. `lang` upgraded from `en` to `en-GB`. Scots-tinted `<noscript>` fallback added.
 - **`public/_headers`** — `Permissions-Policy` extended with `browsing-topics=()` (no Topics API) and `interest-cohort=()` (no FLoC).
 - **`src/games/registry.ts`** — `future-bothy` title changed from `"Future Bothy"` to `"Comin' Wi' The Next Moon"`. Lobby voice now reaches the registry layer.

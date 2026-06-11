@@ -33,7 +33,7 @@ This spec covers sub-project one. The kernel is the foundation that lets sub-pro
 
 ```
 +---------------------------------------------------------------+
-|  haggis-eval (Go CLI) — single binary, signed JSON report     |
+|  haggis-eval (Go CLI) — single binary, FNV-signed report     |
 |  orchestrates every gate below                                |
 +---------------------------------------------------------------+
               |                              |
@@ -160,7 +160,7 @@ Single Go binary, single source tree. Subcommands:
 | `haggis-eval slice <name>` | Runs the gate-set declared for `<name>` in `tools/haggis-eval/slices.json` (TOML in original spec; pivoted to JSON because haggis-eval is stdlib-only Go) |
 | `haggis-eval all` | Every gate above; exit non-zero on any failure |
 
-Output: a human-readable report on stdout and a signed JSON report at `target/haggis-eval/<utc>.json`. Signature is the FNV-1a of the report payload — proves the eval bundle was not edited after the fact.
+Output: a human-readable report on stdout and an FNV-signed, tamper-evident JSON report at `target/haggis-eval/<utc>.json`. The signature is a keyless, non-cryptographic FNV-1a checksum of the report payload — useful for detecting accidental/post-hoc edits when the checksum is not recomputed, not for proving authenticity.
 
 Implemented in Go because Go's small typed binary that orchestrates processes is exactly the right tool, per [Craft commitments §B-Go](../../foundation/12-craft-commitments.md#go--haggis-eval-cli). It replaces what would otherwise be a tangled shell pipeline or a Python harness whose dependencies are themselves a maintenance burden.
 
@@ -229,7 +229,7 @@ The current Canvas2D first-room slice is not discarded. The kernel design lands 
 - The current `interaction_for` returning owned strings becomes a packed numeric result inside the render snapshot; door titles are resolved in TS from a static table populated once at init.
 - The current TS `DEFAULT_HUB_ROOM_DOORS` literal is deleted; doors come from `room_definition()` exposed by `hub-wasm`, single source of truth.
 - The current RAF tick-per-frame becomes a fixed-step accumulator. Replay requires it.
-- The foundation document set is pruned: the 13 numbered foundation docs collapse to five — **charter, stack, gates, manifesto, craft-commitments** — with the remainder moved to `docs/archive/` carrying explicit supersession notes. ADRs stay where they are. Per-slice audit reports stop being written; the `haggis-eval` signed JSON report replaces them as the slice-level evidence.
+- The foundation document set is pruned: the 13 numbered foundation docs collapse to five — **charter, stack, gates, manifesto, craft-commitments** — with the remainder moved to `docs/archive/` carrying explicit supersession notes. ADRs stay where they are. Per-slice audit reports stop being written; the `haggis-eval` FNV-signed JSON report replaces them as the slice-level evidence.
 
 ## 8. Out of scope for this sub-project
 
