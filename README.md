@@ -150,4 +150,3 @@ Future contributors and agents must read:
 - [First public release requirements](docs/foundation/07-quality-gates.md#first-public-release-requirements)
 
 Do not scaffold from the archived original plan. It is preserved only as historical input.
-
