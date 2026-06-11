@@ -1,15 +1,55 @@
-# ha.ggis Hub
+<div align="center">
 
-`ha.ggis Hub` is the playable front door for haggis-themed games at `https://ha.ggis.xyz`.
+<img src="./assets/banner.png" alt="ha.ggis — ha + ggis = haggis. A wee front door for a family of Highland games, with the Wee Chieftain under his spotlight" width="100%" />
 
-The name is the joke and the product promise:
+# ha&middot;ggis Hub
 
-```text
-ha + ggis = haggis
-ha.ggis.xyz = say it without the dot
-```
+**A playable Highland-games arcade lobby.** Walk up to a door, tap, and you are in a game.
+*ha + ggis = haggis &mdash; say it without the dot.*
 
-This repository has moved from documentation-only foundation into a working executable hub. The current state: a Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement and door proximity; `hub-wasm` exposes a typed boundary the browser consumes; a strict TypeScript/Vite host owns lifecycle, input, registry, direct-play launch seams, and a hand-rolled Canvas2D first-room renderer. The room is rendered as a Canvas2D composite: a painted WebP bothy backdrop, a painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Door interaction is wired both via keyboard (walk + Enter) and pointer (tap), each launching the matching game from the registry. Deployment is hardened (CSP, security headers, source map policy, build verification). Browser smoke tests cover the keyboard and tap launch paths.
+![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
+![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Canvas](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)
+
+🎮 **Live at [ha.ggis.xyz](https://ha.ggis.xyz)**
+
+</div>
+
+A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic
+movement and door proximity; a strict TypeScript/Vite host owns lifecycle, input, the game
+registry, direct-play launch seams, and a hand-rolled Canvas2D renderer. Deployment is
+hardened (CSP, security headers, source-map policy, build verification) and browser smoke
+tests cover both the keyboard and tap launch paths.
+
+<table>
+  <tr>
+    <td width="50%"><img src="./assets/screens/bothy-idle.png" alt="The bothy: a painted Highland interior with a hearth, tartan rug, and a window onto sunset hills, with doors on each wall" /></td>
+    <td width="50%"><img src="./assets/screens/door-launch.png" alt="The haggis at the right-wall door, launch prompt reading: AWA' IN — WILD HAGGIS SURVIVORS — ENTER SPACE E TAP" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The bothy, live at <a href="https://ha.ggis.xyz">ha.ggis.xyz</a></sub></td>
+    <td align="center"><sub>Walk to a door and the hub offers the game</sub></td>
+  </tr>
+</table>
+
+---
+## Engineering portfolio summary
+
+The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
+
+- **~92 KB total client** (55 KB JS + 28 KB WASM + 3.6 KB HTML + 5.25 KB CSS, ~34 KB gzipped) for a Rust+WASM playable hub with deterministic core, self-hosted serif font, opt-in hub music, and cryptographically signed eval reports.
+- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/input-log.ts`, the `.haggislog` digest). All four agree byte-for-byte on the published reference vectors, asserted in CI — the Rust/C/Go trio diff-tested against each other, the TypeScript writer checked against the same vectors.
+- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
+- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+- **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
+- **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
+- **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
+- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
+- **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
+- **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
+
+Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the signed report locally.
 
 ## Start here
 
@@ -40,23 +80,6 @@ If you only have time for the load-bearing five, read these in order:
 Small scope is allowed. Weak foundations are not.
 
 The first public release is a **First Perfect Slice**, not an MVP. It should be small enough to finish and strict enough to prove the final quality bar: deterministic core logic where useful, clear runtime boundaries, strict tests, secure deployment, documented decisions, and no dependency soup.
-
-## Engineering portfolio summary
-
-The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
-
-- **~92 KB total client** (55 KB JS + 28 KB WASM + 3.6 KB HTML + 5.25 KB CSS, ~34 KB gzipped) for a Rust+WASM playable hub with deterministic core, self-hosted serif font, opt-in hub music, and cryptographically signed eval reports.
-- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/input-log.ts`, the `.haggislog` digest). All four agree byte-for-byte on the published reference vectors, asserted in CI — the Rust/C/Go trio diff-tested against each other, the TypeScript writer checked against the same vectors.
-- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
-- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
-- **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
-- **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
-- **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
-- **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
-- **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
-
-Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the signed report locally.
 
 ## Repository documentation map
 
@@ -127,3 +150,4 @@ Future contributors and agents must read:
 - [First public release requirements](docs/foundation/07-quality-gates.md#first-public-release-requirements)
 
 Do not scaffold from the archived original plan. It is preserved only as historical input.
+
