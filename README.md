@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./assets/banner.png" alt="ha.ggis — ha + ggis = haggis. A wee front door for a family of Highland games, with the Wee Chieftain under his spotlight" width="100%" />
+
 # ha&middot;ggis Hub
 
 **A playable Highland-games arcade lobby.** Walk up to a door, tap, and you are in a game.
