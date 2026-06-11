@@ -32,6 +32,23 @@ tests cover both the keyboard and tap launch paths.
 </table>
 
 ---
+## Engineering portfolio summary
+
+The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
+
+- **~92 KB total client** (55 KB JS + 28 KB WASM + 3.6 KB HTML + 5.25 KB CSS, ~34 KB gzipped) for a Rust+WASM playable hub with deterministic core, self-hosted serif font, opt-in hub music, and cryptographically signed eval reports.
+- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/input-log.ts`, the `.haggislog` digest). All four agree byte-for-byte on the published reference vectors, asserted in CI — the Rust/C/Go trio diff-tested against each other, the TypeScript writer checked against the same vectors.
+- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
+- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+- **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
+- **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
+- **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
+- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
+- **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
+- **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
+
+Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the signed report locally.
+
 ## Start here
 
 Begin with the [Documentation index](docs/README.md). It catalogues every doc and gives the full recommended reading order.
@@ -61,23 +78,6 @@ If you only have time for the load-bearing five, read these in order:
 Small scope is allowed. Weak foundations are not.
 
 The first public release is a **First Perfect Slice**, not an MVP. It should be small enough to finish and strict enough to prove the final quality bar: deterministic core logic where useful, clear runtime boundaries, strict tests, secure deployment, documented decisions, and no dependency soup.
-
-## Engineering portfolio summary
-
-The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
-
-- **~92 KB total client** (55 KB JS + 28 KB WASM + 3.6 KB HTML + 5.25 KB CSS, ~34 KB gzipped) for a Rust+WASM playable hub with deterministic core, self-hosted serif font, opt-in hub music, and cryptographically signed eval reports.
-- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/input-log.ts`, the `.haggislog` digest). All four agree byte-for-byte on the published reference vectors, asserted in CI — the Rust/C/Go trio diff-tested against each other, the TypeScript writer checked against the same vectors.
-- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
-- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `rust-cov`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits a **signed JSON report**. The report's `signature` field is the FNV-1a 64 hash of its own payload, so any post-hoc edit is detectable. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
-- **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
-- **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
-- **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
-- **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
-- **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
-
-Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the signed report locally.
 
 ## Repository documentation map
 
