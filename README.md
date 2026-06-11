@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./assets/banner.svg" alt="ha.ggis Hub - a playable Highland-games arcade lobby" width="100%" />
-
 # ha&middot;ggis Hub
 
 **A playable Highland-games arcade lobby.** Walk up to a door, tap, and you are in a game.
@@ -21,6 +19,17 @@ movement and door proximity; a strict TypeScript/Vite host owns lifecycle, input
 registry, direct-play launch seams, and a hand-rolled Canvas2D renderer. Deployment is
 hardened (CSP, security headers, source-map policy, build verification) and browser smoke
 tests cover both the keyboard and tap launch paths.
+
+<table>
+  <tr>
+    <td width="50%"><img src="./assets/screens/bothy-idle.png" alt="The bothy: a painted Highland interior with a hearth, tartan rug, and a window onto sunset hills, with doors on each wall" /></td>
+    <td width="50%"><img src="./assets/screens/door-launch.png" alt="The haggis at the right-wall door, launch prompt reading: AWA' IN — WILD HAGGIS SURVIVORS — ENTER SPACE E TAP" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The bothy, live at <a href="https://ha.ggis.xyz">ha.ggis.xyz</a></sub></td>
+    <td align="center"><sub>Walk to a door and the hub offers the game</sub></td>
+  </tr>
+</table>
 
 ---
 ## Start here
