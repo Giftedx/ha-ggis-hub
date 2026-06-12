@@ -69,6 +69,7 @@ mod tests {
         assert!(json.contains("\"worldWidth\":1000"));
         assert!(json.contains("\"worldHeight\":1000"));
         assert!(json.contains("\"id\":\"wild-haggis-survivors\""));
+        assert!(json.contains("\"id\":\"just-five-more-minutes\""));
         assert!(json.contains("\"id\":\"future-bothy\""));
         assert!(json.contains("\"status\":1")); // launchable
         assert!(json.contains("\"status\":2")); // locked

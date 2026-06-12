@@ -1,5 +1,5 @@
-// Smoke test: locked-door interaction. Walks the haggis to the left-wall
-// future-bothy door (world x: 80–200, y: 420–580), asserts the approach
+// Smoke test: locked-door interaction. Walks the haggis to the back-wall
+// future-bothy door (world x: 410–590, y: 80–240), asserts the approach
 // status shows the locked-door copy ("Comin' Wi' The Next Moon door —
 // comin' soon."), then CHAPS the door (Enter) and asserts the status changes
 // to a Scots chap retort (the door answers, it does not sit silent) while
@@ -43,19 +43,19 @@ try {
   // Let WASM boot and the haggis spawn at world (340, 540).
   await page.waitForTimeout(800);
 
-  // Walk LEFT to the locked future-bothy door (left wall). Hold ArrowLeft and
+  // Walk UP to the locked future-bothy door (back wall). Hold ArrowUp and
   // poll the dev snapshot until the haggis is standing at the locked door,
   // rather than trusting a fixed wall-clock hold: the fixed-step loop advances
   // a browser-dependent number of ticks per frame, so a fixed duration can
   // under-walk on a slow/throttled engine (the same wall-clock fragility fixed
   // in smoke-door-launch.mjs).
-  await page.keyboard.down('ArrowLeft');
+  await page.keyboard.down('ArrowUp');
   try {
     await page.waitForFunction(() => window.__roomSnapshot?.()?.interactionKind === 'locked', {
       timeout: 10_000,
     });
   } finally {
-    await page.keyboard.up('ArrowLeft');
+    await page.keyboard.up('ArrowUp');
   }
   await page.waitForTimeout(120);
 

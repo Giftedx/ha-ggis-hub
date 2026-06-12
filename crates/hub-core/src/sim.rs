@@ -221,7 +221,8 @@ const DIAGONAL_SCALE_PER_MILLE: i32 = 707;
 /// preserved while the kernel is rebuilt underneath.
 const FIRST_ROOM_DOORS: &[(&str, i32, i32, i32, i32, bool)] = &[
     ("wild-haggis-survivors", 820, 420, 940, 580, true),
-    ("future-bothy", 80, 420, 200, 580, false),
+    ("just-five-more-minutes", 80, 420, 200, 580, true),
+    ("future-bothy", 410, 80, 590, 240, false),
 ];
 
 /// Deterministic hub simulation.
@@ -450,9 +451,10 @@ mod tests {
         assert_eq!(snapshot.world_height, 1_000);
         assert_eq!(snapshot.player_x, 340);
         assert_eq!(snapshot.player_y, 540);
-        assert_eq!(snapshot.door_count, 2);
+        assert_eq!(snapshot.door_count, 3);
         assert_eq!(snapshot.doors[0].id_str(), "wild-haggis-survivors");
-        assert_eq!(snapshot.doors[1].id_str(), "future-bothy");
+        assert_eq!(snapshot.doors[1].id_str(), "just-five-more-minutes");
+        assert_eq!(snapshot.doors[2].id_str(), "future-bothy");
     }
 
     #[test]
@@ -533,13 +535,12 @@ mod tests {
     #[test]
     fn locked_door_returns_locked_interaction_kind() {
         let mut sim = Sim::new(0);
-        // future-bothy is at x: 80–200, y: 420–580; body center is feet_y - 42.
-        // Position so body center overlaps: player_x=140, player_y=540 → center_y=498.
-        sim.player_x = 140;
-        sim.player_y = 540;
+        // future-bothy is at x: 410–590, y: 80–240; body center is feet_y - 42.
+        sim.player_x = 500;
+        sim.player_y = 202;
         let snapshot = sim.render_snapshot();
         assert_eq!(snapshot.interaction_kind, InteractionKind::Locked as u8);
-        assert_eq!(snapshot.interaction_door_index, 1);
+        assert_eq!(snapshot.interaction_door_index, 2);
     }
 
     #[test]

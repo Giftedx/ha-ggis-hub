@@ -41,7 +41,8 @@ describe('launch planning', () => {
 
   it('reports whether games can launch', () => {
     expect(canLaunchGame(HUB_GAME_REGISTRY[0])).toBe(true);
-    expect(canLaunchGame(HUB_GAME_REGISTRY[1])).toBe(false);
+    expect(canLaunchGame(HUB_GAME_REGISTRY[1])).toBe(true);
+    expect(canLaunchGame(HUB_GAME_REGISTRY[2])).toBe(false);
   });
 
   it('returns a controlled missing-game plan when direct play target is absent', () => {

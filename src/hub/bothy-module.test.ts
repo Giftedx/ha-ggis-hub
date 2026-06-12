@@ -55,9 +55,14 @@ const ROOM: RoomDefinition = {
       bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
+      id: 'just-five-more-minutes',
+      status: 'launchable',
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+    {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+      bounds: { minX: 410, minY: 80, maxX: 590, maxY: 240 },
     },
   ],
 };
@@ -240,7 +245,8 @@ async function mountHarness(options?: {
   mocks.createCanvasRoomRenderer.mockReturnValue(renderer);
   mocks.computeVisualDoorBounds.mockReturnValue([
     { id: 'wild-haggis-survivors', x: 450, y: 150, width: 70, height: 85 },
-    { id: 'future-bothy', x: 20, y: 150, width: 70, height: 85 },
+    { id: 'just-five-more-minutes', x: 20, y: 150, width: 70, height: 85 },
+    { id: 'future-bothy', x: 250, y: 20, width: 70, height: 85 },
   ]);
   mocks.createKeyboardInputSampler.mockReturnValue(keyboard);
   mocks.createBrowserLaunchNavigator.mockReturnValue(navigator);
@@ -321,6 +327,7 @@ describe('createBothyGameModule', () => {
     expect(hook).toBeTypeOf('function');
     expect(hook?.()).toEqual([
       { id: 'wild-haggis-survivors', x: 450, y: 150, width: 70, height: 85 },
+      { id: 'just-five-more-minutes', x: 20, y: 150, width: 70, height: 85 },
     ]);
 
     const firstBounds = hook?.()[0] as { x: number } | undefined;
@@ -374,8 +381,8 @@ describe('createBothyGameModule', () => {
   it('chaps the locked door when pointer-down lands on it, without launching', async () => {
     const { shell, navigator, renderer } = await mountHarness();
     (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
-      clientX: 30,
-      clientY: 160,
+      clientX: 280,
+      clientY: 40,
       pointerId: 8,
     });
     expect(navigator.navigate).not.toHaveBeenCalled();
@@ -638,11 +645,11 @@ describe('createBothyGameModule', () => {
   });
 
   it('announces coming soon via keyboard interact when the door is registered but not playable', async () => {
-    // interactionDoorIndex=1 points to future-bothy (locked), which is in the registry but not launchable
+    // interactionDoorIndex=2 points to future-bothy (locked), which is in the registry but not launchable
     const lockedDoorSnapshot: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'launchable',
-      interactionDoorIndex: 1,
+      interactionDoorIndex: 2,
     };
     const { browser, keyboard, shell } = await mountHarness({ snapshot: lockedDoorSnapshot });
     keyboard.consumeInteract.mockReturnValue(true);
@@ -654,7 +661,7 @@ describe('createBothyGameModule', () => {
     const atLockedDoor: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'locked',
-      interactionDoorIndex: 1,
+      interactionDoorIndex: 2,
     };
     const { browser, keyboard, navigator, shell, renderer } = await mountHarness({
       snapshot: atLockedDoor,
@@ -670,7 +677,7 @@ describe('createBothyGameModule', () => {
     const atLockedDoor: DecodedSnapshot = {
       ...SNAPSHOT,
       interactionKind: 'locked',
-      interactionDoorIndex: 1,
+      interactionDoorIndex: 2,
     };
     const { browser, keyboard, shell } = await mountHarness({ snapshot: atLockedDoor });
     keyboard.consumeInteract.mockReturnValue(true);

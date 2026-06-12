@@ -18,9 +18,14 @@ const BASE_SNAPSHOT: DecodedSnapshot = {
       bounds: { minX: 760, minY: 380, maxX: 940, maxY: 620 },
     },
     {
+      id: 'just-five-more-minutes',
+      status: 'launchable',
+      bounds: { minX: 60, minY: 380, maxX: 220, maxY: 620 },
+    },
+    {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 60, minY: 380, maxX: 220, maxY: 620 },
+      bounds: { minX: 410, minY: 80, maxX: 590, maxY: 240 },
     },
   ],
 };
@@ -46,7 +51,7 @@ describe('formatDoorStatus', () => {
   });
 
   it('announces a locked door without promising launch controls', () => {
-    expect(formatDoorStatus(snapshotWithInteraction('locked', 1), HUB_GAME_REGISTRY)).toBe(
+    expect(formatDoorStatus(snapshotWithInteraction('locked', 2), HUB_GAME_REGISTRY)).toBe(
       "Comin' Wi' The Next Moon door — comin’ soon."
     );
   });
@@ -93,7 +98,7 @@ describe('createDoorStatusAnnouncer', () => {
     announce(BASE_SNAPSHOT);
     announce(snapshotWithInteraction('launchable', 0));
     announce(snapshotWithInteraction('launchable', 0));
-    announce(snapshotWithInteraction('locked', 1));
+    announce(snapshotWithInteraction('locked', 2));
 
     expect(writes).toEqual([
       '',

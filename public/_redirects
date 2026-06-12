@@ -3,5 +3,7 @@
 # WHS shell, NOT the hub shell — so this specific rule MUST precede the hub
 # wildcard. Real files (assets, sw.js) are served directly and bypass redirects.
 /wild/*  /wild/index.html  200
+# Just Five More Minutes — same-origin mount at /just-five-more-minutes/.
+/just-five-more-minutes/*  /just-five-more-minutes/index.html  200
 # Hub SPA fallback.
 /*  /index.html  200

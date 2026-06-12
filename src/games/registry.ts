@@ -13,6 +13,7 @@ export interface HubGameDefinition {
 }
 
 export const WILD_HAGGIS_SURVIVORS_GAME_ID = 'wild-haggis-survivors';
+export const JUST_FIVE_MORE_MINUTES_GAME_ID = 'just-five-more-minutes';
 
 export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
   {
@@ -25,9 +26,14 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
     launch: { kind: 'route', target: '/wild/' },
   },
   {
+    id: JUST_FIVE_MORE_MINUTES_GAME_ID,
+    title: 'Just Five More Minutes',
+    status: 'playable',
+    launch: { kind: 'route', target: '/just-five-more-minutes/' },
+  },
+  {
     // Comin' wi' the next moon — placeholder for the next door in the
     // bothy. Title is Scots-tinted lobby voice, not a final game name.
-    // Replaced wholesale when game 2 ships.
     id: 'future-bothy',
     title: "Comin' Wi' The Next Moon",
     status: 'coming-soon',

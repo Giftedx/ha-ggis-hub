@@ -50,6 +50,12 @@ describe('public/_headers', () => {
     expect(headers).toMatch(/\/\*\.html[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
   });
 
+  it('mounted JFMM (/just-five-more-minutes/) hashed assets get immutable cache', () => {
+    expect(headers).toMatch(
+      /\/just-five-more-minutes\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
+    );
+  });
+
   it('mounted WHS (/wild/) hashed assets get immutable cache; its SW revalidates', () => {
     // WHS is served from the /wild/ sub-path of this project (ADR-0003 Option B).
     // Its chunks are content-hashed → immutable; its service worker must
@@ -86,6 +92,16 @@ describe('public/_redirects', () => {
 
   it('has SPA fallback so deep links resolve to index.html', () => {
     expect(redirects).toMatch(/^\/\*\s+\/index\.html\s+200/m);
+  });
+
+  it('rewrites /just-five-more-minutes/* to the JFMM shell, before the hub wildcard', () => {
+    const jfmmRule = redirects.search(
+      /^\/just-five-more-minutes\/\*\s+\/just-five-more-minutes\/index\.html\s+200/m
+    );
+    const hubWildcard = redirects.search(/^\/\*\s+\/index\.html\s+200/m);
+    expect(jfmmRule).toBeGreaterThanOrEqual(0);
+    expect(hubWildcard).toBeGreaterThanOrEqual(0);
+    expect(jfmmRule).toBeLessThan(hubWildcard);
   });
 
   it('rewrites /wild/* to the WHS shell, BEFORE the hub wildcard', () => {

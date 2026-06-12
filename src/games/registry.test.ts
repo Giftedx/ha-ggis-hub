@@ -20,6 +20,17 @@ describe('game registry', () => {
     });
   });
 
+  it('keeps Just Five More Minutes launchable on the hub route', () => {
+    const jfmm = getGameById(HUB_GAME_REGISTRY, 'just-five-more-minutes');
+
+    expect(jfmm).toMatchObject({
+      id: 'just-five-more-minutes',
+      title: 'Just Five More Minutes',
+      status: 'playable',
+      launch: { kind: 'route', target: '/just-five-more-minutes/' },
+    });
+  });
+
   it('keeps future doors non-launchable', () => {
     const future = getGameById(HUB_GAME_REGISTRY, 'future-bothy');
 
@@ -106,6 +117,7 @@ describe('game registry', () => {
       validateRoomRegistryCoherence(
         [
           { id: 'wild-haggis-survivors', status: 'launchable' },
+          { id: 'just-five-more-minutes', status: 'launchable' },
           { id: 'future-bothy', status: 'locked' },
         ],
         HUB_GAME_REGISTRY
@@ -117,7 +129,8 @@ describe('game registry', () => {
     expect(
       validateRoomRegistryCoherence(
         [
-          { id: 'wild-haggis-survivors', status: 'launchable' }, // satisfies reverse check
+          { id: 'wild-haggis-survivors', status: 'launchable' },
+          { id: 'just-five-more-minutes', status: 'launchable' },
           { id: 'missing-door', status: 'launchable' },
         ],
         HUB_GAME_REGISTRY
@@ -127,7 +140,8 @@ describe('game registry', () => {
     expect(
       validateRoomRegistryCoherence(
         [
-          { id: 'wild-haggis-survivors', status: 'launchable' }, // satisfies reverse check
+          { id: 'wild-haggis-survivors', status: 'launchable' },
+          { id: 'just-five-more-minutes', status: 'launchable' },
           { id: 'future-bothy', status: 'launchable' },
         ],
         HUB_GAME_REGISTRY
@@ -136,7 +150,10 @@ describe('game registry', () => {
 
     expect(
       validateRoomRegistryCoherence(
-        [{ id: 'wild-haggis-survivors', status: 'locked' }],
+        [
+          { id: 'wild-haggis-survivors', status: 'locked' },
+          { id: 'just-five-more-minutes', status: 'launchable' },
+        ],
         HUB_GAME_REGISTRY
       )
     ).toEqual(['Locked room door "wild-haggis-survivors" maps to playable registry entry']);

@@ -128,9 +128,14 @@ const ROOM: RoomDefinition = {
       bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
+      id: 'just-five-more-minutes',
+      status: 'launchable',
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+    {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+      bounds: { minX: 410, minY: 80, maxX: 590, maxY: 240 },
     },
   ],
 };
@@ -150,9 +155,14 @@ const SNAPSHOT_AT_LAUNCHABLE: DecodedSnapshot = {
       bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
     },
     {
+      id: 'just-five-more-minutes',
+      status: 'launchable',
+      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+    },
+    {
       id: 'future-bothy',
       status: 'locked',
-      bounds: { minX: 80, minY: 420, maxX: 200, maxY: 580 },
+      bounds: { minX: 410, minY: 80, maxX: 590, maxY: 240 },
     },
   ],
 };
@@ -171,9 +181,10 @@ describe('computeVisualDoorBounds', () => {
   it('returns one entry per door', () => {
     const surface = { width: 540, height: 360 };
     const bounds = computeVisualDoorBounds(surface, ROOM);
-    expect(bounds).toHaveLength(2);
+    expect(bounds).toHaveLength(3);
     expect(bounds[0]?.id).toBe('wild-haggis-survivors');
-    expect(bounds[1]?.id).toBe('future-bothy');
+    expect(bounds[1]?.id).toBe('just-five-more-minutes');
+    expect(bounds[2]?.id).toBe('future-bothy');
   });
 
   it('snaps the right-wall door so its right edge aligns with the wall', () => {
@@ -190,9 +201,9 @@ describe('computeVisualDoorBounds', () => {
   it('snaps the left-wall door so its left edge aligns with the wall', () => {
     const surface = { width: 540, height: 360 };
     const bounds = computeVisualDoorBounds(surface, ROOM);
-    const future = bounds[1]!;
+    const jfmm = bounds[1]!;
     const WALL_THICK_SIDE = 24;
-    expect(future.x).toBe(WALL_THICK_SIDE - 2);
+    expect(jfmm.x).toBe(WALL_THICK_SIDE - 2);
   });
 
   it('visual right-edge of the WHS door is right of its raw sim right-edge — confirms the snap effect', () => {
