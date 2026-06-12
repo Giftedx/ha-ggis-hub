@@ -32,6 +32,11 @@ if (errors.length === 0) {
     existsSync(join(dist, 'favicon.svg')),
     'dist/favicon.svg missing — icon broken in production'
   );
+  must(
+    existsSync(join(dist, 'favicon.png')),
+    'dist/favicon.png missing — tab icon broken in production'
+  );
+  must(existsSync(join(dist, 'og.png')), 'dist/og.png missing — social share card broken');
   must(existsSync(join(dist, 'manifest.webmanifest')), 'dist/manifest.webmanifest missing');
   must(existsSync(join(dist, 'assets')), 'dist/assets/ missing');
 

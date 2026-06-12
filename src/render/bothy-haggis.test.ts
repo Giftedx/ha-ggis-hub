@@ -173,11 +173,11 @@ describe('drawBothyHaggis', () => {
 });
 
 describe('favicon.svg', () => {
-  it('uses a close-cropped painted Wee Chieftain sprite instead of procedural paths', () => {
+  it('embeds the painted Wee Chieftain raster instead of an external PNG href', () => {
     const svg = readFileSync(new URL('../../public/favicon.svg', import.meta.url), 'utf8');
     expect(svg).toContain('close-cropped Wee Chieftain mark');
-    expect(svg).toContain('art/wee-chieftain-idle.png');
+    expect(svg).toContain('data:image/png;base64,');
+    expect(svg).not.toContain('href="art/wee-chieftain-idle.png"');
     expect(svg).not.toContain('<ellipse cx="15.6" cy="17.2" rx="14" ry="9.8"');
-    expect(svg).not.toContain('fill="#f0e6c8"');
   });
 });

@@ -26,6 +26,8 @@
     "fmt:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.mjs\" \"scripts/**/*.ts\"",
     "verify": "pnpm run docs:claims && pnpm run typecheck && pnpm run lint && pnpm run fmt:check && pnpm run test && pnpm run build:verified",
     "rasterize:og": "node scripts/rasterize-og.mjs",
+    "rasterize:favicon": "node scripts/rasterize-favicon.mjs",
+    "rasterize:brand": "pnpm run rasterize:og && pnpm run rasterize:favicon",
     "rasterize:music": "node scripts/render-wario-share-audio.mjs",
     "visual:capture": "node scripts/run-visual-gate.mjs capture",
     "visual:verify": "node scripts/run-visual-gate.mjs verify",

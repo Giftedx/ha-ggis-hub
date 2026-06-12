@@ -6,6 +6,10 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Changed
 
+- **Share card and favicon now flatten the crowned haggis sprite.** `pnpm rasterize:brand`
+  composites `wee-chieftain-idle.png` into `og.png` (external SVG hrefs are not resolved by
+  sharp) and writes self-contained `favicon.png`, `favicon-192.png`, and base64-embedded
+  `favicon.svg` so tab icons and social previews show the new mascot.
 - **Wee Chieftain mascot swapped to the low-poly crowned haggis sprite.**
   `public/art/wee-chieftain-idle.png` is now the owner's low-poly crowned haggis with
   "Haggis." lettering; the painted sprite stays front-facing (no horizontal mirror) so the
