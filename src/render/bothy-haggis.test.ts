@@ -173,20 +173,11 @@ describe('drawBothyHaggis', () => {
 });
 
 describe('favicon.svg', () => {
-  it('uses a close-cropped haggis icon instead of shrinking the full walking mascot', () => {
+  it('uses a close-cropped painted Wee Chieftain sprite instead of procedural paths', () => {
     const svg = readFileSync(new URL('../../public/favicon.svg', import.meta.url), 'utf8');
     expect(svg).toContain('close-cropped Wee Chieftain mark');
-    expect(svg).toContain('<ellipse cx="15.6" cy="17.2" rx="14" ry="9.8"');
-    expect(svg).toContain('M 3.9,13.7 Q 5.8,12.2 9.7,13.4');
-    expect(svg).toContain('Q 7.0,12.9 9.6,14.1');
-    expect(svg).toContain('<circle cx="5.8" cy="14.1" r="0.52"');
-    expect(svg).not.toContain('Q 7.9,12.9 12.0,14.1');
-    expect(svg).not.toContain('Q 7.2,12.9 10.8,14.1');
-    expect(svg).not.toContain('<ellipse cx="8.1" cy="14.7" rx="2.35"');
-    expect(svg).toContain('<circle cx="25.9" cy="17.8" r="0.66"');
-    expect(svg).toContain('fill="#f0e6c8"');
-    expect(svg).not.toContain('<rect x="9.2" y="24"');
-    expect(svg).not.toContain('<rect x="12.6" y="24"');
-    expect(svg).not.toContain('<ellipse cx="16" cy="27.2"');
+    expect(svg).toContain('art/wee-chieftain-idle.png');
+    expect(svg).not.toContain('<ellipse cx="15.6" cy="17.2" rx="14" ry="9.8"');
+    expect(svg).not.toContain('fill="#f0e6c8"');
   });
 });

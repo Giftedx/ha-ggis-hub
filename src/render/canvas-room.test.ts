@@ -532,15 +532,16 @@ describe('createCanvasRoomRenderer', () => {
     expect(ctxDefault.calls.length).toBeGreaterThan(callsDefault);
   });
 
-  it('flips the painted sprite horizontally when the haggis faces left (sprite path)', () => {
+  it('keeps the painted sprite front-facing when the haggis faces left (sprite path)', () => {
     vi.stubGlobal('Image', LoadedImage);
     const { surface, context } = recordingSurface(540, 360);
     const renderer = createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 });
     // First render establishes prevPlayerX with the painted sprite loaded.
     renderer.render(SNAPSHOT_NO_INTERACTION);
-    // Second render: playerX drops 30 units → facingLeft → sprite flip branch.
+    // Second render: playerX drops 30 units → facingLeft, but the sprite
+    // must not mirror (readable "Haggis." lettering on the art).
     renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: SNAPSHOT_NO_INTERACTION.playerX - 30 });
-    expect(context.calls).toContain('scale:-1,1');
+    expect(context.calls).not.toContain('scale:-1,1');
     expect(context.calls.some((c) => c.startsWith('drawImage:/art/wee-chieftain-idle.png'))).toBe(
       true
     );

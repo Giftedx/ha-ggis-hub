@@ -4,6 +4,15 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ## [Unreleased] — CI restored to green + correctness fixes
 
+### Changed
+
+- **Wee Chieftain mascot swapped to the low-poly crowned haggis sprite.**
+  `public/art/wee-chieftain-idle.png` is now the owner's low-poly crowned haggis with
+  "Haggis." lettering; the painted sprite stays front-facing (no horizontal mirror) so the
+  label stays readable. `public/og.svg`, `public/favicon.svg`, and regenerated `public/og.png`
+  embed the same art; visual golden re-captured; procedural `bothy-haggis.ts` remains the
+  no-image fallback.
+
 ### Added
 
 - **Added deployed-version provenance and an opt-in production probe.** `pnpm run build` now writes

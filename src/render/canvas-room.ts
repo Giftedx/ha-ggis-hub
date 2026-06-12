@@ -1317,18 +1317,12 @@ function drawHaggis(
       Math.round(SPRITE_W * 0.3),
       2
     );
-    const xform = ctx as unknown as {
-      translate(x: number, y: number): void;
-      scale(x: number, y: number): void;
-    };
     const smooth = ctx as unknown as { imageSmoothingEnabled?: boolean };
     smooth.imageSmoothingEnabled = true;
     ctx.save();
-    if (facingLeft) {
-      xform.translate(bodyCx, 0);
-      xform.scale(-1, 1);
-      xform.translate(-bodyCx, 0);
-    }
+    // Painted sprite stays front-facing: the art carries readable "Haggis."
+    // lettering and an asymmetric crown, so horizontal mirroring would
+    // garble the mascot. Procedural fallback still mirrors leg pairs.
     ctx.drawImage(
       sprite,
       bodyCx - Math.round(SPRITE_W / 2),

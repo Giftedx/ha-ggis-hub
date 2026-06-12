@@ -4,15 +4,16 @@
   Size: 1200×630 (1.91:1, the platform-recommended OG aspect).
   Tokens: DESIGN.md (ink-deep, peat-brown, tatties-cream, oat-tan,
           neeps-orange, dawn-pink, heather-purple, whisky-amber).
-  Protagonist: The Wee Chieftain, the living whole-haggis mascot ported
-  from `src/render/bothy-haggis.ts`. If you change the in-room haggis,
-  port the changes here too — there is no auto-sync.
+  Protagonist: The Wee Chieftain — low-poly crowned haggis sprite from
+  `public/art/wee-chieftain-idle.png` (the live in-room mascot). The
+  procedural drawer in `src/render/bothy-haggis.ts` is the no-image
+  fallback only; update this card when the painted sprite changes.
 
   Regenerate the PNG via `pnpm rasterize:og` after editing.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="ha.ggis hub — ha + ggis = haggis. A wee front door for highland games.">
   <title>ha.ggis hub</title>
-  <desc>A living whole-haggis mascot with glossy casing, cream eyes, oat flecks, and tiny legs beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn.</desc>
+  <desc>A low-poly crowned haggis mascot beside the title 'ha + ggis = haggis'. Warm peat-brown bothy at dawn.</desc>
 
   <defs>
     <!-- Background: peat-brown with a soft dawn glow in upper-right -->
@@ -50,78 +51,15 @@
     <text x="80" y="590" font-size="20" font-weight="600" fill="#c8842a">ha.ggis.xyz</text>
   </g>
 
-  <!-- The Wee Chieftain — living whole-haggis mascot, synced with
-       bothy-haggis.ts. Design units are at scale=1 (same as the TS
-       renderer); the SVG scale(6) produces room-scale legibility on the
-       social card. Food-shaped first: glossy casing, cream eyes with
-       eyelids and converging pupils, bold brow arcs, nose dot, wide smile. -->
-  <g transform="translate(900 330) scale(6)">
-
-    <!-- Heather-purple ground patch -->
-    <ellipse cx="0" cy="19" rx="34" ry="3.7" fill="#28182c" opacity="0.58"/>
-    <circle cx="-12" cy="19.5" r="1.0" fill="#7a4a9c" opacity="0.72"/>
-    <circle cx="11"  cy="20"   r="0.9" fill="#7a4a9c" opacity="0.58"/>
-
-    <!-- Tiny asymmetric drift legs with rounded feet. Long pair left,
-         short pair right — canonical haggis-can-only-circle-left drift. -->
-    <g fill="#1a0e08">
-      <rect x="-15.35" y="11" width="2.7" height="5.5"/>
-      <rect x="-7.35"  y="11" width="2.7" height="5.5"/>
-      <rect x="5.65"   y="11" width="2.7" height="3.8"/>
-      <rect x="13.65"  y="11" width="2.7" height="3.8"/>
-      <ellipse cx="-14" cy="18"   rx="3.2" ry="1.1"/>
-      <ellipse cx="-6"  cy="18"   rx="3.2" ry="1.1"/>
-      <ellipse cx="7"   cy="17.2" rx="2.7" ry="1"/>
-      <ellipse cx="15"  cy="17.2" rx="2.7" ry="1"/>
-    </g>
-
-    <!-- Whole haggis casing: outline → mid → face highlight → shadows -->
-    <ellipse cx="0" cy="1"    rx="25" ry="15"  fill="#1a0e08"/>
-    <ellipse cx="0" cy="0"    rx="22" ry="12.5" fill="#7a3f24"/>
-    <ellipse cx="-2" cy="-3.5" rx="15" ry="7.5"  fill="#9c5630" opacity="0.82"/>
-    <ellipse cx="6"  cy="7"    rx="15" ry="4.2"  fill="#3a1e12" opacity="0.5"/>
-    <ellipse cx="-8" cy="-8"   rx="9"  ry="2.6"  fill="#b46a38" opacity="0.58"/>
-    <ellipse cx="0"  cy="11.3" rx="20" ry="2.2"  fill="#3a1e12" opacity="0.55"/>
-    <ellipse cx="-20.8" cy="1.8"  rx="2.1" ry="6.2" fill="#2a1408" opacity="0.42"/>
-    <ellipse cx="21.2"  cy="1.6"  rx="2.4" ry="6.8" fill="#2a1408" opacity="0.48"/>
-    <ellipse cx="18.2"  cy="-6.3" rx="2.5" ry="4.2" fill="#b46a38" opacity="0.36"/>
-
-    <!-- Casing seams — low-alpha so they don't compete with the face -->
-    <path d="M -18,2 Q -7,9 7,8"    fill="none" stroke="#2a1408" stroke-width="0.9" stroke-linecap="round" opacity="0.32"/>
-    <path d="M -14,-8 Q 0,-11 15,-5" fill="none" stroke="#2a1408" stroke-width="0.7" stroke-linecap="round" opacity="0.08"/>
-    <path d="M -16,-5 Q -8,-8 2,-7"  fill="none" stroke="#b46a38" stroke-width="0.8" stroke-linecap="round" opacity="0.08"/>
-
-    <!-- Oat flecks embedded in casing surface -->
-    <circle cx="-4" cy="8"  r="0.58" fill="#d8b46a" opacity="0.72"/>
-    <circle cx="10" cy="4"  r="0.62" fill="#d8b46a" opacity="0.72"/>
-    <circle cx="6"  cy="-8" r="0.48" fill="#d8b46a" opacity="0.72"/>
-
-    <!-- Face illumination — subtle gloss below the eye zone -->
-    <ellipse cx="5.4" cy="4.8" rx="5.6" ry="1.4" fill="#b46a38" opacity="0.2"/>
-
-    <!-- Eyes: 4.8× outline, 4.0× white, eyelid arc half-covering top,
-         2.2× pupil both converging toward centre, 1.0× glint -->
-    <circle cx="-6.2" cy="-2.2" r="4.8" fill="#1a0e08"/>
-    <circle cx="7.2"  cy="-2.2" r="4.8" fill="#1a0e08"/>
-    <circle cx="-6.2" cy="-2.3" r="4.0" fill="#f0e6c8"/>
-    <circle cx="7.2"  cy="-2.3" r="4.0" fill="#f0e6c8"/>
-    <!-- Eyelids — casingLight half-covering eye tops; directed not vacant -->
-    <ellipse cx="-6.2" cy="-4" rx="4.2" ry="1.2" fill="#9c5630" opacity="0.82"/>
-    <ellipse cx="7.2"  cy="-4" rx="4.2" ry="1.2" fill="#9c5630" opacity="0.82"/>
-    <!-- Pupils — both shift toward centre so haggis looks at viewer -->
-    <circle cx="-5.5" cy="-2.35" r="2.2" fill="#0a0604"/>
-    <circle cx="6.4"  cy="-2.35" r="2.2" fill="#0a0604"/>
-    <!-- Glints -->
-    <circle cx="-5.75" cy="-3.1" r="1.0" fill="#fff0c8" opacity="0.92"/>
-    <circle cx="6.2"   cy="-3.1" r="1.0" fill="#fff0c8" opacity="0.92"/>
-    <!-- Brows — one bold arc per eye, 86% alpha, readable at room scale -->
-    <path d="M -11,-7.5 Q -7,-9.5 -3,-7.5" fill="none" stroke="#2a1408" stroke-width="0.80" stroke-linecap="round" opacity="0.86"/>
-    <path d="M 3,-7.5 Q 7,-9.5 11,-7.5"    fill="none" stroke="#2a1408" stroke-width="0.80" stroke-linecap="round" opacity="0.86"/>
-    <!-- Nose dot — anchors the face between eyes and smile -->
-    <circle cx="0" cy="3" r="1.2" fill="#2a1408" opacity="0.72"/>
-    <!-- Smile — wide and deep so it reads joyful at room scale -->
-    <path d="M -5.5,4 Q 0,7.5 5.5,4" fill="none" stroke="#2a1408" stroke-width="1.8" stroke-linecap="round" opacity="0.88"/>
-  </g>
+  <!-- The Wee Chieftain — painted low-poly crowned haggis sprite (live mascot). -->
+  <image
+    href="art/wee-chieftain-idle.png"
+    x="720"
+    y="190"
+    width="360"
+    height="293"
+    preserveAspectRatio="xMidYMid meet"
+  />
 
   <!-- Vignette over everything -->
   <rect x="0" y="0" width="1200" height="630" fill="url(#vignette)" pointer-events="none"/>

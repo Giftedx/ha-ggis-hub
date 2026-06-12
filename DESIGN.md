@@ -309,7 +309,7 @@ mascot:
       rationale: "outward pupils create a wall-eyed divergent gaze; inward pupils make the mascot look at the viewer"
     social-card:
       asset: "public/og.svg + public/og.png (rasterize:og)"
-      sync-rule: "og.svg must be kept in sync with bothy-haggis.ts; regenerate og.png via pnpm rasterize:og after any mascot design change"
+      sync-rule: "og.svg and favicon.svg embed public/art/wee-chieftain-idle.png; regenerate og.png via pnpm rasterize:og after any painted mascot change (procedural bothy-haggis.ts is the no-image fallback only)"
 ```
 
 ## Motion
