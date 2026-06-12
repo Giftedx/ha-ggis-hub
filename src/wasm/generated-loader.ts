@@ -3,7 +3,7 @@ import type { GeneratedHubWasmModule } from './boundary';
 
 export async function loadGeneratedHubWasm(): Promise<GeneratedHubWasmModule> {
   await initGeneratedHubWasm();
-  // The generated namespace bundles `default`, `HubHandle`, and
-  // `hub_core_api_version` — the same surface described by GeneratedHubWasmModule.
+  // The generated namespace bundles `default`, `HubHandle`, `hub_core_api_version`,
+  // and `replay_run` — the same surface described by GeneratedHubWasmModule.
   return generatedHubWasm;
 }

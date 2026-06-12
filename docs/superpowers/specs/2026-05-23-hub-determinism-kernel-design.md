@@ -133,14 +133,14 @@ Binary, append-only, versioned. Layout:
 
 This is a backward-compatible format-v1 extension: v1 movement-only replay remains deterministic because `hub_core::log` already converts each body `u32` through `InputSnapshot::from_raw(low_u16(input_packed))`, ignoring the high browser-intent half. A future change that alters record alignment, moves core bits, or makes high bits held state must bump `format_version` and `CORE_API_VERSION` together.
 
-Rust reader/writer exists for native replay and fixtures; the TS host mirrors the v1 writer to a `Uint8Array` in memory. Playwright extracts the browser buffer and hands it to `haggis-eval determinism`.
+Rust reader/writer exists for native replay and fixtures; the TS host mirrors the v1 writer to a `Uint8Array` in memory. Playwright extracts the browser buffer and the determinism smoke feeds it to the WASM-exported Rust `replay_run`.
 
 **Version policy.** `replay::run` rejects any log whose `core_api_version` does not exactly match the running `hub_core::CORE_API_VERSION`. There is no automatic migration. Migration, when it becomes necessary, is its own ADR and lands behind an explicit version-bump in `CORE_API_VERSION` with golden fixtures per version.
 
 ### 2.6 Replay engine
 
 - `replay::run(log: &Log) -> Result<ReplayOutcome, ReplayError>`. Reconstructs Sim from header seed, feeds every tick's input (filling unchanged frames from the previous input), hashes final state, compares against the log's trailer hash. Mismatch produces `ReplayError::Divergence { at_tick }`.
-- The same `replay::run` is invoked by `haggis-eval determinism`: take a log produced by the browser, replay native, assert digests match. This is the headline guarantee.
+- The same `replay::run` is invoked by the WASM `replay_run` export in `haggis-eval determinism`: take a log produced by the browser, replay it through Rust compiled to WASM, assert digests match. This is the headline guarantee.
 
 ### 2.7 `tools/haggis-eval/` — Go orchestrator CLI
 
@@ -151,7 +151,7 @@ Single Go binary, single source tree. Subcommands:
 | `haggis-eval rust` | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo nextest run` |
 | `haggis-eval ts` | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm eslint` |
 | `haggis-eval browser` | Playwright smoke + replay capture |
-| `haggis-eval determinism` | Replay every captured log natively, diff hashes |
+| `haggis-eval determinism` | Same-seed browser hash equality + browser-captured `.haggislog` replayed through WASM `replay_run` |
 | `haggis-eval differential rng` | Rust vs WAT xoshiro128**, fixed seed, 1M draws |
 | `haggis-eval differential hash` | Rust vs C FNV-1a, published vectors + fuzz |
 | `haggis-eval perf` | Per-asset bundle budgets + W3C Paint Timing API via chromium-headless against local preview (hand-rolled; `size-limit` and Lighthouse in original spec dropped — both are deps the project doesn't need, the W3C primitives suffice) |
@@ -168,12 +168,12 @@ Implemented in Go because Go's small typed binary that orchestrates processes is
 
 ```
 Browser session
-  -> input log written into linear memory
-  -> Playwright extracts .haggislog blob
-  -> haggis-eval determinism feeds blob to native replay::run
-  -> compares final_state_hash with blob's trailer hash
-  -> green: byte-exact reproduction across browser + native
-  -> red:   ReplayError::Divergence { at_tick } printed; eval fails
+  -> input log written to `window.__lastHaggisLog`
+  -> Playwright extracts `.haggislog` bytes
+  -> haggis-eval determinism calls the page's WASM `replay_run` hook
+  -> compares replay final_state_hash with the live browser state hash
+  -> green: byte-exact reproduction across browser record + Rust replay
+  -> red:   replay error code or hash mismatch printed; eval fails
 ```
 
 Drift modes this catches that the current test suite cannot:
@@ -202,7 +202,7 @@ Drift modes this catches that the current test suite cannot:
 | C differential | Rust hash vs C hash, vectors + 100k fuzz | `haggis-eval differential hash` |
 | Boundary | Vitest against a real WASM init — no mocks | `pnpm vitest` |
 | Browser smoke | Playwright load + input + capture log | `haggis-eval browser` |
-| Replay determinism | Browser-captured log replayed native, hash equal | `haggis-eval determinism` |
+| Replay determinism | Browser-captured log replayed through WASM `replay_run`, hash equal | `haggis-eval determinism` |
 | Perf budget | Hand-rolled per-asset bundle byte caps + W3C Paint Timing API medians via chromium-headless (no `size-limit` or Lighthouse dep) | `haggis-eval perf` |
 | Accessibility | Hand-rolled WCAG 2.2 AA spot-checks via Playwright; 26 checks across page language, viewport zoom, page title, accessible names, fallback help, live status, label-in-name, keyboard reachability, focus visibility, contrast ratio, self-hosted font load, runtime errors (no axe-core / pa11y dep) | `haggis-eval a11y` |
 | Security headers | Live preview headers vs `public/_headers` | `haggis-eval security` |
@@ -248,7 +248,7 @@ The kernel sub-project is complete when all of the following are true:
 3. `hub-wasm` exposes only the four boundary functions in §2.4; the prior per-entity round-trips are gone.
 4. The `.haggislog` reader/writer exists and round-trips on a synthetic log.
 5. `tools/haggis-eval/` exists as a single Go binary with every subcommand in §2.7 implemented; `haggis-eval all` passes on a clean checkout.
-6. A Playwright session can record a log; `haggis-eval determinism` replays it native; final hashes match.
+6. A Playwright session can record a log; `haggis-eval determinism` replays it through WASM `replay_run`; final hashes match.
 7. Foundation docs are pruned per §7; archived material moved with supersession notes.
 8. The current first-room behaviour still works for the visitor: walk the haggis with WASD/arrows, see door prompts, use the direct-play link. Visible behaviour is unchanged or improved; nothing regresses.
 

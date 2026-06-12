@@ -1,6 +1,6 @@
-// Build dist, start vite preview, run smoke-determinism.mjs, tear
-// down. Mirrors run-browser-smokes.mjs but for the single determinism
-// smoke so haggis-eval `determinism` and `browser` stay separate.
+// Build dist, start vite preview, run the determinism/replay smoke pair,
+// then tear down. Mirrors run-browser-smokes.mjs but keeps haggis-eval
+// `determinism` and `browser` separate.
 
 import { spawn, spawnSync } from 'node:child_process';
 import { request } from 'node:http';
@@ -14,7 +14,7 @@ if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNum
   throw new Error(`Invalid preview port: ${PORT}`);
 }
 const BASE = `http://localhost:${PORT}/`;
-const SMOKE = 'scripts/smoke-determinism.mjs';
+const SMOKES = ['scripts/smoke-determinism.mjs', 'scripts/smoke-replay-log.mjs'];
 
 function log(...args) {
   console.log('[run-determinism-smoke]', ...args);
@@ -70,17 +70,21 @@ try {
   await waitForPort(BASE, 8000);
   log(`preview ready at ${BASE}`);
 
-  log(`running ${SMOKE}…`);
-  const r = spawnSync(NODE, [SMOKE], {
-    stdio: 'inherit',
-    env: { ...process.env, SCREENSHOT_URL: BASE },
-  });
-  if (r.status !== 0) {
-    failed = true;
-    log(`FAIL ${SMOKE} (exit ${r.status})`);
-  } else {
-    log(`PASS ${SMOKE}`);
+  let failures = 0;
+  for (const smoke of SMOKES) {
+    log(`running ${smoke}…`);
+    const r = spawnSync(NODE, [smoke], {
+      stdio: 'inherit',
+      env: { ...process.env, SCREENSHOT_URL: BASE },
+    });
+    if (r.status !== 0) {
+      failures += 1;
+      log(`FAIL ${smoke} (exit ${r.status})`);
+    } else {
+      log(`PASS ${smoke}`);
+    }
   }
+  failed = failures > 0;
 } catch (err) {
   log('preview never became ready:', err.message);
   log('preview output:\n' + previewOut.join(''));

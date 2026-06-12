@@ -203,6 +203,7 @@ type MockHubBoundary = HubBoundary & {
   readonly snapshot: ReturnType<typeof vi.fn<() => DecodedSnapshot>>;
   readonly tick: ReturnType<typeof vi.fn<(inputPacked: number) => DecodedSnapshot>>;
   readonly stateHash: ReturnType<typeof vi.fn<() => bigint>>;
+  readonly replayLog: ReturnType<typeof vi.fn<(logBytes: Uint8Array) => bigint>>;
   readonly destroy: ReturnType<typeof vi.fn<() => void>>;
 };
 
@@ -213,6 +214,7 @@ function makeBoundary(snapshot: DecodedSnapshot = SNAPSHOT, room = ROOM): MockHu
     snapshot: vi.fn(() => snapshot),
     tick: vi.fn(() => snapshot),
     stateHash: vi.fn(() => 123n),
+    replayLog: vi.fn(() => 456n),
     destroy: vi.fn(),
   };
 }
@@ -329,6 +331,44 @@ describe('createBothyGameModule', () => {
     expect(
       (window as unknown as { __launchableDoorVisualBounds?: unknown }).__launchableDoorVisualBounds
     ).toBeUndefined();
+  });
+
+  it('exposes a smoke/debug-only replay hook that delegates captured logs to the WASM boundary', async () => {
+    const { boundary, instance } = await mountHarness();
+    const hook = (window as unknown as { __replayHaggisLog?: (bytes: Uint8Array) => bigint })
+      .__replayHaggisLog;
+    const bytes = new Uint8Array([1, 2, 3]);
+
+    expect(hook).toBeTypeOf('function');
+    expect(hook?.(bytes)).toBe(456n);
+    expect(boundary.replayLog).toHaveBeenCalledWith(bytes);
+
+    await instance.destroy();
+    expect(
+      (window as unknown as { __replayHaggisLog?: unknown }).__replayHaggisLog
+    ).toBeUndefined();
+  });
+
+  it('does not advance replay-log tick indices while the smoke pause hook is active', async () => {
+    const { browser, boundary, keyboard, winAddEventListener } = await mountHarness();
+    const hooks = window as unknown as {
+      __setPaused?: (paused: boolean) => void;
+      __advance?: (ticks: number) => number;
+    };
+
+    hooks.__setPaused?.(true);
+    // A paused RAF frame should update wall-clock bookkeeping only. It must not
+    // move the replay tick cursor because the WASM sim does not tick while paused.
+    browser.flushRaf(100);
+
+    keyboard.snapshot.mockReturnValue({ x: 1, y: 0 });
+    expect(hooks.__advance?.(2)).toBe(1);
+
+    const bytes = finishCapturedInputLog(winAddEventListener);
+    expect(readU32(bytes, HAGGIS_LOG_HEADER_LEN)).toBe(0);
+    expect(readU32(bytes, HAGGIS_LOG_HEADER_LEN + 4)).toBe(1);
+    expect(readU32(bytes, HAGGIS_LOG_HEADER_LEN + HAGGIS_LOG_RECORD_LEN + 8)).toBe(2);
+    expect(vi.mocked(boundary.tick)).toHaveBeenCalledTimes(2);
   });
 
   it('chaps the locked door when pointer-down lands on it, without launching', async () => {

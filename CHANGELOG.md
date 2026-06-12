@@ -16,6 +16,13 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Fixed
 
+- **Joined browser `.haggislog` capture to replay truth.** The determinism gate now runs a
+  second Playwright smoke (`scripts/smoke-replay-log.mjs`) that pauses the browser loop, drives
+  an exact two-input tick sequence, seals `window.__lastHaggisLog`, feeds those bytes through
+  the WASM-exported Rust `replay_run`, and asserts the replay hash equals the live state hash.
+  The `__advance` smoke hook now records exact stepped ticks into the input log and advances the
+  log tick counter, so the replay proof is record → replay → hash rather than same-process hash
+  comparison.
 - **Made `.haggislog` replay-grade for keyboard launch intent.** The v1 body record stays
   `(tick_index: u32, input_packed: u32)`, but `input_packed` now has a documented high-half
   record-local interact-edge pulse (bit 16) while the low 16 bits remain the core movement

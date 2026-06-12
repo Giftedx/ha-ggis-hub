@@ -25,7 +25,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
 | `browser`             | `node scripts/run-browser-smokes.mjs` — build → vite preview → door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + locked-door + a11y on chromium → teardown |
 | `multi-browser`       | Same runner with `PLAYWRIGHT_BROWSER=firefox` then `webkit`. Runs 6 core smokes (a11y excluded — keyboard focus ordering for anchors is OS-dependent on non-chromium). Requires `playwright install firefox webkit`. |
-| `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs |
+| `determinism`         | `node scripts/run-determinism-smoke.mjs` — same `?seed=` + same scripted input → same state-hash across two browser runs, then one browser-captured `.haggislog` → WASM `replay_run` → matching live state hash |
 | `perf`                | `pnpm run build` + `node scripts/perf-budgets.mjs` (per-asset stem budgets) + `node scripts/run-paint-gate.mjs` (W3C Paint Timing API: FCP/LCP via PerformanceObserver, DCL/load, plus `hub:firstFrame` user-mark fired from `src/main.ts` after the first canvas render — the canvas-aware paint metric the bothy needs because chrome's LCP heuristic collapses to FCP on this canvas-first app; median of 3 samples; budgets in `perf-budgets.json` `paint.max_ms`) |
 | `differential rng`    | `cargo test -p hub-hardlang --test differential_rng -- --include-ignored`   |
 | `differential hash`   | `cargo test -p hub-hardlang --test differential_hash`                       |

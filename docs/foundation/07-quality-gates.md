@@ -50,7 +50,7 @@ node scripts/run-paint-gate.mjs                       # paint-timing budgets (FC
 node scripts/run-browser-smokes.mjs    # 7 chromium smokes (incl. a11y gate)
 PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 6 core smokes on firefox
 PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 6 core smokes on webkit
-node scripts/run-determinism-smoke.mjs # state-hash equality
+node scripts/run-determinism-smoke.mjs # state-hash equality + browser .haggislog replay hash
 node scripts/run-visual-gate.mjs verify # perceptual aHash
 node scripts/run-a11y-gate.mjs          # WCAG 2.2 AA spot-checks (hand-rolled)
 node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)

@@ -58,6 +58,7 @@ function makeStubModule(): {
       default: async () => ({ memory }),
       HubHandle,
       hub_core_api_version: () => 1,
+      replay_run: (logBytes: Uint8Array) => BigInt(logBytes.byteLength),
     }),
     memory,
   };
@@ -126,6 +127,7 @@ describe('initializeHubBoundaryV2', () => {
       default: async () => ({ memory }),
       HubHandle,
       hub_core_api_version: () => 1,
+      replay_run: () => 0n,
     });
     await expect(initializeHubBoundaryV2(loader, 0n)).rejects.toThrow(HubBoundaryError);
   });
@@ -174,6 +176,7 @@ describe('initializeHubBoundaryV2', () => {
       default: async () => ({ memory }),
       HubHandle,
       hub_core_api_version: () => 2,
+      replay_run: () => 0n,
     });
     const boundary = await initializeHubBoundaryV2(loader, 0n);
     expect(boundary.room.doors).toHaveLength(1);
@@ -231,9 +234,16 @@ describe('initializeHubBoundaryV2', () => {
       default: async () => ({ memory }),
       HubHandle,
       hub_core_api_version: () => 1,
+      replay_run: () => 0n,
     });
     const boundary = await initializeHubBoundaryV2(loader, 0n);
     expect(boundary.room.doors[0]?.status).toBe('locked');
+  });
+
+  it('delegates replayLog byte buffers to the generated replay_run export', async () => {
+    const { loader } = makeStubModule();
+    const boundary = await initializeHubBoundaryV2(loader, 0n);
+    expect(boundary.replayLog(new Uint8Array([1, 2, 3]))).toBe(3n);
   });
 
   it('frees the handle on destroy', async () => {

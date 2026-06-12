@@ -123,7 +123,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  perf                       Bundle-size budgets + paint-timing (scripts/perf-budgets.mjs + scripts/run-paint-gate.mjs)")
 	fmt.Fprintln(w, "  browser                    Playwright smokes on chromium (door-launch + door-tap + pointer-drive + music-toggle + a11y)")
 	fmt.Fprintln(w, "  multi-browser              Core smokes (no a11y) on firefox + webkit")
-	fmt.Fprintln(w, "  determinism                Same seed + same input → same state hash (browser replay)")
+	fmt.Fprintln(w, "  determinism                Same seed + same input hash equality; browser .haggislog replay hash")
 	fmt.Fprintln(w, "  differential rng           WAT vs Rust xoshiro128**, 1M draws")
 	fmt.Fprintln(w, "  differential hash          C vs Rust FNV-1a, vectors + 100k fuzz")
 	fmt.Fprintln(w, "  visual [verify|capture]    Perceptual aHash diff vs tests/golden/ (default verify)")

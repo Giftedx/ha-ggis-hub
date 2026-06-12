@@ -36,6 +36,7 @@ export interface HubBoundary {
   snapshot(): DecodedSnapshot;
   tick(inputPacked: number): DecodedSnapshot;
   stateHash(): bigint;
+  replayLog(logBytes: Uint8Array): bigint;
   destroy(): void;
 }
 
@@ -51,6 +52,7 @@ export interface GeneratedHubWasmModule {
   default(): Promise<GeneratedHubWasmInitResult>;
   HubHandle: new (seed: bigint) => GeneratedHandle;
   hub_core_api_version(): number;
+  replay_run(log_bytes: Uint8Array): bigint;
 }
 
 interface GeneratedHandle {
@@ -114,6 +116,9 @@ export async function initializeHubBoundaryV2(
     },
     stateHash(): bigint {
       return handle.state_hash();
+    },
+    replayLog(logBytes: Uint8Array): bigint {
+      return module.replay_run(logBytes);
     },
     destroy(): void {
       handle.free();

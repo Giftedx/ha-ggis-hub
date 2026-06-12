@@ -45,7 +45,7 @@ The hub is also a **portfolio artifact for the engineering layer underneath**. T
 - **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
 - **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
 - **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism smoke (same seed + scripted input → same state hash across two browser runs) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
+- **vitest suite** + cargo workspace tests + seven Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, reduced-motion, locked-door, a11y) + six core smokes on Firefox and WebKit each + per-asset perf budgets + determinism/replay smokes (same seed + scripted input → same state hash across two browser runs, plus a browser-captured `.haggislog` replayed through WASM `replay_run` to the same live hash) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (26 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
 - **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
 - **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
@@ -117,7 +117,7 @@ pnpm run coverage  # vitest v8 coverage (lines=100%, stmts=100%, fns=100%, branc
 node scripts/run-browser-smokes.mjs    # 7 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + locked-door + a11y
 PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 6 core smokes on Firefox
 PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 6 core smokes on WebKit
-node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same state hash
+node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same state hash, plus browser .haggislog → replay_run hash match
 
 # Visual gate (builds + previews + diffs against tests/golden/)
 node scripts/run-visual-gate.mjs verify   # perceptual aHash diff vs golden

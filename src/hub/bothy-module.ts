@@ -247,6 +247,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         __roomSnapshot?: () => unknown;
         __launchableDoorVisualBounds?: () => readonly VisualDoorBounds[];
         __stateHash?: () => bigint;
+        __replayHaggisLog?: (logBytes: Uint8Array) => bigint;
         __seed?: bigint;
         __setPaused?: (paused: boolean) => void;
         __advance?: (ticks: number) => number;
@@ -266,6 +267,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           .map((bounds) => ({ ...bounds }));
       };
       winHooks.__stateHash = () => boundary.stateHash();
+      winHooks.__replayHaggisLog = (logBytes: Uint8Array) => boundary.replayLog(logBytes);
       // Deterministic drive for the determinism gate. The production tick
       // loop advances a wall-clock-derived, variable number of ticks per
       // frame, so a smoke that holds a key for a fixed *duration* applies a
@@ -276,14 +278,26 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       // hooks let the gate pause the loop and step an EXACT tick count with
       // the currently-sampled input — the same path real frames use, minus
       // the clock. __advance returns the packed input it sampled so the
-      // caller can assert the key actually registered.
+      // caller can assert the key actually registered, and it records the
+      // exact ticks into the `.haggislog` so replay smokes exercise the same
+      // record -> replay -> state-hash path instead of a hidden side channel.
       winHooks.__setPaused = (nextPaused: boolean) => {
         paused = nextPaused;
       };
       winHooks.__advance = (ticks: number): number => {
         const packed = samplePackedInput();
-        for (let i = 0; i < ticks; i += 1) {
-          room.tick(packed);
+        const ticksToAdvance = Math.max(0, Math.floor(ticks));
+        if (ticksToAdvance > 0) {
+          const interactEdge = keyboard.consumeInteract();
+          inputLog.recordTick(stepState.tick, packed, { interactEdge });
+          for (let i = 0; i < ticksToAdvance; i += 1) {
+            room.tick(packed);
+          }
+          maybeLaunchFromInteract(interactEdge);
+          stepState = {
+            tick: stepState.tick + ticksToAdvance,
+            accumulatorMs: stepState.accumulatorMs,
+          };
         }
         return packed;
       };
@@ -311,18 +325,20 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
         rafId = window.requestAnimationFrame(loop);
         const delta = now - last;
         last = now;
-        const pumped = pumpFixedStep(config, stepState, delta);
-        if (!paused && pumped.ticksToAdvance > 0) {
-          const packed = samplePackedInput();
-          const interactEdge = keyboard.consumeInteract();
-          inputLog.recordTick(stepState.tick, packed, { interactEdge });
-          for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
-            room.tick(packed);
+        if (!paused) {
+          const pumped = pumpFixedStep(config, stepState, delta);
+          if (pumped.ticksToAdvance > 0) {
+            const packed = samplePackedInput();
+            const interactEdge = keyboard.consumeInteract();
+            inputLog.recordTick(stepState.tick, packed, { interactEdge });
+            for (let i = 0; i < pumped.ticksToAdvance; i += 1) {
+              room.tick(packed);
+            }
+            maybeLaunchFromInteract(interactEdge);
           }
-          maybeLaunchFromInteract(interactEdge);
+          stepState = pumped.state;
         }
         room.render();
-        stepState = pumped.state;
         announceDoorStatus(room.lastSnapshot());
         if (overlay !== null && fpsTracker !== null) {
           const snapshot = room.lastSnapshot();
@@ -368,6 +384,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           delete winHooks.__roomSnapshot;
           delete winHooks.__launchableDoorVisualBounds;
           delete winHooks.__stateHash;
+          delete winHooks.__replayHaggisLog;
           delete winHooks.__seed;
           delete winHooks.__setPaused;
           delete winHooks.__advance;

@@ -39,6 +39,7 @@ function makeStubBoundary(initial: DecodedSnapshot): StubBoundaryHandle {
     snapshot,
     tick,
     stateHash: () => 0n,
+    replayLog: () => 0n,
     destroy,
   };
   return {
