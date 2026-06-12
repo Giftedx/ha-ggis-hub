@@ -3,9 +3,9 @@
   "schema": 1,
   "scenes": {
     "bothy-idle-seed-42": {
-      "hash": "00008000f81ff81fe006c0070000f800f80ef802f800f800f800700000000000",
+      "hash": "8003e007e007fc0ff837f037f03790772035203080318031f01ff81ff80fc001",
       "toleranceBits": 8,
-      "capturedAt": "2026-06-12T21:55:17.345Z"
+      "capturedAt": "2026-06-12T22:23:09.690Z"
     }
   }
 }
