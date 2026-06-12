@@ -27,6 +27,12 @@
 /wild/manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
 
+# Build-time provenance endpoint. Revalidate because manual Pages deployments can
+# roll forward/back independently of asset filenames.
+/__version
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
+
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 

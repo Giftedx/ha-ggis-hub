@@ -4,6 +4,16 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ## [Unreleased] — CI restored to green + correctness fixes
 
+### Added
+
+- **Added deployed-version provenance and an opt-in production probe.** `pnpm run build` now writes
+  `dist/__version` with hub git/package state plus WHS source/build provenance, and `build:all`
+  rewrites it after `/wild/` is mounted so future production reviews can read commits directly
+  instead of inferring from asset hashes. `pnpm run production:check` / `haggis-eval production`
+  now probe `ha.ggis.xyz`, the `ggis.xyz` redirect, security headers/CSP, immutable hashed hub +
+  WHS assets, source-map absence, `/wild/`, and `/__version`; the gate stays opt-in because live
+  production can legitimately lag a branch under review.
+
 ### Fixed
 
 - **Made `.haggislog` replay-grade for keyboard launch intent.** The v1 body record stays

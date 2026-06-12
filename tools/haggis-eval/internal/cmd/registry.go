@@ -34,6 +34,7 @@ func Registry() map[string]GateRunner {
 		"a11y":              A11y,
 		"soak":              Soak,
 		"supply-chain":      SupplyChain,
+		"production":        Production,
 		"differential-hash": func() []gate.Result { return Differential("hash") },
 		"differential-rng":  func() []gate.Result { return Differential("rng") },
 	}

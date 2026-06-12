@@ -69,6 +69,7 @@ If you only have time for the load-bearing five, read these in order:
 
 - Product: playable haggis games lobby (single bothy room + door-to-game launch).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
+- Deployed-build provenance: each build writes `dist/__version`, served at `https://ha.ggis.xyz/__version`, with hub git state plus WHS source/build provenance.
 - First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
 - Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (docs-claim drift check + typecheck + lint + fmt:check + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (rust + rust-cov + docs + ts + coverage + security + perf + browser + multi-browser + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
@@ -109,6 +110,7 @@ cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-unde
 node scripts/check-doc-claims.mjs
 pnpm install --frozen-lockfile
 pnpm verify        # docs:claims → typecheck → lint → fmt:check → vitest → build → scripts/verify-dist.mjs
+pnpm run production:check  # opt-in live probe: ha.ggis.xyz, ggis.xyz redirect, /wild/, /__version
 pnpm run coverage  # vitest v8 coverage (lines=100%, stmts=100%, fns=100%, branches=100%)
 
 # Browser smokes (each builds dist + starts vite preview internally)

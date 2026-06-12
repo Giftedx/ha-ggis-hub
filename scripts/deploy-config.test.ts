@@ -62,6 +62,11 @@ describe('public/_headers', () => {
     );
   });
 
+  it('/__version is JSON and revalidates on every production check', () => {
+    expect(headers).toMatch(/\/__version[\s\S]*?Content-Type: application\/json; charset=utf-8/);
+    expect(headers).toMatch(/\/__version[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
+  });
+
   it('self-hosted font files get immutable cache so FOUT does not recur after first load', () => {
     expect(headers).toMatch(
       /\/fonts\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/

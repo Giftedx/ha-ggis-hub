@@ -13,6 +13,10 @@
     "fast": {
       "description": "Smoke-only — the absolute minimum to confirm the toolchain still works. Docs/eval claim checks, typecheck, vitest, build, bundle-size + paint-timing budgets. ~10 seconds end to end. Use when iterating on docs or non-rendered code paths.",
       "gates": ["docs", "ts", "perf"]
+    },
+    "production": {
+      "description": "Opt-in live deployment probe. Checks ha.ggis.xyz, the ggis.xyz apex redirect, required production headers/CSP, immutable hashed assets, source-map absence, mounted WHS at /wild/, and the build provenance endpoint at /__version. Not part of pre-merge/release/all because production can temporarily lag a branch under review.",
+      "gates": ["production"]
     }
   }
 }

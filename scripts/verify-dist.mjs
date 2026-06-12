@@ -27,6 +27,7 @@ if (errors.length === 0) {
     'dist/_redirects missing (public/_redirects not copied)'
   );
   must(existsSync(join(dist, 'index.html')), 'dist/index.html missing');
+  must(existsSync(join(dist, '__version')), 'dist/__version missing (build provenance endpoint)');
   must(
     existsSync(join(dist, 'favicon.svg')),
     'dist/favicon.svg missing — icon broken in production'
@@ -76,6 +77,40 @@ if (errors.length === 0) {
     must(html.includes('<html lang='), 'index.html missing lang attribute on <html> (WCAG 3.1.1)');
   }
 
+  // Version/provenance endpoint: future live-site reviews should read this
+  // instead of inferring deployed commits from asset hashes.
+  if (existsSync(join(dist, '__version'))) {
+    let version;
+    try {
+      version = JSON.parse(readFileSync(join(dist, '__version'), 'utf8'));
+    } catch (error) {
+      errors.push(`dist/__version is not valid JSON: ${error.message}`);
+    }
+    if (version !== undefined) {
+      must(version.schema === 1, `dist/__version schema ${version.schema}; want 1`);
+      must(
+        !Number.isNaN(Date.parse(version.generatedAt ?? '')),
+        'dist/__version generatedAt missing or not parseable'
+      );
+      must(
+        /^[a-f0-9]{40}$/i.test(version.hub?.git?.commit ?? ''),
+        'dist/__version missing 40-hex hub.git.commit'
+      );
+      must(
+        typeof version.hub?.git?.dirty === 'boolean',
+        'dist/__version missing boolean hub.git.dirty'
+      );
+      must(
+        version.wildHaggisSurvivors?.route === '/wild/',
+        'dist/__version WHS route must be /wild/'
+      );
+      must(
+        typeof version.wildHaggisSurvivors?.build?.mounted === 'boolean',
+        'dist/__version missing boolean wildHaggisSurvivors.build.mounted'
+      );
+    }
+  }
+
   // Headers file sanity: must contain CSP directive + wasm-unsafe-eval.
   if (existsSync(join(dist, '_headers'))) {
     const headers = readFileSync(join(dist, '_headers'), 'utf8');
@@ -84,6 +119,14 @@ if (errors.length === 0) {
       'CSP missing wasm-unsafe-eval (WASM init will fail in production)'
     );
     must(headers.includes('Strict-Transport-Security'), 'HSTS header missing');
+    must(
+      /\/__version[\s\S]*?Content-Type: application\/json; charset=utf-8/.test(headers),
+      '/__version JSON Content-Type header missing'
+    );
+    must(
+      /\/__version[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/.test(headers),
+      '/__version revalidation cache header missing'
+    );
   }
 }
 

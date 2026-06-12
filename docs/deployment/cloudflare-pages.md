@@ -6,7 +6,7 @@ Related: [First public release requirements](../foundation/07-quality-gates.md#f
 
 ## Current status
 
-In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` (7 assertions) guards them in CI: security headers, CSP directives, immutable asset cache, font immutable cache, SPA fallback.
+In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` guards them in CI: security headers, CSP directives, immutable asset cache, font immutable cache, WHS route/cache rules, `/__version` provenance caching, SPA fallback.
 
 Cloudflare dashboard config (project name, branch, build command, domain) is out-of-band and must be applied manually.
 
@@ -57,6 +57,19 @@ If Rust/WASM tooling is awkward in the Cloudflare build image, prefer GitHub Act
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
+/wild/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/wild/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/wild/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
+/__version
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
+
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -90,7 +103,8 @@ precedes the hub wildcard.
 
 - `index.html`: revalidate every request.
 - hashed assets: one year immutable.
-- manifest: short cache.
+- WHS service worker and manifests: revalidate so deploys propagate.
+- `__version`: JSON provenance endpoint, revalidate every request.
 - un-hashed files: no long immutable cache.
 
 ## Source maps
@@ -108,6 +122,7 @@ In-repo (already verified by CI):
 - [x] Security headers present (`deploy-config.test.ts`)
 - [x] CSP does not block WASM (`wasm-unsafe-eval` asserted)
 - [x] Hashed assets receive immutable caching
+- [x] `/__version` is emitted by `pnpm run build`, served as JSON, and revalidated
 - [x] HTML does not receive immutable caching
 - [x] Direct deep links reload correctly (SPA fallback)
 - [x] Browser smoke tests pass (`run-browser-smokes.mjs`)
@@ -118,3 +133,4 @@ Out-of-band (Cloudflare dashboard + DNS):
 - [x] `ggis.xyz` redirects preserving path/query (`HTTP 301` to `ha.ggis.xyz`, verified 2026-05-27)
 - [x] HTTPS active
 - [x] No production source maps unless intentional (`pnpm run build:verified`, verified 2026-05-27)
+- [ ] After each manual deploy, run `pnpm run production:check` (or `haggis-eval production`) and inspect `/__version` rather than inferring commits from asset hashes.

@@ -21,6 +21,8 @@ pnpm verify   # docs:claims → tsc --noEmit → eslint (src/ + scripts/) → pr
 
 The `docs:claims` step runs `node scripts/check-doc-claims.mjs`, which rejects crypto-signing overclaims and generic `signed JSON report` wording unless the claim is explicitly FNV/tamper-evident qualified or negated.
 
+`pnpm run build` writes `dist/__version` after Vite finishes. `scripts/verify-dist.mjs` requires that endpoint to contain parseable hub git provenance and WHS route/build fields, so local build output always carries deploy-review provenance before manual upload.
+
 The pre-merge slice runs `docs`, `ts`, `security`, `perf`, `browser`, `determinism`, `visual`, `a11y`.
 
 ### Current release gate (push to main)
@@ -55,13 +57,20 @@ node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5
 
 # Supply-chain
 cargo deny check                        # license compliance + RustSec advisories + source policy
-cargo machete                           # unused dependency detection
-gitleaks detect --source . --no-banner  # git history scan for accidentally committed secrets
-osv-scanner --recursive .               # cross-ecosystem CVE scan (Cargo.lock + pnpm-lock.yaml + go.mod)
+cargo machete                           # unused Rust dependencies
+gitleaks detect --source . --no-banner  # secret scan across git history
+osv-scanner --recursive .               # cross-ecosystem CVE scan (Cargo + npm + Go)
 
 # Hard-language differential tests
 cargo test -p hub-hardlang --test differential_hash
 cargo test -p hub-hardlang --test differential_rng -- --include-ignored
+```
+
+The live production probe is deliberately opt-in rather than part of PR/release CI because production can temporarily lag a branch under review:
+
+```bash
+pnpm run production:check               # ha.ggis.xyz, ggis.xyz redirect, /wild/, /__version
+# or: ./tools/haggis-eval/haggis-eval production
 ```
 
 ### Documentation foundation gate

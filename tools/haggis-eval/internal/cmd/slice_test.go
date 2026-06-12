@@ -142,7 +142,7 @@ func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 	for _, want := range []string{
 		"rust", "rust-cov", "docs", "ts", "coverage", "security", "perf",
 		"browser", "multi-browser", "determinism", "visual",
-		"a11y", "soak", "supply-chain",
+		"a11y", "soak", "supply-chain", "production",
 		"differential-hash", "differential-rng",
 	} {
 		if _, ok := reg[want]; !ok {

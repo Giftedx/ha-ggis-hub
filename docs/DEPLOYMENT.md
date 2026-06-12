@@ -39,6 +39,11 @@ pnpm dlx wrangler@latest pages project create ha-ggis-hub --production-branch=ma
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main --commit-dirty=true
 ```
 
+Current builds write `dist/__version` after Vite completes. The endpoint records the
+hub package version, hub git commit/dirty state, WHS source git commit/dirty state
+when the sibling checkout is present, and mounted WHS build hashes when
+`dist/wild/` exists.
+
 Custom domain: `ha.ggis.xyz`
 
 ## DNS and custom domain
@@ -123,6 +128,7 @@ pnpm dlx wrangler@latest pages deployment rollback <DEPLOYMENT_ID> --project-nam
 ```powershell
 curl.exe -I https://ha.ggis.xyz/
 curl.exe -I "https://ggis.xyz/test/path?x=1"
+curl.exe -fsS https://ha.ggis.xyz/__version
 ```
 
 Confirm `HTTP 200` from `ha.ggis.xyz` and `HTTP 301` from `ggis.xyz`. Check the `ETag` or `x-deployment-id` response header to confirm the rolled-back deployment ID is active.
@@ -159,9 +165,10 @@ so every asset/manifest/SW URL it emits is already `/wild/`-rooted.
 ```bash
 # From ha-ggis-hub/. Builds the hub, then WHS, then mounts WHS into dist/wild/.
 pnpm run build:all
-#   = pnpm run build            (hub: wasm + vite)
+#   = pnpm run build            (hub: wasm + vite + dist/__version)
 #     pnpm run build:whs        (npm --prefix ../wild-haggis-survivors run build)
 #     pnpm run copy:whs         (scripts/copy-whs-build.mjs → dist/wild/)
+#     node scripts/write-version-manifest.mjs  (rewrites dist/__version with WHS build hashes)
 
 # Then deploy the combined dist (interactive auth the first time):
 wrangler login
@@ -175,5 +182,31 @@ build + deploy from GitHub Actions or locally with Wrangler instead.
 
 Routing/caching for the sub-path lives in `public/_redirects`
 (`/wild/* → /wild/index.html 200`, **before** the hub wildcard) and
-`public/_headers` (`/wild/assets/*` immutable, `/wild/sw.js` revalidate); both
-are locked by `scripts/deploy-config.test.ts`.
+`public/_headers` (`/wild/assets/*` immutable, `/wild/sw.js` revalidate,
+`/__version` JSON + revalidate); both are locked by `scripts/deploy-config.test.ts`.
+
+### Verify after manual deploy
+
+Run the opt-in probe only after you expect production to contain the branch you
+just deployed:
+
+```bash
+pnpm run production:check
+# or, after building tools/haggis-eval:
+./tools/haggis-eval/haggis-eval production
+```
+
+The probe checks `https://ha.ggis.xyz/`, the `ggis.xyz` apex redirect preserving
+path/query, required security headers and CSP, immutable hashed hub + WHS assets,
+source-map absence, `https://ha.ggis.xyz/wild/`, and
+`https://ha.ggis.xyz/__version`. If it fails on `/__version`, inspect the JSON
+with:
+
+```bash
+curl -fsS https://ha.ggis.xyz/__version
+```
+
+Use `hub.git.commit` and `wildHaggisSurvivors.source.commit` as the deployed
+provenance. A `dirty: true` value is intentional evidence that the uploaded build
+came from an uncommitted or otherwise dirty checkout; do not infer deployment
+currency from asset hashes alone.
