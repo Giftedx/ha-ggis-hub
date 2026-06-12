@@ -22,6 +22,7 @@ func Registry() map[string]GateRunner {
 	return map[string]GateRunner{
 		"rust":              Rust,
 		"rust-cov":          RustCov,
+		"docs":              Docs,
 		"ts":                Ts,
 		"coverage":          Coverage,
 		"security":          Security,

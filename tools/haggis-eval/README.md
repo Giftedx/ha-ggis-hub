@@ -19,6 +19,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 |-----------------------|-----------------------------------------------------------------------------|
 | `rust`                | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`   |
 | `rust-cov`            | `cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100`. Requires `llvm-tools-preview` rustup component and `cargo-llvm-cov` binary. |
+| `docs`                | `node scripts/check-doc-claims.mjs` — documentation/report claim drift scanner; rejects cryptographic-signing overclaims and generic signed-report wording unless it is FNV/tamper-evident qualified or explicitly negated. |
 | `ts`                  | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`                    |
 | `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines=100%, stmts=100%, fns=100%, branches=100%). Excludes `src/main.ts` and generated wasm bindings. |
 | `security`            | `pnpm vitest run scripts/deploy-config.test.ts` — public/_headers + _redirects assertions |
@@ -32,8 +33,9 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | `a11y`                | `node scripts/run-a11y-gate.mjs` — hand-rolled WCAG 2.2 AA spot-checks via Playwright: page language (3.1.1), viewport zoom (1.4.4), page title (2.4.2), canvas accessible name and persistent fallback (1.1.1), interactive element accessible name (4.1.2), live status messaging (4.1.3), label-in-name (2.5.3), keyboard reachability (2.1.1), focus indicator visibility (2.4.7), computed contrast ratio (1.4.3) on every declared text pair, and self-hosted font load. 26 checks. No axe-core / pa11y dep. |
 | `soak`                | `node scripts/run-soak-gate.mjs` — memory-growth soak: loads hub on fixed seed, 15s RAF loop, CDP `HeapProfiler.collectGarbage` before/after, asserts heap growth < 5 MB. |
 | `supply-chain`        | `cargo deny check` — license compliance (allow list: MIT/Apache-2.0/BSD/ISC/Zlib/Unicode-3.0), RustSec advisory DB, duplicate version detection, source policy. Config: `deny.toml`. `cargo machete` — unused dependency detection. `gitleaks detect` — git history scan for secrets. `osv-scanner --recursive .` — cross-ecosystem CVE scan across Cargo.lock + pnpm-lock.yaml + go.mod; exceptions documented in `osv-scanner.toml`. |
-| `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (ts + perf), `pre-merge` (ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the FNV-signed report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
-| `all`                 | Every wired gate above, plus an FNV-signed JSON report                           |
+| `verify-report <path>` | Recomputes the FNV-1a signature for a `haggis-eval` JSON report payload and fails on tamper/mismatch. Reads the current numeric `signature` field shape. |
+| `slice [name\|list]`  | Runs a named gate-set bundle from `tools/haggis-eval/slices.json`. Bundled bundles: `fast` (docs + ts + perf), `pre-merge` (docs + ts + security + perf + browser + determinism + visual + a11y), `release` (== `all` minus the FNV-signed report write). With no name (or `list`), prints the available bundles. Override the config path via `HAGGIS_SLICES_PATH`. |
+| `all`                 | Every wired gate above, plus an FNV-signed tamper-evident JSON report                           |
 
 ## Invocation cwd
 
@@ -66,4 +68,8 @@ cd tools/haggis-eval
 go test ./...
 gofmt -l .
 go vet ./...
+go build .
+./haggis-eval verify-report ../../target/haggis-eval/all-<utc>.json
 ```
+
+Run the verifier from the repo root as `./tools/haggis-eval/haggis-eval verify-report target/haggis-eval/all-<utc>.json` (or `haggis-eval.exe` on Windows) when checking an emitted report.

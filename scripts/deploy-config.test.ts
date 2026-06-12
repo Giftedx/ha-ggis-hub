@@ -24,7 +24,7 @@ describe('public/_headers', () => {
       'X-Frame-Options: DENY',
       'Cross-Origin-Opener-Policy: same-origin',
       'Cross-Origin-Resource-Policy: same-origin',
-      'Origin-Agent-Cluster: ?1'
+      'Origin-Agent-Cluster: ?1',
     ];
     for (const line of required) {
       expect(headers).toContain(line);
@@ -44,7 +44,9 @@ describe('public/_headers', () => {
   });
 
   it('hashed assets get immutable cache, html does not', () => {
-    expect(headers).toMatch(/\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/);
+    expect(headers).toMatch(
+      /\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
+    );
     expect(headers).toMatch(/\/\*\.html[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
   });
 
@@ -55,11 +57,15 @@ describe('public/_headers', () => {
     expect(headers).toMatch(
       /\/wild\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
     );
-    expect(headers).toMatch(/\/wild\/sw\.js[\s\S]*?Cache-Control: no-cache, no-store, must-revalidate/);
+    expect(headers).toMatch(
+      /\/wild\/sw\.js[\s\S]*?Cache-Control: no-cache, no-store, must-revalidate/
+    );
   });
 
   it('self-hosted font files get immutable cache so FOUT does not recur after first load', () => {
-    expect(headers).toMatch(/\/fonts\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/);
+    expect(headers).toMatch(
+      /\/fonts\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
+    );
   });
 
   it('Permissions-Policy locks dangerous APIs to ()', () => {

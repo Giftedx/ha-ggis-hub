@@ -31,7 +31,7 @@ export default tseslint.config(
   {
     // Test stubs intentionally implement async interfaces without internal
     // awaits — this is the correct pattern for synchronous fakes.
-    files: ['src/**/*.test.ts'],
+    files: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     rules: {
       '@typescript-eslint/require-await': 'off',
       // Stub classes need typed constructors for interface compatibility

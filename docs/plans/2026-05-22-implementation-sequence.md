@@ -143,13 +143,15 @@ Acceptance:
 - Differential test passes for 100 000+ outputs.
 - WAT file is readable + commented (single file, side-by-side comparable with the Rust impl).
 
-## Slice 9: `haggis-eval` CLI — fully wired (15 gate categories, 0 stubs)
+## Slice 9: `haggis-eval` CLI — fully wired (16 gate categories, 0 stubs)
 
 Go orchestration tool with FNV-signed tamper-evident JSON reports.
 
 Wired:
 
 - `rust` — `cargo fmt --check` + `clippy -D warnings` + `cargo test --workspace`.
+- `rust-cov` — `cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100`.
+- `docs` — `node scripts/check-doc-claims.mjs` rejects report-signing/doc-claim drift.
 - `ts` — `pnpm tsc --noEmit` + `pnpm vitest run` + `pnpm run build`.
 - `security` — `pnpm vitest run scripts/deploy-config.test.ts` (public/_headers + _redirects assertions; shipped 2026-05-23).
 - `browser` — `node scripts/run-browser-smokes.mjs` (build → vite preview → smoke-door-launch keyboard + smoke-door-tap touch + smoke-pointer-drive touch-drag → teardown; shipped 2026-05-23).

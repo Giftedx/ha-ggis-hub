@@ -140,7 +140,7 @@ func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 	// test runs against fixed names so it doesn't need the file.
 	reg := Registry()
 	for _, want := range []string{
-		"rust", "rust-cov", "ts", "coverage", "security", "perf",
+		"rust", "rust-cov", "docs", "ts", "coverage", "security", "perf",
 		"browser", "multi-browser", "determinism", "visual",
 		"a11y", "soak", "supply-chain",
 		"differential-hash", "differential-rng",

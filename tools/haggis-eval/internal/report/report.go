@@ -48,7 +48,7 @@ func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 		OverallStatus: overall,
 		Gates:         gates,
 	}
-	body, err := json.Marshal(payload(r))
+	body, err := PayloadBytes(r)
 	if err != nil {
 		// json.Marshal of a fixed-shape struct never fails for these
 		// types — panic surfaces a logic bug rather than masking it.
@@ -56,6 +56,20 @@ func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
 	}
 	r.Signature = fnv.Fnv1a64(body)
 	return r
+}
+
+// PayloadBytes returns the deterministic JSON bytes covered by the signature.
+func PayloadBytes(r Report) ([]byte, error) {
+	return json.Marshal(payload(r))
+}
+
+// ExpectedSignature recomputes the report signature from its payload fields.
+func ExpectedSignature(r Report) (uint64, error) {
+	body, err := PayloadBytes(r)
+	if err != nil {
+		return 0, err
+	}
+	return fnv.Fnv1a64(body), nil
 }
 
 // payload extracts the checksummed payload from a Report.

@@ -16,12 +16,16 @@ Runs on every PR via `.github/workflows/ci.yml`:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm verify   # tsc --noEmit → eslint (src/ + scripts/) → prettier --check → vitest → vite build → scripts/verify-dist.mjs
+pnpm verify   # docs:claims → tsc --noEmit → eslint (src/ + scripts/) → prettier --check → vitest → vite build → scripts/verify-dist.mjs
 ```
+
+The `docs:claims` step runs `node scripts/check-doc-claims.mjs`, which rejects crypto-signing overclaims and generic `signed JSON report` wording unless the claim is explicitly FNV/tamper-evident qualified or negated.
+
+The pre-merge slice runs `docs`, `ts`, `security`, `perf`, `browser`, `determinism`, `visual`, `a11y`.
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 15 gate subcommands (24 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 16 gate subcommands (25 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
@@ -31,6 +35,7 @@ cargo test --workspace --exclude hub-wasm
 cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
 
 # TypeScript host + deploy artifact gate
+node scripts/check-doc-claims.mjs                  # docs/report claim drift guard
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 pnpm run build

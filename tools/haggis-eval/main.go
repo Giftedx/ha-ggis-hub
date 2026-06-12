@@ -27,6 +27,8 @@ func main() {
 		os.Exit(printAndExit("rust", cmd.Rust()))
 	case "rust-cov":
 		os.Exit(printAndExit("rust-cov", cmd.RustCov()))
+	case "docs":
+		os.Exit(printAndExit("docs", cmd.Docs()))
 	case "ts":
 		os.Exit(printAndExit("ts", cmd.Ts()))
 	case "coverage":
@@ -59,6 +61,12 @@ func main() {
 		os.Exit(printAndExit("soak", cmd.Soak()))
 	case "supply-chain":
 		os.Exit(printAndExit("supply-chain", cmd.SupplyChain()))
+	case "verify-report":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "verify-report requires a path to a haggis-eval JSON report")
+			os.Exit(2)
+		}
+		os.Exit(printAndExit("report", []gate.Result{cmd.VerifyReport(os.Args[2])}))
 	case "slice":
 		// Slices config lives next to this binary's source. Resolved
 		// relative to repo root (the same cwd assumption as every
@@ -106,6 +114,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "Subcommands wired in plan 4:")
 	fmt.Fprintln(w, "  rust                       Cargo fmt + clippy + test")
 	fmt.Fprintln(w, "  rust-cov                   cargo llvm-cov (lines=100%, fns=100%; requires llvm-tools-preview + cargo-llvm-cov)")
+	fmt.Fprintln(w, "  docs                       Documentation claim-drift scanner")
 	fmt.Fprintln(w, "  ts                         pnpm tsc + vitest + build")
 	fmt.Fprintln(w, "  coverage                   vitest --coverage (v8; thresholds: lines=100% stmts=100% fns=100% branches=100%)")
 	fmt.Fprintln(w, "  security                   Deploy-config gate (public/_headers + _redirects)")
@@ -119,6 +128,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  a11y                       Hand-rolled WCAG 2.2 AA spot-checks (lang, contrast, focus, names)")
 	fmt.Fprintln(w, "  soak                       Memory-growth soak (15s RAF loop; GC before/after; heap budget 5 MB)")
 	fmt.Fprintln(w, "  supply-chain               cargo deny + cargo machete + gitleaks (secret scan) + osv-scanner (cross-ecosystem CVE scan)")
+	fmt.Fprintln(w, "  verify-report <path>       Recompute an FNV report signature and fail on tamper/mismatch")
 	fmt.Fprintln(w, "  slice [name|list]          Run a named gate-set bundle from tools/haggis-eval/slices.json")
 	fmt.Fprintln(w, "  all                        Every wired gate; FNV-signed JSON report")
 	fmt.Fprintln(w, "")

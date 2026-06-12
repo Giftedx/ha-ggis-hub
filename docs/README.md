@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a Canvas2D bothy renderer with painted WebP backdrop, painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR; the full `haggis-eval all` release gate on push to main, emitting an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing). Deployment headers, manifest, OG card, and SPA redirects under `public/`.
+The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a Canvas2D bothy renderer with painted WebP backdrop, painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR now starts with docs/report claim drift checks; the full `haggis-eval all` release gate runs on push to main, emitting an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing). Deployment headers, manifest, OG card, and SPA redirects under `public/`.
 
 ## Recommended reading order
 
