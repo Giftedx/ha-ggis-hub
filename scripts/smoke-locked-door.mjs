@@ -43,19 +43,19 @@ try {
   // Let WASM boot and the haggis spawn at world (340, 540).
   await page.waitForTimeout(800);
 
-  // Walk UP to the locked future-bothy door (back wall). Hold ArrowUp and
-  // poll the dev snapshot until the haggis is standing at the locked door,
-  // rather than trusting a fixed wall-clock hold: the fixed-step loop advances
-  // a browser-dependent number of ticks per frame, so a fixed duration can
-  // under-walk on a slow/throttled engine (the same wall-clock fragility fixed
-  // in smoke-door-launch.mjs).
+  // Walk toward the locked future-bothy door (back wall, x: 410–590). Spawn
+  // is at x=340, so ArrowUp alone never overlaps the door's hitbox — the
+  // haggis must drift right as it climbs (same rule-of-thirds spawn that
+  // motivated the x=340 anchor in sim.rs).
   await page.keyboard.down('ArrowUp');
+  await page.keyboard.down('ArrowRight');
   try {
     await page.waitForFunction(() => window.__roomSnapshot?.()?.interactionKind === 'locked', {
-      timeout: 10_000,
+      timeout: 30_000,
     });
   } finally {
     await page.keyboard.up('ArrowUp');
+    await page.keyboard.up('ArrowRight');
   }
   await page.waitForTimeout(120);
 

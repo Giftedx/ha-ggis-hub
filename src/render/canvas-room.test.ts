@@ -11,7 +11,16 @@ import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
 class RecordingCanvasContext {
   readonly calls: string[] = [];
-  fillStyle: string | CanvasGradient | CanvasPattern = '';
+  private _fillStyle: string | CanvasGradient | CanvasPattern = '';
+  get fillStyle(): string | CanvasGradient | CanvasPattern {
+    return this._fillStyle;
+  }
+  set fillStyle(v: string | CanvasGradient | CanvasPattern) {
+    this._fillStyle = v;
+    if (typeof v === 'string') {
+      this.calls.push(`fillStyle:${v}`);
+    }
+  }
   strokeStyle: string | CanvasGradient | CanvasPattern = '';
   lineWidth = 0;
   font = '';
@@ -629,10 +638,19 @@ describe('createCanvasRoomRenderer', () => {
 
 const SNAPSHOT_AT_LOCKED: DecodedSnapshot = {
   ...SNAPSHOT_AT_LAUNCHABLE,
-  playerX: 140,
+  playerX: 500,
+  playerY: 202,
   interactionKind: 'locked',
-  interactionDoorIndex: 1,
+  interactionDoorIndex: 2,
 };
+
+describe('locked-door interaction rendering', () => {
+  it('paints a shadow-heather glow on the active locked door', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_AT_LOCKED);
+    expect(context.calls).toContain('fillStyle:#28182c');
+  });
+});
 
 describe('formatPromptText chap variant', () => {
   it('swaps the locked second line to the chap sign when one is supplied', () => {
