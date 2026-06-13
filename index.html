@@ -12,6 +12,13 @@
     <link rel="canonical" href="https://ha.ggis.xyz/" />
 
     <link rel="preload" href="/fonts/old-standard-tt-latin-400i.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Preload the painted bothy art. Without this the backdrop only starts
+         downloading at the canvas's first render (after the WASM core boots),
+         so the procedural fallback bothy flashes on screen until it arrives.
+         Fetching at document parse means the painted art is ready for the
+         first paint instead. -->
+    <link rel="preload" href="/art/bothy-storybook-backdrop.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/art/wee-chieftain-idle.png" as="image" type="image/png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
