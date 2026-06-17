@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with three-language FNV-1a, a WAT-authored RNG, FNV-signed tamper-evident eval reports (not cryptographic signatures), and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with four implementations of FNV-1a — three (Rust/C/Go) in the differential trio plus a vector-checked TypeScript writer — a WAT-authored RNG, FNV-signed tamper-evident eval reports (not cryptographic signatures), and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -51,17 +51,18 @@
 
 ## What's interesting
 
-### Three independent FNV-1a 64 implementations, byte-for-byte identical
+### Four independent FNV-1a 64 implementations, byte-for-byte identical
 
-The FNV-1a 64 hash is implemented three times, on purpose, in three languages, and diff-tested in CI against the four published canonical reference vectors.
+The FNV-1a 64 hash has four implementations — three (Rust/C/Go) in the differential trio diff-tested against each other in CI, plus a vector-checked TypeScript writer — all agreeing on the four published canonical reference vectors.
 
 | Language | Path | Used for |
 |---|---|---|
 | Rust | `crates/hub-core/src/hash.rs` | Runtime state hash on every snapshot, used by the determinism smoke test |
 | C    | `c/fnv1a.c` (linked into `crates/hub-hardlang` via `cc` build-script) | Differential test target; demonstrates the Rust FFI seam |
 | Go   | `tools/haggis-eval/internal/fnv/` | Computes the orchestrator's FNV report checksum |
+| TypeScript | `src/engine/input-log.ts` | The `.haggislog` digest; vector-checked against the same reference vectors |
 
-Reference vectors (agreed by all three impls):
+Reference vectors (agreed by all four impls):
 
 ```
 ""                  → 0xcbf29ce484222325

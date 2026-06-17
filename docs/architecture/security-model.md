@@ -34,7 +34,7 @@ This is a static browser app, so primary risks are:
 
 ## Dependency rules
 
-Use `cargo audit`, `cargo deny`, frontend audit tooling, and lockfiles. See [Dependency policy](../foundation/12-craft-commitments.md#dependency-policy).
+Use `cargo deny`, `cargo machete`, `gitleaks`, `osv-scanner`, frontend audit tooling, and lockfiles. See [Dependency policy](../foundation/12-craft-commitments.md#dependency-policy).
 
 ## Deployment rules
 
