@@ -1,15 +1,19 @@
 # Security Policy
 
-Status: canonical security policy (executable foundation phase)
+Status: canonical security policy (live static-app phase)
 Scope: how to report vulnerabilities in `ha.ggis Hub`
 Related: [Security model](docs/architecture/security-model.md), [Dependency policy](docs/foundation/12-craft-commitments.md#dependency-policy), [Quality gates](docs/foundation/07-quality-gates.md)
 
 ## Current phase
 
-The project has an executable foundation skeleton but no public release, no deployed production surface, and no production user data. The dominant security concerns at this stage are:
+The project is live at `https://ha.ggis.xyz/` with static routes for the hub,
+Wild Haggis Survivors (`/wild/`), and Just Five More Minutes
+(`/just-five-more-minutes/`). It still has no accounts, backend, payments, or
+production user data. The dominant security concerns at this stage are:
 
-- supply chain for the newly introduced Rust/WASM and TypeScript build dependencies
-- unsafe browser/WASM boundary patterns as the scaffold grows
+- supply chain for the Rust/WASM, TypeScript, Go, and mounted-game build inputs
+- unsafe browser/WASM boundary patterns as the hub grows
+- deployment/header drift on the Cloudflare Pages edge
 - documentation drift that would lead future implementers into an insecure pattern
 - accidental commitment of secrets into the repository
 
@@ -17,7 +21,9 @@ See [docs/architecture/security-model.md](docs/architecture/security-model.md) f
 
 ## Supported versions
 
-No release has been cut. Once a public release exists, this section will list which versions receive security updates.
+No tagged version-support policy exists yet. The supported public surface is the
+current Cloudflare Pages production deployment for `ha.ggis.xyz` and the current
+`main` branch state that produces it.
 
 ## Reporting a vulnerability
 
@@ -50,4 +56,4 @@ This project is maintained by an individual. There is no on-call rotation. A rea
 
 ## Hardening commitments
 
-The project's intended public posture is recorded in [docs/architecture/security-model.md](docs/architecture/security-model.md) and the planned `public/_headers` in [docs/deployment/cloudflare-pages.md](docs/deployment/cloudflare-pages.md). Any deviation from those at release time is a release blocker per [docs/foundation/07-quality-gates.md](docs/foundation/07-quality-gates.md).
+The project's intended public posture is recorded in [docs/architecture/security-model.md](docs/architecture/security-model.md), the shipped `public/_headers`, and [docs/deployment/cloudflare-pages.md](docs/deployment/cloudflare-pages.md). Any deviation at deploy time is a release blocker per [docs/foundation/07-quality-gates.md](docs/foundation/07-quality-gates.md) and should be caught by `pnpm run production:check`.

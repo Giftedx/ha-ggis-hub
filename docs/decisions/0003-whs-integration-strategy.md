@@ -11,7 +11,7 @@ The hub’s first real game is Wild Haggis Survivors. WHS remains a separate pro
 
 ## Options
 
-### Option A: external URL (chosen)
+### Option A: external URL (first-release stopgap)
 
 Hub launches WHS at its existing deployment URL (`https://wild-haggis-survivors.pages.dev/`).
 
@@ -26,7 +26,7 @@ Cons:
 - less polished public URL
 - migration needed if the canonical URL should move to `ha.ggis.xyz/wild-haggis-survivors`
 
-### Option B: mount static WHS build under `/wild-haggis-survivors/`
+### Option B: mount static WHS build under `/wild/` (shipped)
 
 Hub deployment includes WHS build output under a subpath.
 
@@ -37,7 +37,7 @@ Pros:
 
 Cons:
 
-- needs WHS Vite/base-path compatibility (`base: ‘/wild-haggis-survivors/’`)
+- needs WHS Vite/base-path compatibility (`base: '/wild/'`)
 - deployment pipeline must coordinate two builds
 - route fallback must be tested carefully
 

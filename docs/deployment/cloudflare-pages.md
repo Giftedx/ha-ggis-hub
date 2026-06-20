@@ -6,7 +6,7 @@ Related: [First public release requirements](../foundation/07-quality-gates.md#f
 
 ## Current status
 
-In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` guards them in CI: security headers, CSP directives, immutable asset cache, font immutable cache, WHS route/cache rules, `/__version` provenance caching, SPA fallback.
+In-repo config is complete. The files below are the actual shipped files. `deploy-config.test.ts` guards them in CI: security headers, CSP directives, immutable asset cache, font immutable cache, WHS/JFMM route and cache rules, `/__version` provenance caching, SPA fallback.
 
 Cloudflare dashboard config (project name, branch, build command, domain) is out-of-band and must be applied manually.
 
@@ -35,7 +35,7 @@ Preview deployments: enabled
 
 If Rust/WASM tooling is awkward in the Cloudflare build image, prefer GitHub Actions to install toolchains, run gates, build `dist`, and deploy with Wrangler.
 
-**`build` vs `build:all`.** The dashboard build command above (`pnpm run build`) builds the **hub only** — correct for git-integration previews, where only this repo is checked out. The canonical production deploy also mounts Wild Haggis Survivors under `/wild/`, which needs the WHS sibling repo present and runs `pnpm run build:all`. Because the Pages build image has no WHS checkout, that combined build + `wrangler pages deploy dist` is done **locally or from GitHub Actions**, not by the dashboard build. See [`../DEPLOYMENT.md`](../DEPLOYMENT.md) §WHS Integration Decision.
+**`build` vs `build:all`.** The dashboard build command above (`pnpm run build`) builds the **hub only** — correct for git-integration previews, where only this repo is checked out. The canonical production deploy also mounts Wild Haggis Survivors under `/wild/` and Just Five More Minutes under `/just-five-more-minutes/`, which need sibling checkouts present and run `pnpm run build:all`. Because the Pages build image has no sibling game checkouts, that combined build + `wrangler pages deploy dist` is done **locally or from GitHub Actions**, not by the dashboard build. See [`../DEPLOYMENT.md`](../DEPLOYMENT.md) §WHS Integration Decision.
 
 ## Shipped `public/_headers`
 
@@ -66,6 +66,12 @@ If Rust/WASM tooling is awkward in the Cloudflare build image, prefer GitHub Act
 /wild/manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
 
+/just-five-more-minutes/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/just-five-more-minutes/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
 /__version
   Content-Type: application/json; charset=utf-8
   Cache-Control: public, max-age=0, must-revalidate
@@ -86,24 +92,27 @@ Notes:
 
 ## Shipped `public/_redirects`
 
-WHS is mounted under this project at `/wild/` (ADR-0003 Option B), so its
-sub-path rewrite precedes the hub SPA fallback. Cloudflare Pages applies the
-first matching rule; real files (`/wild/assets/*`, `/wild/sw.js`) are served
-directly and bypass redirects.
+WHS is mounted under this project at `/wild/` (ADR-0003 Option B), and Just Five
+More Minutes is mounted at `/just-five-more-minutes/`, so both sub-path rewrites
+precede the hub SPA fallback. Cloudflare Pages applies the first matching rule;
+real files (`/wild/assets/*`, `/wild/sw.js`, `/just-five-more-minutes/assets/*`)
+are served directly and bypass redirects.
 
 ```text
 /wild/*  /wild/index.html  200
+/just-five-more-minutes/*  /just-five-more-minutes/index.html  200
 /*  /index.html  200
 ```
 
-`scripts/deploy-config.test.ts` asserts the `/wild/*` rule exists **and**
-precedes the hub wildcard.
+`scripts/deploy-config.test.ts` asserts the mounted-game rules exist **and**
+precede the hub wildcard.
 
 ## Cache policy
 
 - `index.html`: revalidate every request.
 - hashed assets: one year immutable.
 - WHS service worker and manifests: revalidate so deploys propagate.
+- JFMM route HTML: revalidate so deploys propagate.
 - `__version`: JSON provenance endpoint, revalidate every request.
 - un-hashed files: no long immutable cache.
 

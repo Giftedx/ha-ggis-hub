@@ -554,7 +554,8 @@ This section captures only what the hub needs to know about WHS to
 position itself correctly. It is **not** a design source for the hub.
 
 - Repo: `C:\Users\aggis\dev\active\wild-haggis-survivors`
-- Live: <https://wild-haggis-survivors.pages.dev/>
+- Current canonical live route: <https://ha.ggis.xyz/wild/>
+- Historical reference at capture time: <https://wild-haggis-survivors.pages.dev/>
 - Genre: **Highland-at-dusk Scots-tinted bullet-heaven** (Vampire
   Survivors family)
 - Engine: Phaser 4 + TypeScript + Vite; all sprites drawn in code

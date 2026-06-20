@@ -4,6 +4,7 @@ export const HUB_URL = 'https://ha.ggis.xyz/';
 export const APEX_PROBE_URL = 'https://ggis.xyz/__haggis_probe?check=redirect';
 export const EXPECTED_APEX_LOCATION = 'https://ha.ggis.xyz/__haggis_probe?check=redirect';
 export const WILD_ROUTE_URL = 'https://ha.ggis.xyz/wild/';
+export const JUST_FIVE_MORE_MINUTES_ROUTE_URL = 'https://ha.ggis.xyz/just-five-more-minutes/';
 export const VERSION_URL = 'https://ha.ggis.xyz/__version';
 
 export const requiredProductionHeaders = [
@@ -40,7 +41,7 @@ export function extractAssetPaths(html) {
     ...new Set(
       [
         ...String(html).matchAll(
-          /["']((?:\/assets\/|\/wild\/assets\/)[^"']+\.(?:css|js|wasm))["']/g
+          /["']((?:\/assets\/|\/wild\/assets\/|\/just-five-more-minutes\/assets\/)[^"']+\.(?:css|js|wasm))["']/g
         ),
       ].map((match) => match[1])
     ),
@@ -68,6 +69,16 @@ export function collectProductionProbeFailures(probe) {
       ),
       assets: probe.wildAssets ?? [],
       missingHashedId: 'wild-no-hashed-assets',
+    }),
+    ...validateJustFiveMoreMinutes(probe.justFiveMoreMinutes),
+    ...validateAssets({
+      idPrefix: 'jfmm-asset',
+      ownerUrl: JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+      expectedPaths: extractAssetPaths(probe.justFiveMoreMinutes?.body ?? '').filter((path) =>
+        path.startsWith('/just-five-more-minutes/assets/')
+      ),
+      assets: probe.justFiveMoreMinutesAssets ?? [],
+      missingHashedId: 'jfmm-no-hashed-assets',
     }),
     ...validateVersion(probe.version),
   ];
@@ -177,7 +188,7 @@ function validateAssets({ idPrefix, ownerUrl, expectedPaths, assets, missingHash
       failure(
         missingHashedId ?? `${idPrefix}-none-hashed`,
         ownerUrl,
-        `no hashed ${expectedPaths.some((path) => path.startsWith('/wild/')) ? '/wild/assets/*' : '/assets/*'} references found`
+        `no hashed ${expectedAssetPrefix(expectedPaths)} references found`
       )
     );
   }
@@ -222,6 +233,16 @@ function validateAssets({ idPrefix, ownerUrl, expectedPaths, assets, missingHash
   return failures;
 }
 
+function expectedAssetPrefix(expectedPaths) {
+  if (expectedPaths.some((path) => path.startsWith('/wild/'))) {
+    return '/wild/assets/*';
+  }
+  if (expectedPaths.some((path) => path.startsWith('/just-five-more-minutes/'))) {
+    return '/just-five-more-minutes/assets/*';
+  }
+  return '/assets/*';
+}
+
 function validateWild(wild) {
   if (wild?.error !== undefined) {
     return [failure('wild-fetch-error', wild.url ?? WILD_ROUTE_URL, wild.error)];
@@ -257,6 +278,57 @@ function validateWild(wild) {
   }
   failures.push(
     ...validateRequiredHeaders('wild', wild?.url ?? WILD_ROUTE_URL, wild?.headers ?? {})
+  );
+  return failures;
+}
+
+function validateJustFiveMoreMinutes(jfmm) {
+  if (jfmm?.error !== undefined) {
+    return [failure('jfmm-fetch-error', jfmm.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL, jfmm.error)];
+  }
+  const failures = [];
+  if (jfmm?.url !== JUST_FIVE_MORE_MINUTES_ROUTE_URL) {
+    failures.push(
+      failure(
+        'jfmm-route-url',
+        jfmm?.url ?? '<missing>',
+        `want same-origin route ${JUST_FIVE_MORE_MINUTES_ROUTE_URL}`
+      )
+    );
+  }
+  if (jfmm?.status !== 200) {
+    failures.push(
+      failure(
+        'jfmm-status',
+        jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+        `status ${jfmm?.status}; want 200`
+      )
+    );
+  }
+  if (!/^text\/html\b/i.test(jfmm?.headers?.['content-type'] ?? '')) {
+    failures.push(
+      failure(
+        'jfmm-content-type',
+        jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+        `content-type ${jfmm?.headers?.['content-type'] ?? '<missing>'}; want text/html`
+      )
+    );
+  }
+  if (!/Just Five More Minutes/i.test(jfmm?.body ?? '')) {
+    failures.push(
+      failure(
+        'jfmm-html-marker',
+        jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+        'missing Just Five More Minutes HTML marker'
+      )
+    );
+  }
+  failures.push(
+    ...validateRequiredHeaders(
+      'jfmm',
+      jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+      jfmm?.headers ?? {}
+    )
   );
   return failures;
 }
@@ -400,6 +472,85 @@ function validateVersion(version) {
       )
     );
   }
+  if (manifest.justFiveMoreMinutes?.route !== '/just-five-more-minutes/') {
+    failures.push(
+      failure(
+        'version-jfmm-route',
+        version?.url ?? VERSION_URL,
+        'JFMM route must be /just-five-more-minutes/'
+      )
+    );
+  }
+  if (
+    manifest.justFiveMoreMinutes?.source?.commit !== null &&
+    !SHA_1_PATTERN.test(manifest.justFiveMoreMinutes?.source?.commit ?? '')
+  ) {
+    failures.push(
+      failure(
+        'version-jfmm-commit',
+        version?.url ?? VERSION_URL,
+        'justFiveMoreMinutes.source.commit must be null or a 40-hex git SHA'
+      )
+    );
+  }
+  if (
+    manifest.justFiveMoreMinutes?.source?.present !== false &&
+    typeof manifest.justFiveMoreMinutes?.source?.dirty !== 'boolean'
+  ) {
+    failures.push(
+      failure(
+        'version-jfmm-dirty',
+        version?.url ?? VERSION_URL,
+        'justFiveMoreMinutes.source.dirty must be boolean'
+      )
+    );
+  }
+  if (manifest.justFiveMoreMinutes?.build?.mounted !== true) {
+    failures.push(
+      failure(
+        'version-jfmm-build',
+        version?.url ?? VERSION_URL,
+        'JFMM mounted build provenance missing'
+      )
+    );
+  }
+  if (
+    manifest.justFiveMoreMinutes?.build?.mounted === true &&
+    (!Number.isInteger(manifest.justFiveMoreMinutes.build?.assetCount) ||
+      manifest.justFiveMoreMinutes.build.assetCount < 1)
+  ) {
+    failures.push(
+      failure(
+        'version-jfmm-asset-count',
+        version?.url ?? VERSION_URL,
+        'JFMM assetCount must be positive when mounted'
+      )
+    );
+  }
+  if (
+    manifest.justFiveMoreMinutes?.build?.mounted === true &&
+    !SHA_256_PATTERN.test(manifest.justFiveMoreMinutes.build?.fingerprint ?? '')
+  ) {
+    failures.push(
+      failure(
+        'version-jfmm-fingerprint',
+        version?.url ?? VERSION_URL,
+        'JFMM build fingerprint must be sha256 when mounted'
+      )
+    );
+  }
+  if (
+    manifest.justFiveMoreMinutes?.build?.mounted === true &&
+    !SHA_256_PATTERN.test(manifest.justFiveMoreMinutes.build?.indexSha256 ?? '')
+  ) {
+    failures.push(
+      failure(
+        'version-jfmm-index-sha',
+        version?.url ?? VERSION_URL,
+        'JFMM indexSha256 must be sha256 when mounted'
+      )
+    );
+  }
   return failures;
 }
 
@@ -411,6 +562,9 @@ export async function runProductionProbe() {
   const hub = await fetchText(HUB_URL, { redirect: 'follow' });
   const apexRedirect = await fetchText(APEX_PROBE_URL, { redirect: 'manual' });
   const wild = await fetchText(WILD_ROUTE_URL, { redirect: 'follow' });
+  const justFiveMoreMinutes = await fetchText(JUST_FIVE_MORE_MINUTES_ROUTE_URL, {
+    redirect: 'follow',
+  });
   const version = await fetchText(VERSION_URL, { redirect: 'follow' });
   const assets = [];
   if (hub.error === undefined) {
@@ -428,7 +582,26 @@ export async function runProductionProbe() {
       wildAssets.push(await fetchText(new URL(assetPath, HUB_URL).href, { redirect: 'follow' }));
     }
   }
-  return { hub, apexRedirect, assets, wild, wildAssets, version };
+  const justFiveMoreMinutesAssets = [];
+  if (justFiveMoreMinutes.error === undefined) {
+    for (const assetPath of extractAssetPaths(justFiveMoreMinutes.body).filter((path) =>
+      path.startsWith('/just-five-more-minutes/assets/')
+    )) {
+      justFiveMoreMinutesAssets.push(
+        await fetchText(new URL(assetPath, HUB_URL).href, { redirect: 'follow' })
+      );
+    }
+  }
+  return {
+    hub,
+    apexRedirect,
+    assets,
+    wild,
+    wildAssets,
+    justFiveMoreMinutes,
+    justFiveMoreMinutesAssets,
+    version,
+  };
 }
 
 async function fetchText(url, init) {
@@ -481,7 +654,7 @@ async function main() {
     return;
   }
   console.log(
-    'production-check OK — ha.ggis.xyz, ggis.xyz redirect, headers/CSP, immutable assets, /wild/, and /__version verified'
+    'production-check OK — ha.ggis.xyz, ggis.xyz redirect, headers/CSP, immutable assets, /wild/, /just-five-more-minutes/, and /__version verified'
   );
 }
 

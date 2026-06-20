@@ -16,7 +16,7 @@ When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 |-----|-------|--------|------|---------|
 | [0001](0001-rust-wasm-core-typescript-host.md) | Rust/WASM core, TypeScript host, replaceable renderer | accepted | 2026-05-22 | The foundation stack direction. |
 | [0002](0002-renderer-evaluation-plan.md) | Renderer evaluation plan | superseded by ADR-0005 | 2026-05-22 | Defines the evidence that led to the Canvas2D first-room decision. |
-| [0003](0003-whs-integration-strategy.md) | Wild Haggis Survivors integration strategy | accepted | 2026-05-23 | Option A chosen (external URL to `https://wild-haggis-survivors.pages.dev/`); Option B (`/wild-haggis-survivors/` mount) is the documented end-state for when the combined build is warranted. |
+| [0003](0003-whs-integration-strategy.md) | Wild Haggis Survivors integration strategy | accepted | 2026-05-23 | Option B is now shipped: WHS is mounted by this Pages project at `/wild/`; the original Option A external URL remains historical first-release context. |
 | [0004](0004-language-and-craft-philosophy.md) | Language and craft philosophy | accepted | 2026-05-22 | Makes the systems-language taste and hand-roll-vs-library posture explicit policy. |
 | [0005](0005-canvas2d-first-room-renderer.md) | Canvas2D renderer for first room | accepted | 2026-05-23 | Selects a hand-rolled Canvas2D renderer for the First Perfect Slice room. |
 | [0006](0006-hub-visual-direction-highland-dawn-bothy.md) | Highland-dawn-bothy visual direction | accepted | 2026-05-23 | Locks the hub's visual register: Highland dawn palette, humanist serif, warmer Scots-tinted lobby voice, sister to WHS without sharing tokens. |
@@ -43,6 +43,6 @@ Based on current planning (see [ADR-0001](0001-rust-wasm-core-typescript-host.md
 
 - renderer choice for the First Perfect Slice — closed by [ADR-0005](0005-canvas2d-first-room-renderer.md)
 - visual direction for the bothy — closed by [ADR-0006](0006-hub-visual-direction-highland-dawn-bothy.md)
-- WHS route/mount strategy — closed by [ADR-0003](0003-whs-integration-strategy.md): Option A (external URL) for first release; Option B mount deferred.
+- WHS route/mount strategy — closed by [ADR-0003](0003-whs-integration-strategy.md): Option B is shipped at `/wild/`; Option A remains historical first-release context.
 - CI/deployment architecture — native Cloudflare Pages build was chosen; the Wrangler/GitHub-Actions fallback proved unnecessary. No ADR needed unless that changes.
 - save schema and migration policy once persistence is needed

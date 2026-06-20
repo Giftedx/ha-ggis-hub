@@ -67,10 +67,10 @@ If you only have time for the load-bearing five, read these in order:
 
 ## Current state
 
-- Product: playable haggis games lobby (single bothy room + door-to-game launch).
+- Product: playable haggis games lobby (single bothy room + door-to-game launches).
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
-- Deployed-build provenance: each build writes `dist/__version`, served at `https://ha.ggis.xyz/__version`, with hub git state plus WHS source/build provenance.
-- First linked game: Wild Haggis Survivors (launches from the right-wall door; tap/click the door, or walk + Enter/Space/E).
+- Deployed-build provenance: each build writes `dist/__version`, served at `https://ha.ggis.xyz/__version`, with hub git state plus WHS and JFMM source/build provenance.
+- Playable doors: Wild Haggis Survivors launches from the right-wall door at `/wild/`; Just Five More Minutes launches from the left-wall door at `/just-five-more-minutes/`; the back-wall future-bothy door is locked and answers chaps with coming-soon retorts.
 - Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (docs-claim drift check + typecheck + lint + fmt:check + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (rust + rust-cov + docs + ts + coverage + security + perf + browser + multi-browser + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is Canvas2D with a painted backdrop and sprite path in `src/render/canvas-room.ts`, plus procedural fallback/fixture helpers in `src/render/bothy-haggis.ts`, `src/render/whs-bothy.ts`, and `src/render/whs-hearth.ts`.
@@ -85,7 +85,7 @@ The first public release is a **First Perfect Slice**, not an MVP. It should be 
 ## Repository documentation map
 
 - `docs/foundation/` — canonical project foundation and policies (numbered).
-- `docs/architecture/` — runtime architecture, boundaries, testing, security, observability (mostly shipped; observability planned).
+- `docs/architecture/` — runtime architecture, boundaries, testing, security, observability, and debugging posture.
 - `docs/decisions/` — architecture decision records (ADRs).
 - `docs/plans/` — implementation plans and execution sequences.
 - `docs/deployment/` — deployment and hosting documentation.
@@ -110,7 +110,7 @@ cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-unde
 node scripts/check-doc-claims.mjs
 pnpm install --frozen-lockfile
 pnpm verify        # docs:claims → typecheck → lint → fmt:check → vitest → build → scripts/verify-dist.mjs
-pnpm run production:check  # opt-in live probe: ha.ggis.xyz, ggis.xyz redirect, /wild/, /__version
+pnpm run production:check  # opt-in live probe: ha.ggis.xyz, ggis.xyz redirect, /wild/, /just-five-more-minutes/, /__version
 pnpm run coverage  # vitest v8 coverage (lines=100%, stmts=100%, fns=100%, branches=100%)
 
 # Browser smokes (each builds dist + starts vite preview internally)

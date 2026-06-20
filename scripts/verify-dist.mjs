@@ -113,6 +113,14 @@ if (errors.length === 0) {
         typeof version.wildHaggisSurvivors?.build?.mounted === 'boolean',
         'dist/__version missing boolean wildHaggisSurvivors.build.mounted'
       );
+      must(
+        version.justFiveMoreMinutes?.route === '/just-five-more-minutes/',
+        'dist/__version JFMM route must be /just-five-more-minutes/'
+      );
+      must(
+        typeof version.justFiveMoreMinutes?.build?.mounted === 'boolean',
+        'dist/__version missing boolean justFiveMoreMinutes.build.mounted'
+      );
     }
   }
 

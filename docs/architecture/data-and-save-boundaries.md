@@ -33,6 +33,7 @@ export interface HubGameDefinition {
 - Coming-soon games may not launch.
 - External URLs must be explicit and reviewed.
 - WHS has exactly one canonical registry entry.
+- The current playable registry entries are `wild-haggis-survivors` (`/wild/`) and `just-five-more-minutes` (`/just-five-more-minutes/`); both must have launchable room doors.
 
 ## Hub persistence
 
@@ -46,6 +47,10 @@ ggis_hub_settings
 Do not use WHS keys from the hub.
 
 ## Wild Haggis Survivors boundary
+
+WHS source remains in the sibling repo, but its current public build is mounted
+under this Pages project at `/wild/`. The hub owns the lobby route and static
+mount, not WHS gameplay state.
 
 Known WHS keys from the original plan:
 

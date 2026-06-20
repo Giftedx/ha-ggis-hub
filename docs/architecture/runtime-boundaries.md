@@ -1,6 +1,6 @@
 # Runtime Boundaries
 
-Status: current architecture (in-hub game mount planned; all wired items current)
+Status: current architecture (static mounted-game routes shipped; in-hub module routing deferred)
 Scope: lifecycle and data-flow boundaries between core, host, renderer, and game modules
 Related: [Architecture overview](overview.md), [Data and save boundaries](data-and-save-boundaries.md)
 
@@ -42,7 +42,8 @@ export interface GameInstance {
 - Current: `src/engine/lifecycle.ts` owns one active `GameInstance`, preloads before mount, destroys replacement instances safely, and treats pause/resume/repeated destroy as safe no-ops when nothing is mounted.
 - Current: `src/engine/input.ts` maps Arrow/WASD key state into compact tick-aligned axes and removes listeners on sampler destruction.
 - Current: `document.visibilitychange` resets the fixed-step accumulator and the frame timer when the tab returns from hidden, preventing a burst of catch-up ticks (without the reset, 5 minutes hidden leaves ~300 seconds in the accumulator, causing ~37 seconds of 8-tick-per-frame burst).
-- Planned: route changes to mounted game modules (e.g. WHS under `/wild-haggis-survivors/`) must call `destroy` on the bothy instance before navigation.
+- Current: launchable doors navigate to static mounted routes (`/wild/` and `/just-five-more-minutes/`) with `location.assign`; the page unload tears down the bothy.
+- Planned: if a future game is mounted as an in-hub module without a page navigation, route changes must call `destroy` on the bothy instance before mounting the replacement.
 
 ## Frame loop model
 

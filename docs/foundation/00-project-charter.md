@@ -31,14 +31,14 @@ The project must not ship as a barely-working MVP shell. The first public releas
 
 ## Relationship to Wild Haggis Survivors
 
-Wild Haggis Survivors (WHS) is the **first** real game linked from the hub and the **brand anchor** for every other haggis-themed game that will follow. It remains a separate project (`C:\Users\aggis\dev\active\wild-haggis-survivors`, deployed at <https://wild-haggis-survivors.pages.dev/>) and must not be swallowed into this repository.
+Wild Haggis Survivors (WHS) is the **first** real game linked from the hub and the **brand anchor** for every other haggis-themed game that will follow. It remains a separate source project (`C:\Users\aggis\dev\active\wild-haggis-survivors`) and must not be swallowed into this repository, even though the current public build is mounted by this Pages project at <https://ha.ggis.xyz/wild/>.
 
 WHS is a Highland-at-dusk, Scots-tinted bullet-heaven where the player is a wild haggis whose iconic uneven legs become the signature mechanic (every input drifts a few degrees clockwise). It has a published design system (`DESIGN.md` in the WHS repo) — a defined palette, monospace typography with stroked titles, square corners, 8 px grid, Scots-tinted English copy with optional Scots overlay. That is **WHS's** design language and belongs to WHS. **The hub does not adopt it wholesale.** The hub picks its own palette, typography, register, mood, and mascot design from the same shared canon (Highland setting, Scots voice, haggis joke, uneven-leg gag) so the two feel related without the hub looking like a WHS clone.
 
 Boundary rules:
 
 - The hub may link to WHS.
-- The hub may later mount a WHS static build under `/wild-haggis-survivors/`.
+- The hub currently mounts a WHS static build under `/wild/`.
 - The hub does not own WHS gameplay state.
 - The hub does not mutate WHS save data.
 - If shared progress is ever displayed, it must use an explicit read-only contract or exported summary.
@@ -59,11 +59,14 @@ https://ggis.xyz
 https://ha.ggis.xyz/
   -> playable hub
 
-https://ha.ggis.xyz/wild-haggis-survivors/
-  -> eventual canonical WHS launch path
+https://ha.ggis.xyz/wild/
+  -> canonical WHS launch path
+
+https://ha.ggis.xyz/just-five-more-minutes/
+  -> mounted Just Five More Minutes launch path
 ```
 
-The exact WHS mount strategy remains open until deployment is scaffolded and tested.
+The WHS mount strategy is closed by [ADR-0003](../decisions/0003-whs-integration-strategy.md): Option B is shipped under `/wild/`.
 
 ## Contributor promise
 
@@ -90,7 +93,7 @@ A visitor should immediately understand:
 
 1. the domain joke
 2. there is a playable living-haggis mascot
-3. there are doors leading to haggis-themed games — one of which (WHS) is open
+3. there are doors leading to playable games — WHS and Just Five More Minutes are open, while future doors can answer as coming-soon
 4. the project is bespoke and carefully built
 5. this place visibly belongs to the same world as the games inside — recognised through the haggis joke, setting, and voice, not by being a visual copy of any one game
 
@@ -148,7 +151,7 @@ Fallback path:
 1. visitor cannot or does not use canvas/game controls
 2. visitor still has semantic HTML links and readable instructions
 
-As more games ship, each gets its own additional door. The lobby scene scales by adding portals, not by replacing the lobby concept.
+As more games ship, each gets its own additional door. The lobby scene scales by adding portals, not by replacing the lobby concept. Just Five More Minutes is already mounted as the second playable door.
 
 ### Not product goals yet
 
@@ -157,7 +160,7 @@ As more games ship, each gets its own additional door. The lobby scene scales by
 - multiplayer presence
 - hub achievements
 - large overworld
-- many finished games (the hub ships with one available door; others land as their games do)
+- a large catalogue of finished games; new doors land as their games do
 - marketplace/storefront behavior
 
 These are not rejected forever. They are rejected from the First Perfect Slice.

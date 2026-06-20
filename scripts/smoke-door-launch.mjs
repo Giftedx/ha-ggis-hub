@@ -18,7 +18,7 @@ try {
   page.on('console', (m) => consoleLog.push(`[${m.type()}] ${m.text()}`));
   page.on('pageerror', (e) => errors.push(`[ERROR] ${e.message}`));
 
-  // Block actual cross-origin navigation; record where we'd have gone.
+  // Block actual game-route navigation; record where we'd have gone.
   const navigations = [];
   page.on('framenavigated', (frame) => {
     if (frame === page.mainFrame()) {
@@ -31,8 +31,9 @@ try {
   await page.route('**/*', (route) => {
     const reqUrl = route.request().url();
     // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
-    // + abort it (the WHS build is absent from the hub-only preview); keep the
-    // legacy pages.dev guard for a stray external launch.
+    // + abort it (the WHS build is absent from the hub-only preview). The
+    // legacy pages.dev guard records a stale external launch, but the assertion
+    // below still requires /wild/.
     if (
       reqUrl.includes('/wild/') ||
       reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')
@@ -79,11 +80,12 @@ try {
     process.exitCode = 1;
     console.error('page errors during smoke');
   }
-  if (navigations.length === 0) {
+  const wildNavigations = navigations.filter((url) => url.includes('/wild/'));
+  if (wildNavigations.length === 0) {
     process.exitCode = 1;
-    console.error('no navigation fired — haggis did not reach the launchable WHS door');
+    console.error('door-launch did NOT navigate to /wild/');
   } else {
-    console.log(`smoke OK — ${navigations.length} navigation(s) fired`);
+    console.log('smoke OK — door-launch fired /wild/ navigation');
   }
 } finally {
   await browser.close();

@@ -14,7 +14,7 @@ This is the canonical index for ha.ggis Hub documentation.
 
 ## Current documentation status
 
-The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a Canvas2D bothy renderer with painted WebP backdrop, painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR now starts with docs/report claim drift checks; the full `haggis-eval all` release gate runs on push to main, emitting an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing). Deployment headers, manifest, OG card, and SPA redirects under `public/`.
+The repository is end-to-end functional. Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic movement, door proximity, FNV-1a state hashing, and the C/WAT hard-language showcases. TypeScript host owns lifecycle, input (keyboard + pointer-drive), registry, launch seams, and a Canvas2D bothy renderer with painted WebP backdrop, painted Wee Chieftain sprite, procedural fallback art, and interactive overlays. Wild Haggis Survivors is mounted at `/wild/`; Just Five More Minutes is mounted at `/just-five-more-minutes/`. Two-tier CI (`.github/workflows/ci.yml`): `pnpm verify` on PR now starts with docs/report claim drift checks; the full `haggis-eval all` release gate runs on push to main, emitting an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing). Deployment headers, manifest, OG card, mounted-game rewrites, and SPA redirects live under `public/`.
 
 ## Recommended reading order
 
@@ -95,7 +95,7 @@ Archived foundation docs (provenance only — content distilled into the keepers
 - [ADR template](decisions/adr-template.md)
 - [ADR-0001: Rust/WASM core, TypeScript host, replaceable renderer](decisions/0001-rust-wasm-core-typescript-host.md) — accepted
 - [ADR-0002: Renderer evaluation plan](decisions/0002-renderer-evaluation-plan.md) — superseded by ADR-0005
-- [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — accepted (Option A: external URL for first release)
+- [ADR-0003: WHS integration strategy](decisions/0003-whs-integration-strategy.md) — accepted (Option B: `/wild/` mount shipped; Option A external URL preserved as first-release history)
 - [ADR-0004: Language and craft philosophy](decisions/0004-language-and-craft-philosophy.md) — accepted
 - [ADR-0005: Canvas2D renderer for first room](decisions/0005-canvas2d-first-room-renderer.md) — accepted
 - [ADR-0006: Highland-dawn-bothy visual direction](decisions/0006-hub-visual-direction-highland-dawn-bothy.md) — accepted
@@ -177,9 +177,9 @@ These files exist now and form the current executable foundation:
 - `crates/hub-wasm/Cargo.toml`
 - `crates/hub-wasm/src/lib.rs`
 
-## Still-missing implementation files
+## Historical implementation file notes
 
-The list is short — most of the original "missing by design" set has shipped (CI workflow, `public/_headers`, `public/_redirects`, `LICENSE`, plus the render/sprites/whs-\* modules and the `public/` deploy assets).
+The original "missing by design" set has either shipped or been deliberately rejected. This section is a historical note for readers comparing old plans with the current tree (run `git ls-files` for current reality).
 
 - `eslint.config.js` — shipped; `pnpm verify` runs ESLint alongside `tsc --strict`, Vitest, Vite build, and dist verification.
 - `.prettierrc` — shipped; `pnpm fmt:check` (`prettier --check "src/**/*.ts" "scripts/**/*.mjs"`) runs as part of `pnpm verify`. Config: `singleQuote: true, trailingComma: "es5", printWidth: 100`. Generated files and dist excluded via `.prettierignore`.

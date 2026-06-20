@@ -6,6 +6,12 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Changed
 
+- **Production probe now covers the second mounted game.** `scripts/check-production.mjs` verifies
+  `https://ha.ggis.xyz/just-five-more-minutes/` and its immutable hashed assets alongside the hub
+  and `/wild/`; `dist/__version` now records JFMM source/build provenance; `smoke-door-launch.mjs`
+  now requires `/wild/` instead of accepting any recorded navigation; and the
+  README/security/charter/deployment/eval docs and ADR/documentation indexes now describe the
+  shipped live surface instead of the earlier WHS-only/pre-public state.
 - **Share card and favicon now flatten the crowned haggis sprite.** `pnpm rasterize:brand`
   composites `wee-chieftain-idle.png` into `og.png` (external SVG hrefs are not resolved by
   sharp) and writes self-contained `favicon.png`, `favicon-192.png`, and base64-embedded
@@ -20,12 +26,13 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 ### Added
 
 - **Added deployed-version provenance and an opt-in production probe.** `pnpm run build` now writes
-  `dist/__version` with hub git/package state plus WHS source/build provenance, and `build:all`
-  rewrites it after `/wild/` is mounted so future production reviews can read commits directly
-  instead of inferring from asset hashes. `pnpm run production:check` / `haggis-eval production`
-  now probe `ha.ggis.xyz`, the `ggis.xyz` redirect, security headers/CSP, immutable hashed hub +
-  WHS assets, source-map absence, `/wild/`, and `/__version`; the gate stays opt-in because live
-  production can legitimately lag a branch under review.
+  `dist/__version` with hub git/package state plus mounted-game source/build provenance, and
+  `build:all` rewrites it after `/wild/` and `/just-five-more-minutes/` are mounted so future
+  production reviews can read commits directly instead of inferring from asset hashes. `pnpm run
+  production:check` / `haggis-eval production` now probe `ha.ggis.xyz`, the `ggis.xyz` redirect,
+  security headers/CSP, immutable hashed hub + mounted-game assets, source-map absence, `/wild/`,
+  `/just-five-more-minutes/`, and `/__version`; the gate stays opt-in because live production can
+  legitimately lag a branch under review.
 
 ### Fixed
 

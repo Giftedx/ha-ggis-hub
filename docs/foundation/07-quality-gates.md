@@ -21,7 +21,7 @@ pnpm verify   # docs:claims → tsc --noEmit → eslint (src/ + scripts/) → pr
 
 The `docs:claims` step runs `node scripts/check-doc-claims.mjs`, which rejects crypto-signing overclaims and generic `signed JSON report` wording unless the claim is explicitly FNV/tamper-evident qualified or negated.
 
-`pnpm run build` writes `dist/__version` after Vite finishes. `scripts/verify-dist.mjs` requires that endpoint to contain parseable hub git provenance and WHS route/build fields, so local build output always carries deploy-review provenance before manual upload.
+`pnpm run build` writes `dist/__version` after Vite finishes. `scripts/verify-dist.mjs` requires that endpoint to contain parseable hub git provenance and mounted-game route/build fields, so local build output always carries deploy-review provenance before manual upload.
 
 The pre-merge slice runs `docs`, `ts`, `security`, `perf`, `browser`, `determinism`, `visual`, `a11y`.
 
@@ -69,7 +69,7 @@ cargo test -p hub-hardlang --test differential_rng -- --include-ignored
 The live production probe is deliberately opt-in rather than part of PR/release CI because production can temporarily lag a branch under review:
 
 ```bash
-pnpm run production:check               # ha.ggis.xyz, ggis.xyz redirect, /wild/, /__version
+pnpm run production:check               # ha.ggis.xyz, ggis.xyz redirect, /wild/, /just-five-more-minutes/, /__version
 # or: ./tools/haggis-eval/haggis-eval production
 ```
 

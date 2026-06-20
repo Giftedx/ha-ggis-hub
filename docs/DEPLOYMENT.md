@@ -40,9 +40,9 @@ pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=m
 ```
 
 Current builds write `dist/__version` after Vite completes. The endpoint records the
-hub package version, hub git commit/dirty state, WHS source git commit/dirty state
-when the sibling checkout is present, and mounted WHS build hashes when
-`dist/wild/` exists.
+hub package version, hub git commit/dirty state, WHS and JFMM source git
+commit/dirty state when the sibling checkouts are present, and mounted build
+hashes when `dist/wild/` and `dist/just-five-more-minutes/` exist.
 
 Custom domain: `ha.ggis.xyz`
 
@@ -160,15 +160,19 @@ hostname, so `ha.ggis.xyz/wild` cannot point at a second Pages project — the
 ### Combined build + deploy
 
 WHS is a sibling repo (`../wild-haggis-survivors`) built with Vite `base: '/wild/'`,
-so every asset/manifest/SW URL it emits is already `/wild/`-rooted.
+so every asset/manifest/SW URL it emits is already `/wild/`-rooted. Just Five
+More Minutes is a sibling experiment (`../../experiments/just-five-more-minutes`)
+built with Vite `base: '/just-five-more-minutes/'`.
 
 ```bash
-# From ha-ggis-hub/. Builds the hub, then WHS, then mounts WHS into dist/wild/.
+# From ha-ggis-hub/. Builds the hub, WHS, and JFMM, then mounts both games.
 pnpm run build:all
 #   = pnpm run build            (hub: wasm + vite + dist/__version)
 #     pnpm run build:whs        (npm --prefix ../wild-haggis-survivors run build)
 #     pnpm run copy:whs         (scripts/copy-whs-build.mjs → dist/wild/)
-#     node scripts/write-version-manifest.mjs  (rewrites dist/__version with WHS build hashes)
+#     pnpm run build:jfmm       (npm --prefix ../../experiments/just-five-more-minutes run build:hub)
+#     pnpm run copy:jfmm        (scripts/copy-jfmm-build.mjs → dist/just-five-more-minutes/)
+#     node scripts/write-version-manifest.mjs  (rewrites dist/__version with mounted-game build hashes)
 
 # Then deploy the combined dist (interactive auth the first time):
 wrangler login
@@ -176,14 +180,16 @@ wrangler pages deploy dist --project-name ha-ggis-hub
 ```
 
 The Cloudflare-dashboard production **Build command must be `pnpm run build:all`**
-(not `pnpm run build`) so CI/Pages builds include the mounted WHS. If the Pages
-build image can't run the sibling-repo build (WHS isn't checked out there),
-build + deploy from GitHub Actions or locally with Wrangler instead.
+(not `pnpm run build`) so production builds include the mounted games. If the
+Pages build image can't run the sibling-repo builds (WHS/JFMM are not checked
+out there), build + deploy from GitHub Actions or locally with Wrangler instead.
 
-Routing/caching for the sub-path lives in `public/_redirects`
-(`/wild/* → /wild/index.html 200`, **before** the hub wildcard) and
-`public/_headers` (`/wild/assets/*` immutable, `/wild/sw.js` revalidate,
-`/__version` JSON + revalidate); both are locked by `scripts/deploy-config.test.ts`.
+Routing/caching for the sub-paths lives in `public/_redirects`
+(`/wild/* → /wild/index.html 200` and `/just-five-more-minutes/* →
+/just-five-more-minutes/index.html 200`, both **before** the hub wildcard) and
+`public/_headers` (`/wild/assets/*` and `/just-five-more-minutes/assets/*`
+immutable, `/wild/sw.js` revalidate, `/__version` JSON + revalidate); both are
+locked by `scripts/deploy-config.test.ts`.
 
 ### Verify after manual deploy
 
@@ -197,8 +203,9 @@ pnpm run production:check
 ```
 
 The probe checks `https://ha.ggis.xyz/`, the `ggis.xyz` apex redirect preserving
-path/query, required security headers and CSP, immutable hashed hub + WHS assets,
-source-map absence, `https://ha.ggis.xyz/wild/`, and
+path/query, required security headers and CSP, immutable hashed hub + WHS + JFMM
+assets, source-map absence, `https://ha.ggis.xyz/wild/`,
+`https://ha.ggis.xyz/just-five-more-minutes/`, and
 `https://ha.ggis.xyz/__version`. If it fails on `/__version`, inspect the JSON
 with:
 

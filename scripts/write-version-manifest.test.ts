@@ -29,6 +29,8 @@ interface VersionModule {
     hubGit: GitState;
     whsGit: GitState;
     whsBuild: BuildSummary;
+    jfmmGit: GitState;
+    jfmmBuild: BuildSummary;
   }) => unknown;
   summarizeDirtyFiles: (porcelain: string) => string[];
   writeVersionManifest: (path: string, manifest: unknown) => Promise<void>;
@@ -66,6 +68,23 @@ const mountedWhsBuild: BuildSummary = {
   indexSha256: 'b'.repeat(64),
 };
 
+const cleanJfmmGit: GitState = {
+  available: true,
+  path: '../../experiments/just-five-more-minutes',
+  commit: 'abcdef0123456789abcdef0123456789abcdef01',
+  shortCommit: 'abcdef0',
+  branch: 'master',
+  dirty: false,
+  dirtyFiles: [],
+};
+
+const mountedJfmmBuild: BuildSummary = {
+  mounted: true,
+  assetCount: 2,
+  fingerprint: 'c'.repeat(64),
+  indexSha256: 'd'.repeat(64),
+};
+
 describe('summarizeDirtyFiles', () => {
   it('keeps porcelain dirty-state evidence compact and stable', () => {
     expect(summarizeDirtyFiles(' M src/game.ts\n?? notes.txt\n')).toEqual([
@@ -80,13 +99,15 @@ describe('summarizeDirtyFiles', () => {
 });
 
 describe('buildVersionManifest', () => {
-  it('records build-time hub commit and mounted WHS source/build provenance', () => {
+  it('records build-time hub commit and mounted game source/build provenance', () => {
     const manifest = buildVersionManifest({
       generatedAt: '2026-06-12T00:00:00.000Z',
       packageJson: { name: 'ha-ggis-hub', version: '0.2.4' },
       hubGit: cleanHubGit,
       whsGit: dirtyWhsGit,
       whsBuild: mountedWhsBuild,
+      jfmmGit: cleanJfmmGit,
+      jfmmBuild: mountedJfmmBuild,
     });
 
     expect(manifest).toEqual({
@@ -122,6 +143,24 @@ describe('buildVersionManifest', () => {
           indexSha256: 'b'.repeat(64),
         },
       },
+      justFiveMoreMinutes: {
+        route: '/just-five-more-minutes/',
+        source: {
+          present: true,
+          path: '../../experiments/just-five-more-minutes',
+          commit: 'abcdef0123456789abcdef0123456789abcdef01',
+          shortCommit: 'abcdef0',
+          branch: 'master',
+          dirty: false,
+          dirtyFiles: [],
+        },
+        build: {
+          mounted: true,
+          assetCount: 2,
+          fingerprint: 'c'.repeat(64),
+          indexSha256: 'd'.repeat(64),
+        },
+      },
     });
   });
 
@@ -147,6 +186,23 @@ describe('buildVersionManifest', () => {
         indexSha256: null,
         error: 'dist/wild/index.html missing',
       },
+      jfmmGit: {
+        available: false,
+        path: '../../experiments/just-five-more-minutes',
+        commit: null,
+        shortCommit: null,
+        branch: null,
+        dirty: null,
+        dirtyFiles: [],
+        error: 'not a git checkout',
+      },
+      jfmmBuild: {
+        mounted: false,
+        assetCount: 0,
+        fingerprint: null,
+        indexSha256: null,
+        error: 'dist/just-five-more-minutes/index.html missing',
+      },
     });
 
     expect(manifest).toMatchObject({
@@ -158,6 +214,17 @@ describe('buildVersionManifest', () => {
         build: {
           mounted: false,
           error: 'dist/wild/index.html missing',
+        },
+      },
+      justFiveMoreMinutes: {
+        route: '/just-five-more-minutes/',
+        source: {
+          present: false,
+          error: 'not a git checkout',
+        },
+        build: {
+          mounted: false,
+          error: 'dist/just-five-more-minutes/index.html missing',
         },
       },
     });

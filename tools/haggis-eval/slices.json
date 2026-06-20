@@ -15,7 +15,7 @@
       "gates": ["docs", "ts", "perf"]
     },
     "production": {
-      "description": "Opt-in live deployment probe. Checks ha.ggis.xyz, the ggis.xyz apex redirect, required production headers/CSP, immutable hashed assets, source-map absence, mounted WHS at /wild/, and the build provenance endpoint at /__version. Not part of pre-merge/release/all because production can temporarily lag a branch under review.",
+      "description": "Opt-in live deployment probe. Checks ha.ggis.xyz, the ggis.xyz apex redirect, required production headers/CSP, immutable hashed assets, source-map absence, mounted WHS at /wild/, mounted JFMM at /just-five-more-minutes/, and the build provenance endpoint at /__version. Not part of pre-merge/release/all because production can temporarily lag a branch under review.",
       "gates": ["production"]
     }
   }

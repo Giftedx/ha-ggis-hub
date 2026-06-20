@@ -14,6 +14,8 @@ interface ProductionProbe {
   assets: ProbeResponse[];
   wild: ProbeResponse;
   wildAssets: ProbeResponse[];
+  justFiveMoreMinutes: ProbeResponse;
+  justFiveMoreMinutesAssets: ProbeResponse[];
   version: ProbeResponse;
 }
 
@@ -53,6 +55,8 @@ const {
   requiredProductionHeaders,
 } = production;
 
+const JUST_FIVE_MORE_MINUTES_ROUTE_URL = 'https://ha.ggis.xyz/just-five-more-minutes/';
+
 function requiredHeaders(): Record<string, string> {
   return Object.fromEntries(
     requiredProductionHeaders.map(({ name, value }) => [name.toLowerCase(), value])
@@ -89,6 +93,23 @@ function validVersionBody(): string {
         assetCount: 2,
         fingerprint: 'a'.repeat(64),
         indexSha256: 'b'.repeat(64),
+      },
+    },
+    justFiveMoreMinutes: {
+      route: '/just-five-more-minutes/',
+      source: {
+        present: true,
+        commit: 'abcdef0123456789abcdef0123456789abcdef01',
+        shortCommit: 'abcdef0',
+        branch: 'master',
+        dirty: false,
+        dirtyFiles: [],
+      },
+      build: {
+        mounted: true,
+        assetCount: 2,
+        fingerprint: 'c'.repeat(64),
+        indexSha256: 'd'.repeat(64),
       },
     },
   });
@@ -152,6 +173,25 @@ function validProbe(): ProductionProbe {
         body: 'console.log("wild")',
       },
     ],
+    justFiveMoreMinutes: {
+      url: JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+      status: 200,
+      headers: {
+        ...hubHeaders,
+        'content-type': 'text/html; charset=utf-8',
+      },
+      body:
+        '<!doctype html><title>Just Five More Minutes</title>' +
+        '<script type="module" src="/just-five-more-minutes/assets/index-JFMM1234.js"></script>',
+    },
+    justFiveMoreMinutesAssets: [
+      {
+        url: 'https://ha.ggis.xyz/just-five-more-minutes/assets/index-JFMM1234.js',
+        status: 200,
+        headers: immutableAssetHeaders,
+        body: 'console.log("jfmm")',
+      },
+    ],
     version: {
       url: VERSION_URL,
       status: 200,
@@ -165,23 +205,25 @@ function validProbe(): ProductionProbe {
 }
 
 describe('extractAssetPaths', () => {
-  it('extracts hashed hub and mounted-WHS Vite asset paths from production HTML', () => {
+  it('extracts hashed hub and mounted game Vite asset paths from production HTML', () => {
     expect(
       extractAssetPaths(
         '<link href="/assets/index-abc12345.css">' +
           '<script src="/assets/app-DEADBEEF.js"></script>' +
-          '<script src="/wild/assets/game-wild1234.js"></script>'
+          '<script src="/wild/assets/game-wild1234.js"></script>' +
+          '<script src="/just-five-more-minutes/assets/game-JFMM1234.js"></script>'
       )
     ).toEqual([
       '/assets/index-abc12345.css',
       '/assets/app-DEADBEEF.js',
       '/wild/assets/game-wild1234.js',
+      '/just-five-more-minutes/assets/game-JFMM1234.js',
     ]);
   });
 });
 
 describe('collectProductionProbeFailures', () => {
-  it('accepts current production contract: hub, apex redirect, headers, assets, /wild, and /__version', () => {
+  it('accepts current production contract: hub, apex redirect, headers, assets, mounted games, and /__version', () => {
     expect(collectProductionProbeFailures(validProbe())).toEqual([]);
   });
 
@@ -270,6 +312,37 @@ describe('collectProductionProbeFailures', () => {
     expect(ids).toContain('wild-asset-source-map-reference');
   });
 
+  it('fails when mounted Just Five More Minutes does not serve from the same-origin route', () => {
+    const probe = validProbe();
+    probe.justFiveMoreMinutes.url = 'https://example.invalid/just-five-more-minutes/';
+    probe.justFiveMoreMinutes.status = 404;
+
+    const failures = collectProductionProbeFailures(probe);
+
+    expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-route-url' }));
+    expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-status' }));
+  });
+
+  it('fails when mounted Just Five More Minutes assets are not immutable or source-map clean', () => {
+    const probe = validProbe();
+    probe.justFiveMoreMinutes.body =
+      '<script type="module" src="/just-five-more-minutes/assets/index.js"></script>';
+    probe.justFiveMoreMinutesAssets = [
+      {
+        url: 'https://ha.ggis.xyz/just-five-more-minutes/assets/index.js',
+        status: 200,
+        headers: { 'cache-control': 'public, max-age=0, must-revalidate' },
+        body: '//# sourceMappingURL=index.js.map',
+      },
+    ];
+
+    const ids = collectProductionProbeFailures(probe).map((failure) => failure.id);
+
+    expect(ids).toContain('jfmm-no-hashed-assets');
+    expect(ids).toContain('jfmm-asset-not-immutable');
+    expect(ids).toContain('jfmm-asset-source-map-reference');
+  });
+
   it('fails when /__version is missing or does not carry hub and WHS provenance', () => {
     const probe = validProbe();
     probe.version.body = JSON.stringify({
@@ -284,5 +357,42 @@ describe('collectProductionProbeFailures', () => {
     expect(ids).toContain('version-hub-commit');
     expect(ids).toContain('version-whs-route');
     expect(ids).toContain('version-whs-build');
+  });
+
+  it('fails when /__version omits Just Five More Minutes provenance', () => {
+    const probe = validProbe();
+    const version = JSON.parse(validVersionBody()) as Record<string, unknown>;
+    delete version.justFiveMoreMinutes;
+    probe.version.body = JSON.stringify(version);
+
+    const ids = collectProductionProbeFailures(probe).map((failure) => failure.id);
+
+    expect(ids).toContain('version-jfmm-route');
+    expect(ids).toContain('version-jfmm-build');
+  });
+
+  it('fails malformed JFMM provenance when /__version includes it', () => {
+    const probe = validProbe();
+    const version = JSON.parse(validVersionBody()) as Record<string, unknown>;
+    version.justFiveMoreMinutes = { route: '/old-jfmm/' };
+    probe.version.body = JSON.stringify(version);
+
+    const ids = collectProductionProbeFailures(probe).map((failure) => failure.id);
+
+    expect(ids).toContain('version-jfmm-route');
+    expect(ids).toContain('version-jfmm-build');
+  });
+
+  it('fails when /__version reports Just Five More Minutes as not mounted', () => {
+    const probe = validProbe();
+    const version = JSON.parse(validVersionBody()) as {
+      justFiveMoreMinutes: { build: { mounted: boolean } };
+    };
+    version.justFiveMoreMinutes.build.mounted = false;
+    probe.version.body = JSON.stringify(version);
+
+    const ids = collectProductionProbeFailures(probe).map((failure) => failure.id);
+
+    expect(ids).toContain('version-jfmm-build');
   });
 });

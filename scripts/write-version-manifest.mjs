@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 const execFileAsync = promisify(execFile);
 const DEFAULT_OUTPUT = 'dist/__version';
 const WHS_ROUTE = '/wild/';
+const JFMM_ROUTE = '/just-five-more-minutes/';
 
 export function summarizeDirtyFiles(porcelain) {
   return String(porcelain)
@@ -16,7 +17,15 @@ export function summarizeDirtyFiles(porcelain) {
     .filter(Boolean);
 }
 
-export function buildVersionManifest({ generatedAt, packageJson, hubGit, whsGit, whsBuild }) {
+export function buildVersionManifest({
+  generatedAt,
+  packageJson,
+  hubGit,
+  whsGit,
+  whsBuild,
+  jfmmGit,
+  jfmmBuild,
+}) {
   return {
     schema: 1,
     generatedAt,
@@ -27,8 +36,13 @@ export function buildVersionManifest({ generatedAt, packageJson, hubGit, whsGit,
     },
     wildHaggisSurvivors: {
       route: WHS_ROUTE,
-      source: whsSourceManifest(whsGit),
+      source: gameSourceManifest(whsGit),
       build: buildManifest(whsBuild),
+    },
+    justFiveMoreMinutes: {
+      route: JFMM_ROUTE,
+      source: gameSourceManifest(jfmmGit),
+      build: buildManifest(jfmmBuild),
     },
   };
 }
@@ -43,7 +57,13 @@ async function collectVersionManifest(rootDir) {
   const hubGit = await readGitState(rootDir, '.');
   const whsPath = resolve(rootDir, '..', 'wild-haggis-survivors');
   const whsGit = await readGitState(whsPath, '../wild-haggis-survivors');
-  const whsBuild = await readMountedWhsBuild(resolve(rootDir, 'dist', 'wild'));
+  const whsBuild = await readMountedBuild(resolve(rootDir, 'dist', 'wild'), 'dist/wild');
+  const jfmmPath = resolve(rootDir, '..', '..', 'experiments', 'just-five-more-minutes');
+  const jfmmGit = await readGitState(jfmmPath, '../../experiments/just-five-more-minutes');
+  const jfmmBuild = await readMountedBuild(
+    resolve(rootDir, 'dist', 'just-five-more-minutes'),
+    'dist/just-five-more-minutes'
+  );
 
   return buildVersionManifest({
     generatedAt: new Date().toISOString(),
@@ -51,6 +71,8 @@ async function collectVersionManifest(rootDir) {
     hubGit,
     whsGit,
     whsBuild,
+    jfmmGit,
+    jfmmBuild,
   });
 }
 
@@ -92,20 +114,20 @@ async function runGit(cwd, args) {
   return stdout;
 }
 
-async function readMountedWhsBuild(wildDist) {
+async function readMountedBuild(mountDist, displayPath) {
   try {
-    const indexPath = join(wildDist, 'index.html');
+    const indexPath = join(mountDist, 'index.html');
     const indexStat = await stat(indexPath);
     if (!indexStat.isFile()) {
-      throw new Error('dist/wild/index.html is not a file');
+      throw new Error(`${displayPath}/index.html is not a file`);
     }
-    const files = await walkFiles(wildDist);
+    const files = await walkFiles(mountDist);
     const assetFiles = files.filter((file) =>
-      normalizePath(relative(wildDist, file)).startsWith('assets/')
+      normalizePath(relative(mountDist, file)).startsWith('assets/')
     );
     const buildFingerprint = createHash('sha256');
     for (const file of files.sort()) {
-      const rel = normalizePath(relative(wildDist, file));
+      const rel = normalizePath(relative(mountDist, file));
       buildFingerprint.update(rel);
       buildFingerprint.update('\0');
       buildFingerprint.update(await sha256File(file));
@@ -163,7 +185,7 @@ function gitManifest(state) {
   return out;
 }
 
-function whsSourceManifest(state) {
+function gameSourceManifest(state) {
   const out = {
     present: state.available,
     path: state.path,
@@ -222,8 +244,10 @@ async function main() {
   const hubDirty = manifest.hub.git.dirty ? 'dirty' : 'clean';
   const whsDirty = manifest.wildHaggisSurvivors.source.dirty ? 'dirty' : 'clean';
   const whsBuild = manifest.wildHaggisSurvivors.build.mounted ? 'mounted' : 'not-mounted';
+  const jfmmDirty = manifest.justFiveMoreMinutes.source.dirty ? 'dirty' : 'clean';
+  const jfmmBuild = manifest.justFiveMoreMinutes.build.mounted ? 'mounted' : 'not-mounted';
   console.log(
-    `[version] wrote ${normalizePath(relative(rootDir, target))} hub=${manifest.hub.git.shortCommit ?? 'unknown'}:${hubDirty} whs=${manifest.wildHaggisSurvivors.source.shortCommit ?? 'unknown'}:${whsDirty}:${whsBuild}`
+    `[version] wrote ${normalizePath(relative(rootDir, target))} hub=${manifest.hub.git.shortCommit ?? 'unknown'}:${hubDirty} whs=${manifest.wildHaggisSurvivors.source.shortCommit ?? 'unknown'}:${whsDirty}:${whsBuild} jfmm=${manifest.justFiveMoreMinutes.source.shortCommit ?? 'unknown'}:${jfmmDirty}:${jfmmBuild}`
   );
 }
 
