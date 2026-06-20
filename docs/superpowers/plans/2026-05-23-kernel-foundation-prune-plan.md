@@ -1,5 +1,12 @@
 # Kernel Foundation Prune Implementation Plan
 
+> **Historical plan, preserved as provenance.** The foundation prune described
+> here landed on 2026-05-23. Current canonical foundation docs live in
+> [`docs/foundation/`](../../foundation/), archived foundation provenance lives
+> in [`docs/archive/`](../../archive/), and the maintained navigation surface is
+> [the documentation index](../../README.md). Do not treat unchecked task boxes
+> or "to implement this plan" language below as live work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Collapse the 13 numbered foundation docs to the five canonical ones from [kernel design spec §7](../specs/2026-05-23-hub-determinism-kernel-design.md): `00-project-charter`, `05-stack-decision-record`, `07-quality-gates`, `11-quality-manifesto`, `12-craft-commitments`. Distill load-bearing content from the 8 archived docs into the 5 kept docs (no information loss). Archive per-slice audit reports (slice 1–5) since `haggis-eval` FNV-signed JSON reports now replace them as the slice-level evidence per spec. Sweep every cross-reference in the repo so no link is broken.

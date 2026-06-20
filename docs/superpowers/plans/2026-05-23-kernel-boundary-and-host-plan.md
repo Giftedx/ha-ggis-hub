@@ -1,5 +1,14 @@
 # Kernel Boundary and Host Implementation Plan
 
+> **Historical plan, preserved as provenance.** The WASM boundary and TypeScript
+> host migration described here have landed and continued to evolve. Current
+> state lives in [`crates/hub-wasm/`](../../../crates/hub-wasm/),
+> [`src/hub/`](../../../src/hub/), [`src/wasm/`](../../../src/wasm/),
+> [Runtime boundaries](../../architecture/runtime-boundaries.md), and
+> [Quality gates](../../foundation/07-quality-gates.md). Do not treat unchecked
+> task boxes, old route examples, or "to implement this plan" language below as
+> live work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Collapse the WASM boundary to the four-function surface from kernel design spec §2.4, migrate the TypeScript host onto it with a fixed-step accumulator and in-browser `.haggislog` capture, then remove the compat shim so `hub-core` exposes only the new kernel modules.

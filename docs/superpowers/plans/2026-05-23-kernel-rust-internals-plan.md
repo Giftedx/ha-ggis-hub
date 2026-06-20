@@ -1,5 +1,14 @@
 # Kernel Rust Internals Implementation Plan
 
+> **Historical plan, preserved as provenance.** The Rust kernel work described
+> here has landed: `hub-core` now owns hash/RNG/sim/log/replay modules and
+> replay round-trip coverage. Current state lives in
+> [`crates/hub-core/`](../../../crates/hub-core/), [Craft commitments](../../foundation/12-craft-commitments.md),
+> [Quality gates](../../foundation/07-quality-gates.md), and the
+> [implementation sequence](../../plans/2026-05-22-implementation-sequence.md).
+> Do not treat unchecked task boxes, route examples, or "to implement this plan"
+> language below as live work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reshape `hub-core` to expose the deterministic kernel (`Hash`, `Rng`, refactored `Sim` with owned RNG, `state_hash`, `.haggislog` reader/writer, `replay::run`) described in [the kernel design spec](../specs/2026-05-23-hub-determinism-kernel-design.md) §2.1, §2.5, §2.6 — without breaking the running browser. The existing WASM boundary remains callable through a thin compat shim until plan 2 replaces it.

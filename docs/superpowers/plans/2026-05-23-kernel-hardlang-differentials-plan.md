@@ -1,5 +1,14 @@
 # Kernel Hard-Language Differentials Implementation Plan
 
+> **Historical plan, preserved as provenance.** The hard-language differential
+> work described here has landed: C FNV-1a, WAT xoshiro128**, hub-hardlang
+> differential tests, and the corresponding `haggis-eval` gates are current
+> shipped surfaces. Current truth lives in [`asm/`](../../../asm/),
+> [`c/`](../../../c/), [`crates/hub-hardlang/`](../../../crates/hub-hardlang/),
+> [Craft commitments](../../foundation/12-craft-commitments.md), and
+> [Quality gates](../../foundation/07-quality-gates.md). Do not treat unchecked
+> task boxes or "to implement this plan" language below as live work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Land the two hard-language committed artifacts from [Craft commitments §B](../../foundation/12-craft-commitments.md) — a hand-authored `asm/xoshiro128_starstar.wat` RNG kernel and a hand-rolled `c/fnv1a.c` hash kernel — with differential tests asserting byte-identical behaviour against the existing Rust implementations over millions of draws / fuzzed bytes.

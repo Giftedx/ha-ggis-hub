@@ -6,6 +6,13 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Changed
 
+- **Marked remaining kernel superpowers plans/spec as historical provenance.** The
+  `docs/superpowers` kernel spec and four sibling implementation plans still
+  read like active pre-implementation work even though the kernel, WASM/host
+  boundary, hard-language differentials, foundation prune, and gate matrix have
+  shipped. Added provenance banners pointing to the current canonical docs and
+  code surfaces so stale route examples and unchecked task boxes are not mistaken
+  for live work.
 - **Production probe now covers the second mounted game.** `scripts/check-production.mjs` verifies
   `https://ha.ggis.xyz/just-five-more-minutes/` and its immutable hashed assets alongside the hub
   and `/wild/`; `dist/__version` now records JFMM source/build provenance; `smoke-door-launch.mjs`

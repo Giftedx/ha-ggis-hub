@@ -1,6 +1,15 @@
 # Hub-Determinism Kernel — Design Spec
 
-Status: approved design, pre-implementation
+> **Historical spec, preserved as provenance.** The deterministic kernel, hard-language
+> differentials, browser `.haggislog` replay path, and `haggis-eval` gate
+> orchestration have shipped. Current truth lives in the root README, the
+> documentation index, [Quality gates](../../foundation/07-quality-gates.md),
+> [Craft commitments](../../foundation/12-craft-commitments.md), and the
+> [implementation sequence](../../plans/2026-05-22-implementation-sequence.md).
+> Do not treat the "pre-implementation", WHS external-link, or future-ADR
+> wording below as current product state.
+
+Status: historical design provenance
 Date: 2026-05-23
 Scope: first of two sub-projects under the locked technical thesis for ha.ggis Hub
 Related:
