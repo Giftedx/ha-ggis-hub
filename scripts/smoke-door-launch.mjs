@@ -28,20 +28,17 @@ try {
       }
     }
   });
-  await page.route('**/*', (route) => {
+  await page.route('**/*', async (route) => {
     const reqUrl = route.request().url();
     // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
-    // + abort it (the WHS build is absent from the hub-only preview). The
-    // legacy pages.dev guard records a stale external launch, but the assertion
-    // below still requires /wild/.
-    if (
-      reqUrl.includes('/wild/') ||
-      reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')
-    ) {
+    // + fulfill it with an empty response (the WHS build is absent from the
+    // hub-only preview). Aborting a document request navigates Chromium to a
+    // chrome-error page, which is just output noise for this smoke.
+    if (reqUrl.includes('/wild/')) {
       navigations.push(reqUrl);
-      route.abort();
+      await route.fulfill({ status: 204, body: '' });
     } else {
-      route.continue();
+      await route.continue();
     }
   });
 

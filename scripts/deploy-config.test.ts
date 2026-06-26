@@ -9,6 +9,34 @@ import { resolve } from 'node:path';
 
 const HEADERS_PATH = resolve(__dirname, '..', 'public', '_headers');
 const REDIRECTS_PATH = resolve(__dirname, '..', 'public', '_redirects');
+const INDEX_PATH = resolve(__dirname, '..', 'index.html');
+const DOOR_LAUNCH_SMOKE_PATH = resolve(__dirname, 'smoke-door-launch.mjs');
+const DOOR_TAP_SMOKE_PATH = resolve(__dirname, 'smoke-door-tap.mjs');
+
+describe('index.html fallback paths', () => {
+  const html = readFileSync(INDEX_PATH, 'utf8');
+
+  it('keeps the no-JavaScript WHS fallback on the canonical /wild/ route', () => {
+    const noscript = html.match(/<noscript>[\s\S]*?<\/noscript>/i)?.[0] ?? '';
+    expect(noscript).toContain('href="/wild/"');
+    expect(noscript).not.toContain('wild-haggis-survivors.pages.dev');
+  });
+});
+
+describe('browser smoke route guards', () => {
+  it('only treats same-origin /wild/ as the current WHS launch request', () => {
+    const launchSmoke = readFileSync(DOOR_LAUNCH_SMOKE_PATH, 'utf8');
+    const tapSmoke = readFileSync(DOOR_TAP_SMOKE_PATH, 'utf8');
+    expect(`${launchSmoke}\n${tapSmoke}`).not.toContain('wild-haggis-survivors.pages.dev');
+  });
+
+  it('fulfills intercepted WHS navigation so passing smokes do not record browser error pages', () => {
+    const launchSmoke = readFileSync(DOOR_LAUNCH_SMOKE_PATH, 'utf8');
+    const tapSmoke = readFileSync(DOOR_TAP_SMOKE_PATH, 'utf8');
+    expect(`${launchSmoke}\n${tapSmoke}`).toContain('route.fulfill');
+    expect(`${launchSmoke}\n${tapSmoke}`).not.toContain('route.abort');
+  });
+});
 
 describe('public/_headers', () => {
   const headers = readFileSync(HEADERS_PATH, 'utf8');

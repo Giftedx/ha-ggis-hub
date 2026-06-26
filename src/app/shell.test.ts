@@ -41,7 +41,7 @@ const MODEL: AppModel = {
   projectName: 'ha.ggis Hub',
   directPlay: {
     label: 'Play Wild Haggis Survivors',
-    target: 'https://wild-haggis-survivors.pages.dev/',
+    target: '/wild/',
     title: 'Wild Haggis Survivors',
   },
   music: {
@@ -127,7 +127,7 @@ describe('createShell', () => {
     expect(resizeListeners).toHaveLength(1);
 
     const direct = childWithClass(shell.scene, 'scene-direct');
-    expect(direct.href).toBe('https://wild-haggis-survivors.pages.dev/');
+    expect(direct.href).toBe('/wild/');
     expect(direct.rel).toBe('noopener noreferrer');
     expect(direct.textContent).toBe('awa’ in →');
     expect(direct.getAttribute('aria-label')).toBe('awa’ in → — Play Wild Haggis Survivors');
@@ -222,7 +222,7 @@ describe('createShell', () => {
       (child) => child instanceof FakeElement && child.tagName === 'p'
     )[1] as FakeElement;
     const link = childByTag(directParagraph, 'a');
-    expect(link.href).toBe('https://wild-haggis-survivors.pages.dev/');
+    expect(link.href).toBe('/wild/');
     expect(link.rel).toBe('noopener noreferrer');
     expect(link.textContent).toBe('Play Wild Haggis Survivors direct');
     expect(link.getAttribute('aria-label')).toBeNull();

@@ -13,20 +13,16 @@ try {
   page.on('pageerror', (e) => errors.push(`[ERROR] ${e.message}`));
 
   const navigations = [];
-  await page.route('**/*', (route) => {
+  await page.route('**/*', async (route) => {
     const reqUrl = route.request().url();
     // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
-    // + abort that navigation (the WHS build is absent from the hub-only
-    // preview). The legacy pages.dev guard stays so a stray external launch is
-    // still caught.
-    if (
-      reqUrl.includes('/wild/') ||
-      reqUrl.startsWith('https://wild-haggis-survivors.pages.dev/')
-    ) {
+    // + fulfill that navigation (the WHS build is absent from the hub-only
+    // preview) without sending Chromium to a chrome-error page.
+    if (reqUrl.includes('/wild/')) {
       navigations.push(reqUrl);
-      route.abort();
+      await route.fulfill({ status: 204, body: '' });
     } else {
-      route.continue();
+      await route.continue();
     }
   });
 
