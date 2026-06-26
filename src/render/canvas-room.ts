@@ -1282,17 +1282,19 @@ function drawHaggis(
   reducedMotion: boolean,
   storybookBackdropDrawn: boolean
 ): void {
-  const cx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
-  const cy =
-    Math.round((snapshot.playerY / room.worldHeight) * surface.height) +
-    (storybookBackdropDrawn ? 56 : 0);
-  const bob = Math.round(Math.sin(phase * 2.6) * 1);
-
   // bothy-haggis design units: body outline ~50 wide x ~30 tall, plus legs.
   // Scale 2.0 keeps the mascot readable as a character without filling the
   // doorway. Storybook path uses 1.6 so the mascot reads against the painted
   // room (1.18 was too small to see).
   const HAGGIS_SCALE = storybookBackdropDrawn ? 1.6 : 2.0;
+  const visualHalfWidth = Math.round(30 * HAGGIS_SCALE);
+  const rawCx = Math.round((snapshot.playerX / room.worldWidth) * surface.width);
+  const cx = clampNumber(rawCx, visualHalfWidth, surface.width - visualHalfWidth);
+  const cy =
+    Math.round((snapshot.playerY / room.worldHeight) * surface.height) +
+    (storybookBackdropDrawn ? 56 : 0);
+  const bob = Math.round(Math.sin(phase * 2.6) * 1);
+
   const FEET_OFFSET = 10 * HAGGIS_SCALE;
   const bodyCx = cx;
   const bodyCy = cy + bob - FEET_OFFSET;
@@ -1483,6 +1485,10 @@ function activeDoorId(snapshot: DecodedSnapshot): string | null {
   }
   const door = snapshot.doors[snapshot.interactionDoorIndex];
   return door?.id ?? null;
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function scaleDoorBounds(

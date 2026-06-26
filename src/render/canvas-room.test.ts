@@ -556,6 +556,31 @@ describe('createCanvasRoomRenderer', () => {
     );
   });
 
+  it('keeps the painted sprite inside the playfield at world-edge clamps', () => {
+    vi.stubGlobal('Image', LoadedImage);
+    const surfaceWidth = 540;
+    const { surface, context } = recordingSurface(surfaceWidth, 360);
+    const renderer = createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 });
+
+    renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: 56 });
+    renderer.render({ ...SNAPSHOT_NO_INTERACTION, playerX: 944 });
+
+    const spriteDraws = context.calls.filter((c) =>
+      c.startsWith('drawImage:/art/wee-chieftain-idle.png@')
+    );
+    expect(spriteDraws).toHaveLength(2);
+    for (const draw of spriteDraws) {
+      const [, geometry] = draw.split('@');
+      expect(geometry).toBeDefined();
+      const parts = geometry!.split(',').map(Number);
+      expect(parts).toHaveLength(4);
+      const x = parts[0]!;
+      const width = parts[2]!;
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x + width).toBeLessThanOrEqual(surfaceWidth);
+    }
+  });
+
   it('does not flip facing direction when playerX changes by ≤ 2 units — exercises small-dx guard', () => {
     const { surface, context } = recordingSurface(1200, 800);
     const renderer = createCanvasRoomRenderer(surface, ROOM);
