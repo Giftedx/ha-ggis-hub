@@ -125,12 +125,16 @@ export interface HardPixelContext {
 // Hard-pixel elliptical contact shadow. Single fixed alpha (40%) — no
 // nested shrinking ellipses with decreasing alpha. Per rules.md §3.
 export function hardContactShadow(
-  ctx: HardPixelContext & { globalAlpha: number },
+  ctx: HardPixelContext & { globalAlpha: number; save(): void; restore(): void },
   cx: number,
   footY: number,
   halfWidth: number,
   depth: number
 ): void {
+  // save/restore so this shared primitive leaves fillStyle + globalAlpha exactly
+  // as the caller had them (Canvas2D state isolation, rules.md §3) — it must not
+  // leak the shadow token or hard-reset a caller's alpha to 1.
+  ctx.save();
   ctx.fillStyle = PALETTE.shadowDeep;
   ctx.globalAlpha = 0.4;
   for (let dy = -depth; dy <= depth; dy += 1) {
@@ -138,5 +142,5 @@ export function hardContactShadow(
     const w = Math.max(1, Math.round(halfWidth * Math.sqrt(1 - t * t)));
     ctx.fillRect(cx - w, footY + dy, w * 2, 1);
   }
-  ctx.globalAlpha = 1;
+  ctx.restore();
 }
