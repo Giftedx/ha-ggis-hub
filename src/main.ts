@@ -2,6 +2,7 @@ import './style.css';
 import { createAppModel } from './app/app';
 import { createShell } from './app/shell';
 import { createMusicController } from './app/music';
+import { createHubSettingsStore } from './app/settings';
 import { createGameLifecycleHost } from './engine/lifecycle';
 import { createBothyGameModule } from './hub/bothy-module';
 
@@ -28,6 +29,7 @@ async function start(root: HTMLElement): Promise<void> {
     button: shell.musicButton,
     audio: shell.musicAudio,
     tracks: model.music.tracks,
+    settings: createHubSettingsStore(getLocalStorage()),
   });
   root.replaceChildren(shell.scene);
 
@@ -40,5 +42,13 @@ async function start(root: HTMLElement): Promise<void> {
   } catch (error: unknown) {
     shell.status.textContent = 'the bothy wouldnae load — try the corner link';
     console.error(error);
+  }
+}
+
+function getLocalStorage(): Storage | undefined {
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
   }
 }

@@ -72,7 +72,8 @@ export function collectDocClaimFailures({ files, slicesConfig }) {
     },
     {
       file: 'package.json',
-      snippet: '"verify": "pnpm run docs:claims && pnpm run typecheck',
+      snippet:
+        '"verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
     },
     {
       file: 'tools/haggis-eval/README.md',

@@ -73,6 +73,7 @@ If you only have time for the load-bearing five, read these in order:
 - Playable doors: Wild Haggis Survivors launches from the right-wall door at `/wild/`; Just Five More Minutes launches from the left-wall door at `/just-five-more-minutes/`; the back-wall future-bothy door is locked and answers chaps with coming-soon retorts.
 - Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (docs-claim drift check + typecheck + lint + fmt:check + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (rust + rust-cov + docs + ts + coverage + security + perf + browser + multi-browser + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
 - Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
+- Hub-owned settings persistence: `ggis_hub_settings` stores versioned, FNV-digested music preferences without touching WHS keys; corrupt or unavailable browser storage falls back to defaults.
 - Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is Canvas2D with a painted backdrop and sprite path in `src/render/canvas-room.ts`, plus procedural fallback/fixture helpers in `src/render/bothy-haggis.ts`, `src/render/whs-bothy.ts`, and `src/render/whs-hearth.ts`.
 - Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
 
@@ -101,10 +102,10 @@ Gates supported today:
 ```bash
 # Rust workspace (deterministic core, FFI seam, WAT showcase)
 cargo fmt --all -- --check
-cargo test --workspace --exclude hub-wasm
+cargo test --workspace                  # whole workspace, hub-wasm boundary included
 cargo clippy --workspace --all-targets -- -D warnings
 RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
-cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
+cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-functions 100
 
 # TypeScript host + deploy artifact gate
 node scripts/check-doc-claims.mjs

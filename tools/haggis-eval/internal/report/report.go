@@ -33,15 +33,26 @@ type payloadShape struct {
 	Gates         []gate.Result `json:"gates"`
 }
 
-// Build assembles a Report from a list of gate results and adds its FNV checksum.
-func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
-	overall := gate.StatusPass
+// DeriveOverall computes the honest overall status for a set of gate results:
+// PASS only if every gate ran and passed. Any non-PASS gate yields FAIL. An
+// EMPTY set yields ERROR — a report that covers nothing has verified nothing
+// and must never certify success (the "no results is not a pass" invariant that
+// slice.go enforces locally; this is its shared, central form).
+func DeriveOverall(gates []gate.Result) gate.Status {
+	if len(gates) == 0 {
+		return gate.StatusError
+	}
 	for _, g := range gates {
 		if g.Status != gate.StatusPass {
-			overall = gate.StatusFail
-			break
+			return gate.StatusFail
 		}
 	}
+	return gate.StatusPass
+}
+
+// Build assembles a Report from a list of gate results and adds its FNV checksum.
+func Build(run string, generatedAt time.Time, gates []gate.Result) Report {
+	overall := DeriveOverall(gates)
 	r := Report{
 		Run:           run,
 		GeneratedAt:   generatedAt,

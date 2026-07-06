@@ -10,8 +10,13 @@ import (
 	"github.com/aggis/ha-ggis-hub/tools/haggis-eval/internal/report"
 )
 
-// VerifyReport recomputes a haggis-eval JSON report signature and fails if the
-// stored signature no longer matches the signable payload.
+// VerifyReport checks a haggis-eval JSON report's integrity. It fails if the
+// stored signature no longer matches the signable payload (byte-level tamper),
+// AND if the report's overall_status does not match the status derived from its
+// own gate results. The latter check is independent of the signature: FNV-1a is
+// non-cryptographic, so a forger (or an internal bug) can flip overall_status to
+// PASS and recompute a consistent signature — re-deriving from the gates catches
+// the lie regardless. An empty gate set is likewise not a pass.
 func VerifyReport(path string) gate.Result {
 	start := time.Now()
 	command := fmt.Sprintf("haggis-eval verify-report %s", path)
@@ -40,7 +45,18 @@ func VerifyReport(path string) gate.Result {
 		)
 	}
 
-	return verifyReportResult(gate.StatusPass, 0, start, command, fmt.Sprintf("signature OK: %#x", r.Signature), "")
+	if derived := report.DeriveOverall(r.Gates); r.OverallStatus != derived {
+		return verifyReportResult(
+			gate.StatusFail,
+			1,
+			start,
+			command,
+			"",
+			fmt.Sprintf("overall_status mismatch: report claims %s, gates derive %s", r.OverallStatus, derived),
+		)
+	}
+
+	return verifyReportResult(gate.StatusPass, 0, start, command, fmt.Sprintf("signature OK: %#x; overall_status %s consistent with gates", r.Signature, r.OverallStatus), "")
 }
 
 func verifyReportResult(

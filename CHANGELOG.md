@@ -32,6 +32,11 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Added
 
+- **Added hub-owned settings persistence.** `ggis_hub_settings` now stores the
+  visitor's opt-in music preference and current hub track in a versioned,
+  FNV-digested JSON envelope, falls back cleanly on corrupt or unavailable
+  browser storage, and keeps WHS save/settings keys off-limits. ADR-0007 records
+  the settings-vs-progress-save boundary.
 - **Added deployed-version provenance and an opt-in production probe.** `pnpm run build` now writes
   `dist/__version` with hub git/package state plus mounted-game source/build provenance, and
   `build:all` rewrites it after `/wild/` and `/just-five-more-minutes/` are mounted so future
@@ -43,6 +48,23 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Fixed
 
+- **Un-blinded the release gate: `hub-wasm` is back in both the test and coverage gates, and a
+  stale assertion it was hiding is fixed.** The `rust` gate ran `cargo test --workspace --exclude
+  hub-wasm` and `rust-cov` ran `cargo llvm-cov --workspace --exclude hub-wasm`, on a comment
+  claiming the crate "cannot run as a native unit test." That was false — its boundary modules
+  (`handle`, `snapshot_view`, `room_def`) are ordinary Rust with native `#[cfg(test)]` suites — and
+  the exclusion was load-bearing: `cargo test --workspace` was **red**. `snapshot_view`'s
+  `header_fields_round_trip` still asserted `door_count == 2`, stale since Just Five More Minutes
+  became the third door (the first room ships 3: wild-haggis-survivors, just-five-more-minutes,
+  future-bothy; `sim.rs`'s own test already asserts 3). A failing test that the gate could never
+  see is the worst of both worlds — broken *and* green. Corrected the assertion to 3, dropped
+  `--exclude hub-wasm` from both gates, and rewrote the false rationale comments. Re-including
+  `hub-wasm` in the 100%-line/100%-function coverage gate surfaced five uncovered surfaces in
+  `handle.rs` (`snapshot_ptr`, `error_message_ptr`, `hub_core_api_version`, and both `replay_run`
+  error arms — log-decode failure and replay divergence); added five native tests that pin those
+  contracts, taking `hub-wasm` to 100% lines/functions and the whole workspace coverage gate green
+  with the crate included. README, WRITEUP, quality-gates, the implementation-sequence plan, and the
+  haggis-eval README updated to drop the `--exclude hub-wasm` from every published gate command.
 - **Joined browser `.haggislog` capture to replay truth.** The determinism gate now runs a
   second Playwright smoke (`scripts/smoke-replay-log.mjs`) that pauses the browser loop, drives
   an exact two-input tick sequence, seals `window.__lastHaggisLog`, feeds those bytes through

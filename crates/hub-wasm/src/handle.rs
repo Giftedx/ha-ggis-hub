@@ -216,4 +216,63 @@ mod tests {
         let result = replay_run(&bytes);
         assert_eq!(result, initial);
     }
+
+    #[test]
+    fn snapshot_ptr_is_non_null_and_stable_across_ticks() {
+        // The host reads the snapshot pointer once at init and caches it;
+        // `write_snapshot` rewrites the same buffer in place, so the pointer
+        // must stay put across ticks or the host's cached view goes stale.
+        let mut handle = HubHandle::new(0);
+        let before = handle.snapshot_ptr();
+        assert!(!before.is_null());
+        assert_eq!(handle.tick(0b0001), HubErrorTag::Ok);
+        assert_eq!(handle.snapshot_ptr(), before);
+    }
+
+    #[test]
+    fn error_message_ptr_is_valid_when_empty_and_after_an_error() {
+        // The error pointer is always a readable address paired with
+        // `error_message_len`: 0-length on a fresh handle, populated after a
+        // rejected tick. The host reads `len` bytes from `ptr` either way.
+        let mut handle = HubHandle::new(0);
+        assert!(!handle.error_message_ptr().is_null());
+        assert_eq!(handle.error_message_len(), 0);
+
+        assert_eq!(handle.tick(0xFFFF_0001), HubErrorTag::InvalidInput);
+        assert!(!handle.error_message_ptr().is_null());
+        assert!(handle.error_message_len() > 0);
+    }
+
+    #[test]
+    fn hub_core_api_version_matches_core() {
+        // The exported version is the host's only handshake against a
+        // binding/core protocol mismatch; it must equal the core's constant.
+        assert_eq!(hub_core_api_version(), CORE_API_VERSION);
+    }
+
+    #[test]
+    fn replay_run_returns_decode_error_code_for_undecodable_log() {
+        // Bytes that cannot decode as a `.haggislog` surface error code 1 in
+        // the high word, never a state hash the caller might trust.
+        assert_eq!(replay_run(&[]), 1u64 << 32);
+        assert_eq!(replay_run(&[0xDE, 0xAD, 0xBE, 0xEF]), 1u64 << 32);
+    }
+
+    #[test]
+    fn replay_run_returns_divergence_code_when_trailer_hash_is_wrong() {
+        // A well-formed log that decodes cleanly but whose sealed final hash
+        // the replay can never reproduce must surface divergence (code 2),
+        // not a state hash — this is the tamper/regression signal.
+        let seed = 7;
+        let initial = Sim::new(seed).state_hash();
+        let writer = LogWriter::new(WriterConfig {
+            seed,
+            core_api_version: CORE_API_VERSION,
+            started_at_utc_ms: 0,
+            initial_state_hash: initial,
+        });
+        // Seal a zero-tick session with a hash it can never produce.
+        let bytes = writer.finish(0, initial.wrapping_add(1));
+        assert_eq!(replay_run(&bytes), 2u64 << 32);
+    }
 }

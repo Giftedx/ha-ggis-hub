@@ -107,7 +107,7 @@ mod tests {
         assert_eq!(read_i32(header::PLAYER_Y), 540);
         assert_eq!(read_i32(header::WORLD_W), 1_000);
         assert_eq!(read_i32(header::WORLD_H), 1_000);
-        assert_eq!(read_i32(header::DOOR_COUNT), 2);
+        assert_eq!(read_i32(header::DOOR_COUNT), 3);
     }
 
     #[test]

@@ -5,10 +5,10 @@
 //
 // Exit 0: all smokes passed. Exit 1: at least one failed.
 
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { request } from 'node:http';
+import { spawnPnpm, spawnPnpmSync } from './pinned-pnpm.mjs';
 
-const PNPM = 'pnpm';
 const NODE = process.execPath;
 
 const PORT = process.env.HAGGIS_SMOKE_PORT ?? '4173';
@@ -37,7 +37,7 @@ function log(...args) {
 
 function buildDist() {
   log('building dist…');
-  const r = spawnSync(`${PNPM} run build`, { stdio: 'inherit', shell: true });
+  const r = spawnPnpmSync(['run', 'build'], { stdio: 'inherit' });
   if (r.status !== 0) {
     log('build failed; aborting');
     process.exit(1);
@@ -70,9 +70,8 @@ log(`starting preview on :${PORT}…`);
 // detached:true on POSIX so vite becomes its own process-group leader
 // and we can kill the whole Vite process group via `process.kill(-pid)` below.
 const isPosix = process.platform !== 'win32';
-const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
+const preview = spawnPnpm(['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
   stdio: ['ignore', 'pipe', 'pipe'],
-  shell: true,
   detached: isPosix,
 });
 

@@ -92,7 +92,7 @@ impl InputSnapshot {
 }
 
 /// Maximum number of doors that can appear in a single `RenderSnapshot`.
-/// The first room ships with two; the cap is conservative for the kernel
+/// The first room ships with three; the cap is conservative for the kernel
 /// slice and can be raised behind an API-version bump later.
 pub const MAX_DOORS_PER_SNAPSHOT: usize = 8;
 

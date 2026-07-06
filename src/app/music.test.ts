@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMusicController, type MusicTrackModel } from './music';
+import { createDefaultHubSettings, type HubSettings, type HubSettingsStore } from './settings';
 
 class FakeButton {
   readonly listeners = new Map<string, EventListener>();
@@ -90,6 +91,20 @@ const TRACKS: MusicTrackModel[] = [
     sourceUrl: 'https://www.wario.style/s/tw6IWdAL',
   },
 ];
+
+class FakeSettingsStore implements HubSettingsStore {
+  settings: HubSettings = createDefaultHubSettings();
+  readonly saves: HubSettings[] = [];
+
+  load(): HubSettings {
+    return this.settings;
+  }
+
+  save(settings: HubSettings): void {
+    this.settings = settings;
+    this.saves.push(settings);
+  }
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -332,5 +347,66 @@ describe('createMusicController', () => {
 
     expect(playCalls).toBe(1);
     expect(button.textContent).toBe('music on');
+  });
+
+  it('starts from the persisted music track without auto-playing', () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    const settings = new FakeSettingsStore();
+    settings.settings = { music: { enabled: true, trackIndex: 1 } };
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+      settings,
+    });
+
+    expect(audio.src).toBe('https://ha.ggis.test/music/scotland-the-brave.mp3');
+    expect(audio.playCalls).toBe(0);
+    expect(button.textContent).toBe('music');
+    expect(button.getAttribute('aria-label')).toBe('Play hub music: Scotland the Brave');
+  });
+
+  it('persists music opt-in and pause without touching game save keys', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    const settings = new FakeSettingsStore();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+      settings,
+    });
+
+    button.click();
+    await Promise.resolve();
+    button.click();
+
+    expect(settings.saves).toEqual([
+      { music: { enabled: true, trackIndex: 0 } },
+      { music: { enabled: false, trackIndex: 0 } },
+    ]);
+  });
+
+  it('persists the next playlist track when playback advances', async () => {
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    const settings = new FakeSettingsStore();
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+      settings,
+    });
+
+    button.click();
+    await Promise.resolve();
+    audio.end();
+    await Promise.resolve();
+
+    expect(settings.saves.at(-1)).toEqual({ music: { enabled: true, trackIndex: 1 } });
   });
 });

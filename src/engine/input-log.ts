@@ -1,3 +1,7 @@
+import { fnv1a64 } from './fnv';
+
+export { fnv1a64 } from './fnv';
+
 const MAGIC = [0x48, 0x47, 0x4c, 0x47]; // "HGLG"
 const FORMAT_VERSION = 1;
 const CORE_INPUT_MASK = 0xffff;
@@ -96,17 +100,4 @@ function pushU64(out: number[], value: bigint): void {
   const high = Number((value >> 32n) & 0xffffffffn);
   pushU32(out, low);
   pushU32(out, high);
-}
-
-const FNV_OFFSET_BASIS = 0xcbf29ce484222325n;
-const FNV_PRIME = 0x100000001b3n;
-const U64_MASK = 0xffffffffffffffffn;
-
-export function fnv1a64(bytes: readonly number[]): bigint {
-  let h = FNV_OFFSET_BASIS;
-  for (const b of bytes) {
-    h = (h ^ BigInt(b)) & U64_MASK;
-    h = (h * FNV_PRIME) & U64_MASK;
-  }
-  return h;
 }

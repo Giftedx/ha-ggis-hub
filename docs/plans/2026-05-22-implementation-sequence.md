@@ -150,7 +150,7 @@ Go orchestration tool with FNV-signed tamper-evident JSON reports.
 Wired:
 
 - `rust` — `cargo fmt --check` + `clippy -D warnings` + `cargo test --workspace`.
-- `rust-cov` — `cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100`.
+- `rust-cov` — `cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-functions 100` (hub-wasm included).
 - `docs` — `node scripts/check-doc-claims.mjs` rejects report-signing/doc-claim drift.
 - `ts` — `pnpm tsc --noEmit` + `pnpm vitest run` + `pnpm run build`.
 - `security` — `pnpm vitest run scripts/deploy-config.test.ts` (public/_headers + _redirects assertions; shipped 2026-05-23).

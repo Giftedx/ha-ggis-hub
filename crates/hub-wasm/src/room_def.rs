@@ -63,7 +63,7 @@ mod tests {
     use hub_core::sim::Sim;
 
     #[test]
-    fn descriptor_contains_world_dimensions_and_both_doors() {
+    fn descriptor_contains_world_dimensions_and_all_doors() {
         let snapshot = Sim::new(0).render_snapshot();
         let json = render(&snapshot);
         assert!(json.contains("\"worldWidth\":1000"));

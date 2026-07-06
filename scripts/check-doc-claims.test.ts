@@ -68,7 +68,7 @@ function validFiles(): Record<string, string> {
   return {
     ...files,
     'package.json':
-      '"docs:claims": "node scripts/check-doc-claims.mjs", "verify": "pnpm run docs:claims && pnpm run typecheck && pnpm run lint"',
+      '"docs:claims": "node scripts/check-doc-claims.mjs", "verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
     'tools/haggis-eval/README.md': `| \`docs\` | \`node scripts/check-doc-claims.mjs\` |\n\`pre-merge\` (${plain})`,
     'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.`,
     '.github/workflows/ci.yml': 'PR CI runs `pnpm verify`; release CI runs `haggis-eval all`.',

@@ -14,6 +14,7 @@ Browser
 TypeScript/Vite host
   |-- DOM shell, routes, direct links
   |-- input capture and audio unlock
+  |-- hub-owned settings persistence
   |-- renderer lifecycle
   |-- game adapter lifecycle
   |
@@ -26,7 +27,7 @@ Rust hub-core
   |-- movement and bounds
   |-- door proximity and interactions
   |-- registry validation
-  |-- save/schema logic later
+  |-- progress save/schema logic later
 ```
 
 ## Ownership rules
@@ -50,6 +51,7 @@ c/
   *.c              # C primitives linked into hub-hardlang (FNV-1a)
 src/
   app/
+    settings.ts      # ggis_hub_settings schema, digest, migration
   games/
   render/
   wasm/

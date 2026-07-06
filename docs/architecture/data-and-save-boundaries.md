@@ -1,8 +1,8 @@
 # Data and Save Boundaries
 
-Status: registry shipped; hub persistence deferred (no save system exists yet)
+Status: registry and hub settings shipped; hub progress save deferred
 Scope: game registry, hub persistence, and Wild Haggis Survivors separation
-Related: [Runtime boundaries](runtime-boundaries.md), [Project charter — Product vision](../foundation/00-project-charter.md#product-vision)
+Related: [Runtime boundaries](runtime-boundaries.md), [Project charter — Product vision](../foundation/00-project-charter.md#product-vision), [ADR-0007](../decisions/0007-hub-settings-persistence.md)
 
 ## Registry principle
 
@@ -35,16 +35,48 @@ export interface HubGameDefinition {
 - WHS has exactly one canonical registry entry.
 - The current playable registry entries are `wild-haggis-survivors` (`/wild/`) and `just-five-more-minutes` (`/just-five-more-minutes/`); both must have launchable room doors.
 
-## Hub persistence
+## Hub settings persistence
 
-Planned hub keys:
+Current hub-owned key:
 
 ```text
-ggis_hub_save
 ggis_hub_settings
 ```
 
-Do not use WHS keys from the hub.
+`src/app/settings.ts` owns this record. Schema 1 is a JSON envelope with
+`schema: 1`, a `music` payload, and a keyless FNV-1a 64-bit `digest` over the
+canonical payload without the digest field. The checksum is tamper-evident
+against accidental corruption; it is not a cryptographic signature. Invalid,
+corrupt, or unavailable storage falls back to defaults and must not block hub
+startup.
+
+Current payload:
+
+```json
+{
+  "music": {
+    "enabled": false,
+    "trackIndex": 0
+  }
+}
+```
+
+`enabled` records the visitor's last explicit music preference. It does not
+grant autoplay permission: the music controller still starts paused and waits
+for a fresh click before audio playback. `trackIndex` lets the hub resume the
+visitor's last selected hub track without fetching MP3 assets before opt-in.
+
+Legacy schema 0 (`music.wantsPlayback`, `music.currentTrackIndex`) is migrated
+in tests so future schema changes have a fixture pattern to follow.
+
+Planned hub-owned key:
+
+```text
+ggis_hub_save
+```
+
+`ggis_hub_save` remains deferred until the hub has progress, customisation, or
+another gameplay state worth saving. Do not use WHS keys from the hub.
 
 ## Wild Haggis Survivors boundary
 

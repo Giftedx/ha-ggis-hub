@@ -7,10 +7,10 @@
 // Exit 0: gate passed (or capture wrote new goldens).
 // Exit 1: drift detected, page errored, or build failed.
 
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { request } from 'node:http';
+import { spawnPnpm, spawnPnpmSync } from './pinned-pnpm.mjs';
 
-const PNPM = 'pnpm';
 const NODE = process.execPath;
 
 const PORT = process.env.HAGGIS_SMOKE_PORT ?? '4175';
@@ -28,7 +28,7 @@ function log(...args) {
 
 function buildDist() {
   log('building dist…');
-  const r = spawnSync(`${PNPM} run build`, { stdio: 'inherit', shell: true });
+  const r = spawnPnpmSync(['run', 'build'], { stdio: 'inherit' });
   if (r.status !== 0) {
     log('build failed; aborting');
     process.exit(1);
@@ -60,9 +60,8 @@ buildDist();
 log(`starting preview on :${PORT}…`);
 // See run-browser-smokes.mjs for why detached:true on POSIX.
 const isPosix = process.platform !== 'win32';
-const preview = spawn(`${PNPM} exec vite preview --port ${PORT} --strictPort`, {
+const preview = spawnPnpm(['exec', 'vite', 'preview', '--port', PORT, '--strictPort'], {
   stdio: ['ignore', 'pipe', 'pipe'],
-  shell: true,
   detached: isPosix,
 });
 

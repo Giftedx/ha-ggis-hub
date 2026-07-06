@@ -16,7 +16,7 @@ Foundation docs (`docs/foundation/`) state policy. ADRs (`docs/decisions/`) reco
 |------|--------|-------|
 | [overview.md](overview.md) | implemented | Top-level system shape, ownership rules, repo layout. Read first. |
 | [runtime-boundaries.md](runtime-boundaries.md) | current; routing lifecycle planned | Game module / instance contracts, frame loop model, error handling. |
-| [data-and-save-boundaries.md](data-and-save-boundaries.md) | registry shipped; save deferred | Game registry shape, hub persistence keys, the Wild Haggis Survivors save boundary. |
+| [data-and-save-boundaries.md](data-and-save-boundaries.md) | registry and settings shipped; progress save deferred | Game registry shape, hub settings persistence, planned hub save key, the Wild Haggis Survivors save boundary. |
 | [testing-strategy.md](testing-strategy.md) | current | Where unit, property, WASM-boundary, browser, visual, performance, and soak tests live. |
 | [evaluation-strategy.md](evaluation-strategy.md) | current | Evals beyond tests — core sim, browser UX, paint timing, a11y, visual drift, soak. |
 | [autopilot-system.md](autopilot-system.md) | active | How autonomous agents plan, build, review, run gates, and improve the project over time. |

@@ -71,6 +71,10 @@ func RunWithEnv(category, name string, extraEnv map[string]string, bin string, a
 }
 
 func runImpl(timeout time.Duration, extraEnv map[string]string, category, name, bin string, args ...string) Result {
+	pnpm := resolvePinnedPnpm()
+	if bin == "pnpm" && pnpm != nil {
+		bin = pnpm.exe
+	}
 	cmdLine := bin
 	if len(args) > 0 {
 		cmdLine = bin + " " + strings.Join(args, " ")
@@ -85,12 +89,8 @@ func runImpl(timeout time.Duration, extraEnv map[string]string, category, name, 
 	// (the context deadline fires, TerminateProcess is called, but the
 	// stdio I/O goroutines keep waiting for EOF that never comes).
 	cmd.WaitDelay = 2 * time.Second
-	if len(extraEnv) > 0 {
-		env := os.Environ()
-		for k, v := range extraEnv {
-			env = append(env, k+"="+v)
-		}
-		cmd.Env = env
+	if len(extraEnv) > 0 || pnpm != nil {
+		cmd.Env = childEnv(extraEnv, pnpm)
 	}
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = io.MultiWriter(os.Stdout, &stdout)
@@ -147,6 +147,35 @@ func runImpl(timeout time.Duration, extraEnv map[string]string, category, name, 
 		StderrTail: errOut,
 		Command:    cmdLine,
 	}
+}
+
+func childEnv(extraEnv map[string]string, pnpm *pnpmResolution) []string {
+	env := os.Environ()
+	if pnpm != nil {
+		env = prependPath(env, pnpm.dir)
+	}
+	for k, v := range extraEnv {
+		env = append(env, k+"="+v)
+	}
+	return env
+}
+
+func prependPath(env []string, dir string) []string {
+	out := make([]string, 0, len(env)+1)
+	replaced := false
+	for _, entry := range env {
+		key, value, ok := strings.Cut(entry, "=")
+		if ok && strings.EqualFold(key, "PATH") {
+			out = append(out, key+"="+dir+string(os.PathListSeparator)+value)
+			replaced = true
+			continue
+		}
+		out = append(out, entry)
+	}
+	if !replaced {
+		out = append(out, "PATH="+dir)
+	}
+	return out
 }
 
 func tailBytes(b []byte, max int) string {

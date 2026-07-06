@@ -127,3 +127,40 @@ func TestWriteCreatesDirectoryIfMissing(t *testing.T) {
 		t.Fatalf("Write with missing dir hierarchy: %v", err)
 	}
 }
+
+func TestBuildEmptyGatesIsNotPass(t *testing.T) {
+	// A report that covers zero gates has verified nothing; certifying it
+	// PASS would let an empty/no-op run masquerade as a green release gate.
+	for _, gates := range [][]gate.Result{nil, {}} {
+		r := Build("test-run", time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC), gates)
+		if r.OverallStatus == gate.StatusPass {
+			t.Errorf("OverallStatus = PASS for empty gates (len=%d); want non-PASS", len(gates))
+		}
+		if r.OverallStatus != gate.StatusError {
+			t.Errorf("OverallStatus = %s for empty gates; want ERROR (nothing assessed)", r.OverallStatus)
+		}
+	}
+}
+
+func TestDeriveOverall(t *testing.T) {
+	pass := gate.Result{Status: gate.StatusPass}
+	fail := gate.Result{Status: gate.StatusFail}
+	erro := gate.Result{Status: gate.StatusError}
+	cases := []struct {
+		name  string
+		gates []gate.Result
+		want  gate.Status
+	}{
+		{"empty", nil, gate.StatusError},
+		{"all pass", []gate.Result{pass, pass}, gate.StatusPass},
+		{"one fail", []gate.Result{pass, fail}, gate.StatusFail},
+		{"one error", []gate.Result{erro, pass}, gate.StatusFail},
+		{"fail+error", []gate.Result{fail, erro}, gate.StatusFail},
+		{"all error", []gate.Result{erro, erro}, gate.StatusFail},
+	}
+	for _, c := range cases {
+		if got := DeriveOverall(c.gates); got != c.want {
+			t.Errorf("%s: DeriveOverall = %s; want %s", c.name, got, c.want)
+		}
+	}
+}

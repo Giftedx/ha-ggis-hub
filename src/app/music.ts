@@ -1,3 +1,5 @@
+import type { HubSettingsStore } from './settings';
+
 export interface MusicTrackModel {
   readonly title: string;
   readonly src: string;
@@ -9,6 +11,7 @@ export interface MusicControllerOptions {
   readonly button: HTMLButtonElement;
   readonly audio: HTMLAudioElement;
   readonly tracks: readonly MusicTrackModel[];
+  readonly settings?: HubSettingsStore;
 }
 
 export interface MusicController {
@@ -21,8 +24,10 @@ export function createMusicController({
   button,
   audio,
   tracks,
+  settings,
 }: MusicControllerOptions): MusicController {
-  let currentIndex = 0;
+  const loadedSettings = settings?.load();
+  let currentIndex = normalizeTrackIndex(loadedSettings?.music.trackIndex ?? 0, tracks);
   let loadedIndex = -1;
   let wantsPlayback = false;
   let inFlight = false;
@@ -68,6 +73,15 @@ export function createMusicController({
     button.disabled = false;
   }
 
+  function persistMusicSettings(enabled: boolean): void {
+    settings?.save({
+      music: {
+        enabled,
+        trackIndex: currentIndex,
+      },
+    });
+  }
+
   async function playCurrent(): Promise<void> {
     const track = currentTrack();
     if (track === undefined) {
@@ -81,20 +95,29 @@ export function createMusicController({
       await audio.play();
       if (!audio.paused) {
         setPlayingState();
+        persistMusicSettings(true);
+      } else {
+        wantsPlayback = false;
+        setPausedState();
+        persistMusicSettings(false);
       }
     } catch {
       wantsPlayback = false;
       audio.pause();
       setPausedState();
+      persistMusicSettings(false);
     } finally {
       inFlight = false;
     }
   }
 
-  function pauseCurrent(): void {
+  function pauseCurrent(persist = true): void {
     wantsPlayback = false;
     audio.pause();
     setPausedState();
+    if (persist) {
+      persistMusicSettings(false);
+    }
   }
 
   const onClick = (): void => {
@@ -117,6 +140,7 @@ export function createMusicController({
       void playCurrent();
     } else {
       setPausedState();
+      persistMusicSettings(false);
     }
   };
 
@@ -129,9 +153,13 @@ export function createMusicController({
     destroy(): void {
       button.removeEventListener('click', onClick);
       audio.removeEventListener('ended', onEnded);
-      wantsPlayback = false;
-      audio.pause();
-      setPausedState();
+      pauseCurrent(false);
     },
   };
+}
+
+function normalizeTrackIndex(index: number, tracks: readonly MusicTrackModel[]): number {
+  return tracks.length > 0 && Number.isSafeInteger(index) && index >= 0 && index < tracks.length
+    ? index
+    : 0;
 }

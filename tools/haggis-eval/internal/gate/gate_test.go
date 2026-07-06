@@ -2,6 +2,7 @@ package gate
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -77,6 +78,49 @@ func TestRunWithEnvPassesEnvToSubprocess(t *testing.T) {
 	}
 	if !strings.Contains(r.StdoutTail, "plan9") {
 		t.Errorf("expected stdout to contain sentinel GOOS=plan9, got %q", r.StdoutTail)
+	}
+}
+
+func TestParsePnpmPackageManager(t *testing.T) {
+	if got := parsePnpmPackageManager("pnpm@10.12.1"); got != "10.12.1" {
+		t.Fatalf("expected 10.12.1, got %q", got)
+	}
+	if got := parsePnpmPackageManager("npm@11.0.0"); got != "" {
+		t.Fatalf("expected non-pnpm package manager to return empty, got %q", got)
+	}
+}
+
+func TestPnpmCandidatesPreservePathOrderAndWindowsExtensions(t *testing.T) {
+	first := t.TempDir()
+	second := t.TempDir()
+	if err := os.WriteFile(filepath.Join(first, "pnpm.cmd"), []byte("@echo off\n"), 0o644); err != nil {
+		t.Fatalf("write first candidate: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(second, "pnpm.exe"), []byte("fake"), 0o644); err != nil {
+		t.Fatalf("write second candidate: %v", err)
+	}
+
+	got := pnpmCandidates(first+string(os.PathListSeparator)+second, "windows")
+	if len(got) != 2 {
+		t.Fatalf("expected two candidates, got %v", got)
+	}
+	if got[0] != filepath.Join(first, "pnpm.cmd") {
+		t.Fatalf("expected first PATH candidate first, got %v", got)
+	}
+	if got[1] != filepath.Join(second, "pnpm.exe") {
+		t.Fatalf("expected second PATH candidate second, got %v", got)
+	}
+}
+
+func TestPrependPathKeepsExistingPathAfterPinnedPnpmDirectory(t *testing.T) {
+	existing := "bad" + string(os.PathListSeparator) + "other"
+	env := prependPath([]string{"Path=" + existing, "FOO=bar"}, "good")
+
+	if env[0] != "Path=good"+string(os.PathListSeparator)+existing {
+		t.Fatalf("PATH was not prepended correctly: %v", env)
+	}
+	if env[1] != "FOO=bar" {
+		t.Fatalf("non-PATH env entry changed: %v", env)
 	}
 }
 

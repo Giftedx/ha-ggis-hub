@@ -18,7 +18,7 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 | Subcommand            | What it runs                                                                |
 |-----------------------|-----------------------------------------------------------------------------|
 | `rust`                | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`   |
-| `rust-cov`            | `cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100`. Requires `llvm-tools-preview` rustup component and `cargo-llvm-cov` binary. |
+| `rust-cov`            | `cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-functions 100` (hub-wasm included). Requires `llvm-tools-preview` rustup component and `cargo-llvm-cov` binary. |
 | `docs`                | `node scripts/check-doc-claims.mjs` — documentation/report claim drift scanner; rejects cryptographic-signing overclaims and generic signed-report wording unless it is FNV/tamper-evident qualified or explicitly negated. |
 | `ts`                  | `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm run build`                    |
 | `coverage`            | `pnpm run coverage` — vitest v8 coverage with thresholds (lines=100%, stmts=100%, fns=100%, branches=100%). Excludes `src/main.ts` and generated wasm bindings. |
@@ -41,6 +41,11 @@ Produces `./haggis-eval` (or `./haggis-eval.exe` on Windows).
 ## Invocation cwd
 
 `haggis-eval` shells out to `pnpm run …`, `node scripts/…`, and `cargo …`, all of which expect the **repo root** as the working directory. Run it as `./tools/haggis-eval/haggis-eval all` from the repo root (the way CI does); running it from inside `tools/haggis-eval/` will fast-fail every script-path gate because `scripts/…` doesn't resolve there.
+
+The runner also reads the root `package.json` `packageManager` field and
+prefers that exact `pnpm` executable when it is present on `PATH`. Its directory
+is prepended to child gate environments, so nested scripts inherit the same
+pinned pnpm instead of accidentally using a newer global shim.
 
 ## Exit codes
 

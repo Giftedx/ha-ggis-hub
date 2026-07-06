@@ -141,6 +141,13 @@ func usage(w *os.File) {
 }
 
 func printAndExit(category string, results []gate.Result) int {
+	if len(results) == 0 {
+		// A category that produced no gate results has verified nothing.
+		// Returning 0 here would let an empty/no-op run exit green; CI keys
+		// off this exit code, so refuse success rather than fake it.
+		fmt.Fprintf(os.Stderr, "[%s] no gate results — refusing to report success\n", category)
+		return 1
+	}
 	exit := 0
 	for _, r := range results {
 		fmt.Printf("[%s] %-20s %s exit=%d %dms\n", r.Category, r.Name, r.Status, r.ExitCode, r.DurationMs)

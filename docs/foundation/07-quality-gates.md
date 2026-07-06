@@ -33,8 +33,8 @@ Runs via the Go-orchestrated `haggis-eval all`. 16 gate subcommands (25 individu
 # Rust workspace
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace --exclude hub-wasm
-cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
+cargo test --workspace
+cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-functions 100
 
 # TypeScript host + deploy artifact gate
 node scripts/check-doc-claims.mjs                  # docs/report claim drift guard

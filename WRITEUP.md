@@ -71,7 +71,7 @@ Reference vectors (agreed by all four impls):
 "chongo was here!\n"→ 0x46810940eff5f915
 ```
 
-Reproduce: `cargo test --workspace --exclude hub-wasm` (Rust + C), `cd tools/haggis-eval && go test ./internal/fnv/` (Go).
+Reproduce: `cargo test --workspace` (Rust + C), `cd tools/haggis-eval && go test ./internal/fnv/` (Go).
 
 The C kernel exists in a single Rust crate (`hub-hardlang`) which is also the *only* crate in the workspace allowed to relax the `unsafe_code = "forbid"` lint, and only to `deny` with one scoped `#![allow(unsafe_code)]` block for the `extern "C"` declaration. Every other crate stays strictly safe.
 
@@ -148,11 +148,11 @@ pnpm run coverage    # vitest v8 coverage (100% lines/stmts/fns/branches — enf
 
 # Rust workspace
 cargo fmt --all -- --check
-cargo test --workspace --exclude hub-wasm
+cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 RUSTFLAGS="-D warnings" cargo check --workspace --target wasm32-unknown-unknown
 # Rust coverage (requires: rustup component add llvm-tools-preview; cargo install cargo-llvm-cov)
-cargo llvm-cov --workspace --exclude hub-wasm --fail-under-lines 100 --fail-under-functions 100
+cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-functions 100
 
 # Single-binary orchestrator (runs everything above + writes an FNV-signed JSON report)
 cd tools/haggis-eval && go build .
