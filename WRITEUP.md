@@ -1,6 +1,6 @@
 # ha.ggis Hub — engineering writeup
 
-> A ~92 KB hand-rolled Rust + WASM + TypeScript playable hub, with four implementations of FNV-1a — three (Rust/C/Go) in the differential trio plus a vector-checked TypeScript writer — a WAT-authored RNG, FNV-signed tamper-evident eval reports (not cryptographic signatures), and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
+> A ~101 KB hand-rolled Rust + WASM + TypeScript playable hub, with four implementations of FNV-1a — three (Rust/C/Go) in the differential trio plus a vector-checked TypeScript writer — a WAT-authored RNG, FNV-signed tamper-evident eval reports (not cryptographic signatures), and Mozilla Observatory A+. The visible product is the bothy; this writeup is for the layer underneath.
 
 **Live:** <https://ha.ggis.xyz/>
 **Repo:** private during development — public on first release.
@@ -16,7 +16,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TypeScript / Vite host  (55 KB JS, strict mode)        │
+│  TypeScript / Vite host  (63 KB JS, strict mode)        │
 │  - Lifecycle, input sampling, fixed-step pump           │
 │  - Pointer-drive + keyboard, single launch entry point  │
 │  - Hand-rolled Canvas2D renderer (no engine, no library)│
@@ -60,7 +60,7 @@ The FNV-1a 64 hash has four implementations — three (Rust/C/Go) in the differe
 | Rust | `crates/hub-core/src/hash.rs` | Runtime state hash on every snapshot, used by the determinism smoke test |
 | C    | `c/fnv1a.c` (linked into `crates/hub-hardlang` via `cc` build-script) | Differential test target; demonstrates the Rust FFI seam |
 | Go   | `tools/haggis-eval/internal/fnv/` | Computes the orchestrator's FNV report checksum |
-| TypeScript | `src/engine/input-log.ts` | The `.haggislog` digest; vector-checked against the same reference vectors |
+| TypeScript | `src/engine/fnv.ts` | The `.haggislog` digest and both stored-record envelopes (`ggis_hub_settings`, `ggis_hub_save`); vector-checked against the same reference vectors |
 
 Reference vectors (agreed by all four impls):
 
@@ -98,17 +98,23 @@ Six proptest scenarios cover invariants that are hard to exhaust with example-ba
 
 This is not cryptographic signing — anyone can recompute the checksum on an edited report. It's a tamper-*evidence* primitive: a deploy log can record signatures, and a divergent signature on re-verification proves the report bytes no longer match the digest captured at gate execution/deploy time.
 
-### ~92 KB total client bundle
+### One envelope codec for every browser record
+
+Both hub-owned localStorage records — visitor settings (`ggis_hub_settings`, schema 2) and the progress save (`ggis_hub_save`) — ride a single ~100-line hand-rolled codec (`src/app/versioned-record.ts`): `{ schema, ...payload, digest }`, keyless FNV-1a 64 tamper evidence, corrupt-record → defaults degradation, and a flat migration table that maps old stored records directly to the current value shape. Each record module owns only what its payload *means*; the envelope mechanics exist once.
+
+The stored strings are treated as a compatibility surface with visitors' browsers: the exact serialized bytes are golden-pinned in tests, so a schema bump forces a deliberate pin move — the retired v1 settings string now lives on as a digest-verified migration fixture, proving the v1→v2 path against the literal bytes real browsers still hold. Progress is deliberately host-side only: none of it enters the Rust sim, so the deterministic state hash and `.haggislog` replay contract are provably unaffected by what the bothy remembers about you.
+
+### ~101 KB total client bundle
 
 | Asset | Size | Gzip |
 |---|---|---|
-| `dist/index.html` | 3.60 kB | 1.29 kB |
-| `dist/assets/index-*.js` | 55.06 kB | 18.62 kB |
-| `dist/assets/hub_wasm_bg-*.wasm` | 28.01 kB | 12.69 kB |
-| `dist/assets/index-*.css` | 5.25 kB | 1.55 kB |
-| **Total** | **91.92 kB** | **34.15 kB** |
+| `dist/index.html` | 4.20 kB | 1.53 kB |
+| `dist/assets/index-*.js` | 62.63 kB | 21.45 kB |
+| `dist/assets/hub_wasm_bg-*.wasm` | 28.31 kB | 12.86 kB |
+| `dist/assets/index-*.css` | 5.64 kB | 1.71 kB |
+| **Total** | **100.78 kB** | **37.55 kB** |
 
-For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 35 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
+For comparison, the median JS bundle of the [HTTP Archive top-1M sites](https://httparchive.org/) is ~500 KB compressed. The hub ships under 38 KB compressed for a full Rust + WASM + TypeScript playable hub with a deterministic core, a fixed-step simulation, an input log writer, a procedural Canvas2D renderer with painted WebP backdrop, a pointer-drive + keyboard input layer, a snapshot codec, a registry with launch planning, opt-in hub music, a synthesized WebAudio door knock, versioned settings + progress persistence, self-hosted Old Standard TT serif, and hand-rolled wall ornaments (two herb bundles + one unfinished painting) in the bothy scene.
 
 There is no UI framework, no game engine, no Tailwind, no PostCSS, no Lodash, no animation library. Vite is the build tool; Prettier enforces consistent formatting. That's it.
 

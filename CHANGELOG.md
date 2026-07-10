@@ -2,7 +2,7 @@
 
 All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — CI restored to green + correctness fixes
+## [0.3.0] — 2026-07-10 · The bothy remembers ye + audible chaps + CI restored to green
 
 ### Changed
 
