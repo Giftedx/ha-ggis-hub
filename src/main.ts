@@ -2,6 +2,7 @@ import './style.css';
 import { createAppModel } from './app/app';
 import { createShell } from './app/shell';
 import { createMusicController } from './app/music';
+import { createHubProgressStore } from './app/progress';
 import { createHubSettingsStore } from './app/settings';
 import { createGameLifecycleHost } from './engine/lifecycle';
 import { createBothyGameModule } from './hub/bothy-module';
@@ -35,7 +36,7 @@ async function start(root: HTMLElement): Promise<void> {
 
   const host = createGameLifecycleHost(shell.scene);
   try {
-    await host.launch(createBothyGameModule(shell), {
+    await host.launch(createBothyGameModule(shell, createHubProgressStore(getLocalStorage())), {
       launchSource: 'route',
       reducedMotion,
     });

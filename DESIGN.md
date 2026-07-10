@@ -372,11 +372,13 @@ voice:
 
   # — Locked phrases (tested, do not modify without updating tests) —
   locked:
-    launchable-prompt: "AWA' IN — {GAME TITLE}\nPRESS ENTER"
+    launchable-prompt: "AWA' IN — {GAME TITLE}\nENTER SPACE E TAP"
+    launchable-prompt-returning: "AWA' BACK IN — {GAME TITLE}\nENTER SPACE E TAP"  # door already entered per ggis_hub_save (ADR-0008); formatPromptText previouslyEntered flag
     locked-prompt:     "{DOOR TITLE}\nCOMIN' SOON."  # dynamic — door title from registry; see formatPromptText in canvas-room.ts
     none-prompt:       ""
     direct-play-link:  "awa' in →"
-    hint-banner:       "walk wi' the arrows · chap a door tae go in"
+    fallback-help:     "Walk wi' arrows or WASD, then press Enter, Space, or E tae chap a door. On touch, drag tae walk or tap a door."  # shell.ts persistent help panel (supersedes the retired transient hint banner)
+    status-returning-visitor: "back again — the fire's been kept in for ye."  # status fallback when ggis_hub_save visits ≥ 2 (bothy-module RETURNING_VISITOR_GREETING); reduced-motion line wins over it
     status-reduced-motion: "reduced motion · the bothy bides quiet"
     status-error:      "the bothy wouldnae load — try the corner link"
 
@@ -385,7 +387,7 @@ voice:
     mantel-inscription: "Hame's best."  # shipped 2026-05-27 — shortened to fit pixel-font (64 px at scale 1); drawMantelInscription in canvas-room.ts (fallback path only; archY−9 px above inglenook arch)
     hearth-lintel-motto: "Bide a while."  # shipped 2026-05-24 — rendered in canvas-room.ts drawHearthLintelMotto
     coming-soon-door:   "Comin' wi' the next moon."  # passive proximity/prompt line (door-status.ts + formatPromptText locked default)
-    chap-retorts:        # shipped 2026-05-29 — rotating answer to a chap on the locked door (src/hub/chap.ts, CHAP_RETORTS). Deterministic index rotation, no RNG. Canvas signs are uppercase pixel-font (charset A-Z space apostrophe period, tested); spoken lines feed the .scene-status live region.
+    chap-retorts:        # shipped 2026-05-29 — rotating answer to a chap on the locked door (src/hub/chap.ts, CHAP_RETORTS). Deterministic index rotation, no RNG; since 2026-07-10 the rotation index is the lifetime ggis_hub_save chap count (ADR-0008), so the patter resumes across visits. Canvas signs are uppercase pixel-font (charset A-Z space apostrophe period, tested); spoken lines feed the .scene-status live region.
       - sign: "NAE HAME YET."  spoken: "Ye chap, but naught stirs — there's nae hame ahint this door yet."
       - sign: "BOLTED FAST."   spoken: "Bolted fast, this yin. The neist bothy's no' ready — comin' wi' the next moon."
       - sign: "BIDE A WEE."    spoken: "Haud on a wee — this door opens wi' the next moon, no' afore."

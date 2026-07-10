@@ -41,7 +41,9 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
   },
 ];
 
-const GAME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/** Canonical id rule for every game-shaped key (registry entries, room door
+ *  ids, per-door progress tallies): lowercase kebab-case. */
+export const GAME_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function getGameById(
   registry: readonly HubGameDefinition[],

@@ -111,23 +111,20 @@ Acceptance:
 - Complete: source map policy enforced via vite.config `sourcemap: false` + verify-dist asserts no `.map` files in `dist/`.
 - Complete: headers tested via `deploy-config.test.ts` (6 assertions). Cloudflare preview deploy will pick the same file as production.
 
-## Slice 7: saves and the C hash primitive — partial (C hash done, save framework deferred)
+## Slice 7: saves and the C hash primitive — complete (C hash 2026-05-23, save framework 2026-07-10)
 
-The C hash primitive landed (first hard-language commitment from [Craft commitments](../foundation/12-craft-commitments.md)). The save framework is deferred until the hub has stateful progress to persist — the v1 hub is stateless (walk + click door → launch external game; no progress, settings, or preferences).
+The C hash primitive landed (first hard-language commitment from [Craft commitments](../foundation/12-craft-commitments.md)). The save framework was deferred until the hub had stateful progress to persist; that trigger fired when run-history (visits, locked-door chaps, door entries) became worth remembering.
 
 Done:
 
 - `c/fnv1a.c` — committed C kernel.
 - `crates/hub-hardlang/src/lib.rs` — `#![allow(unsafe_code)]` FFI shim, the one and only unsafe relaxation in the workspace.
 - `crates/hub-hardlang/tests/differential_hash.rs` — published reference vectors + 100 000-case proptest diff against `hub_core::hash::fnv1a_64`.
+- Save schema + versioned migration framework — `src/app/versioned-record.ts` envelope codec (schema + payload + FNV digest, migration table), shared by `ggis_hub_settings` and `ggis_hub_save`. Shipped 2026-07-10 per [ADR-0008](../decisions/0008-hub-progress-save.md).
+- Save integrity check using FNV-1a 64-bit — keyless tamper-evident digest on every stored record; corrupt records degrade to defaults.
+- Golden migration tests — exact serialized-envelope byte pins for both records plus the settings v0 legacy-migration fixture (`src/app/settings.test.ts`, `src/app/progress.test.ts`).
 
-Deferred (no v1 use case):
-
-- Save schema + versioned migration framework.
-- Save integrity check using FNV-1a 64-bit.
-- Golden migration tests.
-
-Re-open when a stateful slice (settings, run-history, customization) needs persistence.
+The save framework lives host-side (TypeScript, browser storage): progress is visitor history, not sim state, so the deterministic core and `.haggislog` replay are untouched by it.
 
 ## Slice 8: WebAssembly Text showcase — complete
 

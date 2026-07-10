@@ -31,6 +31,15 @@ const customSettings: HubSettings = {
 };
 
 describe('hub settings persistence', () => {
+  it('serializes the exact golden v1 envelope bytes', () => {
+    // Golden pin: the stored string is a compatibility surface (existing
+    // visitors' browsers hold copies of it). Any change to key order,
+    // schema number, or digest recipe must show up here as a diff.
+    expect(serializeHubSettingsForStorage(customSettings)).toBe(
+      '{"schema":1,"music":{"enabled":true,"trackIndex":1},"digest":"a573fff4eefb2481"}'
+    );
+  });
+
   it('returns default settings when local storage has no hub settings key', () => {
     const storage = new FakeStorage();
     const store = createHubSettingsStore(storage);
@@ -136,6 +145,25 @@ describe('hub settings persistence', () => {
         music: { enabled: true, trackIndex: -1 },
         digest: '0000000000000000',
       })
+    );
+    const store = createHubSettingsStore(storage);
+
+    expect(store.load()).toEqual(createDefaultHubSettings());
+  });
+
+  it('rejects a legacy record whose music payload is not an object', () => {
+    const storage = new FakeStorage();
+    storage.values.set(HUB_SETTINGS_KEY, JSON.stringify({ schema: 0, music: null }));
+    const store = createHubSettingsStore(storage);
+
+    expect(store.load()).toEqual(createDefaultHubSettings());
+  });
+
+  it('returns defaults for an unknown future schema instead of guessing', () => {
+    const storage = new FakeStorage();
+    storage.values.set(
+      HUB_SETTINGS_KEY,
+      JSON.stringify({ schema: 99, music: customSettings.music, digest: 'ff' })
     );
     const store = createHubSettingsStore(storage);
 

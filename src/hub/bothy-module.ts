@@ -1,5 +1,11 @@
 import type { SceneElements } from '../app/shell';
 import { createDoorStatusAnnouncer } from '../app/door-status';
+import {
+  recordDoorEntry,
+  recordLockedChap,
+  recordVisit,
+  type HubProgressStore,
+} from '../app/progress';
 import { createKeyboardInputSampler } from '../engine/input';
 import { INITIAL_FIXED_STEP_STATE, pumpFixedStep } from '../engine/fixed-step';
 import type { GameInstance, GameModule, GameMountOptions } from '../engine/game-module';
@@ -20,12 +26,20 @@ import { createDebugOverlay, createFpsTracker } from '../debug/overlay';
 
 export const HUB_BOTHY_GAME_ID = 'hub-bothy';
 
+/** Status-region fallback for a visitor the bothy has seen before (DESIGN.md
+ *  voice.open) — shown whenever they're not at a door. Reduced-motion keeps
+ *  its own quieter line ahead of this. */
+export const RETURNING_VISITOR_GREETING = "back again — the fire's been kept in for ye.";
+
 /** Matches hub_core::sim::InputSnapshot interact bit (bit 4). */
 const INTERACT_BIT = 0b1_0000;
 
 const POINTER_DEADZONE = 18;
 
-export function createBothyGameModule(shell: SceneElements): GameModule {
+export function createBothyGameModule(
+  shell: SceneElements,
+  progressStore: HubProgressStore
+): GameModule {
   return {
     id: HUB_BOTHY_GAME_ID,
     title: 'ha.ggis Hub',
@@ -33,6 +47,11 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const seedParam = new URLSearchParams(window.location.search).get('seed');
       const seed =
         seedParam !== null && /^\d+$/.test(seedParam) ? BigInt(seedParam) : BigInt(Date.now());
+
+      // Hub progress (ggis_hub_save) is host-side only: it never enters the
+      // Rust sim, so seeds, state hashes, and replays are untouched by it.
+      let progress = recordVisit(progressStore.load());
+      progressStore.save(progress);
 
       const wasmInitStart = performance.now();
       const boundary = await initializeHubBoundaryV2(loadGeneratedHubWasm, seed);
@@ -77,6 +96,7 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const renderer = createCanvasRoomRenderer(canvasSurface, boundary.room, {
         reducedMotion: options.reducedMotion,
         fixedPhaseSeconds,
+        enteredDoorIds: new Set(Object.keys(progress.doorEntries)),
       });
       const keyboard = createKeyboardInputSampler(window);
       const inputLog = new InputLogWriter({
@@ -89,7 +109,6 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       let pointerActive = false;
       let pointerWorldX = 0;
       let pointerWorldY = 0;
-      let chapCount = 0;
       let paused = false;
       let rafId = 0;
       let firstFrameRafId = 0;
@@ -99,7 +118,11 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
       const announceDoorStatus = createDoorStatusAnnouncer({
         status: shell.status,
         registry: HUB_GAME_REGISTRY,
-        fallbackText: options.reducedMotion ? 'reduced motion · the bothy bides quiet' : '',
+        fallbackText: options.reducedMotion
+          ? 'reduced motion · the bothy bides quiet'
+          : progress.visits >= 2
+            ? RETURNING_VISITOR_GREETING
+            : '',
       });
 
       const logicalSurface = { width: 540, height: 360 } as const;
@@ -144,16 +167,23 @@ export function createBothyGameModule(shell: SceneElements): GameModule {
           shell.status.textContent = `${title} door — comin’ soon.`;
           return;
         }
+        // Tally the entry before navigating: performLaunch tears this page
+        // down, so a save afterwards could race the unload and lose it.
+        progress = recordDoorEntry(progress, game.id);
+        progressStore.save(progress);
         performLaunch(plan, launchNavigator);
       }
 
       // Answer a chap on the coming-soon door. The hint banner trains every
       // visitor to "chap a door tae go in"; the locked door must respond to
       // that verb, not sit silent. Rotates a Scots retort through the status
-      // line (visible + screen-reader) and the over-door canvas sign.
+      // line (visible + screen-reader) and the over-door canvas sign. The
+      // rotation index is the persisted lifetime count, so the conversation
+      // picks up where it left off on the visitor's next visit.
       function chapLockedDoor(): void {
-        const retort = chapRetortAt(chapCount);
-        chapCount += 1;
+        const retort = chapRetortAt(progress.lockedChaps);
+        progress = recordLockedChap(progress);
+        progressStore.save(progress);
         shell.status.textContent = retort.spoken;
         renderer.notifyChap(retort.sign);
       }

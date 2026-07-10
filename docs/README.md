@@ -100,6 +100,7 @@ Archived foundation docs (provenance only — content distilled into the keepers
 - [ADR-0005: Canvas2D renderer for first room](decisions/0005-canvas2d-first-room-renderer.md) — accepted
 - [ADR-0006: Highland-dawn-bothy visual direction](decisions/0006-hub-visual-direction-highland-dawn-bothy.md) — accepted
 - [ADR-0007: Hub settings persistence](decisions/0007-hub-settings-persistence.md) — accepted
+- [ADR-0008: Hub progress save](decisions/0008-hub-progress-save.md) — accepted
 
 ### Plans
 

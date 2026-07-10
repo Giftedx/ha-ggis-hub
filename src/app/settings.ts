@@ -1,13 +1,14 @@
-import { fnv1a64 } from '../engine/fnv';
+import {
+  createStoredRecordStore,
+  createVersionedRecordCodec,
+  isRecord,
+  type RecordStorage,
+  type StoredRecordStore,
+} from './versioned-record';
 
 export const HUB_SETTINGS_KEY = 'ggis_hub_settings';
 
 const HUB_SETTINGS_SCHEMA = 1;
-
-interface HubSettingsStorage {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-}
 
 export interface HubSettings {
   readonly music: {
@@ -16,15 +17,7 @@ export interface HubSettings {
   };
 }
 
-export interface HubSettingsStore {
-  load(): HubSettings;
-  save(settings: HubSettings): void;
-}
-
-interface StoredHubSettingsV1 {
-  readonly schema: typeof HUB_SETTINGS_SCHEMA;
-  readonly music: HubSettings['music'];
-}
+export type HubSettingsStore = StoredRecordStore<HubSettings>;
 
 export function createDefaultHubSettings(): HubSettings {
   return {
@@ -35,84 +28,38 @@ export function createDefaultHubSettings(): HubSettings {
   };
 }
 
-export function createHubSettingsStore(storage?: HubSettingsStorage | null): HubSettingsStore {
-  return {
-    load(): HubSettings {
-      if (storage === undefined || storage === null) {
-        return createDefaultHubSettings();
-      }
-      try {
-        return parseHubSettings(storage.getItem(HUB_SETTINGS_KEY));
-      } catch {
-        return createDefaultHubSettings();
-      }
-    },
+// Envelope + digest + migration handling lives in the shared versioned-record
+// codec; this module owns only what a settings payload MEANS: the music
+// fields, their validation, and the legacy v0 shape.
+const hubSettingsCodec = createVersionedRecordCodec<HubSettings>({
+  schema: HUB_SETTINGS_SCHEMA,
+  defaults: createDefaultHubSettings,
+  normalize: (record) => {
+    const music = normalizeMusicSettings(record.music);
+    return music === null ? null : { music };
+  },
+  payloadOf: (settings) => ({
+    music: normalizeMusicSettings(settings.music) ?? createDefaultHubSettings().music,
+  }),
+  migrations: [migrateLegacySettings],
+});
 
-    save(settings: HubSettings): void {
-      if (storage === undefined || storage === null) {
-        return;
-      }
-      try {
-        storage.setItem(HUB_SETTINGS_KEY, serializeHubSettingsForStorage(settings));
-      } catch {
-        // Settings are a convenience; blocked/quota-full storage must not stop the hub.
-      }
-    },
-  };
+export function createHubSettingsStore(storage?: RecordStorage | null): HubSettingsStore {
+  return createStoredRecordStore(HUB_SETTINGS_KEY, hubSettingsCodec, storage);
 }
 
 export function serializeHubSettingsForStorage(settings: HubSettings): string {
-  const stored: StoredHubSettingsV1 = {
-    schema: HUB_SETTINGS_SCHEMA,
-    music: normalizeMusicSettings(settings.music) ?? createDefaultHubSettings().music,
-  };
-  return JSON.stringify({ ...stored, digest: digestStoredSettings(stored) });
+  return hubSettingsCodec.serialize(settings);
 }
 
-function parseHubSettings(raw: string | null): HubSettings {
-  if (raw === null) {
-    return createDefaultHubSettings();
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return createDefaultHubSettings();
-  }
-
-  const current = parseCurrentSettings(parsed);
-  if (current !== null) {
-    return current;
-  }
-
-  const migrated = migrateLegacySettings(parsed);
-  return migrated ?? createDefaultHubSettings();
-}
-
-function parseCurrentSettings(value: unknown): HubSettings | null {
-  if (!isRecord(value) || value.schema !== HUB_SETTINGS_SCHEMA) {
+/** Pre-envelope v0 shape (no digest): `{ schema: 0, music: { wantsPlayback,
+ *  currentTrackIndex } }`. Kept so the earliest visitors' stored settings
+ *  survive, and as the worked example of a direct-to-current migration. */
+function migrateLegacySettings(record: Record<string, unknown>): HubSettings | null {
+  if (record.schema !== 0 || !isRecord(record.music)) {
     return null;
   }
-  if (typeof value.digest !== 'string') {
-    return null;
-  }
-  const music = normalizeMusicSettings(value.music);
-  if (music === null) {
-    return null;
-  }
-  const stored: StoredHubSettingsV1 = { schema: HUB_SETTINGS_SCHEMA, music };
-  if (value.digest !== digestStoredSettings(stored)) {
-    return null;
-  }
-  return { music };
-}
-
-function migrateLegacySettings(value: unknown): HubSettings | null {
-  if (!isRecord(value) || value.schema !== 0 || !isRecord(value.music)) {
-    return null;
-  }
-  const { wantsPlayback, currentTrackIndex } = value.music;
+  const { wantsPlayback, currentTrackIndex } = record.music;
   if (typeof wantsPlayback !== 'boolean') {
     return null;
   }
@@ -144,14 +91,4 @@ function normalizeMusicSettings(value: unknown): HubSettings['music'] | null {
 
 function normalizeTrackIndex(value: unknown): number | null {
   return Number.isSafeInteger(value) && Number(value) >= 0 ? Number(value) : null;
-}
-
-function digestStoredSettings(settings: StoredHubSettingsV1): string {
-  const canonical = JSON.stringify(settings);
-  const bytes = Array.from(new TextEncoder().encode(canonical));
-  return fnv1a64(bytes).toString(16).padStart(16, '0');
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

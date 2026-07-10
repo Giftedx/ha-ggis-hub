@@ -190,10 +190,13 @@ export function createCanvasRoomRenderer(
     readonly reducedMotion?: boolean;
     /** Fixed animation phase for deterministic visual-gate captures. Runtime play leaves this unset. */
     readonly fixedPhaseSeconds?: number | undefined;
+    /** Door ids the visitor has entered before (from hub progress); greets AWA' BACK IN. */
+    readonly enteredDoorIds?: ReadonlySet<string> | undefined;
   }
 ): CanvasRoomRenderer {
   const reducedMotion = options?.reducedMotion ?? false;
   const fixedPhaseSeconds = options?.fixedPhaseSeconds;
+  const enteredDoorIds = options?.enteredDoorIds ?? null;
   const context = surface.getContext('2d');
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
@@ -271,7 +274,8 @@ export function createCanvasRoomRenderer(
         haggisFacingLeft,
         haggisIsMoving,
         reducedMotion,
-        chapSign
+        chapSign,
+        enteredDoorIds
       );
     },
   };
@@ -350,7 +354,8 @@ function renderRoom(
   haggisFacingLeft: boolean,
   haggisIsMoving: boolean,
   reducedMotion: boolean,
-  chapSign: string | null
+  chapSign: string | null,
+  enteredDoorIds: ReadonlySet<string> | null
 ): void {
   // 1. Void backdrop (frames the room)
   ctx.fillStyle = PX.void;
@@ -467,7 +472,7 @@ function renderRoom(
   drawVignette(ctx, surface);
 
   // 10. Prompt (only when at a door)
-  drawPrompt(ctx, surface, doors, snapshot, chapSign);
+  drawPrompt(ctx, surface, doors, snapshot, chapSign, enteredDoorIds);
 }
 
 // ── Wall ornaments ─────────────────────────────────────────────────────────
@@ -1371,12 +1376,16 @@ function drawHaggis(
 export function formatPromptText(
   interactionKind: 'launchable' | 'locked' | 'none',
   doorTitle: string,
-  lockedChapSign?: string | null
+  lockedChapSign?: string | null,
+  previouslyEntered?: boolean
 ): string {
   if (interactionKind === 'launchable') {
     // Two-line prompt: title on top, interact/tap hint below. Joined
-    // with newline; drawPrompt splits and renders both lines.
-    return `AWA' IN — ${doorTitle.toUpperCase()}\nENTER SPACE E TAP`;
+    // with newline; drawPrompt splits and renders both lines. Doors the
+    // visitor has already gone through greet them BACK in — the first
+    // canvas surface fed by the ggis_hub_save progress record.
+    const greeting = previouslyEntered === true ? `AWA' BACK IN` : `AWA' IN`;
+    return `${greeting} — ${doorTitle.toUpperCase()}\nENTER SPACE E TAP`;
   }
   if (interactionKind === 'locked') {
     // Second line is the passive "comin' soon" by default; a fresh chap
@@ -1395,7 +1404,8 @@ function drawPrompt(
   surface: CanvasRoomSurface,
   doors: readonly DoorLayout[],
   snapshot: DecodedSnapshot,
-  chapSign: string | null
+  chapSign: string | null,
+  enteredDoorIds: ReadonlySet<string> | null
 ): void {
   if (snapshot.interactionKind === 'none') {
     return;
@@ -1405,7 +1415,12 @@ function drawPrompt(
     return;
   }
 
-  const text = formatPromptText(snapshot.interactionKind, door.title, chapSign);
+  const text = formatPromptText(
+    snapshot.interactionKind,
+    door.title,
+    chapSign,
+    enteredDoorIds?.has(door.id) ?? false
+  );
   const x = Math.round(surface.width / 2);
   const baseY = surface.height - 12;
 

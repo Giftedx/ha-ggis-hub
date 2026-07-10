@@ -706,6 +706,63 @@ describe('formatPromptText chap variant', () => {
   });
 });
 
+describe('formatPromptText returning-visitor variant', () => {
+  it("greets a previously-entered door with AWA' BACK IN", () => {
+    expect(formatPromptText('launchable', 'Wild Haggis Survivors', null, true)).toBe(
+      `AWA' BACK IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
+    );
+  });
+
+  it("keeps AWA' IN for a first-time door", () => {
+    expect(formatPromptText('launchable', 'Wild Haggis Survivors', null, false)).toBe(
+      `AWA' IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
+    );
+    expect(formatPromptText('launchable', 'Wild Haggis Survivors')).toBe(
+      `AWA' IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
+    );
+  });
+
+  it('ignores the previously-entered flag for locked doors', () => {
+    expect(formatPromptText('locked', "Comin' Wi' The Next Moon", null, true)).toBe(
+      `COMIN' WI' THE NEXT MOON\nCOMIN' SOON.`
+    );
+  });
+});
+
+describe('createCanvasRoomRenderer returning-door prompt', () => {
+  it('changes the launchable prompt glyphs when the door was previously entered', () => {
+    const firstTime = recordingSurface(540, 360);
+    createCanvasRoomRenderer(firstTime.surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LAUNCHABLE
+    );
+
+    const returning = recordingSurface(540, 360);
+    createCanvasRoomRenderer(returning.surface, ROOM, {
+      fixedPhaseSeconds: 0,
+      enteredDoorIds: new Set(['wild-haggis-survivors']),
+    }).render(SNAPSHOT_AT_LAUNCHABLE);
+
+    // Same frozen phase + snapshot → the only thing that can differ is the
+    // prompt's first line, so the BACK IN greeting must move the glyph draws.
+    expect(returning.context.calls).not.toEqual(firstTime.context.calls);
+  });
+
+  it('leaves the prompt untouched for doors the visitor has not entered', () => {
+    const baseline = recordingSurface(540, 360);
+    createCanvasRoomRenderer(baseline.surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LAUNCHABLE
+    );
+
+    const otherDoorEntered = recordingSurface(540, 360);
+    createCanvasRoomRenderer(otherDoorEntered.surface, ROOM, {
+      fixedPhaseSeconds: 0,
+      enteredDoorIds: new Set(['just-five-more-minutes']),
+    }).render(SNAPSHOT_AT_LAUNCHABLE);
+
+    expect(otherDoorEntered.context.calls).toEqual(baseline.context.calls);
+  });
+});
+
 describe('createCanvasRoomRenderer chap acknowledgement', () => {
   it('changes the locked prompt glyphs after a chap so the chap reads on the door', () => {
     const before = recordingSurface(540, 360);

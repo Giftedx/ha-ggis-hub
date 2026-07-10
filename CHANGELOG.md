@@ -32,6 +32,19 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Added
 
+- **The bothy remembers its visitors: `ggis_hub_save` progress record shipped (ADR-0008),
+  closing Slice 7's deferred save framework.** A new shared envelope codec
+  (`src/app/versioned-record.ts`) owns the `{ schema, ...payload, digest }` layout, keyless
+  FNV-1a 64 tamper-evidence, corrupt-record → defaults degradation, and a golden-fixture-tested
+  migration table; `settings.ts` was refactored onto it with its serialized bytes pinned
+  byte-for-byte, and the new `progress.ts` is its second consumer. The hub now persists visits,
+  lifetime locked-door chaps, and per-door entry counts — surfaced as a returning-visitor
+  greeting in the status region ("back again — the fire's been kept in for ye."), a chap-retort
+  rotation that picks up where it left off across visits, and an `AWA' BACK IN` prompt on doors
+  the visitor has entered before. All host-side: nothing enters the Rust sim, so seeds, state
+  hashes, `.haggislog` replay, and the visual golden (fresh visitors see no change) are
+  untouched.
+
 - **Added hub-owned settings persistence.** `ggis_hub_settings` now stores the
   visitor's opt-in music preference and current hub track in a versioned,
   FNV-digested JSON envelope, falls back cleanly on corrupt or unavailable

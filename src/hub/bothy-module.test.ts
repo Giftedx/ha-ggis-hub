@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SceneElements } from '../app/shell';
+import type { HubProgress, HubProgressStore } from '../app/progress';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import type { HubBoundary, RoomDefinition } from '../wasm/boundary';
 import { CHAP_RETORTS } from './chap';
@@ -204,6 +205,24 @@ function installBrowserGlobals(search = ''): {
   };
 }
 
+interface MockProgressStore extends HubProgressStore {
+  current(): HubProgress;
+  readonly saveMock: ReturnType<typeof vi.fn>;
+}
+
+function makeProgressStore(initial?: Partial<HubProgress>): MockProgressStore {
+  let value: HubProgress = { visits: 0, lockedChaps: 0, doorEntries: {}, ...initial };
+  const saveMock = vi.fn((next: HubProgress) => {
+    value = next;
+  });
+  return {
+    load: () => value,
+    save: saveMock,
+    saveMock,
+    current: () => value,
+  };
+}
+
 type MockHubBoundary = HubBoundary & {
   readonly snapshot: ReturnType<typeof vi.fn<() => DecodedSnapshot>>;
   readonly tick: ReturnType<typeof vi.fn<(inputPacked: number) => DecodedSnapshot>>;
@@ -229,6 +248,7 @@ async function mountHarness(options?: {
   readonly snapshot?: DecodedSnapshot;
   readonly room?: RoomDefinition;
   readonly reducedMotion?: boolean;
+  readonly progressStore?: MockProgressStore;
 }) {
   vi.resetModules();
   const browser = installBrowserGlobals(options?.search ?? '');
@@ -253,8 +273,9 @@ async function mountHarness(options?: {
   mocks.createDebugOverlay.mockReturnValue({ update: vi.fn(), destroy: vi.fn() });
   mocks.createFpsTracker.mockReturnValue({ record: vi.fn(() => ({ fps: 60, frameMs: 16 })) });
   const shell = makeShell();
+  const progressStore = options?.progressStore ?? makeProgressStore();
   const { createBothyGameModule } = await import('./bothy-module');
-  const module = createBothyGameModule(shell);
+  const module = createBothyGameModule(shell, progressStore);
   const instance = await module.mount({} as HTMLElement, {
     launchSource: 'door',
     reducedMotion: options?.reducedMotion ?? false,
@@ -267,6 +288,7 @@ async function mountHarness(options?: {
     navigator,
     shell,
     instance,
+    progressStore,
     docAddEventListener: browser.docAddEventListener,
     winAddEventListener: browser.winAddEventListener,
   };
@@ -290,7 +312,7 @@ describe('createBothyGameModule', () => {
     expect(mocks.createCanvasRoomRenderer).toHaveBeenCalledWith(
       expect.objectContaining({ width: 540, height: 360 }),
       ROOM,
-      { reducedMotion: true, fixedPhaseSeconds: 2.5 }
+      { reducedMotion: true, fixedPhaseSeconds: 2.5, enteredDoorIds: new Set() }
     );
     expect(renderer.render).toHaveBeenCalledWith(SNAPSHOT);
     browser.flushRaf(16);
@@ -754,12 +776,85 @@ describe('createBothyGameModule', () => {
     const shell = makeShell();
     const { createBothyGameModule } = await import('./bothy-module');
     await expect(
-      createBothyGameModule(shell).mount({} as HTMLElement, {
+      createBothyGameModule(shell, makeProgressStore()).mount({} as HTMLElement, {
         launchSource: 'door',
         reducedMotion: false,
       })
     ).rejects.toThrow('Room/registry mismatch');
     const destroy = vi.mocked(boundary.destroy);
     expect(destroy).toHaveBeenCalled();
+  });
+});
+
+describe('hub progress wiring', () => {
+  it('records a visit once per mount', async () => {
+    const progressStore = makeProgressStore({ visits: 4 });
+    await mountHarness({ progressStore });
+    expect(progressStore.current().visits).toBe(5);
+  });
+
+  it('stays quiet in the status region on a first visit', async () => {
+    const { shell } = await mountHarness();
+    expect(shell.status.textContent).toBe('');
+  });
+
+  it('greets a returning visitor through the status fallback', async () => {
+    const progressStore = makeProgressStore({ visits: 1 });
+    const { shell } = await mountHarness({ progressStore });
+    const { RETURNING_VISITOR_GREETING } = await import('./bothy-module');
+    expect(shell.status.textContent).toBe(RETURNING_VISITOR_GREETING);
+  });
+
+  it('keeps the reduced-motion line ahead of the returning greeting', async () => {
+    const progressStore = makeProgressStore({ visits: 1 });
+    const { shell } = await mountHarness({ progressStore, reducedMotion: true });
+    expect(shell.status.textContent).toBe('reduced motion · the bothy bides quiet');
+  });
+
+  it('hands previously-entered door ids to the renderer for the BACK IN prompt', async () => {
+    const progressStore = makeProgressStore({
+      doorEntries: { 'wild-haggis-survivors': 2 },
+    });
+    await mountHarness({ progressStore });
+    expect(mocks.createCanvasRoomRenderer).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 540, height: 360 }),
+      ROOM,
+      expect.objectContaining({ enteredDoorIds: new Set(['wild-haggis-survivors']) })
+    );
+  });
+
+  it('resumes the chap retort rotation from the persisted lifetime count', async () => {
+    const atLockedDoor: DecodedSnapshot = {
+      ...SNAPSHOT,
+      interactionKind: 'locked',
+      interactionDoorIndex: 2,
+    };
+    const progressStore = makeProgressStore({ lockedChaps: 1 });
+    const { browser, keyboard, shell } = await mountHarness({
+      snapshot: atLockedDoor,
+      progressStore,
+    });
+    keyboard.consumeInteract.mockReturnValue(true);
+    browser.flushRaf(100);
+    // Chap #1 happened on an earlier visit, so this visit answers with
+    // retort #2 — the door remembers the conversation across visits.
+    expect(shell.status.textContent).toBe(CHAP_RETORTS[1]!.spoken);
+    expect(progressStore.current().lockedChaps).toBe(2);
+  });
+
+  it('records the door entry before launching a playable game', async () => {
+    const { shell, navigator, progressStore } = await mountHarness();
+    (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
+      clientX: 460,
+      clientY: 160,
+      pointerId: 7,
+    });
+    expect(progressStore.current().doorEntries).toEqual({ 'wild-haggis-survivors': 1 });
+    expect(navigator.navigate).toHaveBeenCalled();
+    // The entry must be saved BEFORE navigation tears the page down, or a
+    // slow unload could lose the tally.
+    const saveOrder = progressStore.saveMock.mock.invocationCallOrder.at(-1)!;
+    const navigateOrder = vi.mocked(navigator.navigate).mock.invocationCallOrder[0]!;
+    expect(saveOrder).toBeLessThan(navigateOrder);
   });
 });
