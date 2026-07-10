@@ -32,6 +32,24 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Added
 
+- **The chap finally sounds like a chap: hand-rolled WebAudio door knock (ADR-0009).** Chapping
+  the coming-soon door now answers with a synthesized "chap-chap" — two knocks 160ms apart, each
+  a low triangle thump with a steep pitch drop plus a short square knuckle tick; no sample
+  assets, no library, ~60 lines in `src/app/sfx.ts`. The knock is gesture-bound (it only ever
+  plays inside the visitor's own keyboard interact or pointer tap, so autoplay policies are
+  satisfied by construction) and default-on with a persisted opt-out: a "sounds on / sounds aff"
+  pill sits left of the music control. The preference bumps `ggis_hub_settings` to **schema 2**
+  — the first real migration through the shared versioned-record codec, with the old v1 golden
+  string now a digest-verified migration fixture. DESIGN.md's sound policy splits into
+  ambient-music (opt-in, unchanged) vs interaction-SFX (gesture-bound, opt-out). Both
+  controllers now read-modify-write the shared settings record — the music controller
+  previously rebuilt it from scratch, which would have silently reset the new sfx opt-out.
+  Also fixes a latent WCAG 2.5.3 label-in-name violation on the music button's playing state
+  ("music on" was not contained in "Pause hub music"); both pills' accessible names now lead
+  with their visible text. New chromium+firefox+webkit smoke (`scripts/smoke-sfx-toggle.mjs`)
+  proves the opt-out round-trips the schema-2 envelope in a real browser; the a11y gate grows
+  to 29 checks (sfx accessible name, label-in-name, focus indicator).
+
 - **The bothy remembers its visitors: `ggis_hub_save` progress record shipped (ADR-0008),
   closing Slice 7's deferred save framework.** A new shared envelope codec
   (`src/app/versioned-record.ts`) owns the `{ schema, ...payload, digest }` layout, keyless

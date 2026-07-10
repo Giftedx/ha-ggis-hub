@@ -22,6 +22,7 @@ When an ADR is required is defined in [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
 | [0006](0006-hub-visual-direction-highland-dawn-bothy.md) | Highland-dawn-bothy visual direction | accepted | 2026-05-23 | Locks the hub's visual register: Highland dawn palette, humanist serif, warmer Scots-tinted lobby voice, sister to WHS without sharing tokens. |
 | [0007](0007-hub-settings-persistence.md) | Hub settings persistence | accepted | 2026-06-27 | Makes `ggis_hub_settings` real for versioned, FNV-digested music preferences while leaving gameplay saves deferred. |
 | [0008](0008-hub-progress-save.md) | Hub progress save | accepted | 2026-07-10 | Ships `ggis_hub_save` (visits, chap count, door entries) on the shared versioned-record codec extracted from settings; host-side only, sim untouched. |
+| [0009](0009-chap-knock-sfx.md) | Chap knock SFX and the sound-policy split | accepted | 2026-07-10 | Hand-rolled WebAudio door knock, gesture-bound and default-on with a persisted opt-out; settings envelope bumped to schema 2 — the first real migration through the shared codec. |
 
 ## Statuses
 

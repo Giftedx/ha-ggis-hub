@@ -435,9 +435,14 @@ try {
 
   // 10. Focus visible — outline computed to something other than `none`
   //    (or a non-zero outline width). Check both visible launch links
-  //    plus the opt-in music button.
+  //    plus the opt-in music button and the chap-sound toggle.
   const focusStyles = await page.evaluate(() => {
-    const selectors = ['a.scene-direct', '.scene-fallback a', 'button.scene-music'];
+    const selectors = [
+      'a.scene-direct',
+      '.scene-fallback a',
+      'button.scene-music',
+      'button.scene-sfx',
+    ];
     return selectors.map((selector) => {
       const el = document.querySelector(selector);
       if (!el) return { selector, found: false };

@@ -5,6 +5,7 @@ export interface SceneElements {
   readonly canvas: HTMLCanvasElement;
   readonly status: HTMLElement;
   readonly fallback: HTMLElement;
+  readonly sfxButton: HTMLButtonElement;
   readonly musicButton: HTMLButtonElement;
   readonly musicAudio: HTMLAudioElement;
 }
@@ -42,6 +43,7 @@ export function createShell(model: AppModel): SceneElements {
   direct.setAttribute('aria-label', `awa’ in → — ${model.directPlay.label}`);
 
   const fallback = createFallbackHelp(model);
+  const sfxButton = createSfxButton();
   const musicButton = createMusicButton(model);
   const musicAudio = createMusicAudio(model);
 
@@ -49,8 +51,18 @@ export function createShell(model: AppModel): SceneElements {
   status.className = 'scene-status';
   status.setAttribute('role', 'status');
 
-  scene.append(canvas, brand, direct, fallback, musicButton, musicAudio, status);
-  return { scene, canvas, status, fallback, musicButton, musicAudio };
+  // Sounds pill sits visually left of music, so it precedes it in tab order.
+  scene.append(canvas, brand, direct, fallback, sfxButton, musicButton, musicAudio, status);
+  return { scene, canvas, status, fallback, sfxButton, musicButton, musicAudio };
+}
+
+function createSfxButton(): HTMLButtonElement {
+  // Bare element only: text, aria-label, and toggling belong to the sfx
+  // controller (src/app/sfx.ts), which renders as soon as the app starts.
+  const button = document.createElement('button');
+  button.className = 'scene-sfx';
+  button.type = 'button';
+  return button;
 }
 
 function createMusicButton(model: AppModel): HTMLButtonElement {

@@ -36,9 +36,15 @@ const INTERACT_BIT = 0b1_0000;
 
 const POINTER_DEADZONE = 18;
 
+export interface BothyModuleDeps {
+  readonly progressStore: HubProgressStore;
+  /** Fire the chap-chap knock; called only inside the visitor's own chap gesture. */
+  readonly playChapKnock: () => void;
+}
+
 export function createBothyGameModule(
   shell: SceneElements,
-  progressStore: HubProgressStore
+  { progressStore, playChapKnock }: BothyModuleDeps
 ): GameModule {
   return {
     id: HUB_BOTHY_GAME_ID,
@@ -184,6 +190,7 @@ export function createBothyGameModule(
         const retort = chapRetortAt(progress.lockedChaps);
         progress = recordLockedChap(progress);
         progressStore.save(progress);
+        playChapKnock();
         shell.status.textContent = retort.spoken;
         renderer.notifyChap(retort.sign);
       }

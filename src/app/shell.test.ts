@@ -166,6 +166,29 @@ describe('createShell', () => {
     expect(shell.musicAudio.src).toBe('/music/flower-of-scotland.mp3');
   });
 
+  it('creates the sounds toggle ahead of the music control in tab order', () => {
+    stubDom();
+
+    const shell = createShell(MODEL) as unknown as {
+      scene: FakeElement;
+      sfxButton: FakeElement;
+    };
+
+    const sfxIndex = shell.scene.children.findIndex(
+      (child) => child instanceof FakeElement && child.className === 'scene-sfx'
+    );
+    const musicIndex = shell.scene.children.findIndex(
+      (child) => child instanceof FakeElement && child.className === 'scene-music'
+    );
+
+    // The sounds pill sits visually left of music, so it must precede it in
+    // DOM tab order too. Text + aria-label are owned by the sfx controller.
+    expect(sfxIndex).toBeGreaterThan(-1);
+    expect(musicIndex).toBe(sfxIndex + 1);
+    expect(shell.sfxButton.tagName).toBe('button');
+    expect(shell.sfxButton.type).toBe('button');
+  });
+
   it('renders the music button disabled and audio without a src when no tracks are available', () => {
     stubDom();
 

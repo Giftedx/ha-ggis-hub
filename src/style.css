@@ -171,7 +171,8 @@ body {
   border-radius: 2px;
 }
 
-.scene-music {
+.scene-music,
+.scene-sfx {
   position: fixed;
   top: 0.85rem;
   right: 1.2rem;
@@ -192,15 +193,25 @@ body {
   transition: color 200ms ease, border-color 200ms ease, opacity 200ms ease;
 }
 
+/* Sounds pill sits left of the music pill. State lives in its text
+   ("sounds on" / "sounds aff") — no persistent highlight, because a
+   default-on control lit orange all session would shout. */
+.scene-sfx {
+  right: 6.1rem;
+}
+
 .scene-music:hover,
 .scene-music:focus-visible,
-.scene-music.is-playing {
+.scene-music.is-playing,
+.scene-sfx:hover,
+.scene-sfx:focus-visible {
   color: var(--hub-neeps-orange);
   border-color: rgba(228, 160, 32, 0.66);
   opacity: 0.95;
 }
 
-.scene-music:focus-visible {
+.scene-music:focus-visible,
+.scene-sfx:focus-visible {
   outline: 2px solid var(--hub-neeps-orange);
   outline-offset: 3px;
 }

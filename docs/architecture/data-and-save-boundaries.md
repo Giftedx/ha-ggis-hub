@@ -48,25 +48,32 @@ falls back to defaults and must not block hub startup.
 
 ### Hub settings (`ggis_hub_settings`)
 
-`src/app/settings.ts` owns this record. Schema 1 payload:
+`src/app/settings.ts` owns this record. Schema 2 payload:
 
 ```json
 {
   "music": {
     "enabled": false,
     "trackIndex": 0
+  },
+  "sfx": {
+    "enabled": true
   }
 }
 ```
 
-`enabled` records the visitor's last explicit music preference. It does not
-grant autoplay permission: the music controller still starts paused and waits
-for a fresh click before audio playback. `trackIndex` lets the hub resume the
-visitor's last selected hub track without fetching MP3 assets before opt-in.
+`music.enabled` records the visitor's last explicit music preference. It does
+not grant autoplay permission: the music controller still starts paused and
+waits for a fresh click before audio playback. `trackIndex` lets the hub
+resume the visitor's last selected hub track without fetching MP3 assets
+before opt-in. `sfx.enabled` is the chap-knock preference (ADR-0009): default
+on because the knock only plays inside the visitor's own chap gesture, with
+the toggle persisting an opt-out.
 
-Legacy schema 0 (`music.wantsPlayback`, `music.currentTrackIndex`) migrates
-through the codec's migration table — the worked example every future schema
-bump follows.
+Older shapes migrate through the codec's migration table: schema 1
+(music-only envelope, digest verified before adoption) and the pre-envelope
+schema 0 (`music.wantsPlayback`, `music.currentTrackIndex`). Both controllers
+read-modify-write the shared record so neither clobbers the other's section.
 
 ### Hub progress save (`ggis_hub_save`)
 

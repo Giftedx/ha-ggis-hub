@@ -154,6 +154,7 @@ function makeShell(): SceneElements {
     canvas: makeCanvas() as unknown as HTMLCanvasElement,
     status: { textContent: '' } as HTMLElement,
     fallback: {} as HTMLElement,
+    sfxButton: {} as HTMLButtonElement,
     musicButton: {} as HTMLButtonElement,
     musicAudio: {} as HTMLAudioElement,
   };
@@ -249,6 +250,7 @@ async function mountHarness(options?: {
   readonly room?: RoomDefinition;
   readonly reducedMotion?: boolean;
   readonly progressStore?: MockProgressStore;
+  readonly playChapKnock?: ReturnType<typeof vi.fn<() => void>>;
 }) {
   vi.resetModules();
   const browser = installBrowserGlobals(options?.search ?? '');
@@ -274,8 +276,9 @@ async function mountHarness(options?: {
   mocks.createFpsTracker.mockReturnValue({ record: vi.fn(() => ({ fps: 60, frameMs: 16 })) });
   const shell = makeShell();
   const progressStore = options?.progressStore ?? makeProgressStore();
+  const playChapKnock = options?.playChapKnock ?? vi.fn<() => void>();
   const { createBothyGameModule } = await import('./bothy-module');
-  const module = createBothyGameModule(shell, progressStore);
+  const module = createBothyGameModule(shell, { progressStore, playChapKnock });
   const instance = await module.mount({} as HTMLElement, {
     launchSource: 'door',
     reducedMotion: options?.reducedMotion ?? false,
@@ -289,6 +292,7 @@ async function mountHarness(options?: {
     shell,
     instance,
     progressStore,
+    playChapKnock,
     docAddEventListener: browser.docAddEventListener,
     winAddEventListener: browser.winAddEventListener,
   };
@@ -776,7 +780,10 @@ describe('createBothyGameModule', () => {
     const shell = makeShell();
     const { createBothyGameModule } = await import('./bothy-module');
     await expect(
-      createBothyGameModule(shell, makeProgressStore()).mount({} as HTMLElement, {
+      createBothyGameModule(shell, {
+        progressStore: makeProgressStore(),
+        playChapKnock: vi.fn(),
+      }).mount({} as HTMLElement, {
         launchSource: 'door',
         reducedMotion: false,
       })
@@ -840,6 +847,29 @@ describe('hub progress wiring', () => {
     // retort #2 — the door remembers the conversation across visits.
     expect(shell.status.textContent).toBe(CHAP_RETORTS[1]!.spoken);
     expect(progressStore.current().lockedChaps).toBe(2);
+  });
+
+  it('plays the chap knock when the visitor chaps the locked door', async () => {
+    const playChapKnock = vi.fn<() => void>();
+    const { shell } = await mountHarness({ playChapKnock });
+    (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
+      clientX: 280,
+      clientY: 40,
+      pointerId: 8,
+    });
+    expect(playChapKnock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps launches silent — the knock is the locked door answering, not a launch fanfare', async () => {
+    const playChapKnock = vi.fn<() => void>();
+    const { shell, navigator } = await mountHarness({ playChapKnock });
+    (shell.canvas as unknown as FakeCanvas).dispatch('pointerdown', {
+      clientX: 460,
+      clientY: 160,
+      pointerId: 7,
+    });
+    expect(navigator.navigate).toHaveBeenCalled();
+    expect(playChapKnock).not.toHaveBeenCalled();
   });
 
   it('records the door entry before launching a playable game', async () => {

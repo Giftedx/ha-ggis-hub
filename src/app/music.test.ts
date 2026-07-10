@@ -111,6 +111,28 @@ afterEach(() => {
 });
 
 describe('createMusicController', () => {
+  it('preserves the persisted sfx opt-out when toggling music', async () => {
+    // Settings are one shared record: the music controller must
+    // read-modify-write, never rebuild the record from its own fields —
+    // rebuilding would silently reset the visitor's chap-sound opt-out.
+    const button = new FakeButton();
+    const audio = new FakeAudio();
+    const settings = new FakeSettingsStore();
+    settings.settings = { ...createDefaultHubSettings(), sfx: { enabled: false } };
+
+    createMusicController({
+      button: button as unknown as HTMLButtonElement,
+      audio: audio as unknown as HTMLAudioElement,
+      tracks: TRACKS,
+      settings,
+    });
+    button.click();
+    await Promise.resolve();
+
+    expect(settings.settings.music.enabled).toBe(true);
+    expect(settings.settings.sfx).toEqual({ enabled: false });
+  });
+
   it('starts paused and plays only after the user presses the music control', async () => {
     const button = new FakeButton();
     const audio = new FakeAudio();
@@ -132,7 +154,7 @@ describe('createMusicController', () => {
 
     expect(audio.playCalls).toBe(1);
     expect(button.textContent).toBe('music on');
-    expect(button.getAttribute('aria-label')).toBe('Pause hub music');
+    expect(button.getAttribute('aria-label')).toBe('Hub music on — press to pause');
   });
 
   it('advances through the playlist while playback is active', async () => {
@@ -153,7 +175,7 @@ describe('createMusicController', () => {
     expect(audio.src).toBe('https://ha.ggis.test/music/scotland-the-brave.mp3');
     expect(audio.playCalls).toBe(2);
     expect(button.textContent).toBe('music on');
-    expect(button.getAttribute('aria-label')).toBe('Pause hub music');
+    expect(button.getAttribute('aria-label')).toBe('Hub music on — press to pause');
   });
 
   it('pauses on a second click while audio is actively playing', async () => {
@@ -353,7 +375,7 @@ describe('createMusicController', () => {
     const button = new FakeButton();
     const audio = new FakeAudio();
     const settings = new FakeSettingsStore();
-    settings.settings = { music: { enabled: true, trackIndex: 1 } };
+    settings.settings = { music: { enabled: true, trackIndex: 1 }, sfx: { enabled: true } };
 
     createMusicController({
       button: button as unknown as HTMLButtonElement,
@@ -385,8 +407,8 @@ describe('createMusicController', () => {
     button.click();
 
     expect(settings.saves).toEqual([
-      { music: { enabled: true, trackIndex: 0 } },
-      { music: { enabled: false, trackIndex: 0 } },
+      { music: { enabled: true, trackIndex: 0 }, sfx: { enabled: true } },
+      { music: { enabled: false, trackIndex: 0 }, sfx: { enabled: true } },
     ]);
   });
 
@@ -407,6 +429,9 @@ describe('createMusicController', () => {
     audio.end();
     await Promise.resolve();
 
-    expect(settings.saves.at(-1)).toEqual({ music: { enabled: true, trackIndex: 1 } });
+    expect(settings.saves.at(-1)).toEqual({
+      music: { enabled: true, trackIndex: 1 },
+      sfx: { enabled: true },
+    });
   });
 });

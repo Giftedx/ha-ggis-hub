@@ -338,12 +338,22 @@ motion:
 
 ```yaml
 sound:
-  policy: "explicit opt-in only; no autoplay, no preload on first paint"
-  control:
-    selector: ".scene-music"
-    placement: "top-right chrome, after direct/fallback links in DOM tab order"
-    visible-labels: ["music", "music on"]
-    accessible-labels: ["Play hub music: {track title}", "Pause hub music"]
+  # Two sound classes with different consent rules (ADR-0009):
+  policy:
+    ambient-music: "explicit opt-in only; no autoplay, no preload on first paint"
+    interaction-sfx: "default on with a persisted opt-out; only ever plays inside the visitor's own chap gesture — never spontaneously"
+  controls:
+    music:
+      selector: ".scene-music"
+      placement: "top-right chrome, after the sounds pill in DOM tab order"
+      visible-labels: ["music", "music on"]
+      accessible-labels: ["Play hub music: {track title}", "Hub music on — press to pause"]  # names lead with the visible text (WCAG 2.5.3)
+    sfx:
+      selector: ".scene-sfx"
+      placement: "top-right chrome, left of the music pill; precedes it in tab order"
+      visible-labels: ["sounds on", "sounds aff"]
+      accessible-labels: ["Chap sounds on — press to turn them off", "Chap sounds aff — press to turn them on"]
+      resting-style: "no persistent highlight — a default-on control lit orange all session would shout; state lives in the text"
   playlist:
     - title: "Flower of Scotland"
       audio: "public/music/flower-of-scotland.mp3"
@@ -354,9 +364,15 @@ sound:
       midi-source: "public/music/scotland-the-brave.mid"
       source-url: "https://www.wario.style/s/tw6IWdAL"
   runtime:
-    implementation: "HTMLAudioElement playlist controller in src/app/music.ts"
-    volume: 0.38
-    advance: "on ended, move to next track and keep playing only if user already opted in"
+    music:
+      implementation: "HTMLAudioElement playlist controller in src/app/music.ts"
+      volume: 0.38
+      advance: "on ended, move to next track and keep playing only if user already opted in"
+    chap-knock:
+      implementation: "hand-rolled WebAudio in src/app/sfx.ts — no sample assets, no library"
+      shape: "two knocks 160ms apart; each = triangle thump (165→62Hz pitch drop, 110ms decay, peak 0.5) + square knuckle tick (810→340Hz, 35ms decay, peak 0.12)"
+      lifecycle: "AudioContext created lazily inside the first audible chap gesture, reused for the session, closed on destroy; platforms without WebAudio degrade to silence"
+      trigger: "locked-door chap only — launches stay silent (navigation would cut the sound off mid-thump)"
 ```
 
 ## Voice + register

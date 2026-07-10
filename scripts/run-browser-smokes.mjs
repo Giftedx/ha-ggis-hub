@@ -23,10 +23,11 @@ const SMOKES = [
   'scripts/smoke-door-tap.mjs',
   'scripts/smoke-pointer-drive.mjs',
   'scripts/smoke-music-toggle.mjs',
+  'scripts/smoke-sfx-toggle.mjs',
   'scripts/smoke-reduced-motion.mjs',
   'scripts/smoke-locked-door.mjs',
   // smoke-a11y uses computed CSS and keyboard focus behaviour that is
-  // intentionally chromium-specific (26 WCAG AA spot-checks). Skipped
+  // intentionally chromium-specific (29 WCAG AA spot-checks). Skipped
   // for firefox/webkit runs where tab-focus behaviour is OS-dependent.
   ...(BROWSER === 'chromium' ? ['scripts/smoke-a11y.mjs'] : []),
 ];

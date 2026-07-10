@@ -61,7 +61,7 @@ try {
       const audio = document.querySelector('.scene-music-audio');
       return (
         button?.textContent?.trim() === 'music on' &&
-        button.getAttribute('aria-label') === 'Pause hub music' &&
+        button.getAttribute('aria-label') === 'Hub music on — press to pause' &&
         audio !== null &&
         audio.paused === false &&
         audio.currentSrc.endsWith('/music/flower-of-scotland.mp3')

@@ -101,6 +101,7 @@ Archived foundation docs (provenance only — content distilled into the keepers
 - [ADR-0006: Highland-dawn-bothy visual direction](decisions/0006-hub-visual-direction-highland-dawn-bothy.md) — accepted
 - [ADR-0007: Hub settings persistence](decisions/0007-hub-settings-persistence.md) — accepted
 - [ADR-0008: Hub progress save](decisions/0008-hub-progress-save.md) — accepted
+- [ADR-0009: Chap knock SFX and the sound-policy split](decisions/0009-chap-knock-sfx.md) — accepted
 
 ### Plans
 

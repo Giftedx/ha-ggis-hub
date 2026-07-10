@@ -68,13 +68,21 @@ export function createMusicController({
 
   function setPlayingState(): void {
     button.className = 'scene-music is-playing';
+    // WCAG 2.5.3 label-in-name: the accessible name must contain the
+    // visible "music on" text, so the label leads with it.
     button.textContent = 'music on';
-    button.setAttribute('aria-label', 'Pause hub music');
+    button.setAttribute('aria-label', 'Hub music on — press to pause');
     button.disabled = false;
   }
 
   function persistMusicSettings(enabled: boolean): void {
-    settings?.save({
+    if (settings === undefined) {
+      return;
+    }
+    // Read-modify-write: the settings record is shared with other
+    // controllers (sfx toggle), so only the music section may change here.
+    settings.save({
+      ...settings.load(),
       music: {
         enabled,
         trackIndex: currentIndex,
