@@ -1399,6 +1399,36 @@ export function formatPromptText(
   return '';
 }
 
+/** Fit a prompt into the canvas width: full scale when it fits, scale 1 for
+ *  long titles, and an ellipsis-truncated scale 1 as the last resort. Keeps
+ *  a plate margin (8px padding + 8px off the canvas edges) so a future game
+ *  with a long name degrades gracefully instead of spilling off the plate.
+ *  Pure — exported for tests. */
+export function fitPromptLayout(
+  surfaceWidth: number,
+  text: string
+): { readonly scale: number; readonly lines: readonly string[] } {
+  const limit = surfaceWidth - 16;
+  const lines = text.split('\n');
+  if (lines.every((line) => measurePixelText(line, 2) <= limit)) {
+    return { scale: 2, lines };
+  }
+  if (lines.every((line) => measurePixelText(line, 1) <= limit)) {
+    return { scale: 1, lines };
+  }
+  const truncated = lines.map((line) => {
+    if (measurePixelText(line, 1) <= limit) {
+      return line;
+    }
+    let cut = line;
+    while (cut.length > 0 && measurePixelText(`${cut}...`, 1) > limit) {
+      cut = cut.slice(0, -1);
+    }
+    return `${cut}...`;
+  });
+  return { scale: 1, lines: truncated };
+}
+
 function drawPrompt(
   ctx: CanvasRoomContext,
   surface: CanvasRoomSurface,
@@ -1424,11 +1454,9 @@ function drawPrompt(
   const x = Math.round(surface.width / 2);
   const baseY = surface.height - 12;
 
-  const scale = 2;
+  const { scale, lines } = fitPromptLayout(surface.width, text);
   const lineH = PIXEL_FONT_HEIGHT * scale;
   const lineGap = 2;
-  // Split on \n for multi-line prompts (e.g. "AWA' IN — TITLE\nENTER SPACE E TAP").
-  const lines = text.split('\n');
   const widths = lines.map((line) => measurePixelText(line, scale));
   const plateW = Math.max(...widths) + 8;
   const plateH = lines.length * lineH + (lines.length - 1) * lineGap + 4;

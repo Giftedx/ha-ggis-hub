@@ -61,6 +61,13 @@ All notable changes to ha.ggis Hub. Date-ordered, newest first. Format inspired 
 
 ### Fixed
 
+- **Prompt plate can no longer spill off the canvas for a long future game title.** The
+  interaction prompt rendered at a fixed pixel-font scale, so a door named longer than ~34
+  characters would have painted a plate wider than the 540px playfield (latent — no current
+  registry title triggers it). `fitPromptLayout` now drops the prompt to scale 1 when a line
+  would overflow, and ellipsis-truncates as the last resort; every current registry prompt is
+  pinned untouched at full scale.
+
 - **Un-blinded the release gate: `hub-wasm` is back in both the test and coverage gates, and a
   stale assertion it was hiding is fixed.** The `rust` gate ran `cargo test --workspace --exclude
   hub-wasm` and `rust-cov` ran `cargo llvm-cov --workspace --exclude hub-wasm`, on a comment

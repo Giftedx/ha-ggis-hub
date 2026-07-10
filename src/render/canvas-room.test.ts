@@ -3,9 +3,11 @@ import {
   STORYBOOK_BACKDROP_SRC,
   createCanvasRoomRenderer,
   computeVisualDoorBounds,
+  fitPromptLayout,
   formatPromptText,
   type CanvasRoomSurface,
 } from './canvas-room';
+import { measurePixelText } from './sprites/pixel-font';
 import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 
@@ -703,6 +705,90 @@ describe('formatPromptText chap variant', () => {
     expect(formatPromptText('launchable', 'Wild Haggis Survivors', 'NAE HAME YET.')).toBe(
       `AWA' IN — WILD HAGGIS SURVIVORS\nENTER SPACE E TAP`
     );
+  });
+});
+
+describe('fitPromptLayout', () => {
+  const SURFACE_W = 540;
+  // The plate adds 8px around the text and must keep a margin off the
+  // canvas edges, so the widest line may measure at most SURFACE_W - 16.
+  const LIMIT = SURFACE_W - 16;
+
+  it('keeps every current registry prompt at full scale untouched', () => {
+    const texts = [
+      formatPromptText('launchable', 'Wild Haggis Survivors'),
+      formatPromptText('launchable', 'Just Five More Minutes', null, true),
+      formatPromptText('locked', "Comin' Wi' The Next Moon", 'NAE HAME YET.'),
+    ];
+    for (const text of texts) {
+      const layout = fitPromptLayout(SURFACE_W, text);
+      expect(layout.scale).toBe(2);
+      expect(layout.lines).toEqual(text.split('\n'));
+    }
+  });
+
+  it('drops to scale 1 when a long future title would spill off the plate', () => {
+    const longTitle = 'The Improbably Long Name O The Next Haggis Game';
+    const text = formatPromptText('launchable', longTitle);
+    expect(measurePixelText(text.split('\n')[0]!, 2)).toBeGreaterThan(LIMIT);
+
+    const layout = fitPromptLayout(SURFACE_W, text);
+
+    expect(layout.scale).toBe(1);
+    expect(layout.lines).toEqual(text.split('\n'));
+    for (const line of layout.lines) {
+      expect(measurePixelText(line, layout.scale)).toBeLessThanOrEqual(LIMIT);
+    }
+  });
+
+  it('floors at a bare ellipsis on a degenerate surface instead of looping forever', () => {
+    const layout = fitPromptLayout(20, 'HAGGIS\nENTER');
+    expect(layout.scale).toBe(1);
+    expect(layout.lines[0]).toBe('...');
+  });
+
+  it('truncates with an ellipsis when even scale 1 cannot hold a line', () => {
+    const absurd = `AWA' IN — ${'HAGGIS '.repeat(30).trim()}`;
+    expect(measurePixelText(absurd, 1)).toBeGreaterThan(LIMIT);
+
+    const layout = fitPromptLayout(SURFACE_W, `${absurd}\nENTER SPACE E TAP`);
+
+    expect(layout.scale).toBe(1);
+    expect(layout.lines[0]!.endsWith('...')).toBe(true);
+    expect(layout.lines[1]).toBe('ENTER SPACE E TAP');
+    for (const line of layout.lines) {
+      expect(measurePixelText(line, layout.scale)).toBeLessThanOrEqual(LIMIT);
+    }
+  });
+});
+
+describe('createCanvasRoomRenderer prompt overflow guard', () => {
+  it('never paints a prompt plate wider than the canvas for an absurd title', () => {
+    const longRoom: RoomDefinition = {
+      ...ROOM,
+      doors: [
+        {
+          // Unregistered id → title falls back to prettified kebab, which
+          // is exactly how an over-long future door name would arrive.
+          id: 'the-improbably-long-name-o-the-next-haggis-game-o-the-glen',
+          status: 'launchable',
+          bounds: { minX: 820, minY: 420, maxX: 940, maxY: 580 },
+        },
+      ],
+    };
+    const snapshot: DecodedSnapshot = {
+      ...SNAPSHOT_AT_LAUNCHABLE,
+      doors: longRoom.doors,
+    };
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, longRoom, { fixedPhaseSeconds: 0 }).render(snapshot);
+
+    const plateWidths = context.calls
+      .filter((call) => call.startsWith('fillRect:'))
+      .map((call) => Number(call.split(':')[1]!.split(',')[2]));
+    for (const width of plateWidths) {
+      expect(width).toBeLessThanOrEqual(540);
+    }
   });
 });
 
