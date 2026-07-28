@@ -8,13 +8,19 @@ const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:4173/';
 
 const browser = await launchBrowser();
 try {
+  const browserName = browser.browserType().name();
   const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
   page.on('requestfailed', (request) => {
     if (request.url().includes('/music/')) {
-      errors.push(`music request failed: ${request.url()} ${request.failure()?.errorText ?? ''}`);
+      const errorText = request.failure()?.errorText ?? '';
+      // WebKit can cancel the media request after play() has established
+      // playback. The state assertion below still proves that music started.
+      if (browserName !== 'webkit' || errorText !== 'Load request cancelled') {
+        errors.push(`music request failed: ${request.url()} ${errorText}`);
+      }
     }
   });
 
