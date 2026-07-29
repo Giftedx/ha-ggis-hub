@@ -86,10 +86,17 @@ pub fn run(log: &Log) -> Result<ReplayOutcome, ReplayError> {
     }
 
     if let Some(record) = record_iter.next() {
-        return Err(ReplayError::RecordPastEnd {
-            record_tick: record.tick_index,
-            total_ticks: log.total_ticks,
-        });
+        return if record.tick_index >= log.total_ticks {
+            Err(ReplayError::RecordPastEnd {
+                record_tick: record.tick_index,
+                total_ticks: log.total_ticks,
+            })
+        } else {
+            Err(ReplayError::RecordOutOfOrder {
+                record_tick: record.tick_index,
+                current_tick: log.total_ticks,
+            })
+        };
     }
 
     let actual = sim.state_hash();
@@ -212,6 +219,27 @@ mod tests {
                 record_tick: 3,
                 current_tick: 6,
             }
+        ));
+    }
+
+    #[test]
+    fn duplicate_record_on_final_tick_is_out_of_order() {
+        let seed = 0;
+        let initial_state_hash = Sim::new(seed).state_hash();
+        let mut writer = LogWriter::new(WriterConfig {
+            seed,
+            core_api_version: crate::CORE_API_VERSION,
+            started_at_utc_ms: 0,
+            initial_state_hash,
+        });
+        writer.append(2, InputSnapshot::from_axes(1, 0, false));
+        writer.append(2, InputSnapshot::idle());
+        let bytes = writer.finish(3, 0);
+        let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+        let err = run(&log).expect_err("must reject duplicate record");
+        assert!(matches!(
+            err,
+            ReplayError::RecordOutOfOrder { record_tick: 2, .. }
         ));
     }
 
