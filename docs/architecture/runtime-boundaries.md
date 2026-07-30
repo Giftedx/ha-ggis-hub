@@ -63,7 +63,7 @@ Rules:
 - Rendering may interpolate but cannot mutate gameplay truth.
 - Input is sampled into compact snapshots.
 - WASM calls are coarse, not per entity.
-- Current: `src/hub/room.ts` owns the first-room controller, samples host input once per frame, advances the player through `HubCoreWorld`, asks the core for door interaction, and renders an immutable room snapshot.
+- Current: `src/hub/room.ts` owns the first-room controller. It forwards packed input to `HubBoundary.tick`, caches the returned `DecodedSnapshot`, and re-renders that snapshot. `src/hub/bothy-module.ts` samples input once per frame and handles interactions from the decoded snapshot.
 - Current: `src/render/canvas-room.ts` is the accepted Canvas2D renderer from [ADR-0005](../decisions/0005-canvas2d-first-room-renderer.md); it presents snapshots and owns no gameplay truth.
 - Current: `src/wasm/generated-loader.ts` initializes the wasm-bindgen package generated under `src/generated/hub-wasm/` for the browser build.
 

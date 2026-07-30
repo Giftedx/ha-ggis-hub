@@ -38,7 +38,7 @@ The current Canvas2D renderer owns no external resource beyond the provided canv
 
 Current tests cover:
 
-- deterministic room controller ticks through the `HubCoreWorld` boundary before rendering;
+- deterministic room controller forwards packed input through a `HubBoundary` stub, caches the returned `DecodedSnapshot`, and renders the cached snapshot;
 - initial room render before movement;
 - Canvas2D draw calls for background, launchable/locked doors, highlighted interaction prompt, and haggis marker;
 - clean failure when Canvas2D is unavailable.
