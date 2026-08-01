@@ -121,7 +121,7 @@ function validateLaunchTarget(launch: HubGameLaunchTarget): string | null {
     case 'none':
       return null;
     case 'route':
-      if (!launch.target.startsWith('/') || launch.target.startsWith('//')) {
+      if (!launch.target.startsWith('/') || launch.target[1] === '/' || launch.target[1] === '\\') {
         return `Route launch target must be a same-origin absolute path: ${launch.target}`;
       }
       return null;

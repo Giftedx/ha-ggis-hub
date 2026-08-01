@@ -112,6 +112,36 @@ describe('game registry', () => {
     ]);
   });
 
+  it('rejects a route target with a backslash after the leading slash', () => {
+    expect(
+      validateGameRegistry([
+        {
+          id: 'bad-backslash',
+          title: 'Bad',
+          status: 'playable',
+          launch: { kind: 'route', target: '/\\evil.example/' },
+        },
+      ])
+    ).toEqual([
+      'bad-backslash: Route launch target must be a same-origin absolute path: /\\evil.example/',
+    ]);
+  });
+
+  it('rejects a route target with a backslash-slash prefix', () => {
+    expect(
+      validateGameRegistry([
+        {
+          id: 'bad-backslash-slash',
+          title: 'Bad',
+          status: 'playable',
+          launch: { kind: 'route', target: '/\\/evil.example/' },
+        },
+      ])
+    ).toEqual([
+      'bad-backslash-slash: Route launch target must be a same-origin absolute path: /\\/evil.example/',
+    ]);
+  });
+
   it('accepts the canonical first-room door table', () => {
     expect(
       validateRoomRegistryCoherence(
