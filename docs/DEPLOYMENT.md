@@ -179,10 +179,10 @@ wrangler login
 wrangler pages deploy dist --project-name ha-ggis-hub
 ```
 
-The Cloudflare-dashboard production **Build command must be `pnpm run build:all`**
-(not `pnpm run build`) so production builds include the mounted games. If the
-Pages build image can't run the sibling-repo builds (WHS/JFMM are not checked
-out there), build + deploy from GitHub Actions or locally with Wrangler instead.
+The Cloudflare dashboard build command is `pnpm run build` (hub-only, previews).
+Because the Pages build image lacks the sibling game checkouts needed to mount
+the games, production deploys run `pnpm run build:all` locally or in CI followed
+by `wrangler pages deploy dist`.
 
 Routing/caching for the sub-paths lives in `public/_redirects`
 (`/wild/* → /wild/index.html 200` and `/just-five-more-minutes/* →
