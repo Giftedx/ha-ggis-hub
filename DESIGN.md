@@ -197,7 +197,7 @@ spacing:
     backWallThick: 96
     sideWallThick: 24
     frontWallThick: 24
-    smoothingEnabled: false     # ctx.imageSmoothingEnabled = false (pixel-honest)
+    smoothingEnabled: false     # ctx.imageSmoothingEnabled = false (pixel-honest), except for the painted mascot (true window)
     devicePixelRatio: "canvas.width/height scaled by Math.round(devicePixelRatio); ctx.setTransform(dpr,0,0,dpr,0,0) each frame; surface exposes logical 540×360 (shipped 2026-05-24)"
 ```
 
@@ -213,9 +213,8 @@ elevation:
     dim: 0
 
   overlay-vignette:
-    color: "#1a0e08"
-    alpha-corner: 0.55
-    alpha-center: 0
+    color: "#000000"
+    per-layer alphas: 0.018/0.030/0.042
     notes: "Soft falloff at corners — focuses attention inward."
 
   beam-dawn:
@@ -224,12 +223,12 @@ elevation:
     fan-half-width-bottom: 110 px
     primary-color: "{colors.art-dawn-pink}"
     edge-color: "{colors.art-dawn-peach}"
-    register: "smooth radial — single deliberate exception to hard-edged policy"
+    register: "stacked translucent trapezoids/ellipses (no gradient)"
 
   hearth-bloom:
-    radii: [120, 95, 70, 45] px
+    radii: "rx [120, 90, 60, 30] / ry [95, 71.25, 47.5, 23.75]"
     alpha-per-ring: [0.055, 0.110, 0.165, 0.220] (× flicker)
-    register: "smooth radial — second deliberate exception"
+    register: "stacked translucent trapezoids/ellipses (no gradient)"
 
   painted-storybook-backdrop:
     role: "primary live art mass; hand-painted Highland Dawn Bothy backdrop carries the room, dawn view, door staging, hearth, and floor"
