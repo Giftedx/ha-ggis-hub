@@ -140,7 +140,8 @@ If the Cloudflare rollback list is missing the target build (unlikely), re-deplo
 ```powershell
 git checkout <GOOD_COMMIT>
 pnpm install --frozen-lockfile
-pnpm run build:verified
+pnpm run build:all
+node scripts/verify-dist.mjs --require-mounted
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main
 ```
 

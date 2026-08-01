@@ -13,6 +13,7 @@ import { readFileSync, statSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
 const dist = resolve(process.cwd(), 'dist');
+const requireMounted = process.argv.includes('--require-mounted');
 const errors = [];
 
 function must(condition, message) {
@@ -121,7 +122,29 @@ if (errors.length === 0) {
         typeof version.justFiveMoreMinutes?.build?.mounted === 'boolean',
         'dist/__version missing boolean justFiveMoreMinutes.build.mounted'
       );
+
+      if (requireMounted) {
+        must(
+          version.wildHaggisSurvivors?.build?.mounted === true,
+          '--require-mounted: wildHaggisSurvivors.build.mounted is not true'
+        );
+        must(
+          version.justFiveMoreMinutes?.build?.mounted === true,
+          '--require-mounted: justFiveMoreMinutes.build.mounted is not true'
+        );
+      }
     }
+  }
+
+  if (requireMounted) {
+    must(
+      existsSync(join(dist, 'wild', 'index.html')),
+      '--require-mounted: dist/wild/index.html missing'
+    );
+    must(
+      existsSync(join(dist, 'just-five-more-minutes', 'index.html')),
+      '--require-mounted: dist/just-five-more-minutes/index.html missing'
+    );
   }
 
   // Headers file sanity: must contain CSP directive + wasm-unsafe-eval.
