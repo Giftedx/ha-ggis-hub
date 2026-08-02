@@ -135,18 +135,17 @@ func TestSlice_emptyGates(t *testing.T) {
 
 func TestRegistry_containsAllSlicesProjectGates(t *testing.T) {
 	// Guards against silent drift: every gate id referenced by the
-	// shipped slices.json (loaded via the real cwd-relative path
-	// during `slice` dispatch) must be present in Registry(). This
-	// test runs against fixed names so it doesn't need the file.
+	// shipped slices.json must be present in Registry().
+	cfg, err := LoadSlices(filepath.Join("..", "..", "slices.json"))
+	if err != nil {
+		t.Fatalf("LoadSlices: %v", err)
+	}
 	reg := Registry()
-	for _, want := range []string{
-		"rust", "rust-cov", "docs", "ts", "coverage", "security", "perf",
-		"browser", "multi-browser", "determinism", "visual",
-		"a11y", "soak", "supply-chain", "production",
-		"differential-hash", "differential-rng",
-	} {
-		if _, ok := reg[want]; !ok {
-			t.Errorf("Registry() missing %q — slices that reference it will fail dispatch", want)
+	for sliceName, bundle := range cfg.Slices {
+		for _, gateID := range bundle.Gates {
+			if _, ok := reg[gateID]; !ok {
+				t.Errorf("Registry() missing %q referenced by slice %q", gateID, sliceName)
+			}
 		}
 	}
 }
