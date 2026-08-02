@@ -27,7 +27,7 @@ The pre-merge slice runs `docs`, `ts`, `security`, `perf`, `browser`, `determini
 
 ### Current release gate (push to main)
 
-Runs via the Go-orchestrated `haggis-eval all`. 16 gate subcommands (25 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json`:
+Runs via the Go-orchestrated `haggis-eval all`. 16 gate subcommands (26 individual checks), ~3.5 min warm / ~5–6 min cold (soak adds ~20s), emits an FNV-signed tamper-evident JSON report under `target/haggis-eval/all-<utc>.json`:
 
 ```bash
 # Rust workspace
