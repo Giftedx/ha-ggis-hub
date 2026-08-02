@@ -397,7 +397,7 @@ function renderRoom(
 
     // 5. Door openings + frames in front of the backdrop.
     for (const door of doors) {
-      drawDoor(ctx, door, interactingId);
+      drawDoor(ctx, door);
     }
 
     // 6. Door lanterns and signs. Launchable doors get a lit lantern +
@@ -447,6 +447,28 @@ function renderRoom(
     drawWhsHearthFrame(ctx, hearthOriginX, hearthOriginY, HEARTH_SCALE, hearthFrameIdx);
     drawHearthLintelMotto(ctx, fireCenter.x, hearthOriginY, HEARTH_SCALE);
     drawMantelInscription(ctx, surface);
+  }
+
+  // Active interaction glow — smooth translucent ellipse (no dither;
+  // those pixel dots were screaming against the smooth substrate).
+  if (interactingId !== null) {
+    const door = doors.find((d) => d.id === interactingId);
+    if (door !== undefined) {
+      const isLaunchable = door.status === 'launchable';
+      const glowColor = isLaunchable ? PALETTE.dawnGold : PALETTE.shadowHeather;
+      const cx = door.rect.x + Math.round(door.rect.width / 2);
+      const cy = door.rect.y + Math.round(door.rect.height / 2);
+      for (let i = 3; i >= 1; i--) {
+        const r = door.rect.width * 0.6 * (i / 3);
+        ctx.save();
+        ctx.globalAlpha = 0.1 * i;
+        ctx.fillStyle = glowColor;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r * 1.1, r * 1.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
   }
 
   // 8. Haggis player
@@ -1117,7 +1139,7 @@ function fillTrapezoidAlpha(
   ctx.restore();
 }
 
-function drawDoor(ctx: CanvasRoomContext, door: DoorLayout, interactingId: string | null): void {
+function drawDoor(ctx: CanvasRoomContext, door: DoorLayout): void {
   const { x, y, width, height } = door.rect;
   const isLaunchable = door.status === 'launchable';
 
@@ -1127,24 +1149,6 @@ function drawDoor(ctx: CanvasRoomContext, door: DoorLayout, interactingId: strin
   drawDoorRecess(ctx, door);
   drawWhsDoor(ctx, { x, y, w: width, h: height }, state);
   drawDoorCasing(ctx, door);
-
-  // Active interaction glow — smooth translucent ellipse (no dither;
-  // those pixel dots were screaming against the smooth substrate).
-  if (interactingId === door.id) {
-    const glowColor = isLaunchable ? PALETTE.dawnGold : PALETTE.shadowHeather;
-    const cx = x + Math.round(width / 2);
-    const cy = y + Math.round(height / 2);
-    for (let i = 3; i >= 1; i--) {
-      const r = width * 0.6 * (i / 3);
-      ctx.save();
-      ctx.globalAlpha = 0.1 * i;
-      ctx.fillStyle = glowColor;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, r * 1.1, r * 1.4, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
 
   drawDoorThreshold(ctx, door);
 }
