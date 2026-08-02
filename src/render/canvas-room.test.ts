@@ -677,6 +677,13 @@ describe('locked-door interaction rendering', () => {
     createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_AT_LOCKED);
     expect(context.calls).toContain('fillStyle:#28182c');
   });
+
+  it('paints a shadow-heather glow on the active locked door even on the storybook-backdrop path', () => {
+    vi.stubGlobal('Image', LoadedImage);
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(SNAPSHOT_AT_LOCKED);
+    expect(context.calls).toContain('fillStyle:#28182c');
+  });
 });
 
 describe('formatPromptText chap variant', () => {
