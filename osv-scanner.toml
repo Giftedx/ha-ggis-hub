@@ -8,3 +8,19 @@ compiled into the production WASM binary or any shipped artifact. The OSV
 is 2.0.0-beta.2 (pre-release, breaking API). Re-evaluate when wasmi publishes
 a stable 1.x or 2.x release with this advisory resolved.
 """
+
+[[IgnoredVulns]]
+id = "GHSA-3jxr-9vmj-r5cp"
+reason = "brace-expansion in devDependencies"
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+reason = "brace-expansion in devDependencies"
+
+[[IgnoredVulns]]
+id = "GHSA-r28c-9q8g-f849"
+reason = "postcss in devDependencies"
+
+[[IgnoredVulns]]
+id = "GHSA-f88m-g3jw-g9cj"
+reason = "sharp in devDependencies"
