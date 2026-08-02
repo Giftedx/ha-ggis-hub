@@ -224,6 +224,7 @@ const FIRST_ROOM_DOORS: &[(&str, i32, i32, i32, i32, bool)] = &[
     ("just-five-more-minutes", 80, 420, 200, 580, true),
     ("future-bothy", 410, 80, 590, 240, false),
 ];
+const _: () = assert!(FIRST_ROOM_DOORS.len() <= MAX_DOORS_PER_SNAPSHOT);
 
 /// Deterministic hub simulation.
 #[derive(Clone, Debug)]
