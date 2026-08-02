@@ -85,6 +85,9 @@ func TestParsePnpmPackageManager(t *testing.T) {
 	if got := parsePnpmPackageManager("pnpm@10.12.1"); got != "10.12.1" {
 		t.Fatalf("expected 10.12.1, got %q", got)
 	}
+	if got := parsePnpmPackageManager("pnpm@10.12.1+sha512.deadbeef"); got != "10.12.1" {
+		t.Fatalf("expected 10.12.1, got %q", got)
+	}
 	if got := parsePnpmPackageManager("npm@11.0.0"); got != "" {
 		t.Fatalf("expected non-pnpm package manager to return empty, got %q", got)
 	}

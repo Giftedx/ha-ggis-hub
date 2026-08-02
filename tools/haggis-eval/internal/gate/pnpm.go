@@ -81,7 +81,7 @@ func parsePnpmPackageManager(value string) string {
 	if !strings.HasPrefix(value, prefix) {
 		return ""
 	}
-	return strings.TrimSpace(strings.TrimPrefix(value, prefix))
+	return strings.TrimSpace(strings.SplitN(strings.TrimPrefix(value, prefix), "+", 2)[0])
 }
 
 func pnpmCandidates(pathValue string, goos string) []string {
