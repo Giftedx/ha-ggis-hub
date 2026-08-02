@@ -26,7 +26,7 @@ Live check on 2026-05-27:
 |---|---|
 | Project name | `ha-ggis-hub` |
 | Production branch | `main` |
-| Build command | `pnpm install --frozen-lockfile && pnpm run build` |
+| Build command | `pnpm install --frozen-lockfile && pnpm run build:all && node scripts/verify-dist.mjs --require-mounted` |
 | Build output directory | `dist` |
 | Node version | 22 |
 | Package manager | pnpm |
@@ -34,7 +34,8 @@ Live check on 2026-05-27:
 Current bootstrap was a direct upload:
 
 ```powershell
-pnpm run build:verified
+pnpm run build:all
+node scripts/verify-dist.mjs --require-mounted
 pnpm dlx wrangler@latest pages project create ha-ggis-hub --production-branch=main
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main --commit-dirty=true
 ```
@@ -140,7 +141,8 @@ If the Cloudflare rollback list is missing the target build (unlikely), re-deplo
 ```powershell
 git checkout <GOOD_COMMIT>
 pnpm install --frozen-lockfile
-pnpm run build:verified
+pnpm run build:all
+node scripts/verify-dist.mjs --require-mounted
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main
 ```
 
@@ -179,10 +181,10 @@ wrangler login
 wrangler pages deploy dist --project-name ha-ggis-hub
 ```
 
-The Cloudflare-dashboard production **Build command must be `pnpm run build:all`**
-(not `pnpm run build`) so production builds include the mounted games. If the
-Pages build image can't run the sibling-repo builds (WHS/JFMM are not checked
-out there), build + deploy from GitHub Actions or locally with Wrangler instead.
+The Cloudflare-dashboard production build command must run `pnpm run build:all`,
+then `node scripts/verify-dist.mjs --require-mounted`. Do not use `pnpm run build`
+for production. If the Pages build image cannot build the sibling repositories,
+build and deploy from GitHub Actions or locally with Wrangler.
 
 Routing/caching for the sub-paths lives in `public/_redirects`
 (`/wild/* → /wild/index.html 200` and `/just-five-more-minutes/* →

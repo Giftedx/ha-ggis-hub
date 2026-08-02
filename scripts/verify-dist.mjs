@@ -14,6 +14,7 @@ import { resolve, join } from 'node:path';
 
 const dist = resolve(process.cwd(), 'dist');
 const errors = [];
+const requireMounted = process.argv.includes('--require-mounted');
 
 function must(condition, message) {
   if (!condition) errors.push(message);
@@ -39,6 +40,14 @@ if (errors.length === 0) {
   must(existsSync(join(dist, 'og.png')), 'dist/og.png missing — social share card broken');
   must(existsSync(join(dist, 'manifest.webmanifest')), 'dist/manifest.webmanifest missing');
   must(existsSync(join(dist, 'assets')), 'dist/assets/ missing');
+
+  if (requireMounted) {
+    must(existsSync(join(dist, 'wild', 'index.html')), 'dist/wild/index.html missing');
+    must(
+      existsSync(join(dist, 'just-five-more-minutes', 'index.html')),
+      'dist/just-five-more-minutes/index.html missing'
+    );
+  }
 
   const maps = walk(dist).filter((p) => p.endsWith('.map'));
   must(maps.length === 0, `source maps found in dist (policy violation): ${maps.join(', ')}`);
@@ -121,6 +130,16 @@ if (errors.length === 0) {
         typeof version.justFiveMoreMinutes?.build?.mounted === 'boolean',
         'dist/__version missing boolean justFiveMoreMinutes.build.mounted'
       );
+      if (requireMounted) {
+        must(
+          version.wildHaggisSurvivors?.build?.mounted === true,
+          'dist/__version wildHaggisSurvivors.build.mounted must be true'
+        );
+        must(
+          version.justFiveMoreMinutes?.build?.mounted === true,
+          'dist/__version justFiveMoreMinutes.build.mounted must be true'
+        );
+      }
     }
   }
 
