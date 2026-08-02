@@ -388,6 +388,75 @@ fn door_index_to_u8(index: usize) -> u8 {
 mod tests {
     use super::*;
 
+    const DOORS_MANIFEST: &str = include_str!("../../../room/doors.manifest");
+    const MISMATCHED_DOORS_MANIFEST: &str = "wild-haggis-survivors|821|420|940|580|true|playable|Wild Haggis Survivors|route|/wild/\n\
+just-five-more-minutes|80|420|200|580|true|playable|Just Five More Minutes|route|/just-five-more-minutes/\n\
+future-bothy|410|80|590|240|false|coming-soon|Comin' Wi' The Next Moon|none|\n";
+
+    fn compare_doors_manifest(
+        manifest: &str,
+        doors: &[(&str, i32, i32, i32, i32, bool)],
+    ) -> Vec<String> {
+        let lines: Vec<_> = manifest.lines().filter(|line| !line.is_empty()).collect();
+        let mut errors = Vec::new();
+
+        if lines.len() != doors.len() {
+            errors.push(format!(
+                "manifest has {} doors; Rust table has {}",
+                lines.len(),
+                doors.len()
+            ));
+        }
+
+        for (index, (line, &(id, min_x, min_y, max_x, max_y, launchable))) in
+            lines.iter().zip(doors.iter()).enumerate()
+        {
+            let fields: Vec<_> = line.split('|').collect();
+            if fields.len() != 10 {
+                errors.push(format!(
+                    "manifest door {index} has {} fields; expected 10",
+                    fields.len()
+                ));
+                continue;
+            }
+
+            let expected = [
+                id.to_owned(),
+                min_x.to_string(),
+                min_y.to_string(),
+                max_x.to_string(),
+                max_y.to_string(),
+                launchable.to_string(),
+            ];
+            let field_names = ["id", "min_x", "min_y", "max_x", "max_y", "launchable"];
+
+            for (field_index, (actual, expected)) in fields.iter().zip(expected.iter()).enumerate()
+            {
+                if actual != expected {
+                    errors.push(format!(
+                        "manifest door {index} {} is {actual:?}; Rust table has {expected:?}",
+                        field_names[field_index]
+                    ));
+                }
+            }
+        }
+
+        errors
+    }
+
+    #[test]
+    fn doors_manifest_matches_first_room_doors_in_length_order_and_fields() {
+        assert_eq!(
+            compare_doors_manifest(DOORS_MANIFEST, FIRST_ROOM_DOORS),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn doors_manifest_comparator_reports_a_field_mismatch() {
+        assert!(!compare_doors_manifest(MISMATCHED_DOORS_MANIFEST, FIRST_ROOM_DOORS).is_empty());
+    }
+
     #[test]
     fn idle_input_has_no_movement_and_no_interact() {
         let input = InputSnapshot::idle();
