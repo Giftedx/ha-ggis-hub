@@ -140,7 +140,7 @@ If the Cloudflare rollback list is missing the target build (unlikely), re-deplo
 ```powershell
 git checkout <GOOD_COMMIT>
 pnpm install --frozen-lockfile
-pnpm run build:verified
+pnpm run build:all
 pnpm dlx wrangler@latest pages deploy dist --project-name=ha-ggis-hub --branch=main
 ```
 
@@ -179,10 +179,14 @@ wrangler login
 wrangler pages deploy dist --project-name ha-ggis-hub
 ```
 
-The Cloudflare-dashboard production **Build command must be `pnpm run build:all`**
-(not `pnpm run build`) so production builds include the mounted games. If the
-Pages build image can't run the sibling-repo builds (WHS/JFMM are not checked
-out there), build + deploy from GitHub Actions or locally with Wrangler instead.
+The Cloudflare dashboard uses
+`pnpm install --frozen-lockfile && pnpm run build`. This command builds the hub
+only for git-integration previews. The Pages build image does not contain the
+WHS or JFMM sibling checkouts.
+
+For production, run `pnpm run build:all` locally or in GitHub Actions. This
+command creates the combined `dist/` with both mounted games. Deploy that
+directory with `wrangler pages deploy dist`.
 
 Routing/caching for the sub-paths lives in `public/_redirects`
 (`/wild/* → /wild/index.html 200` and `/just-five-more-minutes/* →
