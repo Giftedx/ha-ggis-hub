@@ -70,8 +70,10 @@ function validFiles(): Record<string, string> {
     'package.json':
       '"docs:claims": "node scripts/check-doc-claims.mjs", "verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
     'tools/haggis-eval/README.md': `| \`docs\` | \`node scripts/check-doc-claims.mjs\` |\n\`pre-merge\` (${plain})`,
-    'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.`,
-    '.github/workflows/ci.yml': 'PR CI runs `pnpm verify`; release CI runs `haggis-eval all`.',
+    'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.\n(26 individual checks)`,
+    'docs/architecture/evaluation-strategy.md': '(26 individual checks)',
+    '.github/workflows/ci.yml':
+      'PR CI runs `pnpm verify`; release CI runs `haggis-eval all`.\n(26 individual checks)',
   };
 }
 
