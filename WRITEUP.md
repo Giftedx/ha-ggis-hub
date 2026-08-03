@@ -149,7 +149,7 @@ cd ha-ggis-hub
 
 # TypeScript + Vite host
 pnpm install --frozen-lockfile
-pnpm verify          # tsc --noEmit → eslint → prettier --check → vitest 226 cases → vite build → verify-dist
+pnpm verify          # docs:claims → tsc --noEmit → eslint → prettier --check → vitest 226 cases → vite build → verify-dist
 pnpm run coverage    # vitest v8 coverage (100% lines/stmts/fns/branches — enforced by threshold)
 
 # Rust workspace
@@ -174,7 +174,7 @@ PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 6 core smokes 
 PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 6 core smokes on WebKit
 node scripts/run-determinism-smoke.mjs # same-seed state-hash equality + browser .haggislog replay hash
 node scripts/run-visual-gate.mjs verify # perceptual aHash diff vs tests/golden/
-node scripts/run-a11y-gate.mjs          # 29 WCAG 2.2 AA spot-checks (hand-rolled)
+node scripts/run-a11y-gate.mjs          # 38 WCAG 2.2 AA spot-checks (hand-rolled)
 node scripts/run-soak-gate.mjs          # memory-growth soak (15s; heap budget 5 MB)
 cargo deny check                        # license compliance + RustSec advisories
 cargo machete                           # unused Rust dependencies

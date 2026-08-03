@@ -76,6 +76,15 @@ export function collectDocClaimFailures({ files, slicesConfig }) {
         '"verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
     },
     {
+      file: 'WRITEUP.md',
+      snippet:
+        'pnpm verify          # docs:claims → tsc --noEmit → eslint → prettier --check → vitest 226 cases → vite build → verify-dist',
+    },
+    {
+      file: 'WRITEUP.md',
+      snippet: 'node scripts/run-a11y-gate.mjs          # 38 WCAG 2.2 AA spot-checks (hand-rolled)',
+    },
+    {
       file: 'tools/haggis-eval/README.md',
       snippet: '| `docs`',
     },

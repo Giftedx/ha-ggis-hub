@@ -69,6 +69,9 @@ function validFiles(): Record<string, string> {
     ...files,
     'package.json':
       '"docs:claims": "node scripts/check-doc-claims.mjs", "verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
+    'WRITEUP.md':
+      'pnpm verify          # docs:claims → tsc --noEmit → eslint → prettier --check → vitest 226 cases → vite build → verify-dist\n' +
+      'node scripts/run-a11y-gate.mjs          # 38 WCAG 2.2 AA spot-checks (hand-rolled)',
     'tools/haggis-eval/README.md': `| \`docs\` | \`node scripts/check-doc-claims.mjs\` |\n\`pre-merge\` (${plain})`,
     'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.`,
     '.github/workflows/ci.yml': 'PR CI runs `pnpm verify`; release CI runs `haggis-eval all`.',
@@ -129,6 +132,24 @@ describe('collectDocClaimFailures', () => {
       expect.objectContaining({
         id: 'missing-required-snippet',
         file: 'tools/haggis-eval/README.md',
+      })
+    );
+  });
+
+  it('rejects a stale WRITEUP accessibility count through its required snippet', () => {
+    const files = validFiles();
+    files['WRITEUP.md'] = files['WRITEUP.md']!.replace(
+      '38 WCAG 2.2 AA spot-checks',
+      '31 WCAG 2.2 AA spot-checks'
+    );
+
+    const failures = collectDocClaimFailures({ files, slicesConfig: SLICES });
+
+    expect(failures).toContainEqual(
+      expect.objectContaining({
+        id: 'missing-required-snippet',
+        file: 'WRITEUP.md',
+        detail: expect.stringContaining('38 WCAG 2.2 AA spot-checks'),
       })
     );
   });
