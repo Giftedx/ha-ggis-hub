@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="./assets/banner.png" alt="ha.ggis — ha + ggis = haggis. A wee front door for a family of Highland games, with the Wee Chieftain under his spotlight" width="100%" />
+<img src="./assets/banner.png" alt="ha.ggis — ha + ggis = haggis. A wee front door for a family of Highland games, with the hand-painted bonneted Wee Chieftain" width="100%" />
 
 # ha&middot;ggis Hub
 
 **A playable Highland-games arcade lobby.** Walk up to a door, tap, and you are in a game.
-*ha + ggis = haggis &mdash; say it without the dot.*
+_ha + ggis = haggis &mdash; say it without the dot._
 
 ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
 ![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white)
@@ -16,16 +16,14 @@
 
 </div>
 
-A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) drives deterministic
-movement and door proximity; a strict TypeScript/Vite host owns lifecycle, input, the game
-registry, direct-play launch seams, and a hand-rolled Canvas2D renderer. Deployment is
-hardened (CSP, security headers, source-map policy, build verification) and browser smoke
-tests cover both the keyboard and tap launch paths.
+The hub is one painted bothy room with three doors. You steer the Wee Chieftain with keys or a pointer. Reach a door and the hub offers the game behind it. One chap or tap launches it.
+
+A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) computes deterministic movement and door proximity. A strict TypeScript/Vite host owns lifecycle, input, the game registry, launch seams, and a hand-rolled Canvas2D renderer. Deployment is hardened with a full CSP, security headers, a source-map policy, and build verification. Browser smoke tests cover both the keyboard and the tap launch paths.
 
 <table>
   <tr>
-    <td width="50%"><img src="./assets/screens/bothy-idle.png" alt="The bothy: a painted Highland interior with a hearth, tartan rug, and a window onto sunset hills, with doors on each wall" /></td>
-    <td width="50%"><img src="./assets/screens/door-launch.png" alt="The haggis at the right-wall door, launch prompt reading: AWA' IN — WILD HAGGIS SURVIVORS — ENTER SPACE E TAP" /></td>
+    <td width="50%"><img src="./assets/screens/bothy-idle.png" alt="The bothy: a painted Highland interior with a hearth, tartan rug, and a window onto dawn hills, with the bonneted Wee Chieftain near the woodpile" /></td>
+    <td width="50%"><img src="./assets/screens/door-launch.png" alt="The Wee Chieftain at the right-wall door with one semantic status: Wild Haggis Survivors door ready — chap or tap to enter" /></td>
   </tr>
   <tr>
     <td align="center"><sub>The bothy, live at <a href="https://ha.ggis.xyz">ha.ggis.xyz</a></sub></td>
@@ -34,22 +32,86 @@ tests cover both the keyboard and tap launch paths.
 </table>
 
 ---
+
+## How it works
+
+`hub-core` is pure Rust. It advances the simulation: movement, door proximity, the RNG, FNV-1a state hashing, and input-log replay. `hub-wasm` compiles that core to WebAssembly and exposes a handle plus fixed-layout binary snapshots.
+
+The TypeScript host samples keyboard and pointer input, pumps a fixed-step loop, and sends input across the WASM boundary. It decodes each snapshot and paints the bothy onto a Canvas2D element. Door proximity feeds the game registry. The registry builds a launch plan, and the navigator opens the mounted game route.
+
+```mermaid
+flowchart LR
+  subgraph host["TypeScript host — src/"]
+    input["Input sampler<br/>engine/input.ts"]
+    pump["Fixed-step pump<br/>engine/fixed-step.ts"]
+    codec["Boundary + snapshot decode<br/>wasm/boundary.ts"]
+    render["Canvas2D renderer<br/>render/canvas-room.ts"]
+    registry["Game registry<br/>games/registry.ts"]
+    launch["Launch seam<br/>navigation/launch.ts"]
+  end
+  subgraph core["Rust + WASM core — crates/"]
+    wasm["hub-wasm<br/>handle + binary snapshots"]
+    sim["hub-core<br/>sim, rng, hash, replay"]
+  end
+  subgraph doors["Mounted games — dist/"]
+    whs["Wild Haggis Survivors<br/>/wild/"]
+    jfmm["Just Five More Minutes<br/>/just-five-more-minutes/"]
+  end
+  input --> pump
+  pump -->|tick + input| wasm
+  wasm --> sim
+  sim -->|snapshot| wasm
+  wasm --> codec
+  codec --> render
+  codec -->|door proximity| registry
+  registry --> launch
+  launch --> whs
+  launch --> jfmm
+```
+
+The back-wall door is locked. Chap it and the hub answers with a coming-soon retort. Both mounted games are separate repositories. Their builds are copied into `dist/` and served on same-origin routes.
+
+## Run it locally
+
+You need:
+
+- Node 22 and pnpm 10 (see `.node-version` and the `engines` field in `package.json`)
+- Rust 1.94 or later with the `wasm32-unknown-unknown` target
+- `wasm-pack`
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build:wasm   # compile crates/hub-wasm into src/generated/hub-wasm
+pnpm exec vite        # dev server
+```
+
+For a production build and a local preview of it:
+
+```bash
+pnpm build            # WASM build + vite build + version manifest into dist/
+pnpm exec vite preview
+```
+
+A hub-only build serves the bothy without the two mounted games. `pnpm run build:all` copies their builds in, but it needs sibling checkouts of both game repositories.
+
+`pnpm test` runs the vitest suite. `cargo test --workspace` covers the Rust side. `pnpm verify` runs the full pre-merge chain.
+
 ## Engineering portfolio summary
 
-The hub is also a **portfolio artifact for the engineering layer underneath**. The visible bothy is the product; the receipts below are the craft signal that the README, the repo, and the gates collectively carry. None of these are sloganware — every claim resolves to code, a gate, or a generated report you can run yourself.
+The hub is also a portfolio artifact for the engineering layer underneath. The visible bothy is the product. The receipts below are the craft signal. Every claim resolves to code, a gate, or a generated report you can run yourself.
 
-- **~101 KB total client** (63 KB JS + 28 KB WASM + 4.2 KB HTML + 5.6 KB CSS, ~38 KB gzipped) for a Rust+WASM playable hub with deterministic core, versioned settings + progress persistence, a synthesized door knock, self-hosted serif font, opt-in hub music, and FNV-signed tamper-evident eval reports (keyless FNV-1a, not cryptographic signatures).
-- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c` linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/input-log.ts`, the `.haggislog` digest). All four agree byte-for-byte on the published reference vectors, asserted in CI — the Rust/C/Go trio diff-tested against each other, the TypeScript writer checked against the same vectors.
-- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`, compiled at test time via `wasmi`, differentially tested against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
-- **Go orchestrator (`haggis-eval`)** — single-binary, stdlib-only CLI that runs every project gate (`rust`, `rust-cov`, `docs`, `ts`, `coverage`, `security`, `perf`, `browser`, `multi-browser`, `determinism`, `visual`, `a11y`, `soak`, `supply-chain`, `differential rng`, `differential hash`, `all`) and emits an **FNV-signed, tamper-evident JSON report**. The report's `signature` field is a keyless FNV-1a 64 checksum of its own payload, so accidental or post-hoc edits are detectable; it is not a cryptographic signature. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
-- **Mozilla Observatory A+** target via `public/_headers` — full CSP, HSTS preload, X-Frame-Options DENY, Permissions-Policy denying ~30 features, COOP/CORP/Origin-Agent-Cluster. No `unsafe-eval`; `wasm-unsafe-eval` only.
-- **`unsafe_code = "forbid"`** workspace-wide. Exactly one crate (`hub-hardlang`) downgrades to `deny` with a single scoped relaxation for the C FFI seam, documented at the relaxation point.
-- **`clippy::pedantic`** enabled on every crate. **`tsc --strict`** + `pnpm verify` builds the dist and verifies it.
-- **vitest suite** + cargo workspace tests + eight Playwright smokes on chromium (keyboard launch, touch tap, pointer-drive, music toggle, sfx toggle, reduced-motion, locked-door, a11y) + seven core smokes on Firefox and WebKit each + per-asset perf budgets + determinism/replay smokes (same seed + scripted input → same state hash across two browser runs, plus a browser-captured `.haggislog` replayed through WASM `replay_run` to the same live hash) + a visual gate (perceptual aHash of the canvas at a fixed seed + fixed animation phase, Hamming-distance check against a recorded golden) + a hand-rolled accessibility gate (29 WCAG 2.2 AA spot-checks via Playwright, no axe-core dep).
-- **ADR-disciplined**: every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
-- **Autopilot-ready**: explicit agent ruleset, required-reading order, doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
+- **~108 KB complete client, ~41 KB gzipped** — 66.9 KB JS, 28.3 KB WASM, 8.7 KB CSS, and a 4.2 KB HTML shell. The 70.1 KB entry (index JS + CSS) stays below its 71,000-byte budget in `perf-budgets.json`, asserted by the perf gate. Recovery, diagnostics, and the procedural mascot fallback ship as failure- or mode-gated chunks. The ES2022 browser floor uses native module preloading without Vite's compatibility polyfill. The client also carries versioned settings and progress persistence, a synthesized door knock, a self-hosted serif font, and opt-in hub music.
+- **Four hand-rolled FNV-1a 64 implementations** — Rust (`crates/hub-core/src/hash.rs`), C (`c/fnv1a.c`, linked into `crates/hub-hardlang`), Go (`tools/haggis-eval/internal/fnv/`), and TypeScript (`src/engine/fnv.ts`, the `.haggislog` digest). All four agree byte-for-byte on the reference vectors. CI diff-tests the Rust/C/Go trio against each other and checks the TypeScript writer against the same vectors.
+- **WAT xoshiro128\*\* RNG** — hand-written in WebAssembly Text at `asm/xoshiro128_starstar.wat`. Tests compile it with `wasmi` and diff it against the Rust default across 100 000+ cases ([craft commitments §B](docs/foundation/12-craft-commitments.md)).
+- **Go orchestrator (`haggis-eval`)** — a single-binary, stdlib-only CLI. It runs every project gate and emits an FNV-signed, tamper-evident JSON report. The report's `signature` field is a keyless FNV-1a 64 checksum of its own payload, so accidental or post-hoc edits are detectable. It is not a cryptographic signature. See [`tools/haggis-eval/README.md`](tools/haggis-eval/README.md).
+- **Mozilla Observatory A+ target** via [`public/_headers`](public/_headers) — full CSP, HSTS preload, X-Frame-Options DENY, COOP/CORP/Origin-Agent-Cluster, and a Permissions-Policy that denies 23 browser features outright. No `unsafe-eval`. `wasm-unsafe-eval` only.
+- **`unsafe_code = "forbid"` workspace-wide.** Exactly one crate (`hub-hardlang`) downgrades to `deny`, with a single scoped relaxation for the C FFI seam. The relaxation is documented at the point of use.
+- **`clippy::pedantic` on every crate**, run with `-D warnings` in CI. **`tsc --strict`** plus `pnpm verify` builds the dist and verifies it.
+- **Test matrix** — vitest with 100% line, statement, function, and branch thresholds. Cargo workspace tests with 100% line and function coverage enforced. Nine Playwright smokes on chromium and eight core smokes each on Firefox and WebKit. Determinism smokes: the same seed plus scripted input yields the same state hash across two browser runs, and a browser-captured `.haggislog` replays through WASM `replay_run` to the same live hash. A dual-signal visual gate diffs whole-room and protagonist-detail aHashes at a fixed seed. A hand-rolled accessibility gate runs 38 WCAG 2.2 AA spot-checks via Playwright, with no axe-core dependency. A memory soak and supply-chain scans complete the set.
+- **ADR-disciplined** — every architectural decision is a numbered, dated record with status, supersession links, and rationale. See [`docs/decisions/`](docs/decisions/).
+- **Autopilot-ready** — explicit agent ruleset, required-reading order, and doc/code drift detection in audit reports. See [`AGENTS.md`](AGENTS.md).
 
-Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the FNV-signed report locally.
+Code: [MIT](LICENSE). Design system: [`DESIGN.md`](DESIGN.md). Deep dive: [`WRITEUP.md`](WRITEUP.md). All claims above are reproducible — `cd tools/haggis-eval && go build . && ./haggis-eval all` produces the FNV-signed report locally.
 
 ## Start here
 
@@ -67,15 +129,15 @@ If you only have time for the load-bearing five, read these in order:
 
 ## Current state
 
-- Product: playable haggis games lobby (single bothy room + door-to-game launches).
+- Product: a playable haggis games lobby. One bothy room, door-to-game launches.
 - Public domain shape: `ggis.xyz` redirects to `ha.ggis.xyz`.
-- Deployed-build provenance: each build writes `dist/__version`, served at `https://ha.ggis.xyz/__version`, with hub git state plus WHS and JFMM source/build provenance.
-- Playable doors: Wild Haggis Survivors launches from the right-wall door at `/wild/`; Just Five More Minutes launches from the left-wall door at `/just-five-more-minutes/`; the back-wall future-bothy door is locked and answers chaps with coming-soon retorts.
-- Implementation status: end-to-end functional. Rust core advances the sim; WASM boundary publishes snapshots; the browser host walks the haggis, paints the bothy, fires door launches. CI is two-tier: `pnpm verify` (docs-claim drift check + typecheck + lint + fmt:check + vitest + build + dist verification) runs on every PR; the full `haggis-eval all` release gate (rust + rust-cov + docs + ts + coverage + security + perf + browser + multi-browser + determinism + visual + a11y + soak + supply-chain + differential hash/rng) runs on push to main and emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
-- Current executable stack: Rust workspace (`hub-core`, `hub-wasm`, `hub-hardlang`) + TypeScript/Vite host.
-- Hub-owned settings persistence: `ggis_hub_settings` stores versioned, FNV-digested music preferences without touching WHS keys; corrupt or unavailable browser storage falls back to defaults.
-- Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). Bothy interior is Canvas2D with a painted backdrop and sprite path in `src/render/canvas-room.ts`, plus procedural fallback/fixture helpers in `src/render/bothy-haggis.ts`, `src/render/whs-bothy.ts`, and `src/render/whs-hearth.ts`.
-- Hard-language commitments shipped: C FNV-1a hash + WAT xoshiro128** RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
+- Build provenance: each build writes `dist/__version`, served at `https://ha.ggis.xyz/__version`. It records hub git state plus WHS and JFMM source and build provenance.
+- Playable doors: Wild Haggis Survivors launches from the right-wall door at `/wild/`. Just Five More Minutes launches from the left-wall door at `/just-five-more-minutes/`. The back-wall future-bothy door is locked and answers chaps with coming-soon retorts.
+- Implementation status: end-to-end functional. The Rust core advances the sim. The WASM boundary publishes snapshots. The browser host walks the haggis, paints the bothy, and fires door launches.
+- CI is two-tier. `pnpm verify` (docs-claim drift check + typecheck + lint + fmt:check + vitest + build + dist verification) runs on every PR. The full `haggis-eval all` release gate runs on push to main and emits an FNV-signed tamper-evident JSON report (keyless FNV-1a, not cryptographic signing).
+- Hub-owned settings persistence: `ggis_hub_settings` stores versioned, FNV-digested music preferences without touching WHS keys. Corrupt or unavailable browser storage falls back to defaults.
+- Renderer: Canvas2D ([ADR-0005](docs/decisions/0005-canvas2d-first-room-renderer.md)). The bothy combines a painted backdrop with a hand-painted, foot-anchored Wee Chieftain sprite in `src/render/canvas-room.ts`. Deterministic procedural fallbacks and fixtures live in `src/render/bothy-haggis.ts`, `src/render/whs-bothy.ts`, and `src/render/whs-hearth.ts`.
+- Hard-language commitments shipped: C FNV-1a hash plus WAT xoshiro128\*\* RNG, each diff-tested against the Rust default across 100 000+ cases ([`crates/hub-hardlang`](crates/hub-hardlang/)).
 
 ## Non-negotiable standard
 
@@ -115,26 +177,26 @@ pnpm run production:check  # opt-in live probe: ha.ggis.xyz, ggis.xyz redirect, 
 pnpm run coverage  # vitest v8 coverage (lines=100%, stmts=100%, fns=100%, branches=100%)
 
 # Browser smokes (each builds dist + starts vite preview internally)
-node scripts/run-browser-smokes.mjs    # 7 chromium smokes: door-launch + door-tap + pointer-drive + music-toggle + reduced-motion + locked-door + a11y
-PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 6 core smokes on Firefox
-PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 6 core smokes on WebKit
+node scripts/run-browser-smokes.mjs    # 9 chromium smokes: 8 core + a11y
+PLAYWRIGHT_BROWSER=firefox node scripts/run-browser-smokes.mjs  # 8 core smokes on Firefox
+PLAYWRIGHT_BROWSER=webkit  node scripts/run-browser-smokes.mjs  # 8 core smokes on WebKit
 node scripts/run-determinism-smoke.mjs # same ?seed= + scripted input → same state hash, plus browser .haggislog → replay_run hash match
 
 # Visual gate (builds + previews + diffs against tests/golden/)
-node scripts/run-visual-gate.mjs verify   # perceptual aHash diff vs golden
+node scripts/run-visual-gate.mjs verify   # whole-room + protagonist-detail aHash diff
 node scripts/run-visual-gate.mjs capture  # re-baseline after intentional art changes
 
 # Paint-timing gate (builds + previews + W3C Paint Timing API via chromium-headless)
 node scripts/run-paint-gate.mjs           # FCP/LCP/DCL/load median vs perf-budgets.json paint.max_ms
 
 # Accessibility gate (builds + previews + hand-rolled WCAG 2.2 AA spot-checks via Playwright)
-node scripts/run-a11y-gate.mjs            # 26 checks: lang, viewport, title, names, status, label-in-name, focus, contrast, font-load, page-errors
+node scripts/run-a11y-gate.mjs            # 38 checks: lang, viewport, title, names, disclosure, recovery, status, reflow, targets, focus, contrast, font-load, page-errors
 
 # Memory-growth soak (15s RAF loop; heap budget 5 MB)
 node scripts/run-soak-gate.mjs
 
 # Supply-chain
-cargo deny check                        # license compliance + RustSec advisories + source policy
+cargo deny check                        # broad licence policy + RustSec advisories + source policy
 cargo machete                           # unused Rust dependencies
 gitleaks detect --source . --no-banner  # secret scan across git history
 osv-scanner --recursive .               # cross-ecosystem CVE scan (Cargo + npm + Go)
