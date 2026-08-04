@@ -1,6 +1,6 @@
 //! Replay engine. Reconstructs `Sim` from a log seed and feeds each tick's
 //! input, filling unrecorded frames with the previously-held input. Asserts
-//! that the final `state_hash` matches the log's trailer.
+//! that the initial and final `state_hash` values match the log.
 
 use crate::log::{Log, LogError};
 use crate::sim::{InputSnapshot, Sim};
@@ -8,6 +8,13 @@ use crate::sim::{InputSnapshot, Sim};
 /// Errors produced by `replay::run`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReplayError {
+    /// The log header disagrees with the state hash after simulation initialization.
+    InitialStateMismatch {
+        /// Initial state hash recorded in the log header.
+        expected: u64,
+        /// Initial state hash produced by the replayed simulation.
+        actual: u64,
+    },
     /// The log's trailer disagrees with the replayed final state hash.
     Divergence {
         /// Tick index at which the divergence was observed (currently always
@@ -54,11 +61,13 @@ pub struct ReplayOutcome {
     pub ticks: u32,
 }
 
-/// Replay `log` and confirm the trailer hash matches.
+/// Replay `log` and confirm the header and trailer hashes match.
 ///
 /// # Errors
 ///
 /// Returns:
+/// - [`ReplayError::InitialStateMismatch`] when the replayed initial state hash
+///   does not match the log header.
 /// - [`ReplayError::Divergence`] when the replayed final state hash does not
 ///   match the log trailer.
 /// - [`ReplayError::RecordOutOfOrder`] when a record's `tick_index` is less
@@ -67,6 +76,13 @@ pub struct ReplayOutcome {
 ///   beyond `total_ticks`.
 pub fn run(log: &Log) -> Result<ReplayOutcome, ReplayError> {
     let mut sim = Sim::new(log.seed);
+    let actual = sim.state_hash();
+    if actual != log.initial_state_hash {
+        return Err(ReplayError::InitialStateMismatch {
+            expected: log.initial_state_hash,
+            actual,
+        });
+    }
     let mut held_input = InputSnapshot::idle();
     let mut record_iter = log.records.iter().peekable();
 
@@ -170,6 +186,26 @@ mod tests {
         let outcome = run(&log).expect("replay succeeds");
         assert_eq!(outcome.final_state_hash, final_state_hash);
         assert_eq!(outcome.ticks, total_ticks);
+    }
+
+    #[test]
+    fn initial_state_hash_mismatch_is_reported() {
+        let seed = 0;
+        let actual = Sim::new(seed).state_hash();
+        let expected = actual ^ 1;
+        let writer = LogWriter::new(WriterConfig {
+            seed,
+            core_api_version: crate::CORE_API_VERSION,
+            started_at_utc_ms: 0,
+            initial_state_hash: expected,
+        });
+        let bytes = writer.finish(0, actual);
+        let log = Log::decode(&bytes, crate::CORE_API_VERSION).expect("decode");
+
+        assert_eq!(
+            run(&log),
+            Err(ReplayError::InitialStateMismatch { expected, actual })
+        );
     }
 
     #[test]
