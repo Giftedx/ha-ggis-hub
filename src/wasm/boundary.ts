@@ -1,5 +1,7 @@
 import { decodeSnapshot, type DecodedSnapshot, SNAPSHOT_BYTES } from './snapshot-codec';
 
+export const EXPECTED_CORE_API_VERSION = 1;
+
 export interface RoomDoorDefinition {
   readonly id: string;
   readonly status: 'launchable' | 'locked';
@@ -79,6 +81,13 @@ export async function initializeHubBoundaryV2(
   const wasm = await module.default();
   const apiVersion = module.hub_core_api_version();
   const handle = new module.HubHandle(seed);
+  if (apiVersion !== EXPECTED_CORE_API_VERSION) {
+    handle.free();
+    throw new HubBoundaryError(
+      -1,
+      `expected core API version ${EXPECTED_CORE_API_VERSION}, got ${apiVersion}`
+    );
+  }
   const room = parseRoomDefinition(handle.room_definition());
   const snapshotBufferLen = handle.snapshot_len();
   if (snapshotBufferLen !== SNAPSHOT_BYTES) {
