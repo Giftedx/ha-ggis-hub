@@ -96,6 +96,33 @@ describe('initializeHubBoundaryV2', () => {
     expect(() => boundary.tick(0x10000)).toThrow(HubBoundaryError);
   });
 
+  it('throws HubBoundaryError with tag -1 and frees handle when core API version mismatches', async () => {
+    const { loader } = makeStubModule();
+    const freed: number[] = [];
+    const origLoader = await loader();
+    const patchedLoader = async () => ({
+      ...origLoader,
+      hub_core_api_version: () => 99,
+      HubHandle: class extends origLoader.HubHandle {
+        free(): void {
+          freed.push(1);
+        }
+      },
+    });
+
+    let error: Error | undefined;
+    try {
+      await initializeHubBoundaryV2(patchedLoader, 0n);
+    } catch (e) {
+      error = e as Error;
+    }
+
+    expect(error).toBeInstanceOf(HubBoundaryError);
+    expect((error as HubBoundaryError).tag).toBe(-1);
+    expect(error?.message).toMatch(/expected core API version 1, got 99/);
+    expect(freed).toHaveLength(1);
+  });
+
   it('throws HubBoundaryError with tag -1 when snapshot buffer length is wrong', async () => {
     const memory = new WebAssembly.Memory({ initial: 1 });
     const HubHandle = class {
@@ -175,7 +202,7 @@ describe('initializeHubBoundaryV2', () => {
     const loader = async () => ({
       default: async () => ({ memory }),
       HubHandle,
-      hub_core_api_version: () => 2,
+      hub_core_api_version: () => 1,
       replay_run: () => 0n,
     });
     const boundary = await initializeHubBoundaryV2(loader, 0n);
