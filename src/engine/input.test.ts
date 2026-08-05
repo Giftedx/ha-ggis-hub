@@ -115,11 +115,22 @@ describe('input sampling', () => {
   it('removes listeners when destroyed', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
+    const listeners = (target as unknown as { listeners: Map<string, Set<EventListener>> })
+      .listeners;
+
+    expect(listeners.get('keydown')?.size).toBe(1);
+    expect(listeners.get('keyup')?.size).toBe(1);
+    expect(listeners.get('blur')?.size).toBe(1);
 
     target.dispatch('keydown', 'KeyD');
     expect(sampler.snapshot()).toEqual({ x: 1, y: 0 });
 
     sampler.destroy();
+
+    expect(listeners.get('keydown')?.size ?? 0).toBe(0);
+    expect(listeners.get('keyup')?.size ?? 0).toBe(0);
+    expect(listeners.get('blur')?.size ?? 0).toBe(0);
+
     target.dispatch('keyup', 'KeyD');
     target.dispatch('keydown', 'KeyA');
 
@@ -144,6 +155,17 @@ describe('input sampling', () => {
     expect(() => {
       sampler.destroy();
     }).not.toThrow();
+  });
+
+  it('clears all held keys on focus loss (blur)', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+
+    target.dispatch('keydown', 'ArrowRight');
+    expect(sampler.snapshot()).toEqual({ x: 1, y: 0 });
+
+    target.dispatch('blur', '');
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
   });
 
   it('ignores events without a code property (keyCodeFromEvent fallback)', () => {
