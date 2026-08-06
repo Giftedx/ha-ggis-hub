@@ -26,6 +26,7 @@ const SIGNED_JSON_PATTERN = /\bsigned JSON reports?\b/i;
 const SIGNED_JSON_QUALIFIER_PATTERN = /\b(?:FNV-signed|tamper-evident)\b/i;
 const SIGNED_JSON_NEGATION_PATTERN =
   /\b(?:not|never|does not|do not|without)\b[^.]{0,100}\bsigned JSON reports?\b/i;
+const SHIELDS_BADGE_PATTERN = /!\[([^\]]*)\]\(https:\/\/img\.shields\.io\/badge\/([^\s)]+)\)/g;
 
 export function formatPlainGateList(gates) {
   return gates.join(' + ');
@@ -128,8 +129,50 @@ function collectForbiddenLineFailures(file, text) {
         detail: line.trim(),
       });
     }
+    for (const match of line.matchAll(SHIELDS_BADGE_PATTERN)) {
+      const [, altText, badgePath] = match;
+      if (altText !== decodeShieldsBadgeLabel(badgePath)) {
+        failures.push({
+          id: 'badge-alt-label-mismatch',
+          file,
+          line: index + 1,
+          detail: line.trim(),
+        });
+      }
+    }
   });
   return failures;
+}
+
+function decodeShieldsBadgeLabel(badgePath) {
+  let rawLabel = '';
+  for (let index = 0; index < badgePath.length; index += 1) {
+    const character = badgePath[index];
+    if (character === '-') {
+      if (badgePath[index + 1] === '-') {
+        rawLabel += '-';
+        index += 1;
+        continue;
+      }
+      break;
+    }
+    if (character === '_') {
+      if (badgePath[index + 1] === '_') {
+        rawLabel += '_';
+        index += 1;
+      } else {
+        rawLabel += ' ';
+      }
+      continue;
+    }
+    rawLabel += character;
+  }
+
+  try {
+    return decodeURIComponent(rawLabel);
+  } catch {
+    return rawLabel;
+  }
 }
 
 export function readClaimFiles(rootDir) {

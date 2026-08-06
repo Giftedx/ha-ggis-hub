@@ -10,7 +10,7 @@ _ha + ggis = haggis. Say it without the dot._
 ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
 ![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
-![Canvas](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)
+![Canvas2D](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)
 
 🎮 **Live at [ha.ggis.xyz](https://ha.ggis.xyz)**
 

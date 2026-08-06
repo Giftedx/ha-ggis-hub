@@ -86,6 +86,59 @@ describe('collectDocClaimFailures', () => {
     expect(collectDocClaimFailures({ files: validFiles(), slicesConfig: SLICES })).toEqual([]);
   });
 
+  it('rejects shields.io badge alt text that differs from the badge label', () => {
+    const files = validFiles();
+    const badge = '![Canvas](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)';
+    files['README.md'] = `Badge list:\n${badge}`;
+
+    const failures = collectDocClaimFailures({ files, slicesConfig: SLICES });
+
+    expect(failures).toEqual([
+      {
+        id: 'badge-alt-label-mismatch',
+        file: 'README.md',
+        line: 2,
+        detail: badge,
+      },
+    ]);
+  });
+
+  it('accepts matching labels in badges with multiple path segments', () => {
+    const files = validFiles();
+    files['README.md'] = [
+      '![Canvas2D](https://img.shields.io/badge/Canvas2D-hand--rolled-c9a23f?style=flat)',
+      '![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)',
+      '![WebAssembly](https://img.shields.io/badge/WebAssembly-654FF0?style=flat&logo=webassembly&logoColor=white)',
+      '![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)',
+    ].join('\n');
+
+    expect(collectDocClaimFailures({ files, slicesConfig: SLICES })).toEqual([]);
+  });
+
+  it('accepts a shields.io escaped underscore as a literal underscore', () => {
+    const files = validFiles();
+    files['README.md'] = '![My_Label](https://img.shields.io/badge/My__Label-x-blue)';
+
+    expect(collectDocClaimFailures({ files, slicesConfig: SLICES })).toEqual([]);
+  });
+
+  it('reports a malformed percent label without throwing an exception', () => {
+    const files = validFiles();
+    const badge = '![Coverage](https://img.shields.io/badge/100%-passing-green)';
+    files['README.md'] = badge;
+
+    const failures = collectDocClaimFailures({ files, slicesConfig: SLICES });
+
+    expect(failures).toEqual([
+      {
+        id: 'badge-alt-label-mismatch',
+        file: 'README.md',
+        line: 1,
+        detail: badge,
+      },
+    ]);
+  });
+
   it('rejects positive cryptographic-signing overclaims but allows explicit negation', () => {
     const files = validFiles();
     files['README.md'] = 'The haggis-eval report is cryptographically signed.';
