@@ -87,6 +87,18 @@ export function collectDocClaimFailures({ files, slicesConfig }) {
       file: 'docs/foundation/07-quality-gates.md',
       snippet: `The pre-merge slice runs ${backtickPreMerge}.`,
     },
+    {
+      file: '.github/workflows/ci.yml',
+      snippet: '(26 individual checks)',
+    },
+    {
+      file: 'docs/foundation/07-quality-gates.md',
+      snippet: '(26 individual checks)',
+    },
+    {
+      file: 'docs/architecture/evaluation-strategy.md',
+      snippet: '(26 individual checks)',
+    },
   ];
 
   for (const required of requiredSnippets) {
