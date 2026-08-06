@@ -169,9 +169,9 @@ built with Vite `base: '/just-five-more-minutes/'`.
 pnpm run build:all
 #   = pnpm run build            (hub: wasm + vite + dist/__version)
 #     pnpm run build:whs        (npm --prefix ../wild-haggis-survivors run build)
-#     pnpm run copy:whs         (scripts/copy-whs-build.mjs → dist/wild/)
+#     pnpm run copy:whs         (scripts/copy-game-build.mjs → dist/wild/)
 #     pnpm run build:jfmm       (npm --prefix ../../experiments/just-five-more-minutes run build:hub)
-#     pnpm run copy:jfmm        (scripts/copy-jfmm-build.mjs → dist/just-five-more-minutes/)
+#     pnpm run copy:jfmm        (scripts/copy-game-build.mjs → dist/just-five-more-minutes/)
 #     node scripts/write-version-manifest.mjs  (rewrites dist/__version with mounted-game build hashes)
 
 # Then deploy the combined dist (interactive auth the first time):

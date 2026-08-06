@@ -262,7 +262,7 @@ Wild Haggis Survivors brought on-origin, plus a movement and mascot-grounding pa
   WHS no longer launches to a separate `wild-haggis-survivors.pages.dev` deployment — the registry
   entry is now a same-origin `{ kind: 'route', target: '/wild/' }`. WHS (sibling repo, Vite
   `base: '/wild/'`) is built and copied into `dist/wild/` by the new `pnpm run build:all`
-  (`build` → `build:whs` → `copy:whs` via `scripts/copy-whs-build.mjs`). `public/_redirects` rewrites
+  (`build` → `build:whs` → `copy:whs` via `scripts/copy-game-build.mjs`). `public/_redirects` rewrites
   `/wild/*` to the WHS shell **before** the hub wildcard; `public/_headers` adds immutable caching for
   `/wild/assets/*` and revalidation for the WHS SW/manifest, with the root `/*` security headers (CSP,
   HSTS) inherited. `scripts/deploy-config.test.ts` locks the route ordering and cache rules. A

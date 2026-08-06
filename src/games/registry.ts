@@ -21,7 +21,7 @@ export const HUB_GAME_REGISTRY: readonly HubGameDefinition[] = [
     title: 'Wild Haggis Survivors',
     status: 'playable',
     // Option B (ADR-0003): WHS build is mounted under this Pages project at
-    // /wild/ (copied into dist/wild/ by scripts/copy-whs-build.mjs). Same-origin
+    // /wild/ (copied into dist/wild/ by scripts/copy-game-build.mjs). Same-origin
     // route — no external redirect. Canonical home: ha.ggis.xyz/wild.
     launch: { kind: 'route', target: '/wild/' },
   },

@@ -37,4 +37,13 @@ describe('package manager script hygiene', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  it('keeps the mounted-game build entry points and uses one copier', () => {
+    expect(manifest.scripts).toMatchObject({
+      'build:whs': 'npm --prefix ../wild-haggis-survivors run build',
+      'copy:whs': 'node scripts/copy-game-build.mjs wild-haggis-survivors',
+      'build:jfmm': 'npm --prefix ../../experiments/just-five-more-minutes run build:hub',
+      'copy:jfmm': 'node scripts/copy-game-build.mjs just-five-more-minutes',
+    });
+  });
 });

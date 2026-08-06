@@ -74,7 +74,7 @@ branch requires a single leading `/`).
 Build/deploy (this repo):
 - WHS builds with Vite `base: '/wild/'` (sibling repo).
 - `pnpm run build:all` = hub build → `build:whs` → `copy:whs`
-  (`scripts/copy-whs-build.mjs` copies WHS `dist/` into `dist/wild/`).
+  (`scripts/copy-game-build.mjs` copies WHS `dist/` into `dist/wild/`).
 - `public/_redirects`: `/wild/* → /wild/index.html 200` **before** the hub
   wildcard so WHS deep links resolve to the WHS shell.
 - `public/_headers`: `/wild/assets/*` immutable + `/wild/sw.js` revalidate; the
