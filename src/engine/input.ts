@@ -22,8 +22,8 @@ export interface KeyboardInputSampler {
 }
 
 export interface KeyboardEventSource {
-  addEventListener(type: 'keydown' | 'keyup', listener: EventListener): void;
-  removeEventListener(type: 'keydown' | 'keyup', listener: EventListener): void;
+  addEventListener(type: 'keydown' | 'keyup' | 'blur', listener: EventListener): void;
+  removeEventListener(type: 'keydown' | 'keyup' | 'blur', listener: EventListener): void;
 }
 
 interface PreventDefaultEvent {
@@ -94,8 +94,14 @@ export function createKeyboardInputSampler(target: KeyboardEventSource): Keyboar
     maybePreventDefault(event, code);
   };
 
+  const blur: EventListener = () => {
+    pressedKeys.clear();
+    consumedInteractKeys.clear();
+  };
+
   target.addEventListener('keydown', keydown);
   target.addEventListener('keyup', keyup);
+  target.addEventListener('blur', blur);
 
   return {
     snapshot(): HubInputVector {
@@ -133,6 +139,7 @@ export function createKeyboardInputSampler(target: KeyboardEventSource): Keyboar
       consumedInteractKeys.clear();
       target.removeEventListener('keydown', keydown);
       target.removeEventListener('keyup', keyup);
+      target.removeEventListener('blur', blur);
     },
   };
 }

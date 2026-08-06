@@ -80,6 +80,23 @@ describe('input sampling', () => {
     expect(sampler.interactHeld()).toBe(false);
   });
 
+  it('clears held and consumed keys when the window loses focus', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+
+    target.dispatch('keydown', 'KeyD');
+    target.dispatch('keydown', 'KeyE');
+    expect(sampler.snapshot()).toEqual({ x: 1, y: 0 });
+    expect(sampler.consumeInteract()).toBe(true);
+
+    target.dispatch('blur', '');
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+    expect(sampler.interactHeld()).toBe(false);
+
+    target.dispatch('keydown', 'KeyE');
+    expect(sampler.consumeInteract()).toBe(true);
+  });
+
   it('treats Space and KeyE as interact keys', () => {
     const target = new FakeKeyboardTarget();
     const sampler = createKeyboardInputSampler(target);
