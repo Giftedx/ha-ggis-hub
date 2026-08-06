@@ -14,7 +14,7 @@ class FakeKeyboardTarget {
     this.listeners.get(type)?.delete(listener);
   }
 
-  dispatch(type: string, code: string): { preventedDefault: boolean } {
+  dispatch(type: string, code = ''): { preventedDefault: boolean } {
     let preventedDefault = false;
     const event = {
       code,
@@ -26,6 +26,10 @@ class FakeKeyboardTarget {
       listener(event);
     }
     return { preventedDefault };
+  }
+
+  listenerCount(type: string): number {
+    return this.listeners.get(type)?.size ?? 0;
   }
 }
 
@@ -52,6 +56,31 @@ describe('input sampling', () => {
 
     target.dispatch('keyup', 'KeyD');
     expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+  });
+
+  it('clears held movement and re-arms interaction on blur', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+
+    target.dispatch('keydown', 'ArrowRight');
+    target.dispatch('keydown', 'Enter');
+    expect(sampler.snapshot().x).toBe(1);
+    expect(sampler.consumeInteract()).toBe(true);
+
+    target.dispatch('blur');
+    expect(sampler.snapshot()).toEqual({ x: 0, y: 0 });
+
+    target.dispatch('keydown', 'Enter');
+    expect(sampler.consumeInteract()).toBe(true);
+  });
+
+  it('removes the blur listener when destroyed', () => {
+    const target = new FakeKeyboardTarget();
+    const sampler = createKeyboardInputSampler(target);
+
+    expect(target.listenerCount('blur')).toBe(1);
+    sampler.destroy();
+    expect(target.listenerCount('blur')).toBe(0);
   });
 
   it('fires consumeInteract once per fresh press, then waits for release', () => {
