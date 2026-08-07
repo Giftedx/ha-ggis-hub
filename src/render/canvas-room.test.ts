@@ -243,23 +243,25 @@ describe('createCanvasRoomRenderer', () => {
     expect(firstFillRect).toBe('fillRect:0,0,1200,800');
   });
 
-  it('renders the launchable-door interaction prompt without crashing (pixel-font path)', () => {
+  it('paints the active launchable door glow, sign label, and lantern halo', () => {
     const { surface, context } = recordingSurface(1200, 800);
-    createCanvasRoomRenderer(surface, ROOM).render(SNAPSHOT_AT_LAUNCHABLE);
-    // Pixel-font replaces fillText; the prompt area should have many
-    // small fillRect calls (one per glyph pixel). Just verify the
-    // render didn't crash and emitted plenty of draws.
-    expect(context.calls.length).toBeGreaterThan(100);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_AT_LAUNCHABLE
+    );
+    expect(context.calls.some((call) => call.startsWith('ellipse:1106,400,'))).toBe(true);
+    expect(context.calls.filter((call) => call === 'fillRect:1095,319,1,1')).toHaveLength(2);
+    expect(context.calls).toContain('fillStyle:#ffd078');
+    expect(context.calls.some((call) => call.startsWith('ellipse:1106,345,42,'))).toBe(true);
   });
 
-  it('renders the locked verb when the active door is locked', () => {
+  it('paints the locked door sign label with the dimmed heather colour', () => {
     const { surface, context } = recordingSurface(1200, 800);
-    createCanvasRoomRenderer(surface, ROOM).render({
-      ...SNAPSHOT_AT_LAUNCHABLE,
-      interactionDoorIndex: 1,
-      interactionKind: 'locked',
-    });
-    expect(context.calls.length).toBeGreaterThan(100);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+    expect(context.calls).toContain('globalAlpha:0.65');
+    expect(context.calls).toContain('fillStyle:#7a4a9c');
+    expect(context.calls.filter((call) => call === 'fillRect:589,77,1,1')).toHaveLength(2);
   });
 
   it('omits the prompt when there is no interaction', () => {
@@ -443,14 +445,19 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.length).toBeGreaterThan(20);
   });
 
-  it('renders without crash when interactionDoorIndex is out of bounds — exercises drawPrompt early-return', () => {
+  it('omits the active-door glow when the interaction door index is out of bounds', () => {
     const { surface, context } = recordingSurface(1200, 800);
     createCanvasRoomRenderer(surface, ROOM).render({
       ...SNAPSHOT_AT_LAUNCHABLE,
-      // Index 99 is beyond the two-door ROOM array → door === undefined → early return.
       interactionDoorIndex: 99,
     });
-    expect(context.calls.length).toBeGreaterThan(20);
+    const activeGlowFill = context.calls.findIndex(
+      (call, index, calls) =>
+        call === 'fillStyle:#ffd078' &&
+        calls[index + 1] === 'beginPath' &&
+        calls[index + 2]?.startsWith('ellipse:1106,400,') === true
+    );
+    expect(activeGlowFill).toBe(-1);
   });
 
   it('renders a door near the top edge — exercises doorSide top branch', () => {
