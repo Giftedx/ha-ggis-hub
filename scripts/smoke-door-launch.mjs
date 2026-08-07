@@ -1,13 +1,25 @@
-// Smoke test: load the hub, walk the haggis to a door, press Enter,
-// verify navigation fires (LaunchNavigator.navigate called with the
-// expected WHS URL). Uses Playwright against `pnpm dev`.
-//
-// Run with: pnpm dev in one terminal, then `node scripts/smoke-door-launch.mjs`
-// (or via the inspect-shots playwright pattern).
+// Load the hub, walk the haggis to the selected door, and press Enter.
+// Verify that the door opens its mounted route.
+// Pass the door id as the first argument. The default door is Wild Haggis Survivors.
 
 import { launchBrowser } from './browser-factory.mjs';
+import { GAME_MOUNTS } from './game-mounts.mjs';
 
 const URL_BASE = process.env.SCREENSHOT_URL ?? 'http://localhost:5173/';
+const DOOR_ID = process.argv[2] ?? 'wild-haggis-survivors';
+const mount = GAME_MOUNTS.find(({ id }) => id === DOOR_ID);
+if (mount === undefined) {
+  throw new Error(`No mounted route is configured for door "${DOOR_ID}".`);
+}
+const EXPECTED_ROUTE = mount.route;
+
+function matchesExpectedRoute(url) {
+  try {
+    return new URL(url).pathname === EXPECTED_ROUTE;
+  } catch {
+    return false;
+  }
+}
 
 const browser = await launchBrowser();
 try {
@@ -18,24 +30,12 @@ try {
   page.on('console', (m) => consoleLog.push(`[${m.type()}] ${m.text()}`));
   page.on('pageerror', (e) => errors.push(`[ERROR] ${e.message}`));
 
-  // Block actual game-route navigation; record where we'd have gone.
+  // Record and fulfill the route because the hub-only preview has no mounted game builds.
   const navigations = [];
-  page.on('framenavigated', (frame) => {
-    if (frame === page.mainFrame()) {
-      const u = frame.url();
-      if (u !== URL_BASE && !u.startsWith(URL_BASE)) {
-        navigations.push(u);
-      }
-    }
-  });
   await page.route('**/*', async (route) => {
-    const reqUrl = route.request().url();
-    // WHS launches on-origin to /wild/ since v0.2.1 (ADR-0003 Option B). Record
-    // + fulfill it with an empty response (the WHS build is absent from the
-    // hub-only preview). Aborting a document request navigates Chromium to a
-    // chrome-error page, which is just output noise for this smoke.
-    if (reqUrl.includes('/wild/')) {
-      navigations.push(reqUrl);
+    const requestUrl = route.request().url();
+    if (matchesExpectedRoute(requestUrl)) {
+      navigations.push(requestUrl);
       await route.fulfill({ status: 204, body: '' });
     } else {
       await route.continue();
@@ -43,46 +43,70 @@ try {
   });
 
   await page.goto(URL_BASE, { waitUntil: 'networkidle' });
-  // Let the WASM boundary boot + haggis spawn.
   await page.waitForTimeout(800);
 
-  // Spawn at world (340, 540). The LAUNCHABLE WHS door is on the right
-  // wall; the locked future-bothy door is on the left (skip it). Hold right
-  // and poll the dev snapshot until the haggis is actually standing at the
-  // launchable door, rather than trusting a fixed wall-clock hold: the
-  // fixed-step loop advances a browser-dependent number of ticks per frame,
-  // so a fixed duration under-walks on a slow/throttled engine (webkit on
-  // CI), leaving the haggis short of the door and the launch un-fired.
-  // Polling the arrival condition makes the smoke speed-agnostic.
-  await page.keyboard.down('ArrowRight');
   try {
-    await page.waitForFunction(() => window.__roomSnapshot?.()?.interactionKind === 'launchable', {
-      timeout: 10_000,
-    });
+    await page.waitForFunction(
+      (doorId) =>
+        window.__roomSnapshot?.()?.doors.some((candidate) => candidate.id === doorId) === true,
+      DOOR_ID,
+      { timeout: 5_000 }
+    );
+  } catch (error) {
+    throw new Error(`Door "${DOOR_ID}" did not appear in the room snapshot.`, { cause: error });
+  }
+
+  const movementKey = await page.evaluate((doorId) => {
+    const snapshot = window.__roomSnapshot?.();
+    const door = snapshot?.doors.find((candidate) => candidate.id === doorId);
+    if (!snapshot || !door) return null;
+
+    const targetX = (door.bounds.minX + door.bounds.maxX) / 2;
+    const targetY = (door.bounds.minY + door.bounds.maxY) / 2;
+    const dx = targetX - snapshot.playerX;
+    const dy = targetY - snapshot.playerY;
+    if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'ArrowLeft' : 'ArrowRight';
+    return dy < 0 ? 'ArrowUp' : 'ArrowDown';
+  }, DOOR_ID);
+  if (movementKey === null) {
+    throw new Error(`Door "${DOOR_ID}" is absent from the room snapshot.`);
+  }
+
+  await page.keyboard.down(movementKey);
+  try {
+    await page.waitForFunction(
+      (doorId) => {
+        const snapshot = window.__roomSnapshot?.();
+        if (!snapshot || snapshot.interactionKind !== 'launchable') return false;
+        return snapshot.doors[snapshot.interactionDoorIndex]?.id === doorId;
+      },
+      DOOR_ID,
+      { timeout: 10_000 }
+    );
+  } catch (error) {
+    throw new Error(`Keyboard launch could not reach door "${DOOR_ID}".`, { cause: error });
   } finally {
-    await page.keyboard.up('ArrowRight');
+    await page.keyboard.up(movementKey);
   }
   await page.waitForTimeout(120);
 
-  // Fire Enter — should launch.
   await page.keyboard.down('Enter');
   await page.waitForTimeout(120);
   await page.keyboard.up('Enter');
   await page.waitForTimeout(300);
 
-  console.log('navigations:', navigations);
-  console.log('errors:', errors);
+  console.log(`The recorded navigations for door "${DOOR_ID}" are:`, navigations);
+  console.log('The page errors are:', errors);
   void consoleLog;
+  const expectedNavigations = navigations.filter(matchesExpectedRoute);
   if (errors.length > 0) {
     process.exitCode = 1;
-    console.error('page errors during smoke');
-  }
-  const wildNavigations = navigations.filter((url) => url.includes('/wild/'));
-  if (wildNavigations.length === 0) {
+    console.error(`The page reported errors during keyboard launch for door "${DOOR_ID}".`);
+  } else if (expectedNavigations.length === 0) {
     process.exitCode = 1;
-    console.error('door-launch did NOT navigate to /wild/');
+    console.error(`Keyboard launch for door "${DOOR_ID}" did not navigate to ${EXPECTED_ROUTE}.`);
   } else {
-    console.log('smoke OK — door-launch fired /wild/ navigation');
+    console.log(`Keyboard launch passed for door "${DOOR_ID}" at ${EXPECTED_ROUTE}.`);
   }
 } finally {
   await browser.close();

@@ -7,6 +7,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { request } from 'node:http';
+import { GAME_MOUNTS } from './game-mounts.mjs';
 import { spawnPnpm, spawnPnpmSync } from './pinned-pnpm.mjs';
 
 const NODE = process.execPath;
@@ -18,18 +19,22 @@ if (!/^(?:[1-9]\d{0,4})$/.test(PORT) || !Number.isInteger(portNumber) || portNum
 }
 const BASE = `http://localhost:${PORT}/`;
 const BROWSER = process.env.PLAYWRIGHT_BROWSER ?? 'chromium';
+// game-mounts.test.ts keeps this list equal to the playable route entries in the registry.
+const DOOR_SMOKES = GAME_MOUNTS.flatMap(({ id }) => [
+  { script: 'scripts/smoke-door-launch.mjs', doorId: id, label: 'keyboard-launch' },
+  { script: 'scripts/smoke-door-tap.mjs', doorId: id, label: 'tap-launch' },
+]);
 const SMOKES = [
-  'scripts/smoke-door-launch.mjs',
-  'scripts/smoke-door-tap.mjs',
-  'scripts/smoke-pointer-drive.mjs',
-  'scripts/smoke-music-toggle.mjs',
-  'scripts/smoke-sfx-toggle.mjs',
-  'scripts/smoke-reduced-motion.mjs',
-  'scripts/smoke-locked-door.mjs',
+  ...DOOR_SMOKES,
+  { script: 'scripts/smoke-pointer-drive.mjs' },
+  { script: 'scripts/smoke-music-toggle.mjs' },
+  { script: 'scripts/smoke-sfx-toggle.mjs' },
+  { script: 'scripts/smoke-reduced-motion.mjs' },
+  { script: 'scripts/smoke-locked-door.mjs' },
   // smoke-a11y uses computed CSS and keyboard focus behaviour that is
   // intentionally chromium-specific (29 WCAG AA spot-checks). Skipped
   // for firefox/webkit runs where tab-focus behaviour is OS-dependent.
-  ...(BROWSER === 'chromium' ? ['scripts/smoke-a11y.mjs'] : []),
+  ...(BROWSER === 'chromium' ? [{ script: 'scripts/smoke-a11y.mjs' }] : []),
 ];
 
 function log(...args) {
@@ -85,17 +90,18 @@ try {
   await waitForPort(BASE, 8000);
   log(`preview ready at ${BASE}`);
 
-  for (const smoke of SMOKES) {
-    log(`running ${smoke}…`);
-    const r = spawnSync(NODE, [smoke], {
+  for (const { script, doorId, label } of SMOKES) {
+    const runName = doorId === undefined ? script : `${label} for door "${doorId}"`;
+    log(`Running ${runName}.`);
+    const r = spawnSync(NODE, [script, ...(doorId === undefined ? [] : [doorId])], {
       stdio: 'inherit',
       env: { ...process.env, SCREENSHOT_URL: BASE },
     });
     if (r.status !== 0) {
       failures += 1;
-      log(`FAIL ${smoke} (exit ${r.status})`);
+      log(`Failed ${runName} with exit ${r.status}.`);
     } else {
-      log(`PASS ${smoke}`);
+      log(`Passed ${runName}.`);
     }
   }
 } catch (err) {
