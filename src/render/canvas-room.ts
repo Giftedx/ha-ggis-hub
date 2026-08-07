@@ -201,7 +201,7 @@ export function createCanvasRoomRenderer(
   if (context === null) {
     throw new Error('Canvas2D context is unavailable');
   }
-  // Prevent bicubic interpolation when blitting sprites at non-1:1 scale (has no effect on fillRect/arc/ellipse).
+  // Keep image draws pixel-sharp unless a painted asset enables smoothing locally.
   const smoothable = context as unknown as { imageSmoothingEnabled?: boolean };
   /* v8 ignore next — imageSmoothingEnabled absent only in ancient browsers; dead in any runtime we target */
   if ('imageSmoothingEnabled' in smoothable) {
@@ -340,7 +340,10 @@ function drawStorybookBackdrop(ctx: CanvasRoomContext, surface: CanvasRoomSurfac
   ) {
     return false;
   }
+  const smooth = ctx as unknown as { imageSmoothingEnabled?: boolean };
+  smooth.imageSmoothingEnabled = true;
   ctx.drawImage(image, 0, 0, surface.width, surface.height);
+  smooth.imageSmoothingEnabled = false;
   return true;
 }
 

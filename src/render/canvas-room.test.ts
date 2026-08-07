@@ -35,8 +35,14 @@ class RecordingCanvasContext {
     this._globalAlpha = v;
     this.calls.push(`globalAlpha:${v}`);
   }
-  // Present so createCanvasRoomRenderer exercises the imageSmoothingEnabled=false path.
-  imageSmoothingEnabled = true;
+  private _imageSmoothingEnabled = true;
+  get imageSmoothingEnabled(): boolean {
+    return this._imageSmoothingEnabled;
+  }
+  set imageSmoothingEnabled(v: boolean) {
+    this._imageSmoothingEnabled = v;
+    this.calls.push(`imageSmoothingEnabled:${v}`);
+  }
 
   fillRect(x: number, y: number, width: number, height: number): void {
     this.calls.push(`fillRect:${x},${y},${width},${height}`);
@@ -302,7 +308,29 @@ describe('createCanvasRoomRenderer', () => {
     renderer.render(SNAPSHOT_NO_INTERACTION);
     // Second render exercises the cached storybookBackdropImage path (module-level singleton).
     renderer.render(SNAPSHOT_NO_INTERACTION);
-    expect(context.calls).toContain(`drawImage:${STORYBOOK_BACKDROP_SRC}@0,0,540,360`);
+    const backdropCall = `drawImage:${STORYBOOK_BACKDROP_SRC}@0,0,540,360`;
+    const backdropIndex = context.calls.indexOf(backdropCall);
+    const mascotIndex = context.calls.findIndex(
+      (call, index) =>
+        index > backdropIndex && call.startsWith('drawImage:/art/wee-chieftain-idle.png')
+    );
+    const isSmoothingCall = (call: string): boolean => call.startsWith('imageSmoothingEnabled:');
+    const smoothingCallsBeforeBackdrop = context.calls
+      .slice(0, backdropIndex)
+      .filter(isSmoothingCall);
+    const smoothingCallsBeforeMascot = context.calls.slice(0, mascotIndex).filter(isSmoothingCall);
+
+    expect(backdropIndex).toBeGreaterThan(-1);
+    expect(mascotIndex).toBeGreaterThan(backdropIndex);
+    expect(smoothingCallsBeforeBackdrop.at(-1)).toBe('imageSmoothingEnabled:true');
+    expect(context.calls.slice(backdropIndex + 1).find(isSmoothingCall)).toBe(
+      'imageSmoothingEnabled:false'
+    );
+    expect(smoothingCallsBeforeMascot.at(-1)).toBe('imageSmoothingEnabled:true');
+    expect(context.calls.slice(mascotIndex + 1).find(isSmoothingCall)).toBe(
+      'imageSmoothingEnabled:false'
+    );
+    expect(context.imageSmoothingEnabled).toBe(false);
     expect(context.calls).not.toContain('fillRect:54,14,432,108');
   });
 
