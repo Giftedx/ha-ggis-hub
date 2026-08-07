@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   HUB_GAME_REGISTRY,
@@ -7,6 +8,30 @@ import {
 } from './registry';
 
 describe('game registry', () => {
+  it('keeps registry order and playability equal to the Rust door table', () => {
+    const rustSource = readFileSync(
+      new URL('../../crates/hub-core/src/sim.rs', import.meta.url),
+      'utf8'
+    );
+    const tableSource = rustSource.match(
+      /const FIRST_ROOM_DOORS:[\s\S]*?=\s*&\[(?<doors>[\s\S]*?)\];/
+    )?.groups?.doors;
+
+    expect(tableSource, 'FIRST_ROOM_DOORS must use the expected tuple table syntax').toBeDefined();
+
+    const rustDoors = [
+      ...tableSource!.matchAll(
+        /\(\s*"([^"]+)"\s*,\s*-?\d+\s*,\s*-?\d+\s*,\s*-?\d+\s*,\s*-?\d+\s*,\s*(true|false)\s*\)/g
+      ),
+    ].map((match) => ({ id: match[1], launchable: match[2] === 'true' }));
+    const registryDoors = HUB_GAME_REGISTRY.map((game) => ({
+      id: game.id,
+      launchable: game.status === 'playable',
+    }));
+
+    expect(rustDoors).toEqual(registryDoors);
+  });
+
   it('keeps the canonical registry valid and maps Wild Haggis Survivors by stable id', () => {
     expect(validateGameRegistry(HUB_GAME_REGISTRY)).toEqual([]);
 
