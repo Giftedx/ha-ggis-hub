@@ -92,6 +92,10 @@ colors:
   art-bracken-green: "#5a7a5a"       # Hung herbs, framed-picture accent
   art-ember-red: "#c44218"           # Active ember (small accent only)
   art-ember-hot: "#ffb028"           # Hottest ember tip
+  art-ember-spark-bright: "#ffe080"  # New ember spark near the hearth
+  art-ember-spark-fading: "#ff8a40"  # Ember spark as it rises and cools
+  art-smoke-warm: "#c89880"          # Smoke wisp near the hearth
+  art-smoke-cool: "#9a8a7a"          # Smoke wisp after it rises
 
   # — Mascot haggis family —
   # The Wee Chieftain is the hub's food-shaped mascot. These stops are

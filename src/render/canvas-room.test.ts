@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  AMBIENT_PARTICLE_PALETTE,
   STORYBOOK_BACKDROP_SRC,
   createCanvasRoomRenderer,
   computeVisualDoorBounds,
@@ -7,6 +8,8 @@ import {
   formatPromptText,
   type CanvasRoomSurface,
 } from './canvas-room';
+import { BOTHY_HAGGIS_PALETTE } from './bothy-haggis';
+import { PALETTE } from './palette';
 import { measurePixelText } from './sprites/pixel-font';
 import type { RoomDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
@@ -295,6 +298,17 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.length).toBeGreaterThan(20);
   });
 
+  it('uses the named ambient-particle palette', () => {
+    const { surface, context } = recordingSurface(540, 360);
+    createCanvasRoomRenderer(surface, ROOM, { fixedPhaseSeconds: 0 }).render(
+      SNAPSHOT_NO_INTERACTION
+    );
+
+    for (const colour of Object.values(AMBIENT_PARTICLE_PALETTE)) {
+      expect(context.calls).toContain(`fillStyle:${colour}`);
+    }
+  });
+
   it('uses the painted storybook backdrop asset when the browser image is loaded', () => {
     vi.stubGlobal('Image', LoadedImage);
     const { surface, context } = recordingSurface(540, 360);
@@ -344,6 +358,8 @@ describe('createCanvasRoomRenderer', () => {
     expect(context.calls.some((c) => c.startsWith('drawImage:/art/wee-chieftain-idle.png'))).toBe(
       false
     );
+    expect(context.calls).toContain(`fillStyle:${BOTHY_HAGGIS_PALETTE.casingDeep}`);
+    expect(context.calls).toContain(`fillStyle:${PALETTE.bone}`);
   });
 
   it('stages the Wee Chieftain as a room inhabitant instead of the dominant room mass', () => {

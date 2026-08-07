@@ -2,7 +2,7 @@ import { HUB_GAME_REGISTRY, getGameById } from '../games/registry';
 import type { RoomDefinition, RoomDoorDefinition } from '../wasm/boundary';
 import type { DecodedSnapshot } from '../wasm/snapshot-codec';
 import { blitSprite } from './sprite';
-import { drawBothyHaggis } from './bothy-haggis';
+import { BOTHY_HAGGIS_PALETTE, drawBothyHaggis, type BothyHaggisPalette } from './bothy-haggis';
 import { drawWhsHearthFrame, HEARTH_CANVAS_SIZE, HEARTH_FRAME_COUNT } from './whs-hearth';
 import { drawWhsBothyWalls, drawWhsBothyFloor, drawWhsDoor, type BothyEnvelope } from './whs-bothy';
 import { PALETTE, makeBeamGeometry, hardContactShadow } from './palette';
@@ -100,6 +100,19 @@ const PX = {
   cordShadow: '#7a5018',
   stemFade: '#7a5230',
 } as const;
+
+export const AMBIENT_PARTICLE_PALETTE = {
+  emberBright: '#ffe080',
+  emberFading: '#ff8a40',
+  smokeWarm: '#c89880',
+  smokeCool: '#9a8a7a',
+} as const;
+
+const HAGGIS_FALLBACK_PALETTE = {
+  ...BOTHY_HAGGIS_PALETTE,
+  casingDeep: BOTHY_HAGGIS_PALETTE.casingDeep,
+  eyeWhite: PALETTE.bone,
+} satisfies BothyHaggisPalette;
 
 // Highland landscape palette — sky + mountain layers in the window view.
 // These are one-off painted shades for the through-the-window scene; they
@@ -774,7 +787,8 @@ function drawAmbientParticles(
     const alpha = (1 - life) * 0.9;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = life < 0.4 ? '#ffe080' : '#ff8a40';
+    ctx.fillStyle =
+      life < 0.4 ? AMBIENT_PARTICLE_PALETTE.emberBright : AMBIENT_PARTICLE_PALETTE.emberFading;
     ctx.beginPath();
     ctx.arc(sx, sy, 1.1, 0, Math.PI * 2);
     ctx.fill();
@@ -794,7 +808,8 @@ function drawAmbientParticles(
     const r = 2 + life * 5;
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = life < 0.3 ? '#c89880' : '#9a8a7a';
+    ctx.fillStyle =
+      life < 0.3 ? AMBIENT_PARTICLE_PALETTE.smokeWarm : AMBIENT_PARTICLE_PALETTE.smokeCool;
     ctx.beginPath();
     ctx.ellipse(sx, sy, r, r * 0.7, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -1362,12 +1377,19 @@ function drawHaggis(
   const frontLegY = isMoving ? Math.sin(walkCycle) * legAmp : 0;
   const backLegY = isMoving ? Math.sin(walkCycle + Math.PI) * legAmp : 0;
 
-  drawBothyHaggis(ctx, bodyCx, bodyCy, HAGGIS_SCALE, {
-    breathY: Math.sin(phase * 1.4) * 0.4,
-    facingLeft,
-    frontLegY,
-    backLegY,
-  });
+  drawBothyHaggis(
+    ctx,
+    bodyCx,
+    bodyCy,
+    HAGGIS_SCALE,
+    {
+      breathY: Math.sin(phase * 1.4) * 0.4,
+      facingLeft,
+      frontLegY,
+      backLegY,
+    },
+    HAGGIS_FALLBACK_PALETTE
+  );
 }
 
 // Pure text-formatter for interaction prompts. Exposed so tests can
