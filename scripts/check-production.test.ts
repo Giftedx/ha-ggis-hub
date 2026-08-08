@@ -293,6 +293,15 @@ describe('collectProductionProbeFailures', () => {
     );
   });
 
+  it('fails when the mounted WHS shell is immutable', () => {
+    const probe = validProbe();
+    probe.wild.headers!['cache-control'] = 'public, max-age=31536000, immutable';
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({ id: 'wild-cache-control' })
+    );
+  });
+
   it('fails when mounted-WHS assets are not immutable or source-map clean', () => {
     const probe = validProbe();
     probe.wild.body = '<script type="module" src="/wild/assets/index.js"></script>';
@@ -312,6 +321,33 @@ describe('collectProductionProbeFailures', () => {
     expect(ids).toContain('wild-asset-source-map-reference');
   });
 
+  it('reports the mounted-WHS asset prefix when the page has no asset references', () => {
+    const probe = validProbe();
+    probe.wild.body = '<!doctype html><title>Wild Haggis Survivors</title>';
+    probe.wildAssets = [];
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({
+        id: 'wild-no-hashed-assets',
+        detail: expect.stringContaining('/wild/assets/*'),
+      })
+    );
+  });
+
+  it('uses the mounted-WHS prefix for an asset-count failure', () => {
+    const probe = validProbe();
+    probe.wildAssets.push({
+      url: 'https://ha.ggis.xyz/wild/assets/extra-WHS67890.js',
+      status: 200,
+      headers: { 'cache-control': 'public, max-age=31536000, immutable' },
+      body: 'console.log("extra wild asset")',
+    });
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({ id: 'wild-asset-count' })
+    );
+  });
+
   it('fails when mounted Just Five More Minutes does not serve from the same-origin route', () => {
     const probe = validProbe();
     probe.justFiveMoreMinutes.url = 'https://example.invalid/just-five-more-minutes/';
@@ -321,6 +357,15 @@ describe('collectProductionProbeFailures', () => {
 
     expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-route-url' }));
     expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-status' }));
+  });
+
+  it('fails when the mounted Just Five More Minutes shell is immutable', () => {
+    const probe = validProbe();
+    probe.justFiveMoreMinutes.headers!['cache-control'] = 'public, max-age=31536000, immutable';
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({ id: 'jfmm-cache-control' })
+    );
   });
 
   it('fails when mounted Just Five More Minutes assets are not immutable or source-map clean', () => {

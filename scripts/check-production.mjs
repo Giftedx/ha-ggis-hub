@@ -188,14 +188,14 @@ function validateAssets({ idPrefix, ownerUrl, expectedPaths, assets, missingHash
       failure(
         missingHashedId ?? `${idPrefix}-none-hashed`,
         ownerUrl,
-        `no hashed ${expectedAssetPrefix(expectedPaths)} references found`
+        `no hashed ${expectedAssetPrefix(ownerUrl)} references found`
       )
     );
   }
   if (assets.length !== expectedPaths.length) {
     failures.push(
       failure(
-        'asset-count',
+        `${idPrefix}-count`,
         ownerUrl,
         `fetched ${assets.length} assets; expected ${expectedPaths.length}`
       )
@@ -233,11 +233,11 @@ function validateAssets({ idPrefix, ownerUrl, expectedPaths, assets, missingHash
   return failures;
 }
 
-function expectedAssetPrefix(expectedPaths) {
-  if (expectedPaths.some((path) => path.startsWith('/wild/'))) {
+function expectedAssetPrefix(ownerUrl) {
+  if (ownerUrl === WILD_ROUTE_URL) {
     return '/wild/assets/*';
   }
-  if (expectedPaths.some((path) => path.startsWith('/just-five-more-minutes/'))) {
+  if (ownerUrl === JUST_FIVE_MORE_MINUTES_ROUTE_URL) {
     return '/just-five-more-minutes/assets/*';
   }
   return '/assets/*';
@@ -279,6 +279,16 @@ function validateWild(wild) {
   failures.push(
     ...validateRequiredHeaders('wild', wild?.url ?? WILD_ROUTE_URL, wild?.headers ?? {})
   );
+  const cacheControl = wild?.headers?.['cache-control'] ?? '';
+  if (!cacheControl.includes('max-age=0') || !cacheControl.includes('must-revalidate')) {
+    failures.push(
+      failure(
+        'wild-cache-control',
+        wild?.url ?? WILD_ROUTE_URL,
+        `cache-control ${cacheControl}; want max-age=0, must-revalidate`
+      )
+    );
+  }
   return failures;
 }
 
@@ -330,6 +340,16 @@ function validateJustFiveMoreMinutes(jfmm) {
       jfmm?.headers ?? {}
     )
   );
+  const cacheControl = jfmm?.headers?.['cache-control'] ?? '';
+  if (!cacheControl.includes('max-age=0') || !cacheControl.includes('must-revalidate')) {
+    failures.push(
+      failure(
+        'jfmm-cache-control',
+        jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+        `cache-control ${cacheControl}; want max-age=0, must-revalidate`
+      )
+    );
+  }
   return failures;
 }
 
