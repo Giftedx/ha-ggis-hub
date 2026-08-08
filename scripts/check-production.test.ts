@@ -293,6 +293,15 @@ describe('collectProductionProbeFailures', () => {
     );
   });
 
+  it('fails when the mounted WHS shell is immutable', () => {
+    const probe = validProbe();
+    probe.wild.headers!['cache-control'] = 'public, max-age=31536000, immutable';
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({ id: 'wild-cache-control' })
+    );
+  });
+
   it('fails when mounted-WHS assets are not immutable or source-map clean', () => {
     const probe = validProbe();
     probe.wild.body = '<script type="module" src="/wild/assets/index.js"></script>';
@@ -348,6 +357,15 @@ describe('collectProductionProbeFailures', () => {
 
     expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-route-url' }));
     expect(failures).toContainEqual(expect.objectContaining({ id: 'jfmm-status' }));
+  });
+
+  it('fails when the mounted Just Five More Minutes shell is immutable', () => {
+    const probe = validProbe();
+    probe.justFiveMoreMinutes.headers!['cache-control'] = 'public, max-age=31536000, immutable';
+
+    expect(collectProductionProbeFailures(probe)).toContainEqual(
+      expect.objectContaining({ id: 'jfmm-cache-control' })
+    );
   });
 
   it('fails when mounted Just Five More Minutes assets are not immutable or source-map clean', () => {

@@ -279,6 +279,16 @@ function validateWild(wild) {
   failures.push(
     ...validateRequiredHeaders('wild', wild?.url ?? WILD_ROUTE_URL, wild?.headers ?? {})
   );
+  const cacheControl = wild?.headers?.['cache-control'] ?? '';
+  if (!cacheControl.includes('max-age=0') || !cacheControl.includes('must-revalidate')) {
+    failures.push(
+      failure(
+        'wild-cache-control',
+        wild?.url ?? WILD_ROUTE_URL,
+        `cache-control ${cacheControl}; want max-age=0, must-revalidate`
+      )
+    );
+  }
   return failures;
 }
 
@@ -330,6 +340,16 @@ function validateJustFiveMoreMinutes(jfmm) {
       jfmm?.headers ?? {}
     )
   );
+  const cacheControl = jfmm?.headers?.['cache-control'] ?? '';
+  if (!cacheControl.includes('max-age=0') || !cacheControl.includes('must-revalidate')) {
+    failures.push(
+      failure(
+        'jfmm-cache-control',
+        jfmm?.url ?? JUST_FIVE_MORE_MINUTES_ROUTE_URL,
+        `cache-control ${cacheControl}; want max-age=0, must-revalidate`
+      )
+    );
+  }
   return failures;
 }
 
