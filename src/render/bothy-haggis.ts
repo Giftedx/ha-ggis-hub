@@ -11,8 +11,8 @@
 //   - tiny uneven legs for the haggis-family drift gag
 //
 // Native scale 1 is about 58 wide by 42 tall including legs. The room
-// renderer currently uses scale 2.0 so the mascot reads as a character
-// without filling the doorway (canvas-room.ts: HAGGIS_SCALE).
+// renderer uses scale 1.6 on the storybook-backdrop path. It uses scale
+// 2.0 on the procedural fallback path (canvas-room.ts: HAGGIS_SCALE).
 
 export interface BothyHaggisContext {
   fillStyle: string | CanvasGradient | CanvasPattern;

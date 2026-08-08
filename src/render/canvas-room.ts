@@ -411,9 +411,8 @@ function renderRoom(
       }
     }
 
-    // 7. Hearth — WHS port (drawWhsHearthFrame). 72×72 native; scale 2
-    // = 144×144 footprint. Anchor: fireCenter is the hearthstone center,
-    // we shift origin so the hearthstone slab (s-8..s-2) sits at floor.
+    // 7. Hearth: WHS port (drawWhsHearthFrame). At scale 1.4, its 72×72
+    // native canvas paints a 100.8×100.8 footprint centred on fireCenter.
     const HEARTH_SCALE = 1.4;
     const hearthSize = HEARTH_CANVAS_SIZE * HEARTH_SCALE;
     const hearthOriginX = fireCenter.x - hearthSize / 2;
@@ -1205,9 +1204,8 @@ function drawDoorCasing(ctx: CanvasRoomContext, door: DoorLayout): void {
 function drawLantern(ctx: CanvasRoomContext, door: DoorLayout, phase: number): void {
   const { x, y, width } = door.rect;
   const isLit = door.status === 'launchable';
-  // Lantern hangs above the door. Substantially bigger now — the
-  // previous size was a 10px wide pinprick that disappeared at viewport
-  // scale. Now 22px wide with a proper iron bracket curl off the wall.
+  // The lantern hangs above the door. Its 18-pixel-wide sprite paints a
+  // 36-logical-pixel width at scale 2. The iron bracket curls from the wall.
   const cx = x + Math.round(width / 2);
   const lanternCy = y + 9;
   /* v8 ignore next — drawLantern only called for launchable doors (line 365) */

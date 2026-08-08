@@ -129,9 +129,9 @@ const LANTERN_PALETTE = {
 } as const;
 
 // 18 wide × 28 tall. Bracket arm extends up-left from the cage hanger
-// (rows 0-4) suggesting a wall mount; brass cap sits at the top of the
-// cage; cage is a tall iron rectangle (verticals at cols 4 and 13) with
-// crossbars at rows 6, 12, 17, 22; glass interior glows dawnPeach (p)
+// (rows 0-4) and suggests a wall mount. The brass cap sits above the cage.
+// The cage is a tall iron rectangle with verticals at columns 4 and 11.
+// Its crossbars are at rows 6, 12, 17, and 22. The glass interior glows dawnPeach (p)
 // → dawnGold (g) → dawnHighlight (G) toward the centre. Single flame
 // core at rows 13-14.
 export const LANTERN_LIT: Sprite = defineSprite({
