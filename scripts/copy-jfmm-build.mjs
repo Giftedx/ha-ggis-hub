@@ -6,10 +6,15 @@
 
 import { cp, rm, access, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { GAME_MOUNTS } from './game-mounts.mjs';
 
 const hubRoot = resolve(process.cwd());
-const jfmmDist = resolve(hubRoot, '..', '..', 'experiments', 'just-five-more-minutes', 'dist');
-const dest = resolve(hubRoot, 'dist', 'just-five-more-minutes');
+const mount = GAME_MOUNTS.find(({ id }) => id === 'just-five-more-minutes');
+if (mount === undefined) {
+  throw new Error('GAME_MOUNTS has no Just Five More Minutes entry.');
+}
+const jfmmDist = resolve(hubRoot, mount.sourceDir, 'dist');
+const dest = resolve(hubRoot, 'dist', mount.distDir);
 
 const DROP_AT_ROOT = new Set(['_headers', '_redirects']);
 
@@ -26,7 +31,7 @@ async function main() {
   if (!(await exists(join(jfmmDist, 'index.html')))) {
     console.error(
       `[copy-jfmm] build not found at ${jfmmDist}.\n` +
-        `Build it first: \`npm --prefix ../../experiments/just-five-more-minutes run build:hub\` ` +
+        `Build it first: \`${mount.buildCommand}\` ` +
         `(or run \`pnpm run build:all\`, which does both).`
     );
     process.exit(1);
@@ -43,7 +48,7 @@ async function main() {
 
   const top = await readdir(dest);
   console.log(
-    `[copy-jfmm] mounted Just Five More Minutes at dist/just-five-more-minutes/ (${top.length} top-level entries: ${top.join(', ')})`
+    `[copy-jfmm] mounted Just Five More Minutes at dist/${mount.distDir}/ (${top.length} top-level entries: ${top.join(', ')})`
   );
 }
 

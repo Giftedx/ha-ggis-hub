@@ -14,10 +14,15 @@
 
 import { cp, rm, access, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { GAME_MOUNTS } from './game-mounts.mjs';
 
 const hubRoot = resolve(process.cwd());
-const whsDist = resolve(hubRoot, '..', 'wild-haggis-survivors', 'dist');
-const dest = resolve(hubRoot, 'dist', 'wild');
+const mount = GAME_MOUNTS.find(({ id }) => id === 'wild-haggis-survivors');
+if (mount === undefined) {
+  throw new Error('GAME_MOUNTS has no Wild Haggis Survivors entry.');
+}
+const whsDist = resolve(hubRoot, mount.sourceDir, 'dist');
+const dest = resolve(hubRoot, 'dist', mount.distDir);
 
 const DROP_AT_ROOT = new Set(['_headers', '_redirects']);
 
@@ -34,7 +39,7 @@ async function main() {
   if (!(await exists(join(whsDist, 'index.html')))) {
     console.error(
       `[copy-whs] WHS build not found at ${whsDist}.\n` +
-        `Build it first: \`npm --prefix ../wild-haggis-survivors run build\` ` +
+        `Build it first: \`${mount.buildCommand}\` ` +
         `(or run \`pnpm run build:all\`, which does both).`
     );
     process.exit(1);
@@ -53,7 +58,7 @@ async function main() {
 
   const top = await readdir(dest);
   console.log(
-    `[copy-whs] mounted WHS at dist/wild/ (${top.length} top-level entries: ${top.join(', ')})`
+    `[copy-whs] mounted WHS at dist/${mount.distDir}/ (${top.length} top-level entries: ${top.join(', ')})`
   );
 }
 

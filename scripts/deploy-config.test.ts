@@ -6,6 +6,16 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+// @ts-expect-error: implicit any for JS module
+import { GAME_MOUNTS } from './game-mounts.mjs';
+
+interface DeployMount {
+  id: string;
+  route: string;
+  distDir: string;
+}
+
+const MOUNTS = GAME_MOUNTS as DeployMount[];
 
 const HEADERS_PATH = resolve(__dirname, '..', 'public', '_headers');
 const REDIRECTS_PATH = resolve(__dirname, '..', 'public', '_redirects');
@@ -78,19 +88,19 @@ describe('public/_headers', () => {
     expect(headers).toMatch(/\/\*\.html[\s\S]*?Cache-Control: public, max-age=0, must-revalidate/);
   });
 
-  it('mounted JFMM (/just-five-more-minutes/) hashed assets get immutable cache', () => {
-    expect(headers).toMatch(
-      /\/just-five-more-minutes\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
-    );
+  it('gives each mounted game an immutable asset cache rule', () => {
+    for (const mount of MOUNTS) {
+      const assetPath = `${mount.route}assets/*`;
+      expect
+        .soft(headers, `Missing asset cache rule for ${mount.route}`)
+        .toContain(`${assetPath}\n  Cache-Control: public, max-age=31536000, immutable`);
+    }
   });
 
-  it('mounted WHS (/wild/) hashed assets get immutable cache; its SW revalidates', () => {
+  it('makes the WHS service worker revalidate', () => {
     // WHS is served from the /wild/ sub-path of this project (ADR-0003 Option B).
     // Its chunks are content-hashed → immutable; its service worker must
     // revalidate so deploys propagate without a stale-SW trap.
-    expect(headers).toMatch(
-      /\/wild\/assets\/\*[\s\S]*?Cache-Control: public, max-age=31536000, immutable/
-    );
     expect(headers).toMatch(
       /\/wild\/sw\.js[\s\S]*?Cache-Control: no-cache, no-store, must-revalidate/
     );
@@ -122,24 +132,21 @@ describe('public/_redirects', () => {
     expect(redirects).toMatch(/^\/\*\s+\/index\.html\s+200/m);
   });
 
-  it('rewrites /just-five-more-minutes/* to the JFMM shell, before the hub wildcard', () => {
-    const jfmmRule = redirects.search(
-      /^\/just-five-more-minutes\/\*\s+\/just-five-more-minutes\/index\.html\s+200/m
-    );
+  it('rewrites each mounted game before the hub wildcard', () => {
+    const rules = redirects.split(/\r?\n/);
     const hubWildcard = redirects.search(/^\/\*\s+\/index\.html\s+200/m);
-    expect(jfmmRule).toBeGreaterThanOrEqual(0);
     expect(hubWildcard).toBeGreaterThanOrEqual(0);
-    expect(jfmmRule).toBeLessThan(hubWildcard);
-  });
 
-  it('rewrites /wild/* to the WHS shell, BEFORE the hub wildcard', () => {
-    // WHS is mounted at /wild/ (ADR-0003 Option B). Cloudflare Pages applies
-    // the first matching rule, so the WHS sub-path rewrite must precede the
-    // hub catch-all or WHS deep links would fall through to the hub shell.
-    const wildRule = redirects.search(/^\/wild\/\*\s+\/wild\/index\.html\s+200/m);
-    const hubWildcard = redirects.search(/^\/\*\s+\/index\.html\s+200/m);
-    expect(wildRule).toBeGreaterThanOrEqual(0);
-    expect(hubWildcard).toBeGreaterThanOrEqual(0);
-    expect(wildRule).toBeLessThan(hubWildcard);
+    for (const mount of MOUNTS) {
+      const expectedRule = `${mount.route}* /${mount.distDir}/index.html 200`;
+      const mountRule = rules.findIndex(
+        (line) => line.trim().split(/\s+/).join(' ') === expectedRule
+      );
+      expect.soft(mountRule, `Missing rewrite rule for ${mount.route}`).toBeGreaterThanOrEqual(0);
+
+      if (mountRule >= 0) {
+        expect.soft(redirects.indexOf(rules[mountRule] ?? '')).toBeLessThan(hubWildcard);
+      }
+    }
   });
 });
