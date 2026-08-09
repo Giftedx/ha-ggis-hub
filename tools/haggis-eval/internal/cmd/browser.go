@@ -13,7 +13,7 @@ import (
 //   - smoke-music-toggle.mjs    (opt-in music: no preload, starts on click)
 //   - smoke-reduced-motion.mjs  (prefers-reduced-motion: reduce → status text)
 //   - smoke-locked-door.mjs     (locked door: status text + Enter fires no nav)
-//   - smoke-a11y.mjs            (26 WCAG 2.2 AA spot-checks, chromium only)
+//   - smoke-a11y.mjs            (38 WCAG 2.2 AA spot-checks, chromium only)
 //
 // Shipped 2026-05-23; music-toggle added 2026-05-27; reduced-motion + locked-door added 2026-05-27.
 func Browser() []gate.Result {

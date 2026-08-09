@@ -8,31 +8,33 @@
 // actually fail given its shape (canvas-first SPA, h1 brand heading +
 // one link, no forms, no images apart from CSS-painted SVG icons):
 //
-//   1. WCAG 3.1.1 — Language of Page: <html lang> set + BCP-47 shape.
-//   2. WCAG 1.4.4 — Resize Text: viewport meta does not block zoom
+//   - WCAG 3.1.1 — Language of Page: <html lang> set + BCP-47 shape.
+//   - WCAG 1.4.4 — Resize Text: viewport meta does not block zoom
 //      (no `user-scalable=no`, no `maximum-scale` below 2).
-//   3. WCAG 2.4.2 — Page Titled: non-empty <title>.
-//   4. WCAG 1.1.1 — Non-text Content: <canvas> has accessible name.
-//   5. WCAG 1.1.1 / 2.1.1 — Persistent semantic fallback/help text
+//   - WCAG 2.4.2 — Page Titled: non-empty <title>.
+//   - WCAG 1.1.1 — Non-text Content: <canvas> has accessible name.
+//   - WCAG 1.1.1 / 2.1.1 — Persistent semantic fallback/help text
 //      describes canvas controls and exposes a direct game link.
-//   6. WCAG 4.1.3 — Status Messages: live door proximity is surfaced
+//   - WCAG 4.1.3 — Status Messages: live door proximity is surfaced
 //      through the existing polite status region.
-//   7. WCAG 4.1.2 — Name, Role, Value: every interactive element
+//   - WCAG 4.1.2 — Name, Role, Value: every interactive element
 //      (link, button, input) has an accessible name.
-//   8. WCAG 2.5.3 — Label in Name: aria-labelled controls include their
+//   - WCAG 2.5.3 — Label in Name: aria-labelled controls include their
 //      visible text so speech-input users can target them.
-//   9. WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
+//   - WCAG 2.5.8 — Target Size: persistent controls meet the target-size floor.
+//   - WCAG 2.1.1 — Keyboard: direct-play link reachable + activatable
 //      from the keyboard.
-//   10. WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
+//   - WCAG 2.4.7 — Focus Visible: focused link shows an outline (not
 //      `outline: none` without an alternate visible style).
-//   11. WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
+//   - WCAG 1.4.10 — Reflow: portrait and compact-landscape layouts do not clip.
+//   - WCAG 1.4.3 — Contrast (Minimum): every (fg, bg) pair the eye
 //      reads as a text+plate combination clears 4.5:1 for normal text.
 //      Pairs declared inline — keep this in sync with the palette in
 //      src/render/canvas-room.ts and the noscript style in index.html.
-//   12. Font load — self-hosted Old Standard TT italic woff2 is present
+//   - Font load — self-hosted Old Standard TT italic woff2 is present
 //      after font-display:swap settles; verifies the preload + @font-face
 //      pipeline without a visual regression diff.
-//   13. Runtime errors — any unhandled page error during the walk is
+//   - Runtime errors — any unhandled page error during the walk is
 //      itself a user-facing defect; captured via page.on('pageerror').
 //
 // Exit 0: all checks pass. Exit 1: at least one violation.

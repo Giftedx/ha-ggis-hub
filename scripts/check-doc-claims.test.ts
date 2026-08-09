@@ -69,8 +69,8 @@ function validFiles(): Record<string, string> {
     ...files,
     'package.json':
       '"docs:claims": "node scripts/check-doc-claims.mjs", "verify": "node scripts/run-pnpm-sequence.mjs docs:claims typecheck lint fmt:check test build:verified"',
-    'tools/haggis-eval/README.md': `| \`docs\` | \`node scripts/check-doc-claims.mjs\` |\n\`pre-merge\` (${plain})`,
-    'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.`,
+    'tools/haggis-eval/README.md': `| \`docs\` | \`node scripts/check-doc-claims.mjs\` |\n| \`a11y\` | 38 hand-rolled WCAG 2.2 AA spot-checks |\n\`pre-merge\` (${plain})`,
+    'docs/foundation/07-quality-gates.md': `The pre-merge slice runs ${backtick}.\nAccessibility: 38 WCAG 2.2 AA spot-checks.`,
     '.github/workflows/ci.yml': 'PR CI runs `pnpm verify`; release CI runs `haggis-eval all`.',
   };
 }
@@ -116,6 +116,42 @@ describe('collectDocClaimFailures', () => {
     );
     expect(failures).not.toContainEqual(
       expect.objectContaining({ id: 'generic-signed-report-claim', file: 'CHANGELOG.md' })
+    );
+  });
+
+  it('rejects a stale WCAG spot-check count in any claim file', () => {
+    const files = validFiles();
+    files['WRITEUP.md'] = '38 WCAG 2.2 AA spot-checks'.replace('38', '31');
+
+    const failures = collectDocClaimFailures({ files, slicesConfig: SLICES });
+
+    expect(failures).toContainEqual(
+      expect.objectContaining({
+        id: 'stale-gate-count',
+        file: 'WRITEUP.md',
+        line: 1,
+      })
+    );
+  });
+
+  it('preserves historical WCAG counts in the changelog', () => {
+    const files = validFiles();
+    files['CHANGELOG.md'] = [
+      '# Changelog',
+      '',
+      '## [Unreleased]',
+      '',
+      'Current gate truth has 38 WCAG 2.2 AA spot-checks.',
+      '',
+      '## [0.2.0]',
+      '',
+      ['The release passed ', '26', ' WCAG 2.2 AA checks.'].join(''),
+    ].join('\n');
+
+    const failures = collectDocClaimFailures({ files, slicesConfig: SLICES });
+
+    expect(failures).not.toContainEqual(
+      expect.objectContaining({ id: 'stale-gate-count', file: 'CHANGELOG.md' })
     );
   });
 

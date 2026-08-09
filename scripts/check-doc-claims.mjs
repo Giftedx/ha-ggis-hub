@@ -26,6 +26,9 @@ const SIGNED_JSON_PATTERN = /\bsigned JSON reports?\b/i;
 const SIGNED_JSON_QUALIFIER_PATTERN = /\b(?:FNV-signed|tamper-evident)\b/i;
 const SIGNED_JSON_NEGATION_PATTERN =
   /\b(?:not|never|does not|do not|without)\b[^.]{0,100}\bsigned JSON reports?\b/i;
+const STALE_GATE_COUNT_PATTERNS = [
+  /\b(?!38\b)\d+\s+(?:hand-rolled\s+)?WCAG 2\.2 AA\b/i,
+];
 
 export function formatPlainGateList(gates) {
   return gates.join(' + ');
@@ -84,8 +87,16 @@ export function collectDocClaimFailures({ files, slicesConfig }) {
       snippet: `\`pre-merge\` (${plainPreMerge})`,
     },
     {
+      file: 'tools/haggis-eval/README.md',
+      snippet: '38 hand-rolled WCAG 2.2 AA spot-checks',
+    },
+    {
       file: 'docs/foundation/07-quality-gates.md',
       snippet: `The pre-merge slice runs ${backtickPreMerge}.`,
+    },
+    {
+      file: 'docs/foundation/07-quality-gates.md',
+      snippet: '38 WCAG 2.2 AA spot-checks',
     },
   ];
 
@@ -107,6 +118,8 @@ export function collectDocClaimFailures({ files, slicesConfig }) {
 function collectForbiddenLineFailures(file, text) {
   const failures = [];
   const lines = text.split(/\r?\n/);
+  const changelogHistoryStart =
+    file === 'CHANGELOG.md' ? lines.findIndex((line) => /^## \[0\./.test(line)) : -1;
   lines.forEach((line, index) => {
     if (CRYPTO_SIGNING_PATTERN.test(line) && !CRYPTO_NEGATION_PATTERN.test(line)) {
       failures.push({
@@ -123,6 +136,19 @@ function collectForbiddenLineFailures(file, text) {
     ) {
       failures.push({
         id: 'generic-signed-report-claim',
+        file,
+        line: index + 1,
+        detail: line.trim(),
+      });
+    }
+    const preservesHistoricalChangelogCount =
+      changelogHistoryStart >= 0 && index >= changelogHistoryStart;
+    if (
+      !preservesHistoricalChangelogCount &&
+      STALE_GATE_COUNT_PATTERNS.some((pattern) => pattern.test(line))
+    ) {
+      failures.push({
+        id: 'stale-gate-count',
         file,
         line: index + 1,
         detail: line.trim(),
