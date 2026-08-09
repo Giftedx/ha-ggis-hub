@@ -134,10 +134,10 @@ func TestBuildEmptyGatesIsNotPass(t *testing.T) {
 	for _, gates := range [][]gate.Result{nil, {}} {
 		r := Build("test-run", time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC), gates)
 		if r.OverallStatus == gate.StatusPass {
-			t.Errorf("OverallStatus = PASS for empty gates (len=%d); want non-PASS", len(gates))
+			t.Errorf("OverallStatus = PASS for empty gates (gates=%#v); want non-PASS", gates)
 		}
 		if r.OverallStatus != gate.StatusError {
-			t.Errorf("OverallStatus = %s for empty gates; want ERROR (nothing assessed)", r.OverallStatus)
+			t.Errorf("OverallStatus = %s for empty gates (gates=%#v); want ERROR (nothing assessed)", r.OverallStatus, gates)
 		}
 	}
 }

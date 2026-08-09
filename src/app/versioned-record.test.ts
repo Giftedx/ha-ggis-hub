@@ -164,10 +164,13 @@ describe('createStoredRecordStore', () => {
     // must never block hub startup.
     for (const storage of [null, undefined]) {
       const store = createStoredRecordStore(KEY, createSampleCodec(), storage);
-      expect(store.load()).toEqual({ count: 0 });
-      expect(() => {
-        store.save({ count: 7 });
-      }).not.toThrow();
+      expect(store.load(), `storage=${String(storage)}`).toEqual({ count: 0 });
+      expect(
+        () => {
+          store.save({ count: 7 });
+        },
+        `storage=${String(storage)}`
+      ).not.toThrow();
     }
   });
 
