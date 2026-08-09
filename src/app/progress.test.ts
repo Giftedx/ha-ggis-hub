@@ -99,7 +99,9 @@ describe('hub progress persistence', () => {
         HUB_PROGRESS_KEY,
         JSON.stringify({ schema: 1, ...payload, digest: '0000000000000000' })
       );
-      expect(createHubProgressStore(storage).load()).toEqual(createDefaultHubProgress());
+      expect(createHubProgressStore(storage).load(), `sample ${JSON.stringify(payload)}`).toEqual(
+        createDefaultHubProgress()
+      );
     }
   });
 

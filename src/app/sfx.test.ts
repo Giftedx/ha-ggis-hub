@@ -104,13 +104,13 @@ describe('createChapKnockPlayer', () => {
     // Two knocks, each a low thump + a knuckle tick = 4 one-shot oscillators.
     expect(context.oscillators).toHaveLength(4);
     expect(context.gains).toHaveLength(4);
-    for (const oscillator of context.oscillators) {
-      expect(oscillator.starts).toHaveLength(1);
-      expect(oscillator.stops).toHaveLength(1);
-      expect(oscillator.connections).toHaveLength(1);
+    for (const [oscillatorIndex, oscillator] of context.oscillators.entries()) {
+      expect(oscillator.starts, `oscillator ${oscillatorIndex}`).toHaveLength(1);
+      expect(oscillator.stops, `oscillator ${oscillatorIndex}`).toHaveLength(1);
+      expect(oscillator.connections, `oscillator ${oscillatorIndex}`).toHaveLength(1);
     }
-    for (const gain of context.gains) {
-      expect(gain.connections).toEqual([context.destination]);
+    for (const [gainIndex, gain] of context.gains.entries()) {
+      expect(gain.connections, `gain ${gainIndex}`).toEqual([context.destination]);
     }
     // The second knock lands audibly after the first (chap … chap).
     const startTimes = [...new Set(context.oscillators.map((o) => o.starts[0]!))].sort(
@@ -119,14 +119,14 @@ describe('createChapKnockPlayer', () => {
     expect(startTimes).toHaveLength(2);
     expect(startTimes[1]! - startTimes[0]!).toBeGreaterThan(0.1);
     // Exponential ramps must never target zero (WebAudio throws on 0).
-    for (const node of [...context.oscillators.map((o) => o.frequency)]) {
-      for (const ramp of node.ramps) {
-        expect(ramp.value).toBeGreaterThan(0);
+    for (const [oscillatorIndex, oscillator] of context.oscillators.entries()) {
+      for (const [rampIndex, ramp] of oscillator.frequency.ramps.entries()) {
+        expect(ramp.value, `oscillator ${oscillatorIndex} ramp ${rampIndex}`).toBeGreaterThan(0);
       }
     }
-    for (const gain of context.gains) {
-      for (const ramp of gain.gain.ramps) {
-        expect(ramp.value).toBeGreaterThan(0);
+    for (const [gainIndex, gain] of context.gains.entries()) {
+      for (const [rampIndex, ramp] of gain.gain.ramps.entries()) {
+        expect(ramp.value, `gain ${gainIndex} ramp ${rampIndex}`).toBeGreaterThan(0);
       }
     }
   });

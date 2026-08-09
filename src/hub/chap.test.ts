@@ -24,10 +24,12 @@ describe('CHAP_RETORTS table', () => {
 
   it('pairs an uppercase canvas sign with a fuller spoken status line for every retort', () => {
     for (const retort of CHAP_RETORTS) {
-      expect(retort.sign).toBe(retort.sign.toUpperCase());
-      expect(retort.spoken.length).toBeGreaterThan(0);
+      expect(retort.sign, `sample ${JSON.stringify(retort)}`).toBe(retort.sign.toUpperCase());
+      expect(retort.spoken.length, `sample ${JSON.stringify(retort)}`).toBeGreaterThan(0);
       // The spoken status line is a fuller sentence than the terse canvas sign.
-      expect(retort.spoken.length).toBeGreaterThan(retort.sign.length);
+      expect(retort.spoken.length, `sample ${JSON.stringify(retort)}`).toBeGreaterThan(
+        retort.sign.length
+      );
     }
   });
 
