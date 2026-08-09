@@ -145,7 +145,12 @@ describe('public/_redirects', () => {
       expect.soft(mountRule, `Missing rewrite rule for ${mount.route}`).toBeGreaterThanOrEqual(0);
 
       if (mountRule >= 0) {
-        expect.soft(redirects.indexOf(rules[mountRule] ?? '')).toBeLessThan(hubWildcard);
+        expect
+          .soft(
+            redirects.indexOf(rules[mountRule] ?? ''),
+            `Rewrite rule for ${mount.route} must precede the hub wildcard`
+          )
+          .toBeLessThan(hubWildcard);
       }
     }
   });
