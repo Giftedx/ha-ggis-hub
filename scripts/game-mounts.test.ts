@@ -32,8 +32,12 @@ describe('GAME_MOUNTS manifest', () => {
       expect(mounts.length, `Registry entry ${game.id} must have exactly one mount`).toBe(1);
 
       const mount = mounts[0];
-      expect(mount?.route).toBe(game.launch.target);
-      expect(mount?.distDir).toBe(game.launch.target.replace(/\//g, ''));
+      expect(mount?.route, `Mount ${game.id} route must match the registry launch target`).toBe(
+        game.launch.target
+      );
+      expect(mount?.distDir, `Mount ${game.id} distDir must match the registry launch target`).toBe(
+        game.launch.target.replace(/\//g, '')
+      );
     }
   });
 
