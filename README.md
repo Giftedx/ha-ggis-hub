@@ -20,7 +20,6 @@ The hub is one painted bothy room with three doors. You steer the Wee Chieftain 
 
 A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) computes deterministic movement and door proximity. A strict TypeScript/Vite host owns lifecycle, input, the game registry, launch seams, and a hand-rolled Canvas2D renderer. A full CSP, security headers, a source-map policy, and build verification harden the deployment. Browser smoke tests cover both the keyboard and the tap launch paths.
 
-<!-- ste-lint: off -->
 <table>
   <tr>
     <td width="50%"><img src="./assets/screens/bothy-idle.png" alt="The bothy: a painted Highland interior with a hearth, tartan rug, and a window onto dawn hills, with the bonneted Wee Chieftain near the woodpile" /></td>
@@ -31,7 +30,6 @@ A Rust + WebAssembly core (`hub-core`, `hub-wasm`, `hub-hardlang`) computes dete
     <td align="center"><sub>Walk to a door and the hub offers the game</sub></td>
   </tr>
 </table>
-<!-- ste-lint: on -->
 
 ---
 
