@@ -39,3 +39,9 @@ func TestPrintAndExitAnyNonPassIsOne(t *testing.T) {
 		}
 	}
 }
+
+func TestDifferentialExitCodeUnknownTargetIsTwo(t *testing.T) {
+	if got := differentialExitCode("bogus"); got != 2 {
+		t.Errorf("differentialExitCode(unknown) = %d; want 2", got)
+	}
+}

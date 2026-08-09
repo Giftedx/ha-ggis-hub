@@ -38,7 +38,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "differential requires a target: rng | hash")
 			os.Exit(2)
 		}
-		os.Exit(printAndExit("differential", cmd.Differential(os.Args[2])))
+		os.Exit(differentialExitCode(os.Args[2]))
 	case "browser":
 		os.Exit(printAndExit("browser", cmd.Browser()))
 	case "multi-browser":
@@ -106,6 +106,15 @@ func main() {
 		usage(os.Stderr)
 		os.Exit(2)
 	}
+}
+
+func differentialExitCode(target string) int {
+	results := cmd.Differential(target)
+	if target != "rng" && target != "hash" {
+		printAndExit("differential", results)
+		return 2
+	}
+	return printAndExit("differential", results)
 }
 
 func usage(w *os.File) {
