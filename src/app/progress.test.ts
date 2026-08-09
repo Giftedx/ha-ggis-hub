@@ -94,12 +94,15 @@ describe('hub progress persistence', () => {
       { visits: 0, lockedChaps: 0, doorEntries: { 'wild-haggis-survivors': 0 } },
       { visits: 0, lockedChaps: 0, doorEntries: { 'Not Kebab!': 1 } },
     ];
-    for (const payload of cases) {
+    for (const [index, payload] of cases.entries()) {
       storage.values.set(
         HUB_PROGRESS_KEY,
         JSON.stringify({ schema: 1, ...payload, digest: '0000000000000000' })
       );
-      expect(createHubProgressStore(storage).load()).toEqual(createDefaultHubProgress());
+      expect(
+        createHubProgressStore(storage).load(),
+        `Malformed progress case ${index}: ${JSON.stringify(payload)}`
+      ).toEqual(createDefaultHubProgress());
     }
   });
 

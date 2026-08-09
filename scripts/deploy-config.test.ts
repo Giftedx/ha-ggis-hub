@@ -65,7 +65,7 @@ describe('public/_headers', () => {
       'Origin-Agent-Cluster: ?1',
     ];
     for (const line of required) {
-      expect(headers).toContain(line);
+      expect(headers, `Missing security header: ${line}`).toContain(line);
     }
   });
 
