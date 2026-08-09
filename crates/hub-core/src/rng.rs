@@ -1,7 +1,10 @@
-//! Deterministic seedable RNG — `xoshiro128**` (Blackman & Vigna). 16 bytes of
-//! state, fast, public reference vectors, fits inside `Sim`. Runtime default
-//! Rust implementation; a hand-authored WAT implementation lands in plan 3 and
-//! is differentially tested against this one.
+//! This module implements the deterministic, seedable `xoshiro128**` RNG
+//! (Blackman & Vigna). Its 16-byte state fits inside `Sim`. Public reference
+//! vectors test its output. The Rust
+//! implementation is the runtime default. `asm/xoshiro128_starstar.wat`
+//! contains the hand-authored WAT implementation.
+//! `crates/hub-hardlang/tests/differential_rng.rs` tests it against this
+//! implementation.
 
 /// Seedable xoshiro128** RNG. The internal state is 16 bytes (four `u32`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

@@ -9,12 +9,12 @@
 //!
 //! ## Why the WAT runtime lives here, not in `src/lib.rs`
 //!
-//! Plan 3 phase 2 calls for `wat` and `wasmi` to be `[dev-dependencies]`
-//! so they stay out of the production / wasm32 build graph. Dev-deps
-//! are invisible to `src/lib.rs`, so `make_wat_rng` and `WatRngError`
-//! live here in the integration test that needs them. The WAT source
-//! itself is re-exported as `hub_hardlang::XOSHIRO_WAT_SOURCE` so this
-//! file does not need to know the `../../../asm/...` include path.
+//! `wat` and `wasmi` are `[dev-dependencies]`, so they stay out of the
+//! production and wasm32 build graphs. Dev-dependencies are invisible to
+//! `src/lib.rs`. Therefore, `make_wat_rng` and `WatRngError` live in this
+//! integration test. The library re-exports `asm/xoshiro128_starstar.wat` as
+//! `hub_hardlang::XOSHIRO_WAT_SOURCE` so this test does not duplicate its
+//! relative include path.
 
 use hub_core::rng::Rng;
 use hub_hardlang::XOSHIRO_WAT_SOURCE;

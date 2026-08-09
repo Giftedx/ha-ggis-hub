@@ -20,10 +20,10 @@
 //! compiled and instantiated under `wasmi` by `tests/differential_rng.rs`.
 //! The driver code (`make_wat_rng`, `WatRngError`) lives in that
 //! integration test rather than in this library because `wat` and
-//! `wasmi` are `[dev-dependencies]` — per plan 3's directive to keep
-//! them out of the production build graph — and `src/lib.rs` cannot
-//! reference dev-deps. We re-export the WAT source string here so the
-//! test can read it through a stable, in-crate path.
+//! `wasmi` are `[dev-dependencies]`. This keeps them out of the production
+//! build graph, and `src/lib.rs` cannot reference dev-dependencies. We
+//! re-export the WAT source string here so the test can read it through a
+//! stable in-crate path.
 
 #![allow(unsafe_code)]
 
@@ -40,10 +40,10 @@ mod c_ffi {
         fn fnv1a_64(data: *const c_uchar, len: usize) -> u64;
     }
 
-    /// Compute FNV-1a 64-bit hash via the hand-rolled C kernel at
-    /// `c/fnv1a.c`. Differential test asserts byte-identical output to
-    /// `hub_core::hash::fnv1a_64`. Not available on `wasm32` targets;
-    /// the wasm-side differential lands in plan 4 via Playwright.
+    /// Compute an FNV-1a 64-bit hash with the hand-rolled C kernel at
+    /// `c/fnv1a.c`. `crates/hub-hardlang/tests/differential_hash.rs` tests
+    /// it against `hub_core::hash::fnv1a_64`. This function is not available
+    /// on `wasm32` targets. A wasm-side C differential remains open.
     ///
     /// # Safety
     ///

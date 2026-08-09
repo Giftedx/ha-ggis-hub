@@ -1,7 +1,8 @@
 //! FNV-1a 64-bit non-cryptographic hash used for state digests and the
 //! `.haggislog` integrity trailer. The pure-Rust implementation here is the
-//! runtime default; a hand-authored C implementation is wired in plan 3 and
-//! verified against this one by differential test.
+//! runtime default. `c/fnv1a.c` contains the hand-authored C implementation.
+//! `crates/hub-hardlang/tests/differential_hash.rs` tests it against this
+//! implementation.
 
 const FNV_OFFSET_BASIS_64: u64 = 0xcbf2_9ce4_8422_2325;
 const FNV_PRIME_64: u64 = 0x0000_0100_0000_01b3;
